@@ -1,0 +1,95 @@
+<aside 
+  class="h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out"
+  [class]="isExpanded() ? 'w-64' : 'w-20'">
+  
+  <!-- Header -->
+  <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+    @if (isExpanded()) {
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+          <span class="text-white font-bold text-sm">AYNI</span>
+        </div>
+        <span class="font-semibold text-gray-800">Gestión de Proyectos</span>
+      </div>
+    } @else {
+      <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mx-auto">
+        <span class="text-white font-bold text-xs">AYNI</span>
+      </div>
+    }
+    <button 
+      (click)="toggleSidebar()" 
+      class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"
+      [class.mx-auto]="!isExpanded()">
+      @if (isExpanded()) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+        </svg>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
+      }
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 p-3 overflow-y-auto">
+    <ul class="space-y-1">
+      @for (item of menuItems; track item.route) {
+        <li>
+          <a 
+            [routerLink]="item.route"
+            routerLinkActive="bg-green-50 text-green-700 border-l-4 border-green-500"
+            [routerLinkActiveOptions]="{exact: false}"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors group"
+            [class.justify-center]="!isExpanded()"
+            [title]="!isExpanded() ? item.label : ''">
+            <span class="text-xl flex-shrink-0">{{ item.icon }}</span>
+            @if (isExpanded()) {
+              <span class="text-sm font-medium truncate">{{ item.label }}</span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- Footer -->
+  <div class="p-3 border-t border-gray-200 space-y-1">
+    <!-- Dark Mode Toggle -->
+    <button 
+      (click)="toggleDarkMode()"
+      class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+      [class.justify-center]="!isExpanded()">
+      <span class="text-xl">{{ isDarkMode() ? '☀️' : '🌙' }}</span>
+      @if (isExpanded()) {
+        <span class="text-sm font-medium">Modo Oscuro</span>
+      }
+    </button>
+
+    <!-- Alerts -->
+    <a 
+      routerLink="/alertas"
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+      [class.justify-center]="!isExpanded()">
+      <span class="text-xl">🔔</span>
+      @if (isExpanded()) {
+        <span class="text-sm font-medium">Alertas</span>
+      }
+    </a>
+
+    <!-- User Profile -->
+    <div 
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+      [class.justify-center]="!isExpanded()">
+      <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      @if (isExpanded()) {
+        <span class="text-sm font-medium text-gray-700">Administrador</span>
+      }
+    </div>
+  </div>
+</aside>

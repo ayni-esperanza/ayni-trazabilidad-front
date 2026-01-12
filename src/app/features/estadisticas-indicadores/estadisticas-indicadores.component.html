@@ -1,0 +1,145 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Estadísticas e Indicadores</h1>
+  
+  <!-- KPIs principales -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 text-center">
+      <h4 class="text-sm text-gray-500 mb-2">Proyectos Completados</h4>
+      <p class="text-4xl font-bold text-gray-800 mb-2">85%</p>
+      <span class="inline-flex items-center gap-1 text-sm font-medium text-green-600">
+        <span>↑</span> 5% vs mes anterior
+      </span>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6 text-center">
+      <h4 class="text-sm text-gray-500 mb-2">Tareas en Tiempo</h4>
+      <p class="text-4xl font-bold text-gray-800 mb-2">92%</p>
+      <span class="inline-flex items-center gap-1 text-sm font-medium text-green-600">
+        <span>↑</span> 3% vs mes anterior
+      </span>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6 text-center">
+      <h4 class="text-sm text-gray-500 mb-2">Eficiencia del Equipo</h4>
+      <p class="text-4xl font-bold text-gray-800 mb-2">78%</p>
+      <span class="inline-flex items-center gap-1 text-sm font-medium text-red-600">
+        <span>↓</span> 2% vs mes anterior
+      </span>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6 text-center">
+      <h4 class="text-sm text-gray-500 mb-2">Satisfacción</h4>
+      <p class="text-4xl font-bold text-gray-800 mb-2">4.5/5</p>
+      <span class="inline-flex items-center gap-1 text-sm font-medium text-gray-500">
+        <span>→</span> Sin cambios
+      </span>
+    </div>
+  </div>
+
+  <!-- Gráficos de tendencias -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tendencias de Proyectos</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div class="text-center">
+          <span class="text-4xl">📈</span>
+          <p class="text-gray-500 mt-2">Gráfico de Avance Mensual</p>
+        </div>
+      </div>
+      <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div class="text-center">
+          <span class="text-4xl">📊</span>
+          <p class="text-gray-500 mt-2">Distribución por Estado</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicadores por proyecto -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Indicadores por Proyecto</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Proyecto</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Avance</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Tareas Completadas</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Eficiencia</th>
+            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-4 text-sm text-gray-700 font-medium">Proyecto Alpha</td>
+            <td class="py-4 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-500 rounded-full" style="width: 75%"></div>
+                </div>
+                <span class="text-sm text-gray-700">75%</span>
+              </div>
+            </td>
+            <td class="py-4 px-4 text-sm text-gray-700">15/20</td>
+            <td class="py-4 px-4 text-sm text-gray-700">85%</td>
+            <td class="py-4 px-4">
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">En progreso</span>
+            </td>
+          </tr>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-4 text-sm text-gray-700 font-medium">Proyecto Beta</td>
+            <td class="py-4 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                </div>
+                <span class="text-sm text-gray-700">100%</span>
+              </div>
+            </td>
+            <td class="py-4 px-4 text-sm text-gray-700">25/25</td>
+            <td class="py-4 px-4 text-sm text-gray-700">92%</td>
+            <td class="py-4 px-4">
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Completado</span>
+            </td>
+          </tr>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-4 text-sm text-gray-700 font-medium">Proyecto Gamma</td>
+            <td class="py-4 px-4">
+              <div class="flex items-center gap-2">
+                <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-yellow-500 rounded-full" style="width: 45%"></div>
+                </div>
+                <span class="text-sm text-gray-700">45%</span>
+              </div>
+            </td>
+            <td class="py-4 px-4 text-sm text-gray-700">9/20</td>
+            <td class="py-4 px-4 text-sm text-gray-700">72%</td>
+            <td class="py-4 px-4">
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">En riesgo</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Rendimiento del Equipo -->
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Rendimiento del Equipo</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-gray-50 rounded-lg p-4 text-center">
+        <span class="block text-sm text-gray-500 mb-2">Tareas completadas hoy</span>
+        <span class="block text-3xl font-bold text-gray-800">12</span>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center">
+        <span class="block text-sm text-gray-500 mb-2">Promedio diario</span>
+        <span class="block text-3xl font-bold text-gray-800">10.5</span>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center">
+        <span class="block text-sm text-gray-500 mb-2">Tiempo promedio por tarea</span>
+        <span class="block text-3xl font-bold text-gray-800">2.3h</span>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 text-center">
+        <span class="block text-sm text-gray-500 mb-2">Productividad semanal</span>
+        <span class="block text-3xl font-bold text-gray-800">95%</span>
+      </div>
+    </div>
+  </div>
+</div>

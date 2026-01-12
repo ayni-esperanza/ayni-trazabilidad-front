@@ -1,0 +1,30 @@
+/* Estilos adicionales para el Sidebar - Tailwind maneja la mayoría */
+
+:host {
+  display: block;
+  height: 100vh;
+}
+
+/* Scrollbar personalizado */
+nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+nav::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+
+nav::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+/* Active state styling */
+a.bg-green-50 {
+  margin-left: -4px;
+  padding-left: calc(0.75rem + 4px);
+}
