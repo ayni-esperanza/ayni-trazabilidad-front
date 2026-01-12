@@ -1,5 +1,5 @@
-import { Component, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 interface MenuItem {
@@ -16,6 +16,8 @@ interface MenuItem {
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
+  private platformId = inject(PLATFORM_ID);
+  
   isExpanded = signal(true);
   isDarkMode = signal(false);
 
@@ -30,6 +32,29 @@ export class SidebarComponent {
     { icon: '👥', label: 'Gestión de usuarios', route: '/gestion-usuarios' },
     { icon: '⚙️', label: 'Configuración de procesos', route: '/configuracion-procesos' }
   ];
+
+  constructor() {
+    // Inicializar desde localStorage
+    if (isPlatformBrowser(this.platformId)) {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.isDarkMode.set(savedTheme === 'dark' || (!savedTheme && prefersDark));
+    }
+
+    // Effect para aplicar la clase dark al documento
+    effect(() => {
+      if (isPlatformBrowser(this.platformId)) {
+        const isDark = this.isDarkMode();
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        }
+      }
+    });
+  }
 
   toggleSidebar(): void {
     this.isExpanded.update(v => !v);
