@@ -16,37 +16,37 @@ export const routes: Routes = [
   {
     path: 'tablero-control',
     component: TableroControlComponent,
-    title: 'Tablero de Control'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'registro-solicitudes',
     component: RegistroSolicitudesComponent,
-    title: 'Registro de Solicitudes'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'asignacion-tareas',
     component: AsignacionTareasComponent,
-    title: 'Asignación de Tareas'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'informes-evidencias',
     component: InformesEvidenciasComponent,
-    title: 'Informes y Evidencias'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'estadisticas-indicadores',
     component: EstadisticasIndicadoresComponent,
-    title: 'Estadísticas e Indicadores'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'gestion-usuarios',
     component: GestionUsuariosComponent,
-    title: 'Gestión de Usuarios'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: 'configuracion-procesos',
     component: ConfiguracionProcesosComponent,
-    title: 'Configuración de Procesos'
+    title: 'Módulo de Trazabilidad'
   },
   {
     path: '**',
