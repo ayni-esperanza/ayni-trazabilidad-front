@@ -1,6 +1,7 @@
 <aside 
   class="h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out"
-  [class]="isExpanded() ? 'w-64' : 'w-20'">
+  [class.w-64]="isExpanded()"
+  [class.w-20]="!isExpanded()">
   
   <!-- Header -->
   <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -58,12 +59,13 @@
   <div class="p-3 border-t border-gray-200 dark:border-gray-700 space-y-1">
     <!-- Dark Mode Toggle -->
     <button 
-      (click)="toggleDarkMode()"
-      class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-      [class.justify-center]="!isExpanded()">
-      <span class="text-xl">{{ isDarkMode() ? '☀️' : '🌙' }}</span>
+      (click)="toggleTheme()"
+      class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
+      [class.justify-center]="!isExpanded()"
+      [attr.aria-label]="themeService.isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+      <span class="text-xl">{{ themeService.isDarkMode() ? '☀️' : '🌙' }}</span>
       @if (isExpanded()) {
-        <span class="text-sm font-medium">{{ isDarkMode() ? 'Modo Claro' : 'Modo Oscuro' }}</span>
+        <span class="text-sm font-medium">{{ themeService.isDarkMode() ? 'Modo Claro' : 'Modo Oscuro' }}</span>
       }
     </button>
 

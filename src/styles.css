@@ -1,8 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 
-/* Dark mode - class based */
+/* Configuración de dark mode con selector de clase para Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Flowbite */
-@import "flowbite";
+/* Flowbite - Tema y configuración */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "flowbite/src/themes/default";
+
+/* Plugin de Flowbite */
+@plugin "flowbite/plugin";
+
+/* Source files de Flowbite */
+@source "../node_modules/flowbite";
