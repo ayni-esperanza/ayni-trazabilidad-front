@@ -1,0 +1,61 @@
+<div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
+  <!-- Info de registros -->
+  @if (mostrarInfo) {
+    <div class="text-sm text-gray-500 dark:text-gray-400">
+      @if (config.totalElementos > 0) {
+        Mostrando {{ inicioRegistros }} a {{ finRegistros }} de {{ config.totalElementos }} elementos
+      } @else {
+        No hay elementos
+      }
+    </div>
+  }
+  
+  <div class="flex items-center gap-4 ml-auto">
+    <!-- Selector de cantidad por página -->
+    @if (mostrarSelector) {
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Mostrar:</span>
+        <select 
+          [(ngModel)]="config.porPagina"
+          (ngModelChange)="onCambioTamano()"
+          class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none min-w-[80px]">
+          @for (opcion of opcionesPorPagina; track opcion) {
+            <option [ngValue]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+    }
+    
+    <!-- Navegación -->
+    @if (mostrarNavegacion && config.totalPaginas > 1) {
+      <div class="flex items-center gap-1">
+        <!-- Página anterior -->
+        <button 
+          (click)="paginaAnterior()"
+          [disabled]="!puedeRetroceder"
+          class="p-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+          title="Página anterior">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        
+        <!-- Indicador de página -->
+        <span class="px-3 py-1 text-sm text-gray-600 dark:text-gray-300">
+          Página {{ config.paginaActual + 1 }} de {{ config.totalPaginas || 1 }}
+        </span>
+        
+        <!-- Página siguiente -->
+        <button 
+          (click)="paginaSiguiente()"
+          [disabled]="!puedeAvanzar"
+          class="p-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"
+          title="Página siguiente">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+</div>
