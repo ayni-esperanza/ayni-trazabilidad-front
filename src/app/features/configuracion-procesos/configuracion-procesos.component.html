@@ -1,199 +1,68 @@
-<div class="p-6 bg-gray-50 dark:bg-gray-800 min-h-screen">
-  <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Configuración de Procesos</h1>
-  
-  <!-- Gestión de procesos -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Procesos Configurados</h3>
-      <button class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-        <span>+</span> Nuevo Proceso
-      </button>
-    </div>
-    <div class="space-y-3">
-      <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-          <span class="text-xl">📋</span>
-        </div>
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-800 dark:text-white">Gestión de Proyectos</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Proceso principal para administrar proyectos</p>
-        </div>
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Activo</span>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">⚙️</button>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-      </div>
-      <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-        <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-          <span class="text-xl">✅</span>
-        </div>
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-800 dark:text-white">Aprobación de Solicitudes</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Flujo de aprobaciones y validaciones</p>
-        </div>
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Activo</span>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">⚙️</button>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-      </div>
-      <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-        <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
-          <span class="text-xl">📦</span>
-        </div>
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-800 dark:text-white">Gestión de Recursos</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Control y asignación de recursos</p>
-        </div>
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Inactivo</span>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">⚙️</button>
-        <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-      </div>
-    </div>
+<div class="p-4 bg-white dark:bg-gray-900 min-h-screen">
+  <div class="flex items-center justify-between mb-3">
+    <h1 class="text-base font-semibold text-gray-800 dark:text-white">Configuración de Procesos</h1>
+
+    <button
+      type="button"
+      (click)="abrirModalNuevoProceso()"
+      class="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-full transition-colors flex items-center gap-2">
+      <span class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-white/20">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+      </span>
+      Nuevo Proceso
+    </button>
   </div>
 
-  <!-- Flujos de trabajo -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Flujos de Trabajo</h3>
-    <div class="space-y-4">
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="font-medium text-gray-800 dark:text-white">Flujo de Aprobación</h4>
-          <button class="px-3 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">Editar flujo</button>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <div class="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium">Inicio</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium">Revisión</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium">Aprobación</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium">Fin</div>
-        </div>
-      </div>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <h4 class="font-medium text-gray-800 dark:text-white">Flujo de Proyecto</h4>
-          <button class="px-3 py-1 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">Editar flujo</button>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <div class="px-4 py-2 bg-purple-500 text-white rounded-full text-sm font-medium">Planificación</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-purple-500 text-white rounded-full text-sm font-medium">Ejecución</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-purple-500 text-white rounded-full text-sm font-medium">Seguimiento</div>
-          <span class="text-gray-400">→</span>
-          <div class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium">Cierre</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Etapas y estados -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Etapas y Estados</h3>
-      <button class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-        + Nueva Etapa
-      </button>
-    </div>
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Etapa</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Descripción</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Color</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Orden</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Estado</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <tr>
+            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
+            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proceso</th>
+            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Area</th>
+            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Etapas</th>
+            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Flujo</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Planificación</td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">Fase inicial del proyecto</td>
-            <td class="py-4 px-4"><span class="w-5 h-5 rounded bg-blue-500 inline-block"></span></td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">1</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Activo</span>
-            </td>
-            <td class="py-4 px-4">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-                <button class="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Ejecución</td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">Desarrollo del proyecto</td>
-            <td class="py-4 px-4"><span class="w-5 h-5 rounded bg-yellow-500 inline-block"></span></td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">2</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Activo</span>
-            </td>
-            <td class="py-4 px-4">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-                <button class="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Cierre</td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">Finalización del proyecto</td>
-            <td class="py-4 px-4"><span class="w-5 h-5 rounded bg-green-500 inline-block"></span></td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">3</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Activo</span>
-            </td>
-            <td class="py-4 px-4">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-                <button class="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500">🗑️</button>
-              </div>
-            </td>
-          </tr>
+
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          @for (p of procesos; track p.id) {
+            <tr
+              (click)="seleccionarProceso(p)"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors cursor-pointer">
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-300">{{ p.id }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ p.proceso }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ p.area }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ p.etapas }}</td>
+              <td class="py-2 px-4">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                  @for (s of p.flujo; track $index) {
+                    <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/25 px-3 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-300">
+                      {{ s }}
+                    </span>
+                    @if ($index < p.flujo.length - 1) {
+                      <span class="text-gray-400">→</span>
+                    }
+                  }
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Configuración General -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Configuración General</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Sistema</label>
-        <input type="text" value="AYNI Trazabilidad" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Zona Horaria</label>
-        <select class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-          <option value="america/lima">América/Lima (UTC-5)</option>
-          <option value="america/bogota">América/Bogota (UTC-5)</option>
-          <option value="america/santiago">América/Santiago (UTC-4)</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formato de Fecha</label>
-        <select class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-          <option value="dd/mm/yyyy">DD/MM/YYYY</option>
-          <option value="mm/dd/yyyy">MM/DD/YYYY</option>
-          <option value="yyyy-mm-dd">YYYY-MM-DD</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Idioma</label>
-        <select class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-          <option value="es">Español</option>
-          <option value="en">English</option>
-          <option value="pt">Português</option>
-        </select>
-      </div>
-    </div>
-    <div class="mt-6 flex justify-end">
-      <button class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-        Guardar Configuración
-      </button>
-    </div>
-  </div>
+  @if (mostrarModal) {
+    <app-proceso-form-modal
+      [visible]="true"
+      [proceso]="procesoSeleccionado"
+      (cerrar)="cerrarModal()"
+      (guardar)="onGuardarProceso($event)"
+      (eliminar)="onEliminarProceso($event)">
+    </app-proceso-form-modal>
+  }
 </div>
