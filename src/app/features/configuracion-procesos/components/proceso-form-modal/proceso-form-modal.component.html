@@ -1,11 +1,15 @@
 @if (visible) {
   <div class="fixed inset-0 z-50">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/40" (click)="onBackdropClick()"></div>
-
     <!-- Dialog -->
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl">
+    <div
+      class="absolute inset-0 flex items-center justify-center p-4"
+      appModalDismiss
+      [enabled]="visible"
+      (dismissed)="onCloseClick()">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40"></div>
+
+      <div data-modal-content class="relative z-10 w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl">
         <!-- Header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <div>

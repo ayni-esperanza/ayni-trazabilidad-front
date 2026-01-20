@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario, Rol } from '../../models/usuario.model';
+import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 
 export interface UsuarioFormData {
   id?: number;
@@ -20,7 +21,7 @@ export interface UsuarioFormData {
 @Component({
   selector: 'app-usuario-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective],
   templateUrl: './usuario-form-modal.component.html',
   styleUrls: ['./usuario-form-modal.component.css']
 })
@@ -103,11 +104,6 @@ export class UsuarioFormModalComponent implements OnChanges {
     );
   }
   
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.onCerrar();
-    }
-  }
   
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;

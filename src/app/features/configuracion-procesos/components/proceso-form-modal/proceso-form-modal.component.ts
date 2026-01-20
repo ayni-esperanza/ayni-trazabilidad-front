@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 
 export interface ProcesoFormData {
   id?: number;
@@ -13,7 +14,7 @@ export interface ProcesoFormData {
 @Component({
   selector: 'app-proceso-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective],
   templateUrl: './proceso-form-modal.component.html',
   styleUrls: ['./proceso-form-modal.component.css'],
 })
@@ -63,10 +64,6 @@ export class ProcesoFormModalComponent implements OnChanges {
   onFlujoTextoChange(value: string): void {
     this.flujoTexto = value;
     this.actualizarPreviewFlujo(value);
-  }
-
-  onBackdropClick(): void {
-    this.cerrar.emit();
   }
 
   onCloseClick(): void {
