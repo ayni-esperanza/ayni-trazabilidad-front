@@ -1,20 +1,25 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
-  AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
+  PLATFORM_ID,
   Output,
   SimpleChanges,
   ViewChild,
   ViewChildren,
   QueryList,
+  OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { WatermarkService } from '../../services/watermark.service';
 
 export interface InformeFormData {
   id?: string;
@@ -27,11 +32,11 @@ export interface InformeFormData {
 @Component({
   selector: 'app-informe-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule],
   templateUrl: './informe-form-modal.component.html',
   styleUrls: ['./informe-form-modal.component.css'],
 })
-export class InformeFormModalComponent implements OnChanges, AfterViewInit {
+export class InformeFormModalComponent implements OnChanges, OnInit {
   @Input() visible = false;
   @Input() informe: InformeFormData | null = null;
 
@@ -58,27 +63,13 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
     return Math.round(this.previewBaseWidthPx * (this.zoom || 1));
   }
 
-  protected fontFamily = 'Arial';
-  protected readonly fontFamilies = ['Arial', 'Roboto', 'Times New Roman', 'Georgia', 'Courier New'];
+  public Editor: any;
 
-  // execCommand soporta fontSize 1..7
-  protected fontSize = 3;
-  protected readonly fontSizeOptions: Array<{ label: string; value: number }> = [
-    { label: '10', value: 2 },
-    { label: '12', value: 3 },
-    { label: '14', value: 4 },
-    { label: '18', value: 5 },
-    { label: '24', value: 6 },
-    { label: '32', value: 7 },
-  ];
+  protected ckeditorConfig: any = {};
 
-  protected textColor = '#111827';
-  protected highlightColor = '#ffffff';
+  protected readonly isBrowser: boolean;
 
   protected exportandoPdf = false;
-
-  @ViewChild('editor', { static: false })
-  private editorRef?: ElementRef<HTMLDivElement>;
 
   @ViewChild('paginationHost', { static: false })
   private paginationHostRef?: ElementRef<HTMLElement>;
@@ -88,12 +79,70 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
 
   protected readonly opcionesFirma: string[] = ['Todas las Firmas', 'Firma 1', 'Firma 2'];
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private watermarkService: WatermarkService,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
-  ngAfterViewInit(): void {
-    // Asegura que el editor se hidrate cuando el modal abra.
-    if (this.visible) {
-      setTimeout(() => this.syncEditorFromModel(), 0);
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      import('ckeditor5').then(({
+        ClassicEditor,
+        Bold,
+        Essentials,
+        Heading,
+        Indent,
+        IndentBlock,
+        Italic,
+        Link,
+        List,
+        MediaEmbed,
+        Paragraph,
+        Table,
+        Undo,
+      }) => {
+        this.Editor = ClassicEditor;
+        this.ckeditorConfig = {
+          licenseKey: 'GPL',
+          toolbar: [
+            'undo',
+            'redo',
+            '|',
+            'heading',
+            '|',
+            'bold',
+            'italic',
+            '|',
+            'link',
+            'insertTable',
+            'mediaEmbed',
+            '|',
+            'bulletedList',
+            'numberedList',
+            'indent',
+            'outdent',
+          ],
+          plugins: [
+            Bold,
+            Essentials,
+            Heading,
+            Indent,
+            IndentBlock,
+            Italic,
+            Link,
+            List,
+            MediaEmbed,
+            Paragraph,
+            Table,
+            Undo,
+          ],
+        };
+        this.cdr.detectChanges();
+      });
     }
   }
 
@@ -101,10 +150,6 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
     if (changes['visible'] || changes['informe']) {
       this.hidratarFormulario();
       this.actualizarPreview();
-
-      if (this.visible) {
-        setTimeout(() => this.syncEditorFromModel(), 0);
-      }
     }
   }
 
@@ -126,55 +171,6 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
     this.guardar.emit(payload);
   }
 
-  protected onEditorInput(): void {
-    const editor = this.editorRef?.nativeElement;
-    this.form.cuerpoHtml = editor?.innerHTML ?? '';
-    this.actualizarPreview();
-  }
-
-  protected aplicarFormato(cmd: 'bold' | 'italic' | 'underline'): void {
-    this.exec(cmd);
-  }
-
-  protected aplicarComando(cmd: string): void {
-    this.exec(cmd);
-  }
-
-  protected setFontFamily(value: string): void {
-    this.fontFamily = value;
-    this.exec('fontName', value);
-  }
-
-  protected setFontSize(value: number): void {
-    this.fontSize = value;
-    this.exec('fontSize', String(value));
-  }
-
-  protected setTextColor(value: string): void {
-    this.textColor = value;
-    this.exec('foreColor', value);
-  }
-
-  protected setHighlightColor(value: string): void {
-    this.highlightColor = value;
-    // Algunos browsers usan hiliteColor
-    this.exec('hiliteColor', value);
-  }
-
-  protected crearLink(): void {
-    const url = window.prompt('URL del enlace:');
-    if (!url) return;
-    this.exec('createLink', url);
-  }
-
-  protected removerLink(): void {
-    this.exec('unlink');
-  }
-
-  protected limpiarFormato(): void {
-    this.exec('removeFormat');
-  }
-
   protected zoomIn(): void {
     const next = Math.min(2, Math.round((this.zoom + 0.25) * 100) / 100);
     this.zoom = next;
@@ -190,22 +186,12 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
   }
 
   protected agregarFirma(): void {
-    // Placeholder visual. En el futuro, esto puede insertar una firma real.
+    // Para TinyMCE, insertamos directamente en el editor
     const firmaLabel = this.form.firma || 'Firma';
-    const editor = this.editorRef?.nativeElement;
-    if (!editor) return;
+    const html = `<p style="margin-top:16px;"><strong>Firma:</strong> ${this.escapeHtml(firmaLabel)}</p>`;
 
-    editor.focus();
-    try {
-      document.execCommand(
-        'insertHTML',
-        false,
-        `<p style="margin-top:16px;"><strong>Firma:</strong> ${this.escapeHtml(firmaLabel)}</p>`
-      );
-      this.onEditorInput();
-    } catch {
-      this.onEditorInput();
-    }
+    this.form.cuerpoHtml = (this.form.cuerpoHtml || '') + html;
+    this.actualizarPreview();
   }
 
   protected async descargarPdf(): Promise<void> {
@@ -306,16 +292,6 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
     };
   }
 
-  private syncEditorFromModel(): void {
-    const editor = this.editorRef?.nativeElement;
-    if (!editor) return;
-
-    const next = this.form.cuerpoHtml || '';
-    if (editor.innerHTML !== next) {
-      editor.innerHTML = next;
-    }
-  }
-
   protected actualizarPreview(): void {
     const html = this.buildPreviewHtml();
     this.previewHtmlRaw = html;
@@ -342,18 +318,6 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
         <div>${cuerpo}</div>
       </div>
     `;
-  }
-
-  private exec(cmd: string, value?: string): void {
-    try {
-      // execCommand sigue siendo el camino más simple sin dependencias externas.
-      // value solo aplica para comandos como fontName, fontSize, foreColor, createLink, etc.
-      // eslint-disable-next-line deprecation/deprecation
-      document.execCommand(cmd, false, value);
-      this.onEditorInput();
-    } catch {
-      // noop
-    }
   }
 
   private paginarCuerpoA4(cuerpoHtml: string): string[] {
@@ -466,11 +430,18 @@ export class InformeFormModalComponent implements OnChanges, AfterViewInit {
 
   private buildPageHtml(bodyHtml: string): string {
     const header = this.buildHeaderHtml();
+    const watermarkUri = this.watermarkService.getWatermarkDataUri();
+    const watermarkStyle = watermarkUri
+      ? `background-image: url('${watermarkUri}'); background-repeat: repeat; background-attachment: fixed; background-size: 400px 400px;`
+      : '';
+
     return `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; background: #ffffff;">
-        ${header}
-        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
-        <div>${bodyHtml}</div>
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; background: #ffffff; ${watermarkStyle} position: relative;">
+        <div style="position: relative; z-index: 1;">
+          ${header}
+          <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
+          <div>${bodyHtml}</div>
+        </div>
       </div>
     `;
   }

@@ -54,79 +54,25 @@
               <div class="col-span-2">
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cuerpo *</label>
 
-                <!-- Toolbar simple (visual + formato básico) -->
-                <div class="flex items-center gap-2 px-2 py-1.5 border border-gray-300 dark:border-gray-700 rounded-t-lg bg-gray-50 dark:bg-gray-800">
-                  <select
-                    class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-white"
-                    [ngModel]="fontFamily"
-                    (ngModelChange)="setFontFamily($event)">
-                    @for (ff of fontFamilies; track ff) {
-                      <option [ngValue]="ff">{{ ff }}</option>
-                    }
-                  </select>
+                <div class="text-[11px] text-gray-400 mb-1">Vista previa en vivo</div>
 
-                  <select
-                    class="text-xs px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-white min-w-[54px]"
-                    [ngModel]="fontSize"
-                    (ngModelChange)="setFontSize($event)">
-                    @for (fs of fontSizeOptions; track fs.value) {
-                      <option [ngValue]="fs.value">{{ fs.label }}</option>
-                    }
-                  </select>
-
-                  <div class="flex items-center gap-1">
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarFormato('bold')" title="Negrita">
-                      <span class="text-xs font-bold">B</span>
-                    </button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarFormato('italic')" title="Cursiva">
-                      <span class="text-xs italic">I</span>
-                    </button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarFormato('underline')" title="Subrayado">
-                      <span class="text-xs underline">U</span>
-                    </button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('strikeThrough')" title="Tachado">
-                      <span class="text-xs line-through">S</span>
-                    </button>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <label class="text-[11px] text-gray-500 dark:text-gray-400">A</label>
-                    <input type="color" class="w-7 h-7 p-0 border-0 bg-transparent" [ngModel]="textColor" (ngModelChange)="setTextColor($event)" />
-                    <label class="text-[11px] text-gray-500 dark:text-gray-400">⎕</label>
-                    <input type="color" class="w-7 h-7 p-0 border-0 bg-transparent" [ngModel]="highlightColor" (ngModelChange)="setHighlightColor($event)" />
-                  </div>
-
-                  <div class="flex items-center gap-1">
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('justifyLeft')" title="Alinear izquierda">⟸</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('justifyCenter')" title="Centrar">≡</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('justifyRight')" title="Alinear derecha">⟹</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('justifyFull')" title="Justificar">☰</button>
-                  </div>
-
-                  <div class="flex items-center gap-1">
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('insertUnorderedList')" title="Lista">•</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('insertOrderedList')" title="Numeración">1.</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('outdent')" title="Disminuir sangría">◀</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('indent')" title="Aumentar sangría">▶</button>
-                  </div>
-
-                  <div class="flex items-center gap-1">
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('undo')" title="Deshacer">↶</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="aplicarComando('redo')" title="Rehacer">↷</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="crearLink()" title="Insertar enlace">🔗</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="removerLink()" title="Quitar enlace">⛓</button>
-                    <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700" (click)="limpiarFormato()" title="Limpiar formato">Tx</button>
-                  </div>
-
-                  <div class="ml-auto text-[11px] text-gray-400">Vista previa en vivo</div>
-                </div>
-
-                <!-- Editor (contenteditable) -->
-                <div
-                  #editor
-                  contenteditable="true"
-                  (input)="onEditorInput()"
-                  class="min-h-[160px] max-h-[240px] overflow-auto px-3 py-2 text-sm border border-t-0 border-gray-300 dark:border-gray-700 rounded-b-lg bg-white dark:bg-gray-800 dark:text-white focus:outline-none"></div>
+                @if (isBrowser && Editor) {
+                  <ckeditor
+                    [(ngModel)]="form.cuerpoHtml"
+                    [editor]="Editor"
+                    [config]="ckeditorConfig"
+                    (change)="actualizarPreview()"
+                    name="cuerpoHtml"
+                    class="ckeditor-host">
+                  </ckeditor>
+                } @else {
+                  <textarea
+                    [(ngModel)]="form.cuerpoHtml"
+                    (ngModelChange)="actualizarPreview()"
+                    rows="10"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    placeholder="Escribe aquí el contenido del informe..."></textarea>
+                }
               </div>
 
               <div class="col-span-2">

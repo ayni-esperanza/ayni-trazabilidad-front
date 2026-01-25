@@ -2,6 +2,9 @@
 
 /* Todos los @import deben ir primero */
 @import "tailwindcss";
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import "quill/dist/quill.snow.css";
+@import "ckeditor5/ckeditor5.css";
 @import "flowbite/src/themes/default";
 
 /* Configuración de dark mode con selector de clase para Tailwind v4 */
