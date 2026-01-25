@@ -55,9 +55,21 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   private previewHtmlRaw = '';
 
   protected zoom = 1;
-  protected readonly zoomOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
+  protected readonly zoomMin = 0.5;
+  protected readonly zoomMax = 2;
 
-  protected readonly previewBaseWidthPx = 640;
+  // Pan/drag state
+  protected isPanning = false;
+  protected panStartX = 0;
+  protected panStartY = 0;
+  protected scrollLeft = 0;
+  protected scrollTop = 0;
+
+  // Firmas añadidas
+  protected firmasAgregadas: string[] = [];
+
+  // Ancho base A4 a ~96dpi (794px) para la previsualización sin recortes horizontales.
+  protected readonly previewBaseWidthPx = 794;
 
   protected get previewScaledWidthPx(): number {
     return Math.round(this.previewBaseWidthPx * (this.zoom || 1));
@@ -71,13 +83,17 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
 
   protected exportandoPdf = false;
 
+  protected usarMembrete = false;
+  // Servido desde public/: accesible como /HojaMembretada.png
+  protected membreteUri: string | null = '/HojaMembretada.png';
+
   @ViewChild('paginationHost', { static: false })
   private paginationHostRef?: ElementRef<HTMLElement>;
 
   @ViewChildren('exportPage')
   private exportPageRefs?: QueryList<ElementRef<HTMLElement>>;
 
-  protected readonly opcionesFirma: string[] = ['Todas las Firmas', 'Firma 1', 'Firma 2'];
+  protected readonly opcionesFirma: string[] = ['Firma 1', 'Firma 2', 'Firma 3'];
 
   constructor(
     private sanitizer: DomSanitizer,
@@ -94,7 +110,11 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
         ClassicEditor,
         Bold,
         Essentials,
+        FontBackgroundColor,
+        FontColor,
+        FontSize,
         Heading,
+        Highlight,
         Indent,
         IndentBlock,
         Italic,
@@ -114,8 +134,13 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
             '|',
             'heading',
             '|',
+            'fontSize',
+            'fontColor',
+            'fontBackgroundColor',
+            '|',
             'bold',
             'italic',
+            'highlight',
             '|',
             'link',
             'insertTable',
@@ -129,7 +154,11 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
           plugins: [
             Bold,
             Essentials,
+            FontBackgroundColor,
+            FontColor,
+            FontSize,
             Heading,
+            Highlight,
             Indent,
             IndentBlock,
             Italic,
@@ -171,26 +200,70 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     this.guardar.emit(payload);
   }
 
-  protected zoomIn(): void {
-    const next = Math.min(2, Math.round((this.zoom + 0.25) * 100) / 100);
-    this.zoom = next;
-  }
-
-  protected zoomOut(): void {
-    const next = Math.max(0.5, Math.round((this.zoom - 0.25) * 100) / 100);
-    this.zoom = next;
-  }
-
   protected setZoom(value: number): void {
-    this.zoom = value;
+    this.zoom = Math.max(this.zoomMin, Math.min(this.zoomMax, value));
+  }
+
+  protected onPanStart(event: MouseEvent, container: HTMLElement): void {
+    if (event.button === 0 || event.type === 'mousedown') {
+      this.isPanning = true;
+      this.panStartX = event.clientX;
+      this.panStartY = event.clientY;
+      this.scrollLeft = container.scrollLeft;
+      this.scrollTop = container.scrollTop;
+      container.style.cursor = 'grabbing';
+    }
+  }
+
+  protected onPanMove(event: MouseEvent, container: HTMLElement): void {
+    if (!this.isPanning) return;
+    event.preventDefault();
+    const dx = event.clientX - this.panStartX;
+    const dy = event.clientY - this.panStartY;
+    container.scrollLeft = this.scrollLeft - dx;
+    container.scrollTop = this.scrollTop - dy;
+  }
+
+  protected onPanEnd(container: HTMLElement): void {
+    this.isPanning = false;
+    container.style.cursor = 'grab';
+  }
+
+  protected onKeyDown(event: KeyboardEvent, container: HTMLElement): void {
+    // Pan con Space
+    if (event.code === 'Space' && !this.isPanning) {
+      event.preventDefault();
+      container.style.cursor = 'grab';
+    }
+  }
+
+  protected onWheel(event: WheelEvent): void {
+    // Zoom con Ctrl + scroll del mouse
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      this.zoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoom + delta));
+    }
   }
 
   protected agregarFirma(): void {
-    // Para TinyMCE, insertamos directamente en el editor
-    const firmaLabel = this.form.firma || 'Firma';
-    const html = `<p style="margin-top:16px;"><strong>Firma:</strong> ${this.escapeHtml(firmaLabel)}</p>`;
+    if (this.firmasAgregadas.length >= 3) {
+      return; // Máximo 3 firmas
+    }
+    const firmaLabel = this.form.firma || 'Firma 1';
+    if (!this.firmasAgregadas.includes(firmaLabel)) {
+      this.firmasAgregadas.push(firmaLabel);
+      this.actualizarPreview();
+    }
+  }
 
-    this.form.cuerpoHtml = (this.form.cuerpoHtml || '') + html;
+  protected eliminarFirma(index: number): void {
+    this.firmasAgregadas.splice(index, 1);
+    this.actualizarPreview();
+  }
+
+  protected toggleMembrete(): void {
+    this.usarMembrete = !this.usarMembrete;
     this.actualizarPreview();
   }
 
@@ -222,18 +295,19 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       const pageHeight = pdf.internal.pageSize.getHeight();
 
       // Export por páginas A4 reales: captura cada hoja por separado.
+      // Optimizado: scale reducido a 1.5 y JPEG con calidad 0.85 para menor peso
       for (let i = 0; i < pages.length; i++) {
         const pageEl = pages[i];
         const canvas = await html2canvas(pageEl, {
           backgroundColor: '#ffffff',
-          scale: 2,
+          scale: 1.5,
           useCORS: true,
           logging: false,
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
         if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
       }
 
       if (options.action === 'download') {
@@ -334,6 +408,7 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     const pageWidthPx = 794;
     const pageHeightPx = 1123;
     const paddingPx = 48; // ~0.5in
+    const letterhead = this.usarMembrete && this.membreteUri;
 
     // Arma una página de medición.
     const pageEl = document.createElement('div');
@@ -343,8 +418,18 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     pageEl.style.boxSizing = 'border-box';
     pageEl.style.background = '#ffffff';
 
+    // Si hay membrete, agregar margen superior y padding horizontal
+    if (letterhead) {
+      pageEl.style.marginTop = '120px';
+      pageEl.style.paddingLeft = '80px';
+      pageEl.style.paddingRight = '80px';
+    }
+
     const headerEl = document.createElement('div');
-    headerEl.innerHTML = this.buildHeaderHtml();
+    // Solo mostrar header si no hay membrete
+    if (!letterhead) {
+      headerEl.innerHTML = this.buildHeaderHtml();
+    }
 
     const hr = document.createElement('hr');
     hr.style.margin = '10px 0';
@@ -429,18 +514,58 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   }
 
   private buildPageHtml(bodyHtml: string): string {
-    const header = this.buildHeaderHtml();
     const watermarkUri = this.watermarkService.getWatermarkDataUri();
-    const watermarkStyle = watermarkUri
-      ? `background-image: url('${watermarkUri}'); background-repeat: repeat; background-attachment: fixed; background-size: 400px 400px;`
-      : '';
+    const letterhead = this.usarMembrete && this.membreteUri ? this.membreteUri : null;
+    
+    // Solo watermark en el HTML interno (el membrete se aplica al contenedor en el template)
+    let backgroundStyles = '';
+    if (watermarkUri) {
+      backgroundStyles = `background-image: url('${watermarkUri}'); background-repeat: repeat; background-size: 400px 400px; background-position: center center;`;
+    }
 
+    // Estilos para preservar formato de CKEditor
+    const editorStyles = `
+      <style>
+        * { box-sizing: border-box; }
+        [style*="font-size"] { font-size: inherit !important; }
+        [style*="color"] { color: inherit !important; }
+        [style*="background-color"] { background-color: inherit !important; }
+      </style>
+    `;
+
+    // Si hay membrete, omitir el header y ajustar margen superior
+    if (letterhead) {
+      const firmasHtml = this.firmasAgregadas.length > 0
+        ? `<div style="margin-top: 60px; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
+             ${this.firmasAgregadas.map(f => `<div style="text-align: center; min-width: 150px;"><div style="border-top: 1px solid #111827; padding-top: 8px; font-size: 11px;">${this.escapeHtml(f)}</div></div>`).join('')}
+           </div>`
+        : '';
+      return `
+        ${editorStyles}
+        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%;">
+          <div style="position: relative; z-index: 1; margin-top: 120px; padding: 0 80px;">
+            <div>${bodyHtml}</div>
+            ${firmasHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    // Sin membrete, mostrar header completo
+    const header = this.buildHeaderHtml();
+    const firmasHtml = this.firmasAgregadas.length > 0
+      ? `<div style="margin-top: 60px; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
+           ${this.firmasAgregadas.map(f => `<div style="text-align: center; min-width: 150px;"><div style="border-top: 1px solid #111827; padding-top: 8px; font-size: 11px;">${this.escapeHtml(f)}</div></div>`).join('')}
+         </div>`
+      : '';
     return `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; background: #ffffff; ${watermarkStyle} position: relative;">
+      ${editorStyles}
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%;">
         <div style="position: relative; z-index: 1;">
           ${header}
           <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
           <div>${bodyHtml}</div>
+          ${firmasHtml}
         </div>
       </div>
     `;

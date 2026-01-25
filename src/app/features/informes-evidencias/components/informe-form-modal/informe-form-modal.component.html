@@ -10,7 +10,7 @@
 
       <div
         data-modal-content
-        class="relative z-10 w-full max-w-6xl rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden">
+        class="relative z-10 w-full max-w-5xl max-h-[92vh] rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden flex flex-col">
         <!-- Header (verde, como en captura) -->
         <div class="flex items-center justify-between px-5 py-3 bg-green-600 text-white">
           <div class="text-sm font-semibold">
@@ -29,9 +29,9 @@
         </div>
 
         <!-- Body: 2 columnas -->
-        <div class="grid grid-cols-1 lg:grid-cols-[420px_1fr]">
+        <div class="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] flex-1 overflow-y-auto overflow-x-hidden">
           <!-- Columna izquierda: formulario -->
-          <div class="p-5 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-gray-800">
+          <div class="p-4 border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-gray-800">
             <div class="grid grid-cols-2 gap-3">
               <div class="col-span-1">
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Informe *</label>
@@ -76,8 +76,8 @@
               </div>
 
               <div class="col-span-2">
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Firma *</label>
-                <div class="flex items-center gap-3">
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Firmas</label>
+                <div class="flex items-center gap-3 mb-2">
                   <select
                     [(ngModel)]="form.firma"
                     class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
@@ -88,46 +88,63 @@
 
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white"
+                    class="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                    [disabled]="firmasAgregadas.length >= 3"
                     (click)="agregarFirma()">
                     Agregar Firma
                   </button>
                 </div>
+                
+                @if (firmasAgregadas.length > 0) {
+                  <div class="flex flex-wrap gap-2">
+                    @for (firma of firmasAgregadas; track $index) {
+                      <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs text-gray-800 dark:text-gray-200">
+                        <span>{{ firma }}</span>
+                        <button
+                          type="button"
+                          class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                          (click)="eliminarFirma($index)">
+                          ✕
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="col-span-2">
+                <button
+                  type="button"
+                  class="px-4 py-2 text-sm font-medium rounded-lg"
+                  [class.bg-green-600]="usarMembrete"
+                  [class.text-white]="usarMembrete"
+                  [class.bg-gray-100]="!usarMembrete"
+                  [class.text-gray-800]="!usarMembrete"
+                  (click)="toggleMembrete()">
+                  {{ usarMembrete ? 'Quitar membrete' : 'Aplicar membrete' }}
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Columna derecha: preview (primera hoja) -->
-          <div class="p-5 bg-gray-50 dark:bg-gray-900/40">
+          <div class="p-4 bg-gray-50 dark:bg-gray-900/40">
             <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
               <!-- Top bar tipo visor PDF (visual) -->
               <div class="h-9 bg-gray-900 text-gray-200 flex items-center justify-between px-3">
                 <div class="flex items-center gap-3 text-xs">
-                  <span class="opacity-80">{{ form.id || 'preview' }}</span>
+                  <span class="opacity-80">{{ form.titulo || 'preview' }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs">
-                  <button
-                    type="button"
-                    class="px-2 py-1 rounded hover:bg-white/10"
-                    (click)="zoomOut()"
-                    title="Zoom -">
-                    −
-                  </button>
-                  <select
-                    class="bg-white/10 text-gray-100 rounded px-2 py-1 outline-none"
-                    [ngModel]="zoom"
-                    (ngModelChange)="setZoom($event)">
-                    @for (z of zoomOptions; track z) {
-                      <option [ngValue]="z">{{ (z * 100) | number:'1.0-0' }}%</option>
-                    }
-                  </select>
-                  <button
-                    type="button"
-                    class="px-2 py-1 rounded hover:bg-white/10"
-                    (click)="zoomIn()"
-                    title="Zoom +">
-                    +
-                  </button>
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="opacity-80">{{ (zoom * 100) | number:'1.0-0' }}%</span>
+                  <input
+                    type="range"
+                    [min]="zoomMin"
+                    [max]="zoomMax"
+                    [step]="0.1"
+                    [(ngModel)]="zoom"
+                    class="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                    style="accent-color: #10b981;" />
 
                   <button
                     type="button"
@@ -149,26 +166,29 @@
               </div>
 
               <!-- Hoja (A4 aprox) -->
-              <div class="p-4 overflow-auto max-h-[520px]">
-                <!-- Wrapper que define el ancho scrolleable (para overflow-x) -->
-                <div class="inline-block" [style.width.px]="previewScaledWidthPx">
-                  <!-- El contenido se escala, pero el wrapper define el ancho real para scroll -->
-                  <div class="flex flex-col items-start gap-4" [style.transform]="'scale(' + zoom + ')'" style="transform-origin: top left;">
+              <div 
+                #previewContainer
+                class="overflow-auto max-h-[70vh] p-4 bg-gray-300 dark:bg-gray-800"
+                style="cursor: grab;"
+                tabindex="0"
+                (mousedown)="onPanStart($event, previewContainer)"
+                (mousemove)="onPanMove($event, previewContainer)"
+                (mouseup)="onPanEnd(previewContainer)"
+                (mouseleave)="onPanEnd(previewContainer)"
+                (keydown)="onKeyDown($event, previewContainer)"
+                (wheel)="onWheel($event)">
+                <!-- Wrapper con tamaño dinámico según zoom -->
+                <div [style.width.px]="794 * zoom" [style.height.px]="(previewPages.length || 1) * 1123 * zoom + ((previewPages.length || 1) - 1) * 16 * zoom">
+                  <div class="flex flex-col gap-4" [style.transform]="'scale(' + zoom + ')'" style="transform-origin: top left;">
                     @for (page of previewPages; track $index) {
-                      <div>
-                        <div class="w-[640px] bg-white border border-gray-200 shadow-sm" style="color-scheme: light;">
-                          <div class="p-6">
-                            <div [innerHTML]="page"></div>
-                          </div>
-                        </div>
+                      <div class="w-[794px] border border-gray-200 shadow-sm" style="background-color: #ffffff !important; color-scheme: light; height:1123px; padding:48px; box-sizing:border-box; overflow:hidden;" [style]="(usarMembrete && membreteUri ? 'background-image: url(' + membreteUri + '); background-size: cover; background-position: -20px top; background-repeat: no-repeat;' : '')">
+                        <div [innerHTML]="page"></div>
                       </div>
                     }
 
                     @if (previewPages.length === 0) {
-                      <div class="w-[640px] bg-white border border-gray-200 shadow-sm" style="color-scheme: light;">
-                        <div class="p-6">
-                          <div [innerHTML]="previewHtml"></div>
-                        </div>
+                      <div class="w-[794px] border border-gray-200 shadow-sm" style="background-color: #ffffff !important; color-scheme: light; height:1123px; padding:48px; box-sizing:border-box; overflow:hidden;" [style]="(usarMembrete && membreteUri ? 'background-image: url(' + membreteUri + '); background-size: cover; background-position: -20px top; background-repeat: no-repeat;' : '')">
+                        <div [innerHTML]="previewHtml"></div>
                       </div>
                     }
                   </div>
@@ -184,8 +204,8 @@
               @for (page of previewPages; track $index) {
                 <div
                   #exportPage
-                  class="bg-white"
-                  style="width:794px;height:1123px;padding:48px;box-sizing:border-box;overflow:hidden;color-scheme: light;">
+                  style="background-color: #ffffff !important; width:794px; height:1123px; padding:48px; box-sizing:border-box; overflow:hidden; color-scheme: light;"
+                  [style]="(usarMembrete && membreteUri ? 'background-image: url(' + membreteUri + '); background-size: cover; background-position: -20px top; background-repeat: no-repeat;' : '')">
                   <div [innerHTML]="page"></div>
                 </div>
               }
