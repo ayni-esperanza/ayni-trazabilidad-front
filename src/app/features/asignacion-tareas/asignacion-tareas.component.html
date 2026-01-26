@@ -1,220 +1,154 @@
 <div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Asignación de Tareas</h1>
+    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Asignación y Seguimiento de Tareas</h1>
+    <button 
+      (click)="abrirModalNueva()"
+      class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Nueva Tarea
+    </button>
   </div>
-  
-  <!-- Acciones rápidas -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <div class="flex flex-wrap gap-4 items-center">
-      <button class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-        <span>+</span> Nueva Tarea
-      </button>
-      <button class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
-        Asignar Tarea
-      </button>
-      <div class="ml-auto flex gap-3">
-        <input type="text" placeholder="Buscar tarea..." 
-          class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:bg-gray-800 dark:text-white">
-        <select class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white">
-          <option value="">Todos los proyectos</option>
-          <option value="1">Proyecto Alpha</option>
-          <option value="2">Proyecto Beta</option>
-        </select>
+
+  <!-- Tarjetas de estadísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Tareas Totales</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">12</h3>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">En Progreso</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">5</h3>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Completadas</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">6</h3>
+        </div>
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Pendientes</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">1</h3>
+        </div>
+        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Vista de tareas por proyecto -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Tareas por Proyecto</h3>
+  <!-- Filtros rápidos -->
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 mb-6">
+    <div class="flex flex-wrap gap-3 items-center">
+      <input 
+        type="text" 
+        placeholder="Buscar por proyecto o responsable..." 
+        [(ngModel)]="busqueda"
+        (ngModelChange)="aplicarFiltros()"
+        class="flex-1 min-w-[250px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:bg-gray-800 dark:text-white">
+      <select 
+        [(ngModel)]="estadoFiltro"
+        (ngModelChange)="aplicarFiltros()"
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
+        <option value="">Todos los Estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="en-progreso">En Progreso</option>
+        <option value="completada">Completada</option>
+        <option value="retrasada">Retrasada</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tabla de tareas -->
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">ID</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Tarea</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Proyecto</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Responsable</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Fecha Inicio</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Fecha Fin</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Progreso</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Estado</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <tr class="divide-x divide-gray-200 dark:divide-gray-800">
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Estado</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">1</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Diseño de interfaz</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">Proyecto Alpha</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">JP</div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">Juan Pérez</span>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">10/01/2026</td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">20/01/2026</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-500 rounded-full" style="width: 60%"></div>
-                </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">60%</span>
-              </div>
-            </td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">En progreso</span>
-            </td>
-            <td class="py-4 px-4">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-                <button class="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">2</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Desarrollo backend</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">Proyecto Alpha</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-medium">MG</div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">María García</span>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">05/01/2026</td>
-            <td class="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">15/01/2026</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
-                </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">100%</span>
-              </div>
-            </td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Completada</span>
-            </td>
-            <td class="py-4 px-4">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">✏️</button>
-                <button class="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-500">🗑️</button>
-              </div>
-            </td>
-          </tr>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          @for (tarea of tareasPaginadas; track tarea.id) {
+            <tr 
+              (click)="abrirModalEditar(tarea)"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer divide-x divide-gray-100 dark:divide-gray-800">
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ tarea.nombre }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ getNombreProyecto(tarea.proyectoId) }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ getNombreResponsable(tarea.responsableId) }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.fechaInicio }} - {{ tarea.fechaFin }}</td>
+              <td class="py-2 px-4">
+                <span class="px-3 py-1 text-xs font-medium rounded-full" [ngClass]="getClaseEstado(tarea.estado)">
+                  {{ getTextoEstado(tarea.estado) }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                No se encontraron tareas
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
+
+    <!-- Paginación -->
+    <app-paginacion
+      [config]="paginacionConfig"
+      [opcionesPorPagina]="[5, 10, 20, 50]"
+      (cambioPagina)="onCambioPagina($event)">
+    </app-paginacion>
   </div>
 
-  <!-- Vista de tareas por usuario -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Carga de Trabajo por Usuario</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">JP</div>
-          <div>
-            <h4 class="font-medium text-gray-800 dark:text-white">Juan Pérez</h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">3 tareas asignadas</p>
-          </div>
-        </div>
-        <div class="space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Completadas</span>
-            <span class="font-medium text-green-600">1</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">En progreso</span>
-            <span class="font-medium text-blue-600">2</span>
-          </div>
-          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
-            <div class="h-full bg-green-500 rounded-full" style="width: 33%"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-medium">MG</div>
-          <div>
-            <h4 class="font-medium text-gray-800 dark:text-white">María García</h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">5 tareas asignadas</p>
-          </div>
-        </div>
-        <div class="space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Completadas</span>
-            <span class="font-medium text-green-600">4</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">En progreso</span>
-            <span class="font-medium text-blue-600">1</span>
-          </div>
-          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
-            <div class="h-full bg-green-500 rounded-full" style="width: 80%"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-medium">CL</div>
-          <div>
-            <h4 class="font-medium text-gray-800 dark:text-white">Carlos López</h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">2 tareas asignadas</p>
-          </div>
-        </div>
-        <div class="space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Completadas</span>
-            <span class="font-medium text-green-600">0</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">En progreso</span>
-            <span class="font-medium text-blue-600">2</span>
-          </div>
-          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
-            <div class="h-full bg-green-500 rounded-full" style="width: 0%"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-medium">AR</div>
-          <div>
-            <h4 class="font-medium text-gray-800 dark:text-white">Ana Ruiz</h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">4 tareas asignadas</p>
-          </div>
-        </div>
-        <div class="space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">Completadas</span>
-            <span class="font-medium text-green-600">2</span>
-          </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 dark:text-gray-400">En progreso</span>
-            <span class="font-medium text-blue-600">2</span>
-          </div>
-          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
-            <div class="h-full bg-green-500 rounded-full" style="width: 50%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Calendario placeholder -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Calendario de Tareas</h3>
-    <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-      <div class="text-center">
-        <span class="text-4xl">📅</span>
-        <p class="text-gray-500 dark:text-gray-400 mt-2">Calendario en desarrollo...</p>
-      </div>
-    </div>
-  </div>
+  <!-- Modal de Tarea -->
+  <app-tarea-form-modal
+    [visible]="modalVisible"
+    [tarea]="tareaSeleccionada"
+    [modoEdicion]="modoEdicion"
+    (cerrar)="cerrarModal()"
+    (guardar)="guardarTarea($event)"
+    (eliminar)="eliminarTarea($event)">
+  </app-tarea-form-modal>
 </div>
