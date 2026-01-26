@@ -30,7 +30,7 @@ interface InformeItem {
 })
 export class InformesEvidenciasComponent implements OnInit {
 
-  protected readonly opcionesPorPagina = [10, 20, 50, 100];
+  protected readonly opcionesPorPagina = [100, 500, 1000];
 
   protected informes: InformeItem[] = [];
 

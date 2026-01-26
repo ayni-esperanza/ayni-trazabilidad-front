@@ -98,7 +98,7 @@
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-gray-800/60">
-          <tr class="divide-x divide-gray-200 dark:divide-gray-800">
+          <tr>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
@@ -111,7 +111,7 @@
           @for (tarea of tareasPaginadas; track tarea.id) {
             <tr 
               (click)="abrirModalEditar(tarea)"
-              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer divide-x divide-gray-100 dark:divide-gray-800">
+              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ tarea.nombre }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ getNombreProyecto(tarea.proyectoId) }}</td>
@@ -137,7 +137,7 @@
     <!-- Paginación -->
     <app-paginacion
       [config]="paginacionConfig"
-      [opcionesPorPagina]="[5, 10, 20, 50]"
+      [opcionesPorPagina]="[100, 500, 1000]"
       (cambioPagina)="onCambioPagina($event)">
     </app-paginacion>
   </div>
