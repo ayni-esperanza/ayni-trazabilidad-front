@@ -1,12 +1,13 @@
-<div class="p-6 bg-gray-50 dark:bg-gray-800 min-h-screen">
+<div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <!-- Header -->
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Informes y Evidencias</h1>
-
-    <button
-      type="button"
+    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Informes y Evidencias</h1>
+    <button 
       (click)="nuevoInforme()"
-      class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors">
-      <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-white/15">+</span>
+      class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
       Nuevo Informe
     </button>
   </div>
