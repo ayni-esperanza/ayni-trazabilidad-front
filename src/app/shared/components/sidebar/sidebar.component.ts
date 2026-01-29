@@ -1,7 +1,8 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface MenuItem {
   icon: string;
@@ -18,8 +19,11 @@ interface MenuItem {
 })
 export class SidebarComponent {
   protected themeService = inject(ThemeService);
+  protected authService = inject(AuthService);
+  private elementRef = inject(ElementRef);
   
   isExpanded = signal(true);
+  showUserMenu = signal(false);
 
   menuItems: MenuItem[] = [
     { icon: '📊', label: 'Tablero de control', route: '/tablero-control' },
@@ -39,5 +43,27 @@ export class SidebarComponent {
     console.log('Toggle theme clicked!', 'Current dark mode:', this.themeService.isDarkMode());
     this.themeService.toggleTheme();
     console.log('After toggle:', this.themeService.isDarkMode());
+  }
+
+  toggleUserMenu(): void {
+    this.showUserMenu.update(v => !v);
+  }
+
+  logout(): void {
+    this.showUserMenu.set(false);
+    this.authService.logout();
+  }
+
+  getUserName(): string {
+    return this.authService.getUserFullName() || 'Admin';
+  }
+
+  // Cerrar el menú al hacer clic fuera
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const userMenuElement = this.elementRef.nativeElement.querySelector('.user-menu-container');
+    if (userMenuElement && !userMenuElement.contains(event.target)) {
+      this.showUserMenu.set(false);
+    }
   }
 }

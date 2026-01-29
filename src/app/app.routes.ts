@@ -6,50 +6,64 @@ import { InformesEvidenciasComponent } from './features/informes-evidencias/info
 import { EstadisticasIndicadoresComponent } from './features/estadisticas-indicadores/estadisticas-indicadores.component';
 import { GestionUsuariosComponent } from './features/gestion-usuarios/gestion-usuarios.component';
 import { ConfiguracionProcesosComponent } from './features/configuracion-procesos/configuracion-procesos.component';
+import { LoginComponent } from './features/auth/login/login.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { 
     path: '', 
-    redirectTo: '/tablero-control', 
+    redirectTo: '/login', 
     pathMatch: 'full' 
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Iniciar Sesión - AYNI Trazabilidad'
   },
   {
     path: 'tablero-control',
     component: TableroControlComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'registro-solicitudes',
     component: RegistroSolicitudesComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'asignacion-tareas',
     component: AsignacionTareasComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'informes-evidencias',
     component: InformesEvidenciasComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'estadisticas-indicadores',
     component: EstadisticasIndicadoresComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'gestion-usuarios',
     component: GestionUsuariosComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: 'configuracion-procesos',
     component: ConfiguracionProcesosComponent,
-    title: 'Módulo de Trazabilidad'
+    title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard]
   },
   {
     path: '**',
-    redirectTo: '/tablero-control'
+    redirectTo: '/login'
   }
 ];

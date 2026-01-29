@@ -1,6 +1,8 @@
 <div class="flex h-screen bg-gray-50 dark:bg-gray-800">
-  <!-- Sidebar -->
-  <app-sidebar></app-sidebar>
+  <!-- Sidebar (solo visible cuando no es login) -->
+  @if (showSidebar) {
+    <app-sidebar></app-sidebar>
+  }
   
   <!-- Main Content -->
   <main class="flex-1 overflow-y-auto">
