@@ -2,11 +2,11 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Registro de Solicitudes</h1>
-    <button class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2">
+    <button (click)="abrirNuevaSolicitud()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
       </svg>
-      Nuevo Solicitud
+      Nueva Solicitud
     </button>
   </div>
 
@@ -16,7 +16,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Registradas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">6</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ solicitudes.length }}</h3>
         </div>
         <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,11 +29,11 @@
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Activas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">3</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Pendientes</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ getSolicitudesPorEstado('Pendiente') }}</h3>
         </div>
-        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
@@ -44,7 +44,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Proyectos en desarrollo</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">2</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ proyectos.length }}</h3>
         </div>
         <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Canceladas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">1</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ getSolicitudesPorEstado('Cancelado') }}</h3>
         </div>
         <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,14 +72,15 @@
   <!-- Filtros rápidos -->
   <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 mb-6">
     <div class="flex flex-wrap gap-3 items-center">
-      <input type="text" placeholder="Buscar por proyecto o responsable..." 
+      <input type="text" [(ngModel)]="busqueda" (input)="onBuscar()" placeholder="Buscar por proyecto, cliente o responsable..." 
         class="flex-1 min-w-[250px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:bg-gray-800 dark:text-white">
-      <select class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
+      <select [(ngModel)]="estadoFiltro" (change)="onFiltrarEstado()" 
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
         <option value="">Todos los Estados</option>
-        <option value="pendiente">Pendiente</option>
-        <option value="en-revision">En revisión</option>
-        <option value="aprobada">Aprobada</option>
-        <option value="rechazada">Rechazada</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="En Proceso">En Proceso</option>
+        <option value="Completado">Completado</option>
+        <option value="Cancelado">Cancelado</option>
       </select>
     </div>
   </div>
@@ -92,86 +93,55 @@
           <tr>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Cliente</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Costo</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Estado</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
+          <tr *ngFor="let solicitud of solicitudesPaginadas" 
+              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer"
+              (click)="abrirProcesoDesdeTabla(solicitud)">
+            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ solicitud.id }}</td>
+            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ solicitud.nombreProyecto }}</td>
+            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ solicitud.cliente }}</td>
+            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ solicitud.responsableNombre }}</td>
+            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">S/. {{ solicitud.costo | number:'1.2-2' }}</td>
             <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <span class="px-3 py-1 text-xs font-medium rounded-full" [ngClass]="getEstadoClass(solicitud.estado)">
+                <svg *ngIf="solicitud.estado === 'Pendiente'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                <svg *ngIf="solicitud.estado === 'Completado'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <svg *ngIf="solicitud.estado === 'Cancelado'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
-                Ejemplo1
+                <svg *ngIf="solicitud.estado === 'En Proceso'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
+                </svg>
+                {{ solicitud.estado }}
               </span>
             </td>
-          </tr>
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">2</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
             <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                Ejemplo1
-              </span>
+              <button *ngIf="solicitud.estado === 'Pendiente'" 
+                      (click)="abrirIniciarProyecto(solicitud); $event.stopPropagation()"
+                      class="px-3 py-1 text-xs font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white">
+                Iniciar Proyecto
+              </button>
+              <button *ngIf="solicitud.estado === 'En Proceso'" 
+                      (click)="abrirProcesoDesdeTabla(solicitud); $event.stopPropagation()"
+                      class="px-3 py-1 text-xs font-medium rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
+                Ver Proceso
+              </button>
             </td>
           </tr>
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">3</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                Ejemplo1
-              </span>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">4</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                Ejemplo1
-              </span>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">5</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">Ejemplo1</td>
-            <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                Ejemplo1
-              </span>
+          <tr *ngIf="solicitudesFiltradas.length === 0">
+            <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400">
+              No hay solicitudes registradas. Haz clic en "Nueva Solicitud" para crear una.
             </td>
           </tr>
         </tbody>
@@ -179,17 +149,41 @@
     </div>
 
     <!-- Paginación -->
-    <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-      <p class="text-sm text-gray-500 dark:text-gray-400">Mostrando 1 a 5 de 5 elementos</p>
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-500 dark:text-gray-400">Mostrar:</span>
-        <select class="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white outline-none">
-          <option>10</option>
-          <option>20</option>
-          <option>50</option>
-        </select>
-        <span class="text-sm text-gray-500 dark:text-gray-400">por página</span>
-      </div>
-    </div>
+    <app-paginacion
+      [config]="paginacionConfig"
+      (cambioPagina)="onCambioPagina($event)"
+      (cambioTamano)="onCambioTamano($event)">
+    </app-paginacion>
   </div>
 </div>
+
+<!-- Modales como componentes separados -->
+<app-modal-nueva-solicitud
+  [visible]="showNuevaSolicitudModal"
+  [responsables]="responsables"
+  (cerrar)="cerrarNuevaSolicitud()"
+  (guardar)="onGuardarSolicitud($event)">
+</app-modal-nueva-solicitud>
+
+<app-modal-iniciar-proyecto
+  [visible]="showIniciarProyectoModal"
+  [solicitud]="solicitudActual"
+  [responsables]="responsables"
+  [procesos]="procesos"
+  (cerrar)="cerrarIniciarProyecto()"
+  (cancelarProy)="onCancelarProyecto()"
+  (iniciar)="onIniciarProyecto($event)">
+</app-modal-iniciar-proyecto>
+
+<app-modal-proceso-proyecto
+  [visible]="showProcesoProyectoModal"
+  [proyecto]="proyectoActual"
+  [proyectos]="proyectos"
+  [responsables]="responsables"
+  [procesos]="procesos"
+  (cerrar)="cerrarProcesoProyecto()"
+  (cancelarProy)="onCancelarProyectoDesdeModal()"
+  (finalizarEtapa)="onFinalizarEtapa($event)"
+  (finalizarProy)="onFinalizarProyecto($event)"
+  (cambiarProyecto)="onCambiarProyecto($event)">
+</app-modal-proceso-proyecto>

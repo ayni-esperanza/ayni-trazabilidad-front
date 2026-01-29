@@ -1,0 +1,57 @@
+<div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4">
+    <!-- Header -->
+    <div class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
+      <h2 class="text-lg font-semibold text-white">Nueva Solicitud</h2>
+      <button (click)="onCerrar()" class="text-white hover:text-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-4">
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Proyecto *</label>
+          <input type="text" [(ngModel)]="solicitud.nombreProyecto"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente *</label>
+          <input type="text" [(ngModel)]="solicitud.cliente"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Costo *</label>
+          <input type="number" [(ngModel)]="solicitud.costo"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable *</label>
+          <select [(ngModel)]="solicitud.responsableId"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
+            <option value="0">Todos los Responsables</option>
+            <option *ngFor="let resp of responsables" [value]="resp.id">{{ resp.nombre }}</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción *</label>
+        <textarea [(ngModel)]="solicitud.descripcion" rows="3"
+          class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+      <button (click)="onCerrar()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+        Cancelar
+      </button>
+      <button (click)="onGuardar()" class="px-3 py-1.5 text-sm text-white bg-green-500 rounded hover:bg-green-600">
+        Agregar Solicitud
+      </button>
+    </div>
+  </div>
+</div>

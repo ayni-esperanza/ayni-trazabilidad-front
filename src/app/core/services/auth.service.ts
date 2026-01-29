@@ -35,7 +35,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    const storedUser = localStorage.getItem('currentUser');
+    // Verificar primero en localStorage, luego en sessionStorage
+    const storedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
     );
@@ -96,10 +97,12 @@ export class AuthService {
   }
 
   private setUser(user: User, rememberMe: boolean): void {
+    // Siempre guardar en sessionStorage para la sesión actual
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
+    
+    // Si rememberMe está activo, también guardar en localStorage para persistir
     if (rememberMe) {
       localStorage.setItem('currentUser', JSON.stringify(user));
-    } else {
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
     }
     this.currentUserSubject.next(user);
   }

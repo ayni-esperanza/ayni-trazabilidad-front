@@ -8,17 +8,19 @@ import { GestionUsuariosComponent } from './features/gestion-usuarios/gestion-us
 import { ConfiguracionProcesosComponent } from './features/configuracion-procesos/configuracion-procesos.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
+import { noAuthGuard } from './core/guards/no-auth.guard';
 
 export const routes: Routes = [
   { 
     path: '', 
-    redirectTo: '/login', 
+    redirectTo: '/tablero-control', 
     pathMatch: 'full' 
   },
   {
     path: 'login',
     component: LoginComponent,
-    title: 'Iniciar Sesión - AYNI Trazabilidad'
+    title: 'Iniciar Sesión - AYNI Trazabilidad',
+    canActivate: [noAuthGuard]
   },
   {
     path: 'tablero-control',
