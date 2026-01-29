@@ -20,6 +20,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { WatermarkService } from '../../services/watermark.service';
+import { PdfExportService } from '../../services/pdf-export.service';
 
 export interface InformeFormData {
   id?: string;
@@ -83,6 +84,9 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
 
   protected exportandoPdf = false;
 
+  // Controla si se muestra la marca de agua (solo en edición, no en exportación)
+  private mostrarWatermark = true;
+
   protected usarMembrete = false;
   // Servido desde public/: accesible como /HojaMembretada.png
   protected membreteUri: string | null = '/HojaMembretada.png';
@@ -98,6 +102,7 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   constructor(
     private sanitizer: DomSanitizer,
     private watermarkService: WatermarkService,
+    private pdfExportService: PdfExportService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) platformId: object
   ) {
@@ -279,67 +284,33 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   private async exportarPdf(options: { action: 'download' | 'print'; fileName?: string }): Promise<void> {
     if (this.exportandoPdf) return;
 
-    const pages = this.exportPageRefs?.toArray().map((r) => r.nativeElement) ?? [];
-    if (!pages.length) return;
-
     this.exportandoPdf = true;
     try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ]);
+      // Ocultar marca de agua para la exportación
+      this.mostrarWatermark = false;
+      this.actualizarPreview();
+      this.cdr.detectChanges();
 
-      const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+      // Esperar un tick para que Angular actualice las páginas de exportación
+      await new Promise(resolve => setTimeout(resolve, 50));
 
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      // Export por páginas A4 reales: captura cada hoja por separado.
-      // Optimizado: scale reducido a 1.5 y JPEG con calidad 0.85 para menor peso
-      for (let i = 0; i < pages.length; i++) {
-        const pageEl = pages[i];
-        const canvas = await html2canvas(pageEl, {
-          backgroundColor: '#ffffff',
-          scale: 1.5,
-          useCORS: true,
-          logging: false,
-        });
-
-        const imgData = canvas.toDataURL('image/jpeg', 0.85);
-        if (i > 0) pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-      }
-
-      if (options.action === 'download') {
-        pdf.save(options.fileName || 'informe.pdf');
+      const pages = this.exportPageRefs?.toArray().map((r) => r.nativeElement) ?? [];
+      if (!pages.length) {
+        this.mostrarWatermark = true;
+        this.actualizarPreview();
         return;
       }
 
-      // Imprimir: usa un iframe oculto para evitar popup blockers.
-      const blob = pdf.output('blob');
-      const url = URL.createObjectURL(blob);
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = '0';
-      iframe.src = url;
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        try {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        } finally {
-          setTimeout(() => {
-            URL.revokeObjectURL(url);
-            iframe.remove();
-          }, 1000);
-        }
-      };
+      await this.pdfExportService.exportToPdf(pages, {
+        action: options.action,
+        fileName: options.fileName,
+        scale: 2,
+        imageQuality: 1,
+      });
     } finally {
+      // Restaurar marca de agua después de exportar
+      this.mostrarWatermark = true;
+      this.actualizarPreview();
       this.exportandoPdf = false;
     }
   }
@@ -514,7 +485,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   }
 
   private buildPageHtml(bodyHtml: string): string {
-    const watermarkUri = this.watermarkService.getWatermarkDataUri();
+    // Solo mostrar watermark si está habilitado (durante edición, no exportación)
+    const watermarkUri = this.mostrarWatermark ? this.watermarkService.getWatermarkDataUri() : null;
     const letterhead = this.usarMembrete && this.membreteUri ? this.membreteUri : null;
     
     // Solo watermark en el HTML interno (el membrete se aplica al contenedor en el template)

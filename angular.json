@@ -38,9 +38,6 @@
               "src/styles.css"
             ],
             "scripts": [],
-            "externalDependencies": [
-              "html2canvas"
-            ],
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {
