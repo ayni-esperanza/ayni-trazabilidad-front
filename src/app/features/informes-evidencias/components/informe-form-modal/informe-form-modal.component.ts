@@ -60,7 +60,7 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   protected previewPages: SafeHtml[] = [];
   private previewHtmlRaw = '';
 
-  protected zoom = 1;
+  protected zoom = 0.7;
   protected readonly zoomMin = 0.5;
   protected readonly zoomMax = 2;
 
