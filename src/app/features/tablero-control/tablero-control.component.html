@@ -148,7 +148,7 @@
       </div>
       
       <!-- Gráfico ngx-charts compacto -->
-      <div [class]="tipoGrafico === 'pie' ? 'h-44 mt-2' : 'h-36 mt-2'">
+      <div [class]="tipoGrafico === 'pie' ? 'h-64 mt-2' : 'h-36 mt-2'">
         @if (graficosListos) {
           @if (tipoGrafico === 'barras') {
             <ngx-charts-bar-vertical
@@ -180,12 +180,10 @@
             <ngx-charts-pie-chart
               [results]="datosPieChart"
               [scheme]="colorSchemeActual"
-              [legend]="true"
-              [legendPosition]="'right'"
-              [legendTitle]="''"
-              [labels]="false"
+              [legend]="false"
+              [labels]="true"
               [doughnut]="true"
-              [arcWidth]="0.4"
+              [arcWidth]="0.35"
               [gradient]="false"
               [tooltipDisabled]="false">
             </ngx-charts-pie-chart>

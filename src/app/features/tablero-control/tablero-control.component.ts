@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy } from '
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { TableroControlService } from './services/tablero-control.service';
-import { NgxChartsModule, Color, ScaleType } from '@swimlane/ngx-charts';
+import { NgxChartsModule, Color, ScaleType, LegendPosition } from '@swimlane/ngx-charts';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { 
@@ -53,6 +53,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   
   // Tipo de gráfico seleccionado
   tipoGrafico: 'barras' | 'linea' | 'pie' = 'barras';
+  
+  // Posición de la leyenda para el pie chart
+  legendPosition: LegendPosition = LegendPosition.Right;
   
   // Configuración de colores para cada tipo de métrica
   colorSchemeFinalizados: Color = {
