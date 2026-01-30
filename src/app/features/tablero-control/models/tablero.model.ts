@@ -3,9 +3,8 @@ export interface ProyectoEnCurso {
   proyecto: string;
   responsable: string;
   etapa: string;
-  inicio: string;
-  fin: string;
-  estado: 'En progreso' | 'Completado' | 'Pendiente';
+  fechas: string;
+  estado: 'warning' | 'success' | 'danger';
 }
 
 export interface TareaEncargado {
@@ -14,9 +13,8 @@ export interface TareaEncargado {
   tarea: string;
   proyecto: string;
   etapa: string;
-  inicio: string;
-  fin: string;
-  estado: 'En progreso' | 'Completado' | 'Pendiente';
+  fechas: string;
+  estado: 'warning' | 'success' | 'danger';
 }
 
 export interface MetricaProyecto {
@@ -29,4 +27,20 @@ export interface Gastos {
   hoy: number;
   mes: number;
   ayer: number;
+}
+
+export interface DatoGrafico {
+  name: string;
+  value: number;
+}
+
+export interface ResumenTablero {
+  proyectosFinalizados: number;
+  proyectosActivos: number;
+  gastos: Gastos;
+  datosProyectosFinalizados: DatoGrafico[];
+  datosProyectosActivos: DatoGrafico[];
+  datosGastos: DatoGrafico[];
+  proyectosEnCurso: ProyectoEnCurso[];
+  tareasEncargados: TareaEncargado[];
 }

@@ -1,173 +1,245 @@
 <div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-4">
+  
+  <!-- Header con título y fecha -->
+  <div class="mb-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Tablero de Control</h1>
+    <p class="text-xs text-gray-500 dark:text-gray-400">{{ fechaActual | date:'d \'de\' MMMM \'del\' yyyy':'':'es' }}</p>
   </div>
   
-  <!-- Sección de métricas principales -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Proyectos Finalizados</h3>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white">20</p>
-      <div class="mt-2 h-12 flex items-end justify-center gap-1">
-        <div class="w-3 bg-green-400 rounded-t" style="height: 40%"></div>
-        <div class="w-3 bg-green-400 rounded-t" style="height: 60%"></div>
-        <div class="w-3 bg-green-400 rounded-t" style="height: 80%"></div>
-        <div class="w-3 bg-green-400 rounded-t" style="height: 50%"></div>
-        <div class="w-3 bg-green-400 rounded-t" style="height: 100%"></div>
+  <!-- Layout principal - 2 filas -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+    
+    <!-- Fila superior -->
+    <!-- Columna izquierda - Métricas -->
+    <div class="lg:col-span-4 grid grid-cols-2 gap-3">
+      
+      <!-- Proyectos Finalizados -->
+      <div 
+        (click)="seleccionarMetrica('finalizados')"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 cursor-pointer transition-all hover:shadow-md"
+        [class.border-red-500]="metricaSeleccionada === 'finalizados'"
+        [class.border-red-200]="metricaSeleccionada !== 'finalizados'"
+        [class.ring-2]="metricaSeleccionada === 'finalizados'"
+        [class.ring-red-200]="metricaSeleccionada === 'finalizados'">
+        <span class="text-[10px] text-gray-400 uppercase tracking-wide">Histórico</span>
+        <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Proyectos Finalizados</h3>
+        <p class="text-4xl font-bold text-gray-800 dark:text-white mt-1">{{ proyectosFinalizados }}</p>
+      </div>
+      
+      <!-- Gastos -->
+      <div 
+        (click)="seleccionarMetrica('gastos')"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 row-span-2 cursor-pointer transition-all hover:shadow-md"
+        [class.border-l-4]="metricaSeleccionada === 'gastos'"
+        [class.border-blue-500]="metricaSeleccionada === 'gastos'"
+        [class.ring-2]="metricaSeleccionada === 'gastos'"
+        [class.ring-blue-200]="metricaSeleccionada === 'gastos'">
+        <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Gastos</h3>
+        <p class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatearMoneda(gastosMes) }}</p>
+        <span class="text-[10px] text-gray-400">Este mes</span>
+        <div class="mt-2 space-y-1">
+          <div>
+            <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosHoy) }}</p>
+            <span class="text-[10px] text-gray-400">Hoy</span>
+          </div>
+          <div>
+            <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosAyer) }}</p>
+            <span class="text-[10px] text-gray-400">Ayer</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Proyectos Activos -->
+      <div 
+        (click)="seleccionarMetrica('activos')"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 cursor-pointer transition-all hover:shadow-md"
+        [class.border-green-500]="metricaSeleccionada === 'activos'"
+        [class.border-green-200]="metricaSeleccionada !== 'activos'"
+        [class.ring-2]="metricaSeleccionada === 'activos'"
+        [class.ring-green-200]="metricaSeleccionada === 'activos'">
+        <span class="text-[10px] text-gray-400 uppercase tracking-wide">Este Mes</span>
+        <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Proyectos Activos</h3>
+        <p class="text-4xl font-bold text-gray-800 dark:text-white mt-1">{{ proyectosActivos }}</p>
       </div>
     </div>
     
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Gastos</h3>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white">S/. 312k</p>
-      <span class="text-xs text-gray-400">Este mes</span>
-      <div class="mt-3 space-y-1">
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Hoy</span>
-          <span class="font-semibold dark:text-white">S/. 3.2k</span>
-        </div>
-        <div class="flex justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Ayer</span>
-          <span class="font-semibold dark:text-white">S/. 4.1k</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Proyectos Activos</h3>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white">15</p>
-      <span class="text-xs text-gray-400">Este Mes</span>
-    </div>
-  </div>
-
-  <!-- Gráfico de proyectos finalizados -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-8">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Proyectos Finalizados</h3>
-      <div class="flex gap-2">
-        <button class="p-2 rounded-lg bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800">📊</button>
-        <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">📋</button>
-        <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">📈</button>
-      </div>
-    </div>
-    <span class="text-sm text-gray-500 dark:text-gray-400">Gráfico de barras</span>
-    <div class="h-48 flex items-end justify-around gap-4 mt-4 px-4">
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 80px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Ene</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 60px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Feb</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 100px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Mar</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 90px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Abr</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 120px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">May</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 70px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Jun</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 95px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Jul</span>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="w-8 bg-green-400 rounded-t" style="height: 40px"></div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 mt-2">Ago</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tablas de proyectos y tareas -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Proyectos en Curso</h3>
+    <!-- Columna derecha superior - Proyectos en Curso -->
+    <div class="lg:col-span-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
+      <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-2">Proyectos en Curso</h3>
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full text-xs">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700">
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Id</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Proyecto</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Responsable</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Etapa</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Inicio - Fin</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Estado</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Id</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2"><span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">⚠️</span></td>
-            </tr>
-            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">2</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓</span></td>
-            </tr>
-            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">3</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓</span></td>
-            </tr>
+            @for (proyecto of proyectosEnCurso; track proyecto.id) {
+              <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.id }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.etapa }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
+                <td class="py-1.5 px-1">
+                  @if (proyecto.estado === 'warning') {
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                      <svg class="w-3 h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30">
+                      <svg class="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
     </div>
     
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Tareas de los Encargados</h3>
+    <!-- Fila inferior -->
+    <!-- Gráfico dinámico según métrica seleccionada -->
+    <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
+      <div class="flex justify-between items-center mb-1">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-white">{{ tituloGrafico }}</h3>
+          <span class="text-[10px] text-gray-500 dark:text-gray-400">
+            {{ tipoGrafico === 'barras' ? 'Gráfico de barras' : tipoGrafico === 'linea' ? 'Gráfico de línea' : 'Gráfico circular' }}
+          </span>
+        </div>
+        <div class="flex gap-0.5">
+          <button 
+            (click)="cambiarTipoGrafico('barras')"
+            [class]="tipoGrafico === 'barras' ? 'p-1.5 rounded bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : 'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'"
+            title="Gráfico de barras">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </button>
+          <button 
+            (click)="cambiarTipoGrafico('linea')"
+            [class]="tipoGrafico === 'linea' ? 'p-1.5 rounded bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : 'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'"
+            title="Gráfico de línea">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+            </svg>
+          </button>
+          <button 
+            (click)="cambiarTipoGrafico('pie')"
+            [class]="tipoGrafico === 'pie' ? 'p-1.5 rounded bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : 'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'"
+            title="Gráfico circular">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Gráfico ngx-charts compacto -->
+      <div [class]="tipoGrafico === 'pie' ? 'h-44 mt-2' : 'h-36 mt-2'">
+        @if (graficosListos) {
+          @if (tipoGrafico === 'barras') {
+            <ngx-charts-bar-vertical
+              [results]="datosGraficoActual"
+              [scheme]="colorSchemeActual"
+              [xAxis]="true"
+              [yAxis]="true"
+              [legend]="false"
+              [showXAxisLabel]="false"
+              [showYAxisLabel]="false"
+              [gradient]="false"
+              [barPadding]="4"
+              [roundEdges]="true">
+            </ngx-charts-bar-vertical>
+          }
+          @else if (tipoGrafico === 'linea') {
+            <ngx-charts-line-chart
+              [results]="[{name: tituloGrafico, series: datosGraficoActual}]"
+              [scheme]="colorSchemeActual"
+              [xAxis]="true"
+              [yAxis]="true"
+              [legend]="false"
+              [showXAxisLabel]="false"
+              [showYAxisLabel]="false"
+              [autoScale]="true">
+            </ngx-charts-line-chart>
+          }
+          @else {
+            <ngx-charts-pie-chart
+              [results]="datosPieChart"
+              [scheme]="colorSchemeActual"
+              [legend]="true"
+              [legendPosition]="'right'"
+              [legendTitle]="''"
+              [labels]="false"
+              [doughnut]="true"
+              [arcWidth]="0.4"
+              [gradient]="false"
+              [tooltipDisabled]="false">
+            </ngx-charts-pie-chart>
+          }
+        } @else {
+          <div class="flex items-center justify-center h-full">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- Tareas de los Encargados -->
+    <div class="lg:col-span-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
+      <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-2">Tareas de los Encargados</h3>
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full text-xs">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700">
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Id</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Responsable</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Tarea</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Proyecto</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Etapa</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Inicio - Fin</th>
-              <th class="text-left py-3 px-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Estado</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Id</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2"><span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓</span></td>
-            </tr>
-            <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">2</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2 text-sm text-gray-700 dark:text-gray-300">Ejemplo1</td>
-              <td class="py-3 px-2"><span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">⚠️</span></td>
-            </tr>
+            @for (tarea of tareasEncargados; track tarea.id) {
+              <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.id }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
+                <td class="py-1.5 px-1">
+                  @if (tarea.estado === 'warning') {
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                      <svg class="w-3 h-3 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30">
+                      <svg class="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>

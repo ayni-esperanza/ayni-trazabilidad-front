@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { map, catchError, delay } from 'rxjs/operators';
@@ -30,13 +31,17 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private apiUrl = environment.apiUrl;
+  private platformId = inject(PLATFORM_ID);
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
-    // Verificar primero en localStorage, luego en sessionStorage
-    const storedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+    // Verificar primero en localStorage, luego en sessionStorage (solo en el navegador)
+    let storedUser: string | null = null;
+    if (isPlatformBrowser(this.platformId)) {
+      storedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+    }
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
     );
@@ -97,20 +102,25 @@ export class AuthService {
   }
 
   private setUser(user: User, rememberMe: boolean): void {
-    // Siempre guardar en sessionStorage para la sesión actual
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
-    
-    // Si rememberMe está activo, también guardar en localStorage para persistir
-    if (rememberMe) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+    // Solo guardar en storage si estamos en el navegador
+    if (isPlatformBrowser(this.platformId)) {
+      // Siempre guardar en sessionStorage para la sesión actual
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+      
+      // Si rememberMe está activo, también guardar en localStorage para persistir
+      if (rememberMe) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      }
     }
     this.currentUserSubject.next(user);
   }
 
   logout(): void {
-    // Eliminar usuario del almacenamiento
-    localStorage.removeItem('currentUser');
-    sessionStorage.removeItem('currentUser');
+    // Eliminar usuario del almacenamiento (solo en el navegador)
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
+    }
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
