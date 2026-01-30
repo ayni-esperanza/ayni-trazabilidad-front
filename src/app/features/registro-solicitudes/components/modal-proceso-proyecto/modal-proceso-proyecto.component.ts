@@ -3,6 +3,44 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 
+// Interfaces para Costos
+export interface MaterialCosto {
+  id: number;
+  fecha: string;
+  nroComprobante: string;
+  producto: string;
+  cantidad: number;
+  costoUnitario: number;
+  costoTotal: number;
+  encargado: string;
+}
+
+export interface ManoObraCosto {
+  id: number;
+  trabajador: string;
+  cargo: string;
+  diasTrabajando: number;
+  costoPorDia: number;
+  costoTotal: number;
+}
+
+export interface OtroCosto {
+  id: number;
+  fecha: string;
+  descripcion: string;
+  cantidad: number;
+  costoUnitario: number;
+  costoTotal: number;
+  encargado: string;
+}
+
+export interface TablaCostoExtra {
+  id: number;
+  nombre: string;
+  items: OtroCosto[];
+  expandida: boolean;
+}
+
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
@@ -29,6 +67,24 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   confetis: { id: number; tipo: string; color: string; left: number; delay: number; duration: number }[] = [];
   etapaSeleccionada: EtapaProyecto | null = null;
   proyectoSeleccionadoId = 0;
+
+  // Sección de Costos
+  seccionCostosExpandida = true;
+  materialesExpandida = true;
+  manoObraExpandida = true;
+  otrosCostosExpandida = true;
+
+  // Navegación de tabs
+  tabActiva: 'proceso' | 'costos' = 'proceso';
+  subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
+
+  // TODO: Backend - Cargar costos desde el servicio
+  // Estos arrays se llenarán con datos del backend
+  materiales: MaterialCosto[] = [];
+  manoObra: ManoObraCosto[] = [];
+  tablasCostosExtras: TablaCostoExtra[] = [];
+  
+  nuevoNombreTablaExtra = '';
 
   etapaForm = {
     presupuesto: 0,
@@ -183,5 +239,132 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   getResponsableNombre(responsableId: number): string {
     const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
+  }
+
+  // ========== Métodos para Costos ==========
+  
+  // Materiales
+  agregarMaterial(): void {
+    const nuevoId = this.materiales.length > 0 ? Math.max(...this.materiales.map(m => m.id)) + 1 : 1;
+    this.materiales.push({
+      id: nuevoId,
+      fecha: this.formatDate(new Date()),
+      nroComprobante: '',
+      producto: '',
+      cantidad: 0,
+      costoUnitario: 0,
+      costoTotal: 0,
+      encargado: ''
+    });
+  }
+
+  eliminarMaterial(id: number): void {
+    this.materiales = this.materiales.filter(m => m.id !== id);
+  }
+
+  calcularCostoTotalMaterial(material: MaterialCosto): void {
+    material.costoTotal = material.cantidad * material.costoUnitario;
+  }
+
+  get totalMateriales(): number {
+    return this.materiales.reduce((sum, m) => sum + m.costoTotal, 0);
+  }
+
+  // Mano de Obra
+  agregarManoObra(): void {
+    const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map(m => m.id)) + 1 : 1;
+    this.manoObra.push({
+      id: nuevoId,
+      trabajador: '',
+      cargo: '',
+      diasTrabajando: 0,
+      costoPorDia: 0,
+      costoTotal: 0
+    });
+  }
+
+  eliminarManoObra(id: number): void {
+    this.manoObra = this.manoObra.filter(m => m.id !== id);
+  }
+
+  calcularCostoTotalManoObra(item: ManoObraCosto): void {
+    item.costoTotal = item.diasTrabajando * item.costoPorDia;
+  }
+
+  get totalManoObra(): number {
+    return this.manoObra.reduce((sum, m) => sum + m.costoTotal, 0);
+  }
+
+  // Otros Costos (Tablas dinámicas)
+  agregarTablaExtra(): void {
+    if (!this.nuevoNombreTablaExtra.trim()) return;
+    const nuevoId = this.tablasCostosExtras.length > 0 ? Math.max(...this.tablasCostosExtras.map(t => t.id)) + 1 : 1;
+    this.tablasCostosExtras.push({
+      id: nuevoId,
+      nombre: this.nuevoNombreTablaExtra.trim(),
+      items: [],
+      expandida: true
+    });
+    this.nuevoNombreTablaExtra = '';
+  }
+
+  eliminarTablaExtra(id: number): void {
+    this.tablasCostosExtras = this.tablasCostosExtras.filter(t => t.id !== id);
+  }
+
+  agregarItemOtroCosto(tabla: TablaCostoExtra): void {
+    const nuevoId = tabla.items.length > 0 ? Math.max(...tabla.items.map(i => i.id)) + 1 : 1;
+    tabla.items.push({
+      id: nuevoId,
+      fecha: this.formatDate(new Date()),
+      descripcion: '',
+      cantidad: 0,
+      costoUnitario: 0,
+      costoTotal: 0,
+      encargado: ''
+    });
+  }
+
+  eliminarItemOtroCosto(tabla: TablaCostoExtra, itemId: number): void {
+    tabla.items = tabla.items.filter(i => i.id !== itemId);
+  }
+
+  calcularCostoTotalOtro(item: OtroCosto): void {
+    item.costoTotal = item.cantidad * item.costoUnitario;
+  }
+
+  getTotalTablaExtra(tabla: TablaCostoExtra): number {
+    return tabla.items.reduce((sum, i) => sum + i.costoTotal, 0);
+  }
+
+  get totalOtrosCostos(): number {
+    return this.tablasCostosExtras.reduce((sum, t) => sum + this.getTotalTablaExtra(t), 0);
+  }
+
+  get totalCostosGeneral(): number {
+    return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
+  }
+
+  // ========== Métodos para Backend Integration ==========
+  
+  // TODO: Llamar este método cuando se abra la modal para cargar costos existentes
+  cargarCostosDesdeBackend(): void {
+    // TODO: Implementar llamada al servicio
+    // this.costosService.getMateriales(this.proyecto.id).subscribe(data => this.materiales = data);
+    // this.costosService.getManoObra(this.proyecto.id).subscribe(data => this.manoObra = data);
+    // this.costosService.getOtrosCostos(this.proyecto.id).subscribe(data => this.tablasCostosExtras = data);
+  }
+
+  // TODO: Llamar este método para guardar todos los costos
+  guardarCostos(): void {
+    const costosData = {
+      proyectoId: this.proyecto?.id,
+      materiales: this.materiales,
+      manoObra: this.manoObra,
+      otrosCostos: this.tablasCostosExtras
+    };
+    console.log('Datos a enviar al backend:', costosData);
+    // TODO: Implementar llamada al servicio
+    // this.costosService.guardarCostos(costosData).subscribe(...);
   }
 }
