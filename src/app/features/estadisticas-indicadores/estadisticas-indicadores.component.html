@@ -1,147 +1,396 @@
-<div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
+<div class="p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Estadísticas e Indicadores</h1>
   </div>
-  
-  <!-- KPIs principales -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h4 class="text-sm text-gray-500 dark:text-gray-400 mb-2">Proyectos Completados</h4>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white mb-2">85%</p>
-      <span class="inline-flex items-center gap-1 text-sm font-medium text-green-600">
-        <span>↑</span> 5% vs mes anterior
-      </span>
+
+  <!-- Filtro de Categoría -->
+  <div class="mb-4">
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">CATEGORÍA</p>
+    <select
+      [(ngModel)]="filtroCategoria"
+      (ngModelChange)="cambiarFiltro($event)"
+      class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm">
+      <option value="responsables">Responsables</option>
+      <option value="proyectos">Proyectos</option>
+    </select>
+  </div>
+
+  <!-- Vista: Sin Detalle (Tabla General) -->
+  <div *ngIf="!proyectoSeleccionado && !responsableSeleccionado">
+
+    <!-- Tabla de Responsables -->
+    <div *ngIf="filtroCategoria === 'responsables'" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Responsable</th>
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Cargo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let resp of responsables"
+              (click)="seleccionarResponsable(resp)"
+              class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+              <td class="py-3 px-3 font-medium text-gray-800 dark:text-gray-200">{{ resp.nombre }}</td>
+              <td class="py-3 px-3 text-gray-600 dark:text-gray-400">{{ resp.cargo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h4 class="text-sm text-gray-500 dark:text-gray-400 mb-2">Tareas en Tiempo</h4>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white mb-2">92%</p>
-      <span class="inline-flex items-center gap-1 text-sm font-medium text-green-600">
-        <span>↑</span> 3% vs mes anterior
-      </span>
-    </div>
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h4 class="text-sm text-gray-500 dark:text-gray-400 mb-2">Eficiencia del Equipo</h4>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white mb-2">78%</p>
-      <span class="inline-flex items-center gap-1 text-sm font-medium text-red-600">
-        <span>↓</span> 2% vs mes anterior
-      </span>
-    </div>
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 text-center">
-      <h4 class="text-sm text-gray-500 dark:text-gray-400 mb-2">Satisfacción</h4>
-      <p class="text-4xl font-bold text-gray-800 dark:text-white mb-2">4.5/5</p>
-      <span class="inline-flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-        <span>→</span> Sin cambios
-      </span>
+
+    <!-- Tabla de Proyectos -->
+    <div *ngIf="filtroCategoria === 'proyectos'" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Proyecto</th>
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Etapa</th>
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Inicio - Fin</th>
+              <th class="text-left py-2 px-3 font-semibold text-gray-600 dark:text-gray-400">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let proyecto of proyectos"
+              (click)="seleccionarProyecto(proyecto)"
+              class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+              <td class="py-3 px-3 font-medium text-gray-800 dark:text-gray-200">{{ proyecto.nombre }}</td>
+              <td class="py-3 px-3 text-gray-600 dark:text-gray-400">{{ proyecto.etapa }}</td>
+              <td class="py-3 px-3 text-gray-600 dark:text-gray-400">{{ proyecto.durationStart }} - {{ proyecto.durationEnd }}</td>
+              <td class="py-3 px-3">
+                <span class="px-2 py-1 text-xs font-medium rounded-full"
+                  [ngClass]="{
+                    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400': proyecto.estado === 'En Proceso',
+                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': proyecto.estado === 'Completado'
+                  }">
+                  {{ proyecto.estado }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Gráficos de tendencias -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Tendencias de Proyectos</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-        <div class="text-center">
-          <span class="text-4xl">📈</span>
-          <p class="text-gray-500 dark:text-gray-400 mt-2">Gráfico de Avance Mensual</p>
+  <!-- Vista: Detalle del Proyecto -->
+  <div *ngIf="proyectoSeleccionado" class="space-y-4">
+    <!-- Dropdown Proyectos -->
+    <div class="flex items-center gap-4">
+      <select 
+        class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [(ngModel)]="proyectoSeleccionado"
+        (ngModelChange)="seleccionarProyecto($event)">
+        <option *ngFor="let p of proyectos" [ngValue]="p">{{ p.nombre }}</option>
+      </select>
+      <button
+        (click)="cerrarDetalle()"
+        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Header: Info Proyecto + KPIs -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Info del Proyecto -->
+      <div class="space-y-1">
+        <h2 class="text-lg font-bold text-gray-800 dark:text-white">Proyecto: {{ proyectoSeleccionado.nombre }}</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Responsable: {{ proyectoSeleccionado.responsable }}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Cliente: {{ proyectoSeleccionado.cliente }}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Estado: Etapa en la que se encuentra, caso contrario Registrada, Finalizada o Cancelada</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Duración: {{ proyectoSeleccionado.durationStart }} - {{ proyectoSeleccionado.durationEnd }}</p>
+        <div class="mt-2">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Descripción:</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 overflow-hidden">{{ proyectoSeleccionado.descripcion }}</p>
         </div>
       </div>
-      <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-        <div class="text-center">
-          <span class="text-4xl">📊</span>
-          <p class="text-gray-500 dark:text-gray-400 mt-2">Distribución por Estado</p>
+
+      <!-- Etapa + KPIs -->
+      <div class="space-y-3">
+        <div class="text-right">
+          <h3 class="text-base font-semibold text-gray-800 dark:text-white">Etapa : {{ proyectoSeleccionado.etapa }}</h3>
+        </div>
+        
+        <!-- KPIs en una fila -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Inversión -->
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
+            <h4 class="text-xs text-gray-500 dark:text-gray-400">Inversión</h4>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">S/. {{ (proyectoSeleccionado.inversion / 1000) | number:'1.0-0' }}k</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Este mes</p>
+          </div>
+          
+          <!-- Gasto -->
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center">
+            <h4 class="text-xs text-gray-500 dark:text-gray-400">Gasto</h4>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">S/. {{ (proyectoSeleccionado.gasto / 1000) | number:'1.0-0' }}k</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Este mes</p>
+          </div>
+        </div>
+        
+        <!-- Retorno/Sobrante centrado -->
+        <div class="flex justify-center">
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-center w-1/2">
+            <h4 class="text-xs text-gray-500 dark:text-gray-400">Retorno/Sobrante</h4>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">S/. {{ (proyectoSeleccionado.retorno / 1000) | number:'1.0-0' }}k</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Este mes</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Indicadores por proyecto -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Indicadores por Proyecto</h3>
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Proyecto</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Avance</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Tareas Completadas</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Eficiencia</th>
-            <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Proyecto Alpha</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-500 rounded-full" style="width: 75%"></div>
-                </div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">75%</span>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">15/20</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">85%</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">En progreso</span>
-            </td>
-          </tr>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Proyecto Beta</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
-                </div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">100%</span>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">25/25</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">92%</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Completado</span>
-            </td>
-          </tr>
-          <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300 font-medium">Proyecto Gamma</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center gap-2">
-                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-yellow-500 rounded-full" style="width: 45%"></div>
-                </div>
-                <span class="text-sm text-gray-700 dark:text-gray-300">45%</span>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">9/20</td>
-            <td class="py-4 px-4 text-sm text-gray-700 dark:text-gray-300">72%</td>
-            <td class="py-4 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">En riesgo</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Tabla de Tareas + Gráfico ROI -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Tabla de Tareas -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-3">Tareas de los Responsables</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Id</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Responsable</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Proyecto</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Tarea</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Etapa</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Inicio - Fin</th>
+                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tarea of tareasProyecto"
+                class="border-b border-gray-100 dark:border-gray-700"
+                [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.id }}</td>
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
+                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.inicioFin }}</td>
+                <td class="py-2 px-1">
+                  <svg *ngIf="tarea.status === 'alerta'" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  <svg *ngIf="tarea.status === 'completado'" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Paginación -->
+        <div class="flex justify-center items-center gap-2 mt-3">
+          <button class="p-1.5 rounded-lg bg-gray-800 text-white hover:bg-gray-700">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <button class="p-1.5 rounded-lg bg-gray-800 text-white hover:bg-gray-700">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Gráfico ROI -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white mb-1">ROI</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Gráfico de barras y líneas</p>
+        <ngx-charts-bar-vertical
+          [view]="[350, 180]"
+          [scheme]="colorScheme"
+          [results]="roiData[0].series || []"
+          [xAxis]="true"
+          [yAxis]="true"
+          [legend]="false"
+          [showXAxisLabel]="false"
+          [showYAxisLabel]="false"
+          [gradient]="false"
+          [barPadding]="8"
+          [roundEdges]="false">
+        </ngx-charts-bar-vertical>
+      </div>
     </div>
   </div>
 
-  <!-- Rendimiento del Equipo -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Rendimiento del Equipo</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-        <span class="block text-sm text-gray-500 dark:text-gray-400 mb-2">Tareas completadas hoy</span>
-        <span class="block text-3xl font-bold text-gray-800 dark:text-white">12</span>
+  <!-- Vista: Detalle del Responsable -->
+  <div *ngIf="responsableSeleccionado" class="space-y-4">
+    <!-- Dropdown Responsables -->
+    <div class="flex items-center gap-4">
+      <select 
+        class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [(ngModel)]="responsableSeleccionado"
+        (ngModelChange)="seleccionarResponsable($event)">
+        <option *ngFor="let r of responsables" [ngValue]="r">{{ r.nombre }}</option>
+      </select>
+      <button
+        (click)="cerrarDetalle()"
+        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Layout principal: Izquierda (Info + Tablas) | Derecha (KPIs) -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <!-- Columna Izquierda: Info + Tablas (3 de 5 columnas) -->
+      <div class="lg:col-span-3 space-y-4">
+        <!-- Info del Responsable -->
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white">Nombre: {{ responsableSeleccionado.nombre }}</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Cargo : {{ responsableSeleccionado.cargo }}</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Antigüedad {{ responsableSeleccionado.antiguedad }}</p>
+        </div>
+
+        <!-- Tabla: Participación en Proyectos -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-2">Participación en Proyectos</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Id</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Proyecto</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Etapa</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Inicio - Fin</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tarea of tareasProyecto; let i = index"
+                  class="border-b border-gray-100 dark:border-gray-700"
+                  [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ i + 1 }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.inicioFin }}</td>
+                  <td class="py-2 px-1">
+                    <svg *ngIf="tarea.status === 'alerta'" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg *ngIf="tarea.status === 'completado'" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabla: Tareas Asignadas -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-white mb-2">Tareas Asignadas</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Id</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Tarea</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Proyecto</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Etapa</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Inicio - Fin</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tarea of tareasProyecto"
+                  class="border-b border-gray-100 dark:border-gray-700"
+                  [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.id }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
+                  <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.inicioFin }}</td>
+                  <td class="py-2 px-1">
+                    <svg *ngIf="tarea.status === 'alerta'" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg *ngIf="tarea.status === 'completado'" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-        <span class="block text-sm text-gray-500 dark:text-gray-400 mb-2">Promedio diario</span>
-        <span class="block text-3xl font-bold text-gray-800 dark:text-white">10.5</span>
-      </div>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-        <span class="block text-sm text-gray-500 dark:text-gray-400 mb-2">Tiempo promedio por tarea</span>
-        <span class="block text-3xl font-bold text-gray-800 dark:text-white">2.3h</span>
-      </div>
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
-        <span class="block text-sm text-gray-500 dark:text-gray-400 mb-2">Productividad semanal</span>
-        <span class="block text-3xl font-bold text-gray-800 dark:text-white">95%</span>
+
+      <!-- Columna Derecha: KPIs (2 de 5 columnas) -->
+      <div class="lg:col-span-2 space-y-3">
+        <!-- Tareas Realizadas + Promedio de Eficiencia -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Tareas Realizadas -->
+          <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3 text-center">
+            <h4 class="text-xs text-gray-500 dark:text-gray-400 mb-1">Tareas Realizadas</h4>
+            <p class="text-3xl font-bold text-gray-800 dark:text-white">{{ responsableSeleccionado.tareasRealizadas }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Este mes</p>
+          </div>
+          
+          <!-- Promedio de Eficiencia con gauge SVG -->
+          <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3 text-center">
+            <h4 class="text-xs text-gray-500 dark:text-gray-400 mb-1">Promedio de Eficiencia</h4>
+            <!-- Gauge circular con SVG -->
+            <div class="relative inline-flex items-center justify-center">
+              <svg class="w-20 h-12" viewBox="0 0 100 50">
+                <!-- Fondo del arco -->
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e5e7eb" stroke-width="8" stroke-linecap="round"/>
+                <!-- Arco de progreso (90% = 4.5/5) -->
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#22c55e" stroke-width="8" stroke-linecap="round"
+                  [attr.stroke-dasharray]="126"
+                  [attr.stroke-dashoffset]="126 - (126 * responsableSeleccionado.promedio / 5)"/>
+              </svg>
+            </div>
+            <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ responsableSeleccionado.promedio }}</p>
+          </div>
+        </div>
+
+        <!-- % de Tareas Realizadas -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">% de Tareas Realizadas</h4>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Tareas Realizadas</span>
+            <span class="text-xs font-semibold text-gray-800 dark:text-white">{{ responsableSeleccionado.tareasRealizadasPorcentaje }} ({{ responsableSeleccionado.tareasRealizadasPorcentaje }}%)</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div class="bg-green-500 h-3 rounded-full" [style.width.%]="responsableSeleccionado.tareasRealizadasPorcentaje"></div>
+          </div>
+        </div>
+
+        <!-- % de Tareas Realizadas a Tiempo (TRT) -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">% de Tareas Realizadas a Tiempo (TRT)</h4>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-gray-500 dark:text-gray-400">TRT</span>
+            <span class="text-xs font-semibold text-gray-800 dark:text-white">{{ responsableSeleccionado.tareasRealizadasTiempo }} ({{ responsableSeleccionado.tareasRealizadasTiempo }}%)</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div class="bg-green-500 h-3 rounded-full" [style.width.%]="responsableSeleccionado.tareasRealizadasTiempo"></div>
+          </div>
+        </div>
+
+        <!-- % de Tareas de Proyectos (TPE) -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3">
+          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">% de Tareas de Proyectos</h4>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs text-gray-500 dark:text-gray-400">TPE</span>
+            <span class="text-xs font-semibold text-gray-800 dark:text-white">{{ responsableSeleccionado.tareasPorcentajeProyectos }} ({{ responsableSeleccionado.tareasPorcentajeProyectos }}%)</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div class="bg-green-500 h-3 rounded-full" [style.width.%]="responsableSeleccionado.tareasPorcentajeProyectos"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
