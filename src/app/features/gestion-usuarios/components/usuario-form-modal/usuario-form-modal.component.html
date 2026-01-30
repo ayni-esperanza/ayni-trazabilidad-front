@@ -67,7 +67,9 @@
                   name="nombre" 
                   required
                   placeholder="Nombre"
+                  [class.border-red-500]="tieneError('nombre')"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <span *ngIf="tieneError('nombre')" class="text-xs text-red-500">{{ errores['nombre'] }}</span>
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Apellido *</label>
@@ -77,7 +79,9 @@
                   name="apellido" 
                   required
                   placeholder="Apellido"
+                  [class.border-red-500]="tieneError('apellido')"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <span *ngIf="tieneError('apellido')" class="text-xs text-red-500">{{ errores['apellido'] }}</span>
               </div>
             </div>
             <div>
@@ -88,7 +92,9 @@
                 name="username" 
                 required
                 placeholder="nombre_usuario"
+                [class.border-red-500]="tieneError('username')"
                 class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+              <span *ngIf="tieneError('username')" class="text-xs text-red-500">{{ errores['username'] }}</span>
             </div>
           </div>
         </div>
@@ -103,7 +109,9 @@
               name="email" 
               required
               placeholder="correo@ejemplo.com"
+              [class.border-red-500]="tieneError('email')"
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            <span *ngIf="tieneError('email')" class="text-xs text-red-500">{{ errores['email'] }}</span>
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Teléfono</label>
@@ -142,12 +150,14 @@
               [(ngModel)]="formData.rolId" 
               name="rolId" 
               required
+              [class.border-red-500]="tieneError('rolId')"
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-              <option [ngValue]="null" disabled>Rol</option>
+              <option [ngValue]="null" disabled>Seleccionar Rol</option>
               @for (rol of roles; track rol.id) {
                 <option [ngValue]="rol.id">{{ rol.nombre }}</option>
               }
             </select>
+            <span *ngIf="tieneError('rolId')" class="text-xs text-red-500">{{ errores['rolId'] }}</span>
           </div>
         </div>
         
@@ -165,6 +175,11 @@
             <span class="text-xs text-gray-600 dark:text-gray-300">Usuario activo</span>
           </div>
         }
+
+        <!-- Mensaje de error general -->
+        <div *ngIf="intentoGuardar && Object.keys(errores).length > 0" class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p class="text-xs text-red-600 dark:text-red-400">Por favor, complete todos los campos requeridos correctamente.</p>
+        </div>
         
         <!-- Botones -->
         <div class="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">

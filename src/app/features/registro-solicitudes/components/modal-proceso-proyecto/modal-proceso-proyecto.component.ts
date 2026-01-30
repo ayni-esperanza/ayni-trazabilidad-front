@@ -93,6 +93,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     fechaFinalizacion: ''
   };
 
+  // Control de validación para etapa
+  intentoFinalizarEtapa = false;
+  erroresEtapa: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
@@ -145,6 +150,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   seleccionarEtapa(etapa: EtapaProyecto): void {
     this.etapaSeleccionada = etapa;
+    this.intentoFinalizarEtapa = false;
+    this.erroresEtapa = {};
     this.etapaForm = {
       presupuesto: etapa.presupuesto,
       responsableId: etapa.responsableId,
@@ -153,13 +160,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     };
   }
 
-  formatDate(date: Date | undefined): string {
+  formatDate(date: Date | string | undefined): string {
     if (!date) return '';
     const d = new Date(date);
     return d.toISOString().split('T')[0];
   }
 
-  formatDisplayDate(date: Date | undefined): string {
+  formatDisplayDate(date: Date | string | undefined): string {
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -174,6 +181,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onFinalizarEtapa(): void {
+    this.intentoFinalizarEtapa = true;
+    
+    if (!this.validarEtapa()) return;
+
     if (this.etapaSeleccionada) {
       this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
       this.etapaSeleccionada.responsableId = this.etapaForm.responsableId;
@@ -187,6 +198,30 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         this.seleccionarEtapa(this.etapas[index + 1]);
       }
     }
+  }
+
+  validarEtapa(): boolean {
+    this.erroresEtapa = {};
+
+    if (!this.etapaForm.responsableId || this.etapaForm.responsableId === 0) {
+      this.erroresEtapa['responsableId'] = 'Debe seleccionar un responsable';
+    }
+    if (!this.etapaForm.fechaInicio) {
+      this.erroresEtapa['fechaInicio'] = 'La fecha de inicio es requerida';
+    }
+    if (!this.etapaForm.fechaFinalizacion) {
+      this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización es requerida';
+    }
+    if (this.etapaForm.fechaInicio && this.etapaForm.fechaFinalizacion &&
+        new Date(this.etapaForm.fechaFinalizacion) < new Date(this.etapaForm.fechaInicio)) {
+      this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización debe ser posterior a la de inicio';
+    }
+
+    return Object.keys(this.erroresEtapa).length === 0;
+  }
+
+  tieneErrorEtapa(campo: string): boolean {
+    return this.intentoFinalizarEtapa && !!this.erroresEtapa[campo];
   }
 
   onCambiarProyecto(): void {

@@ -16,49 +16,84 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Proyecto *</label>
           <input type="text" [(ngModel)]="proyecto.nombreProyecto"
+            [class.border-red-500]="tieneError('nombreProyecto')"
+            [class.ring-red-500]="tieneError('nombreProyecto')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('nombreProyecto')" class="text-xs text-red-500 mt-0.5 block">{{ errores['nombreProyecto'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente *</label>
           <input type="text" [(ngModel)]="proyecto.cliente"
+            [class.border-red-500]="tieneError('cliente')"
+            [class.ring-red-500]="tieneError('cliente')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('cliente')" class="text-xs text-red-500 mt-0.5 block">{{ errores['cliente'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Costo *</label>
           <input type="number" [(ngModel)]="proyecto.costo"
+            [class.border-red-500]="tieneError('costo')"
+            [class.ring-red-500]="tieneError('costo')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('costo')" class="text-xs text-red-500 mt-0.5 block">{{ errores['costo'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable *</label>
           <select [(ngModel)]="proyecto.responsableId"
+            [class.border-red-500]="tieneError('responsableId')"
+            [class.ring-red-500]="tieneError('responsableId')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-            <option value="0">Todos los Responsables</option>
+            <option value="0">Seleccionar Responsable</option>
             <option *ngFor="let resp of responsables" [value]="resp.id">{{ resp.nombre }}</option>
           </select>
+          <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['responsableId'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Inicio *</label>
           <input type="date" [(ngModel)]="proyecto.fechaInicio"
+            [class.border-red-500]="tieneError('fechaInicio')"
+            [class.ring-red-500]="tieneError('fechaInicio')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-0.5 block">{{ errores['fechaInicio'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Finalización *</label>
           <input type="date" [(ngModel)]="proyecto.fechaFinalizacion"
+            [class.border-red-500]="tieneError('fechaFinalizacion')"
+            [class.ring-red-500]="tieneError('fechaFinalizacion')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('fechaFinalizacion')" class="text-xs text-red-500 mt-0.5 block">{{ errores['fechaFinalizacion'] }}</span>
         </div>
       </div>
       <div class="mb-3">
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso *</label>
         <select [(ngModel)]="proyecto.procesoId"
+          [class.border-red-500]="tieneError('procesoId')"
+          [class.ring-red-500]="tieneError('procesoId')"
           class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-          <option value="0">Todos los Procesos</option>
+          <option value="0">Seleccionar Proceso</option>
           <option *ngFor="let proc of procesos" [value]="proc.id">{{ proc.nombre }}</option>
         </select>
+        <span *ngIf="tieneError('procesoId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['procesoId'] }}</span>
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción *</label>
         <textarea [(ngModel)]="proyecto.descripcion" rows="3"
+          [class.border-red-500]="tieneError('descripcion')"
+          [class.ring-red-500]="tieneError('descripcion')"
           class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+        <span *ngIf="tieneError('descripcion')" class="text-xs text-red-500 mt-0.5 block">{{ errores['descripcion'] }}</span>
+      </div>
+
+      <!-- Mensaje general de validación -->
+      <div *ngIf="intentoGuardar && Object.keys(errores).length > 0" 
+        class="mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-xs font-medium">Por favor, complete todos los campos requeridos</span>
+        </div>
       </div>
     </div>
 

@@ -35,42 +35,50 @@
         <div class="px-5 py-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-1">
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso</label>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso <span class="text-red-500">*</span></label>
               <input
                 type="text"
                 [(ngModel)]="form.proceso"
                 placeholder="Ej. Ejemplo1"
+                [class.border-red-500]="tieneError('proceso')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
-              <p class="mt-1 text-[11px] text-gray-400">Requerido.</p>
+              <span *ngIf="tieneError('proceso')" class="text-xs text-red-500 mt-1">{{ errores['proceso'] }}</span>
+              <p *ngIf="!tieneError('proceso')" class="mt-1 text-[11px] text-gray-400">Requerido.</p>
             </div>
 
             <div class="sm:col-span-1">
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Area</label>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Área <span class="text-red-500">*</span></label>
               <input
                 type="text"
                 [(ngModel)]="form.area"
                 placeholder="Ej. Ejemplo1"
+                [class.border-red-500]="tieneError('area')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
+              <span *ngIf="tieneError('area')" class="text-xs text-red-500 mt-1">{{ errores['area'] }}</span>
             </div>
 
             <div class="sm:col-span-1">
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Etapas</label>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Etapas <span class="text-red-500">*</span></label>
               <input
                 type="number"
                 min="1"
                 [(ngModel)]="form.etapas"
+                [class.border-red-500]="tieneError('etapas')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
+              <span *ngIf="tieneError('etapas')" class="text-xs text-red-500 mt-1">{{ errores['etapas'] }}</span>
             </div>
 
             <div class="sm:col-span-2">
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Flujo</label>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Flujo <span class="text-red-500">*</span></label>
               <input
                 type="text"
                 [(ngModel)]="flujoTexto"
                 (ngModelChange)="onFlujoTextoChange($event)"
                 placeholder="Inicio, Revisión, Aprobación"
+                [class.border-red-500]="tieneError('flujo')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
-              <p class="mt-1 text-[11px] text-gray-400">Separar pasos con comas.</p>
+              <span *ngIf="tieneError('flujo')" class="text-xs text-red-500 mt-1">{{ errores['flujo'] }}</span>
+              <p *ngIf="!tieneError('flujo')" class="mt-1 text-[11px] text-gray-400">Separar pasos con comas.</p>
 
               <!-- Preview chips -->
               <div class="mt-2 flex items-center gap-2 flex-wrap">
@@ -84,6 +92,11 @@
                 }
               </div>
             </div>
+          </div>
+
+          <!-- Mensaje de error general -->
+          <div *ngIf="intentoGuardar && Object.keys(errores).length > 0" class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p class="text-xs text-red-600 dark:text-red-400">Por favor, complete todos los campos requeridos correctamente.</p>
           </div>
         </div>
 

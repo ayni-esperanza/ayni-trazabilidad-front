@@ -51,6 +51,11 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     firma: 'Todas las Firmas',
   };
 
+  // Control de validación
+  protected intentoGuardar = false;
+  protected errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   protected previewHtml: SafeHtml = '';
   protected previewPages: SafeHtml[] = [];
   private previewHtmlRaw = '';
@@ -184,14 +189,22 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     if (changes['visible'] || changes['informe']) {
       this.hidratarFormulario();
       this.actualizarPreview();
+      this.intentoGuardar = false;
+      this.errores = {};
     }
   }
 
   protected onCloseClick(): void {
+    this.intentoGuardar = false;
+    this.errores = {};
     this.cerrar.emit();
   }
 
   protected onGuardar(): void {
+    this.intentoGuardar = true;
+    
+    if (!this.validarFormulario()) return;
+
     const payload: InformeFormData = {
       id: this.form.id,
       titulo: (this.form.titulo || '').trim(),
@@ -200,9 +213,27 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       firma: this.form.firma || 'Todas las Firmas',
     };
 
-    if (!payload.titulo || !payload.fecha) return;
-
     this.guardar.emit(payload);
+  }
+
+  protected validarFormulario(): boolean {
+    this.errores = {};
+
+    if (!(this.form.titulo || '').trim()) {
+      this.errores['titulo'] = 'El título del informe es requerido';
+    }
+    if (!this.form.fecha) {
+      this.errores['fecha'] = 'La fecha es requerida';
+    }
+    if (!(this.form.cuerpoHtml || '').trim()) {
+      this.errores['cuerpoHtml'] = 'El contenido del informe es requerido';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  protected tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
 
   protected setZoom(value: number): void {

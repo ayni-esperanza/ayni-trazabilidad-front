@@ -20,6 +20,11 @@ export class ModalIniciarProyectoComponent implements OnChanges {
 
   proyecto: Partial<Proyecto> = {};
 
+  // Control de validación
+  intentoGuardar = false;
+  errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['solicitud'] && this.solicitud) {
       this.proyecto = {
@@ -28,14 +33,18 @@ export class ModalIniciarProyectoComponent implements OnChanges {
         costo: this.solicitud.costo,
         responsableId: this.solicitud.responsableId,
         descripcion: this.solicitud.descripcion,
-        fechaInicio: new Date(),
-        fechaFinalizacion: new Date(),
+        fechaInicio: '',
+        fechaFinalizacion: '',
         procesoId: 0
       };
+      this.intentoGuardar = false;
+      this.errores = {};
     }
   }
 
   onCerrar(): void {
+    this.intentoGuardar = false;
+    this.errores = {};
     this.cerrar.emit();
   }
 
@@ -44,21 +53,48 @@ export class ModalIniciarProyectoComponent implements OnChanges {
   }
 
   onIniciar(): void {
+    this.intentoGuardar = true;
     if (this.validar()) {
       this.iniciar.emit({ ...this.proyecto });
     }
   }
 
   validar(): boolean {
-    return !!(
-      this.proyecto.nombreProyecto &&
-      this.proyecto.cliente &&
-      this.proyecto.costo &&
-      this.proyecto.responsableId &&
-      this.proyecto.fechaInicio &&
-      this.proyecto.fechaFinalizacion &&
-      this.proyecto.procesoId &&
-      this.proyecto.descripcion
-    );
+    this.errores = {};
+    
+    if (!this.proyecto.nombreProyecto?.trim()) {
+      this.errores['nombreProyecto'] = 'El nombre del proyecto es requerido';
+    }
+    if (!this.proyecto.cliente?.trim()) {
+      this.errores['cliente'] = 'El cliente es requerido';
+    }
+    if (!this.proyecto.costo || this.proyecto.costo <= 0) {
+      this.errores['costo'] = 'El costo debe ser mayor a 0';
+    }
+    if (!this.proyecto.responsableId || this.proyecto.responsableId === 0) {
+      this.errores['responsableId'] = 'Debe seleccionar un responsable';
+    }
+    if (!this.proyecto.fechaInicio) {
+      this.errores['fechaInicio'] = 'La fecha de inicio es requerida';
+    }
+    if (!this.proyecto.fechaFinalizacion) {
+      this.errores['fechaFinalizacion'] = 'La fecha de finalización es requerida';
+    }
+    if (this.proyecto.fechaInicio && this.proyecto.fechaFinalizacion && 
+        new Date(this.proyecto.fechaFinalizacion) < new Date(this.proyecto.fechaInicio)) {
+      this.errores['fechaFinalizacion'] = 'La fecha de finalización debe ser posterior a la de inicio';
+    }
+    if (!this.proyecto.procesoId || this.proyecto.procesoId === 0) {
+      this.errores['procesoId'] = 'Debe seleccionar un proceso';
+    }
+    if (!this.proyecto.descripcion?.trim()) {
+      this.errores['descripcion'] = 'La descripción es requerida';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
 }

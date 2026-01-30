@@ -39,6 +39,11 @@ export class TareaFormModalComponent implements OnChanges {
     estado: 'pendiente'
   };
 
+  // Control de validación
+  intentoGuardar = false;
+  errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   // Opciones para los dropdowns
   proyectos = [
     { id: '1', nombre: 'Proyecto Alpha' },
@@ -81,6 +86,8 @@ export class TareaFormModalComponent implements OnChanges {
       fechaFin: '',
       estado: 'pendiente'
     };
+    this.intentoGuardar = false;
+    this.errores = {};
   }
 
   onCerrar(): void {
@@ -89,6 +96,7 @@ export class TareaFormModalComponent implements OnChanges {
   }
 
   onGuardar(): void {
+    this.intentoGuardar = true;
     if (this.validarFormulario()) {
       if (this.modoEdicion && this.tarea?.id) {
         this.guardar.emit({ ...this.formData, id: this.tarea.id });
@@ -107,14 +115,36 @@ export class TareaFormModalComponent implements OnChanges {
   }
 
   validarFormulario(): boolean {
-    return !!(
-      this.formData.nombre.trim() &&
-      this.formData.proyectoId &&
-      this.formData.responsableId &&
-      this.formData.etapa &&
-      this.formData.fechaInicio &&
-      this.formData.fechaFin
-    );
+    this.errores = {};
+
+    if (!this.formData.nombre.trim()) {
+      this.errores['nombre'] = 'El nombre de la tarea es requerido';
+    }
+    if (!this.formData.proyectoId) {
+      this.errores['proyectoId'] = 'Debe seleccionar un proyecto';
+    }
+    if (!this.formData.etapa) {
+      this.errores['etapa'] = 'Debe seleccionar una etapa';
+    }
+    if (!this.formData.fechaInicio) {
+      this.errores['fechaInicio'] = 'La fecha de inicio es requerida';
+    }
+    if (!this.formData.fechaFin) {
+      this.errores['fechaFin'] = 'La fecha de finalización es requerida';
+    }
+    if (this.formData.fechaInicio && this.formData.fechaFin && 
+        new Date(this.formData.fechaFin) < new Date(this.formData.fechaInicio)) {
+      this.errores['fechaFin'] = 'La fecha de finalización debe ser posterior a la de inicio';
+    }
+    if (this.modoEdicion && !this.formData.responsableId) {
+      this.errores['responsableId'] = 'Debe seleccionar un responsable';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
 
   get tituloModal(): string {

@@ -23,12 +23,18 @@ export class ModalNuevaSolicitudComponent {
     descripcion: ''
   };
 
+  // Control de validación
+  intentoGuardar = false;
+  errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   onCerrar(): void {
     this.resetForm();
     this.cerrar.emit();
   }
 
   onGuardar(): void {
+    this.intentoGuardar = true;
     if (this.validar()) {
       this.guardar.emit({ ...this.solicitud });
       this.resetForm();
@@ -36,13 +42,29 @@ export class ModalNuevaSolicitudComponent {
   }
 
   validar(): boolean {
-    return !!(
-      this.solicitud.nombreProyecto &&
-      this.solicitud.cliente &&
-      this.solicitud.costo &&
-      this.solicitud.responsableId &&
-      this.solicitud.descripcion
-    );
+    this.errores = {};
+    
+    if (!this.solicitud.nombreProyecto?.trim()) {
+      this.errores['nombreProyecto'] = 'El nombre del proyecto es requerido';
+    }
+    if (!this.solicitud.cliente?.trim()) {
+      this.errores['cliente'] = 'El cliente es requerido';
+    }
+    if (!this.solicitud.costo || this.solicitud.costo <= 0) {
+      this.errores['costo'] = 'El costo debe ser mayor a 0';
+    }
+    if (!this.solicitud.responsableId || this.solicitud.responsableId === 0) {
+      this.errores['responsableId'] = 'Debe seleccionar un responsable';
+    }
+    if (!this.solicitud.descripcion?.trim()) {
+      this.errores['descripcion'] = 'La descripción es requerida';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
 
   private resetForm(): void {
@@ -53,5 +75,7 @@ export class ModalNuevaSolicitudComponent {
       responsableId: 0,
       descripcion: ''
     };
+    this.intentoGuardar = false;
+    this.errores = {};
   }
 }

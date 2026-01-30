@@ -19,8 +19,8 @@ export interface Proyecto {
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;
-  fechaInicio: Date;
-  fechaFinalizacion: Date;
+  fechaInicio: Date | string;
+  fechaFinalizacion: Date | string;
   procesoId: number;
   procesoNombre?: string;
   estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
@@ -36,8 +36,8 @@ export interface EtapaProyecto {
   presupuesto: number;
   responsableId: number;
   responsableNombre?: string;
-  fechaInicio: Date;
-  fechaFinalizacion: Date;
+  fechaInicio: Date | string;
+  fechaFinalizacion: Date | string;
   estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
   tareas: TareaAsignada[];
 }

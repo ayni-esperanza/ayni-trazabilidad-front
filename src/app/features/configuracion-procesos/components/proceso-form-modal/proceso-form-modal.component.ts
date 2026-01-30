@@ -33,12 +33,19 @@ export class ProcesoFormModalComponent implements OnChanges {
     flujo: ['Inicio'],
   };
 
+  // Control de validación
+  intentoGuardar = false;
+  errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
+
   flujoTexto = 'Inicio';
   flujoPreview: string[] = ['Inicio'];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proceso'] || changes['visible']) {
       this.hidratarFormulario();
+      this.intentoGuardar = false;
+      this.errores = {};
     }
   }
 
@@ -67,10 +74,16 @@ export class ProcesoFormModalComponent implements OnChanges {
   }
 
   onCloseClick(): void {
+    this.intentoGuardar = false;
+    this.errores = {};
     this.cerrar.emit();
   }
 
   onGuardar(): void {
+    this.intentoGuardar = true;
+    
+    if (!this.validarFormulario()) return;
+
     const flujo = this.parseFlujo(this.flujoTexto);
 
     const payload: ProcesoFormData = {
@@ -81,9 +94,30 @@ export class ProcesoFormModalComponent implements OnChanges {
       flujo,
     };
 
-    if (!payload.proceso) return;
-
     this.guardar.emit(payload);
+  }
+
+  validarFormulario(): boolean {
+    this.errores = {};
+
+    if (!(this.form.proceso || '').trim()) {
+      this.errores['proceso'] = 'El nombre del proceso es requerido';
+    }
+    if (!(this.form.area || '').trim()) {
+      this.errores['area'] = 'El área es requerida';
+    }
+    if (!this.form.etapas || this.form.etapas < 2) {
+      this.errores['etapas'] = 'Debe tener al menos 2 etapas';
+    }
+    if (!this.flujoTexto.trim() || this.parseFlujo(this.flujoTexto).length < 2) {
+      this.errores['flujo'] = 'El flujo debe tener al menos 2 etapas';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
 
   onEliminar(): void {

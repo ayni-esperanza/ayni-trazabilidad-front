@@ -36,6 +36,11 @@ export class UsuarioFormModalComponent implements OnChanges {
   @Output() eliminar = new EventEmitter<number>();
   
   formData: UsuarioFormData = this.getFormVacio();
+
+  // Control de validación
+  intentoGuardar = false;
+  errores: { [key: string]: string } = {};
+  Object = Object;  // Para usar en el template
   
   get esEdicion(): boolean {
     return this.usuario !== null && this.usuario.id !== undefined;
@@ -48,6 +53,8 @@ export class UsuarioFormModalComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['usuario'] || changes['visible']) {
       if (this.visible) {
+        this.intentoGuardar = false;
+        this.errores = {};
         if (this.usuario) {
           this.formData = {
             id: this.usuario.id,
@@ -85,23 +92,44 @@ export class UsuarioFormModalComponent implements OnChanges {
   }
   
   onCerrar(): void {
+    this.intentoGuardar = false;
+    this.errores = {};
     this.cerrar.emit();
   }
   
   onGuardar(): void {
+    this.intentoGuardar = true;
     if (this.validarFormulario()) {
       this.guardar.emit(this.formData);
     }
   }
   
   validarFormulario(): boolean {
-    return !!(
-      this.formData.nombre.trim() &&
-      this.formData.apellido.trim() &&
-      this.formData.username.trim() &&
-      this.formData.email.trim() &&
-      this.formData.rolId
-    );
+    this.errores = {};
+
+    if (!this.formData.nombre.trim()) {
+      this.errores['nombre'] = 'El nombre es requerido';
+    }
+    if (!this.formData.apellido.trim()) {
+      this.errores['apellido'] = 'El apellido es requerido';
+    }
+    if (!this.formData.username.trim()) {
+      this.errores['username'] = 'El nombre de usuario es requerido';
+    }
+    if (!this.formData.email.trim()) {
+      this.errores['email'] = 'El correo electrónico es requerido';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email)) {
+      this.errores['email'] = 'El formato del correo electrónico no es válido';
+    }
+    if (!this.formData.rolId) {
+      this.errores['rolId'] = 'Debe seleccionar un rol';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
+  tieneError(campo: string): boolean {
+    return this.intentoGuardar && !!this.errores[campo];
   }
   
   
