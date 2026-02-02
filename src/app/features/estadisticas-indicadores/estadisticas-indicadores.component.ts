@@ -66,6 +66,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   filtroCategoria: 'responsables' | 'proyectos' = 'responsables';
   proyectoSeleccionado: ProyectoIndicador | null = null;
   responsableSeleccionado: ResponsableIndicador | null = null;
+  graficoSeleccionado: 'inversion' | 'gasto' | 'retorno' = 'inversion';
   
   responsables: ResponsableIndicador[] = [
     {
@@ -222,6 +223,10 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     this.actualizarROI();
   }
 
+  cambiarGrafico(tipo: 'inversion' | 'gasto' | 'retorno'): void {
+    this.graficoSeleccionado = tipo;
+  }
+
   seleccionarResponsable(responsable: ResponsableIndicador): void {
     this.responsableSeleccionado = responsable;
   }
@@ -268,11 +273,24 @@ export class EstadisticasIndicadoresComponent implements OnInit {
       { name: 'Abr', value: 312 }
     ];
 
-    this.retornoData = [
-      { name: 'Ene', value: 30 },
-      { name: 'Feb', value: 20 },
-      { name: 'Mar', value: 10 },
-      { name: 'Abr', value: 0 }
-    ];
+    // Calcular retorno como inversión - gasto
+    this.retornoData = this.inversionData.map((inv, index) => ({
+      name: inv.name,
+      value: inv.value - this.gastoData[index].value
+    }));
+  }
+
+  // Getter para obtener los datos del gráfico según el tipo seleccionado
+  get datosGrafico(): any[] {
+    switch (this.graficoSeleccionado) {
+      case 'inversion':
+        return this.inversionData;
+      case 'gasto':
+        return this.gastoData;
+      case 'retorno':
+        return this.retornoData;
+      default:
+        return this.inversionData;
+    }
   }
 }
