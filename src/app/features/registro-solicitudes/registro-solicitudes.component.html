@@ -12,56 +12,56 @@
 
   <!-- Tarjetas de estadísticas -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Registradas</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Solicitudes Registradas</p>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ solicitudes.length }}</h3>
         </div>
-        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
         </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Pendientes</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Solicitudes Pendientes</p>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ getSolicitudesPorEstado('Pendiente') }}</h3>
         </div>
-        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Proyectos en desarrollo</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Proyectos en desarrollo</p>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ proyectos.length }}</h3>
         </div>
-        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
         </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Solicitudes Canceladas</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Solicitudes Canceladas</p>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ getSolicitudesPorEstado('Cancelado') }}</h3>
         </div>
-        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>

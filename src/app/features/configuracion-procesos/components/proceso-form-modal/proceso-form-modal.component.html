@@ -43,7 +43,7 @@
                 [class.border-red-500]="tieneError('proceso')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
               <span *ngIf="tieneError('proceso')" class="text-xs text-red-500 mt-1">{{ errores['proceso'] }}</span>
-              <p *ngIf="!tieneError('proceso')" class="mt-1 text-[11px] text-gray-400">Requerido.</p>
+              <p *ngIf="!tieneError('proceso')" class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Requerido.</p>
             </div>
 
             <div class="sm:col-span-1">
@@ -78,16 +78,16 @@
                 [class.border-red-500]="tieneError('flujo')"
                 class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
               <span *ngIf="tieneError('flujo')" class="text-xs text-red-500 mt-1">{{ errores['flujo'] }}</span>
-              <p *ngIf="!tieneError('flujo')" class="mt-1 text-[11px] text-gray-400">Separar pasos con comas.</p>
+              <p *ngIf="!tieneError('flujo')" class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Separar pasos con comas.</p>
 
               <!-- Preview chips -->
               <div class="mt-2 flex items-center gap-2 flex-wrap">
                 @for (s of flujoPreview; track $index) {
-                  <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/25 px-3 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-300">
+                  <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-400">
                     {{ s }}
                   </span>
                   @if ($index < flujoPreview.length - 1) {
-                    <span class="text-gray-400">→</span>
+                    <span class="text-gray-400 dark:text-gray-500">→</span>
                   }
                 }
               </div>

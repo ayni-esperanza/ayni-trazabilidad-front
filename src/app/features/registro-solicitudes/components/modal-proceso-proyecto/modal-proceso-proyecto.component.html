@@ -75,7 +75,7 @@
           <button (click)="infoProyectoExpandida = !infoProyectoExpandida" 
             class="flex items-center gap-2 text-left w-full">
             <span class="text-sm font-semibold text-gray-800 dark:text-white">Proyecto {{ proyecto?.nombreProyecto }}</span>
-            <svg class="w-4 h-4 text-gray-500 transition-transform" 
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform" 
               [ngClass]="{'rotate-180': infoProyectoExpandida}"
               fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
@@ -109,16 +109,16 @@
             <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 transition-all"
               [ngClass]="{
                 'bg-green-500 text-white': etapa.estado === 'Completado',
-                'bg-green-100 dark:bg-green-900/30 text-green-600 ring-2 ring-green-500 ring-offset-2': etapaSeleccionada?.id === etapa.id && etapa.estado !== 'Completado',
-                'bg-gray-100 dark:bg-gray-700 text-gray-400': etapa.estado === 'Pendiente' && etapaSeleccionada?.id !== etapa.id,
-                'bg-blue-100 text-blue-600': etapa.estado === 'En Proceso' && etapaSeleccionada?.id !== etapa.id
+                'bg-green-100 dark:bg-green-500 text-green-600 dark:text-white ring-2 ring-green-500 ring-offset-2 dark:ring-offset-gray-800': etapaSeleccionada?.id === etapa.id && etapa.estado !== 'Completado',
+                'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-300': etapa.estado === 'Pendiente' && etapaSeleccionada?.id !== etapa.id,
+                'bg-blue-100 dark:bg-blue-500 text-blue-600 dark:text-white': etapa.estado === 'En Proceso' && etapaSeleccionada?.id !== etapa.id
               }">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
             </div>
-            <span class="text-[10px] font-medium text-gray-600 dark:text-gray-400 text-center">Paso {{ i + 1 }}</span>
+            <span class="text-[10px] font-medium text-gray-600 dark:text-gray-300 text-center">Paso {{ i + 1 }}</span>
           </div>
           <div *ngIf="!last" class="flex-shrink-0 w-8 h-0.5 bg-gray-200 dark:bg-gray-700 mt-[-12px]"
             [ngClass]="{'bg-green-500': etapa.estado === 'Completado'}"></div>
@@ -190,11 +190,11 @@
           <table class="w-full text-xs">
             <thead class="bg-gray-50 dark:bg-gray-800/60">
               <tr>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500">Id</th>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500">Responsable</th>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500">Tarea</th>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500">Inicio - Fin</th>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500">Estado</th>
+                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Id</th>
+                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
+                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Estado</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -229,42 +229,42 @@
           <button (click)="subTabCostosActiva = 'materiales'" 
             class="px-4 py-2 text-xs font-medium transition-colors flex items-center gap-1.5"
             [ngClass]="{
-              'text-blue-600 border-b-2 border-blue-500': subTabCostosActiva === 'materiales',
-              'text-gray-500 hover:text-gray-700 dark:text-gray-400': subTabCostosActiva !== 'materiales'
+              'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500 dark:border-blue-400': subTabCostosActiva === 'materiales',
+              'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': subTabCostosActiva !== 'materiales'
             }">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
             </svg>
             Materiales
-            <span *ngIf="materiales.length > 0" class="text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
+            <span *ngIf="materiales.length > 0" class="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded-full">
               {{ materiales.length }}
             </span>
           </button>
           <button (click)="subTabCostosActiva = 'manoObra'" 
             class="px-4 py-2 text-xs font-medium transition-colors flex items-center gap-1.5"
             [ngClass]="{
-              'text-green-600 border-b-2 border-green-500': subTabCostosActiva === 'manoObra',
-              'text-gray-500 hover:text-gray-700 dark:text-gray-400': subTabCostosActiva !== 'manoObra'
+              'text-green-600 dark:text-green-400 border-b-2 border-green-500 dark:border-green-400': subTabCostosActiva === 'manoObra',
+              'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': subTabCostosActiva !== 'manoObra'
             }">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
             Mano de Obra
-            <span *ngIf="manoObra.length > 0" class="text-[10px] bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full">
+            <span *ngIf="manoObra.length > 0" class="text-[10px] bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-200 px-1.5 py-0.5 rounded-full">
               {{ manoObra.length }}
             </span>
           </button>
           <button (click)="subTabCostosActiva = 'otrosCostos'" 
             class="px-4 py-2 text-xs font-medium transition-colors flex items-center gap-1.5"
             [ngClass]="{
-              'text-amber-600 border-b-2 border-amber-500': subTabCostosActiva === 'otrosCostos',
-              'text-gray-500 hover:text-gray-700 dark:text-gray-400': subTabCostosActiva !== 'otrosCostos'
+              'text-amber-600 dark:text-amber-400 border-b-2 border-amber-500 dark:border-amber-400': subTabCostosActiva === 'otrosCostos',
+              'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': subTabCostosActiva !== 'otrosCostos'
             }">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
             Otros Costos
-            <span *ngIf="tablasCostosExtras.length > 0" class="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full">
+            <span *ngIf="tablasCostosExtras.length > 0" class="text-[10px] bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-200 px-1.5 py-0.5 rounded-full">
               {{ tablasCostosExtras.length }}
             </span>
           </button>
@@ -272,21 +272,21 @@
 
         <!-- Resumen rápido de totales -->
         <div class="grid grid-cols-4 gap-2 mb-4 text-xs">
-          <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-center">
+          <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-center">
             <p class="text-gray-500 dark:text-gray-400">Materiales</p>
-            <p class="font-semibold text-blue-600">S/ {{ totalMateriales | number:'1.2-2' }}</p>
+            <p class="font-semibold text-blue-600 dark:text-blue-400">S/ {{ totalMateriales | number:'1.2-2' }}</p>
           </div>
-          <div class="p-2 bg-green-50 dark:bg-green-900/20 rounded text-center">
+          <div class="p-2 bg-green-50 dark:bg-green-900/30 rounded text-center">
             <p class="text-gray-500 dark:text-gray-400">Mano de Obra</p>
-            <p class="font-semibold text-green-600">S/ {{ totalManoObra | number:'1.2-2' }}</p>
+            <p class="font-semibold text-green-600 dark:text-green-400">S/ {{ totalManoObra | number:'1.2-2' }}</p>
           </div>
-          <div class="p-2 bg-amber-50 dark:bg-amber-900/20 rounded text-center">
+          <div class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded text-center">
             <p class="text-gray-500 dark:text-gray-400">Otros</p>
-            <p class="font-semibold text-amber-600">S/ {{ totalOtrosCostos | number:'1.2-2' }}</p>
+            <p class="font-semibold text-amber-600 dark:text-amber-400">S/ {{ totalOtrosCostos | number:'1.2-2' }}</p>
           </div>
-          <div class="p-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded text-center">
+          <div class="p-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded text-center">
             <p class="text-gray-500 dark:text-gray-400">Total</p>
-            <p class="font-bold text-green-600">S/ {{ totalCostosGeneral | number:'1.2-2' }}</p>
+            <p class="font-bold text-green-600 dark:text-green-400">S/ {{ totalCostosGeneral | number:'1.2-2' }}</p>
           </div>
         </div>
 
@@ -451,13 +451,13 @@
               <div *ngFor="let tabla of tablasCostosExtras" class="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                 <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800/40">
                   <button (click)="tabla.expandida = !tabla.expandida" class="flex items-center gap-2 text-left flex-1">
-                    <svg class="w-3.5 h-3.5 text-gray-500 transition-transform" 
+                    <svg class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform" 
                       [ngClass]="{'rotate-180': tabla.expandida}"
                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                     <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ tabla.nombre }}</span>
-                    <span class="text-xs text-gray-500">(S/ {{ getTotalTablaExtra(tabla) | number:'1.2-2' }})</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">(S/ {{ getTotalTablaExtra(tabla) | number:'1.2-2' }})</span>
                   </button>
                   <button (click)="eliminarTablaExtra(tabla.id)" class="text-red-500 hover:text-red-700 ml-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

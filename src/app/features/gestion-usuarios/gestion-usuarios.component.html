@@ -12,17 +12,17 @@
     </button>
   </div>
 
-  <!-- Tarjetas de Estadísticas -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+  <!-- Tarjetas de estadísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <!-- Total Usuarios -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Usuarios</p>
-          <p class="text-2xl font-bold text-gray-800 dark:text-white mt-0.5">{{ estadisticas.totalUsuarios }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Total Usuarios</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.totalUsuarios }}</h3>
         </div>
-        <div class="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
           </svg>
         </div>
@@ -30,14 +30,14 @@
     </div>
 
     <!-- Administradores -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Administradores</p>
-          <p class="text-2xl font-bold text-gray-800 dark:text-white mt-0.5">{{ estadisticas.administradores }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Administradores</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.administradores }}</h3>
         </div>
-        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
         </div>
@@ -45,14 +45,14 @@
     </div>
 
     <!-- Ingenieros -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Ingenieros</p>
-          <p class="text-2xl font-bold text-gray-800 dark:text-white mt-0.5">{{ estadisticas.ingenieros }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Ingenieros</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.ingenieros }}</h3>
         </div>
-        <div class="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
@@ -61,14 +61,14 @@
     </div>
 
     <!-- Usuarios Activos -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Usuarios Activos</p>
-          <p class="text-2xl font-bold text-gray-800 dark:text-white mt-0.5">{{ estadisticas.usuariosActivos }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Usuarios Activos</p>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.usuariosActivos }}</h3>
         </div>
-        <div class="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
@@ -182,47 +182,41 @@
               </td>
               
               <!-- Usuario -->
-              <td class="py-2 px-4">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ usuario.username }}</span>
-              </td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ usuario.username }}</td>
               
               <!-- Nombre -->
-              <td class="py-2 px-4">
-                <span class="text-sm text-gray-700 dark:text-gray-200">{{ usuario.nombre }} {{ usuario.apellido }}</span>
-              </td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ usuario.nombre }} {{ usuario.apellido }}</td>
               
               <!-- Teléfono -->
               <td class="py-2 px-4">
                 @if (usuario.telefono) {
                   <div class="flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
-                    <span class="text-sm text-green-600 dark:text-green-400 font-medium">{{ usuario.telefono }}</span>
+                    <span class="text-green-600 dark:text-green-400 font-medium">{{ usuario.telefono }}</span>
                   </div>
                 } @else {
-                  <span class="text-sm text-gray-400">-</span>
+                  <span class="text-gray-400">-</span>
                 }
               </td>
               
               <!-- Email -->
-              <td class="py-3 px-4">
-                <span class="text-sm text-gray-600 dark:text-gray-300">{{ usuario.email }}</span>
-              </td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ usuario.email }}</td>
               
               <!-- Rol -->
-              <td class="py-3 px-4">
+              <td class="py-2 px-4">
                 @for (rol of usuario.roles; track rol.id) {
-                  <span [class]="getRolClasses(rol.nombre)" class="px-2 py-0.5 text-[11px] font-semibold rounded-md uppercase tracking-wide">
+                  <span [class]="getRolClasses(rol.nombre)" class="px-3 py-1 text-xs font-medium rounded-full uppercase tracking-wide">
                     {{ rol.nombre }}
                   </span>
                 }
               </td>
               
               <!-- Estado -->
-              <td class="py-3 px-4">
-                <span [class]="usuario.activo ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" 
-                      class="text-sm font-medium">
+              <td class="py-2 px-4">
+                <span class="px-3 py-1 text-xs font-medium rounded-full"
+                      [ngClass]="usuario.activo ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300'">
                   {{ usuario.activo ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>

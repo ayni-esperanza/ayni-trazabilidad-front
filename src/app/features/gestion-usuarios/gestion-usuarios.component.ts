@@ -186,17 +186,17 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     const nombre = rolNombre.toUpperCase();
     switch (nombre) {
       case 'ASISTENTE':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+        return 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300';
       case 'GERENTE':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400';
+        return 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300';
       case 'AYUDANTE':
-        return 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300';
+        return 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200';
       case 'INGENIERO':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
+        return 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
       case 'ADMINISTRADOR':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+        return 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300';
       default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200';
     }
   }
   
