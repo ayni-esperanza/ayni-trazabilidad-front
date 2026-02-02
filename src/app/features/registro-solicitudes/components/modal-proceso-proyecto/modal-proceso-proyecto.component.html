@@ -132,6 +132,8 @@
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Presupuesto *</label>
           <ng-container *ngIf="!modoSoloLectura; else presupuestoReadonly">
             <input type="number" [(ngModel)]="etapaForm.presupuesto"
+              placeholder="0"
+              (focus)="etapaForm.presupuesto === 0 ? etapaForm.presupuesto = undefined! : undefined"
               class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
           </ng-container>
           <ng-template #presupuestoReadonly>

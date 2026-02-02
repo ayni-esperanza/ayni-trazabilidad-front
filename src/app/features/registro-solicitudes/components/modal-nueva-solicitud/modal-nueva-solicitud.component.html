@@ -33,6 +33,8 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Costo *</label>
           <input type="number" [(ngModel)]="solicitud.costo"
+            placeholder="0"
+            (focus)="solicitud.costo === 0 ? solicitud.costo = undefined : undefined"
             [class.border-red-500]="tieneError('costo')"
             [class.ring-red-500]="tieneError('costo')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
