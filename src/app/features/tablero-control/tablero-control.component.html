@@ -161,7 +161,8 @@
               [showYAxisLabel]="false"
               [gradient]="false"
               [barPadding]="4"
-              [roundEdges]="true">
+              [roundEdges]="true"
+              [customColors]="customColors">
             </ngx-charts-bar-vertical>
           }
           @else if (tipoGrafico === 'linea') {
@@ -173,7 +174,8 @@
               [legend]="false"
               [showXAxisLabel]="false"
               [showYAxisLabel]="false"
-              [autoScale]="true">
+              [autoScale]="true"
+              [customColors]="customColors">
             </ngx-charts-line-chart>
           }
           @else {

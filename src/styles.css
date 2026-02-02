@@ -15,3 +15,20 @@
 
 /* Source files de Flowbite */
 @source "../node_modules/flowbite";
+
+/* Estilos para ngx-charts en modo oscuro */
+.dark .ngx-charts text {
+  fill: #e5e7eb !important;
+}
+
+.dark .ngx-charts .tick text {
+  fill: #9ca3af !important;
+}
+
+.dark .ngx-charts .gridline-path {
+  stroke: #374151 !important;
+}
+
+.dark .ngx-charts .refline-path {
+  stroke: #4b5563 !important;
+}

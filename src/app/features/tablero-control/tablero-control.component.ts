@@ -57,6 +57,26 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   // Posición de la leyenda para el pie chart
   legendPosition: LegendPosition = LegendPosition.Right;
   
+  // Personalización de colores para dark mode
+  customColors = {
+    domain: [] as string[]
+  };
+  
+  // Obtener el color del texto según el modo
+  get textColor(): string {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#374151';
+    }
+    return '#374151';
+  }
+  
+  get gridColor(): string {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb';
+    }
+    return '#e5e7eb';
+  }
+  
   // Configuración de colores para cada tipo de métrica
   colorSchemeFinalizados: Color = {
     name: 'red',
