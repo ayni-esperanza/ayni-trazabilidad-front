@@ -33,6 +33,12 @@ export class ModalDismissDirective {
    */
   @Input() contentSelector = '[data-modal-content]';
 
+  /**
+   * Selectores adicionales que deben ignorarse (ej: dropdowns de editores).
+   * El click en estos elementos NO cerrará el modal.
+   */
+  @Input() ignoreSelectors = '.ck, .ck-body-wrapper, .ck-balloon-panel, .tox, .tox-tinymce-aux';
+
   @Output() dismissed = new EventEmitter<'escape' | 'backdrop'>();
 
   constructor(private host: ElementRef<HTMLElement>) {}
@@ -47,6 +53,18 @@ export class ModalDismissDirective {
     // Si existe un "contenido" y el click ocurrió dentro, no cerrar.
     const content = this.host.nativeElement.querySelector(this.contentSelector);
     if (content && content.contains(target)) return;
+
+    // Ignorar clics en elementos de editores (CKEditor, TinyMCE, etc.)
+    if (this.ignoreSelectors && target instanceof Element) {
+      const selectors = this.ignoreSelectors.split(',').map(s => s.trim());
+      for (const selector of selectors) {
+        // Verificar si el target está dentro de un elemento que coincida con el selector
+        const matchingElement = document.querySelector(selector);
+        if (matchingElement && matchingElement.contains(target)) return;
+        // También verificar si el target mismo o algún ancestro coincide
+        if (target.closest(selector)) return;
+      }
+    }
 
     event.preventDefault();
     event.stopPropagation();

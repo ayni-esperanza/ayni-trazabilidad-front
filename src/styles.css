@@ -32,3 +32,20 @@
 .dark .ngx-charts .refline-path {
   stroke: #4b5563 !important;
 }
+
+/* CKEditor - Asegurar que los dropdowns y paneles se muestren sobre modales */
+.ck-body-wrapper {
+  z-index: 10000 !important;
+}
+
+.ck.ck-balloon-panel {
+  z-index: 10000 !important;
+}
+
+.ck.ck-dropdown__panel {
+  z-index: 10000 !important;
+}
+
+.ck.ck-balloon-panel.ck-powered-by-balloon {
+  z-index: 10000 !important;
+}
