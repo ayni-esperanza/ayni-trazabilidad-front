@@ -1,5 +1,6 @@
-<div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4">
+<div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  [appModalDismiss]="visible" (dismissed)="onCerrar()">
+  <div data-modal-content class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4">
     <!-- Header -->
     <div class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
       <h2 class="text-lg font-semibold text-white">Nueva Solicitud</h2>

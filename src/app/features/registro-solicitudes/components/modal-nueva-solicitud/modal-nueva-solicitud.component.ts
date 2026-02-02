@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Solicitud, Responsable } from '../../models/solicitud.model';
+import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 
 @Component({
   selector: 'app-modal-nueva-solicitud',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective],
   templateUrl: './modal-nueva-solicitud.component.html'
 })
 export class ModalNuevaSolicitudComponent {

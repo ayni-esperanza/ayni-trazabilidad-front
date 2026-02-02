@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/solicitud.model';
+import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective],
   templateUrl: './modal-iniciar-proyecto.component.html'
 })
 export class ModalIniciarProyectoComponent implements OnChanges {
