@@ -32,6 +32,7 @@ export class ModalIniciarProyectoComponent implements OnChanges {
         nombreProyecto: this.solicitud.nombreProyecto,
         cliente: this.solicitud.cliente,
         costo: this.solicitud.costo,
+        ordenCompra: '',
         responsableId: this.solicitud.responsableId,
         descripcion: this.solicitud.descripcion,
         fechaInicio: '',

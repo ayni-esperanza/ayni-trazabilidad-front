@@ -16,6 +16,7 @@ export interface Proyecto {
   nombreProyecto: string;
   cliente: string;
   costo: number;
+  ordenCompra?: string;
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;

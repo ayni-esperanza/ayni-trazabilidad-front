@@ -87,6 +87,7 @@
           <div *ngIf="infoProyectoExpandida" class="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-300">
             <p><span class="font-medium">Responsable:</span> {{ proyecto?.responsableNombre || getResponsableNombre(proyecto?.responsableId || 0) }}</p>
             <p><span class="font-medium">Cliente:</span> {{ proyecto?.cliente }}</p>
+            <p *ngIf="proyecto?.ordenCompra"><span class="font-medium">Orden de Compra:</span> {{ proyecto?.ordenCompra }}</p>
             <p><span class="font-medium">Estado:</span> 
               <span [ngClass]="{
                 'text-green-600': proyecto?.estado === 'Completado' || proyecto?.estado === 'Finalizado',
