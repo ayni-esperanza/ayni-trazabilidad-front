@@ -41,11 +41,52 @@ export class ModalDismissDirective {
 
   @Output() dismissed = new EventEmitter<'escape' | 'backdrop'>();
 
+  /**
+   * Almacena si el mousedown inició dentro del contenido del modal.
+   * Esto previene que el modal se cierre cuando el usuario arrastra
+   * texto (para seleccionar/copiar) y suelta el mouse fuera del modal.
+   */
+  private mouseDownInsideContent = false;
+
   constructor(private host: ElementRef<HTMLElement>) {}
+
+  @HostListener('mousedown', ['$event'])
+  onMouseDown(event: MouseEvent): void {
+    if (!this.enabled) return;
+
+    const target = event.target as Node | null;
+    if (!target) {
+      this.mouseDownInsideContent = false;
+      return;
+    }
+
+    // Verificar si el mousedown ocurrió dentro del contenido del modal
+    const content = this.host.nativeElement.querySelector(this.contentSelector);
+    this.mouseDownInsideContent = !!(content && content.contains(target));
+
+    // También considerar como "dentro" si el target está en elementos ignorados
+    if (!this.mouseDownInsideContent && this.ignoreSelectors && target instanceof Element) {
+      const selectors = this.ignoreSelectors.split(',').map(s => s.trim());
+      for (const selector of selectors) {
+        if (target.closest(selector)) {
+          this.mouseDownInsideContent = true;
+          break;
+        }
+      }
+    }
+  }
 
   @HostListener('click', ['$event'])
   onHostClick(event: MouseEvent): void {
     if (!this.enabled || !this.closeOnBackdrop) return;
+
+    // Si el mousedown inició dentro del contenido, no cerrar el modal.
+    // Esto previene el cierre cuando el usuario arrastra texto para copiar
+    // y suelta el mouse fuera del modal.
+    if (this.mouseDownInsideContent) {
+      this.mouseDownInsideContent = false;
+      return;
+    }
 
     const target = event.target as Node | null;
     if (!target) return;
