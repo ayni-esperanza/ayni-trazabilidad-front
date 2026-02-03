@@ -85,7 +85,7 @@
 
               <div class="col-span-2">
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Firmas</label>
-                <div class="flex items-center gap-3 mb-2">
+                <div class="flex items-center gap-2 mb-2">
                   <select
                     [(ngModel)]="form.firma"
                     class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
@@ -96,10 +96,21 @@
 
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                    class="px-3 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
                     [disabled]="firmasAgregadas.length >= 3"
                     (click)="agregarFirma()">
-                    Agregar Firma
+                    Agregar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="px-3 py-2 text-sm font-medium rounded-lg border border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    (click)="abrirModalNuevaFirma()"
+                    title="Crear nueva firma personalizada">
+                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nueva
                   </button>
                 </div>
                 
@@ -252,3 +263,11 @@
     </div>
   </div>
 }
+
+<!-- Modal de Nueva Firma -->
+<app-firma-form-modal
+  [visible]="mostrarModalFirma"
+  [firma]="firmaParaEditar"
+  (cerrar)="cerrarModalFirma()"
+  (guardar)="onGuardarFirma($event)">
+</app-firma-form-modal>

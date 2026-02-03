@@ -18,6 +18,8 @@ interface InformeItem {
   fecha: string;
   cuerpoHtml: string;
   firma: string;
+  usarMembrete: boolean;
+  firmasAgregadas: string[];
   previewHtml: SafeHtml;
 }
 
@@ -85,6 +87,8 @@ export class InformesEvidenciasComponent implements OnInit {
       fecha: informe.fecha,
       cuerpoHtml: informe.cuerpoHtml,
       firma: informe.firma,
+      usarMembrete: informe.usarMembrete,
+      firmasAgregadas: informe.firmasAgregadas,
     };
     this.mostrarModal = true;
   }
@@ -106,6 +110,8 @@ export class InformesEvidenciasComponent implements OnInit {
           fecha: data.fecha,
           cuerpoHtml: data.cuerpoHtml,
           firma: data.firma,
+          usarMembrete: data.usarMembrete ?? false,
+          firmasAgregadas: data.firmasAgregadas ?? [],
           previewHtml: preview,
         };
       }
@@ -117,6 +123,8 @@ export class InformesEvidenciasComponent implements OnInit {
         fecha: data.fecha,
         cuerpoHtml: data.cuerpoHtml,
         firma: data.firma,
+        usarMembrete: data.usarMembrete ?? false,
+        firmasAgregadas: data.firmasAgregadas ?? [],
         previewHtml: preview,
       });
     }
@@ -154,6 +162,8 @@ export class InformesEvidenciasComponent implements OnInit {
         fecha,
         cuerpoHtml: '<p>Contenido de ejemplo del informe...</p>',
         firma: 'Todas las Firmas',
+        usarMembrete: false,
+        firmasAgregadas: [],
       };
 
       return {
@@ -162,27 +172,82 @@ export class InformesEvidenciasComponent implements OnInit {
         fecha: data.fecha,
         cuerpoHtml: data.cuerpoHtml,
         firma: data.firma,
+        usarMembrete: data.usarMembrete ?? false,
+        firmasAgregadas: data.firmasAgregadas ?? [],
         previewHtml: this.sanitizer.bypassSecurityTrustHtml(this.buildPreviewHtml(data)),
       };
     });
   }
 
-  private buildPreviewHtml(data: Pick<InformeFormData, 'titulo' | 'fecha' | 'cuerpoHtml'>): string {
+  private buildPreviewHtml(data: Pick<InformeFormData, 'titulo' | 'fecha' | 'cuerpoHtml' | 'usarMembrete' | 'firmasAgregadas'>): string {
     const titulo = this.escapeHtml((data.titulo || 'Informe').trim() || 'Informe');
     const fecha = this.escapeHtml(data.fecha || '');
-    const cuerpo = data.cuerpoHtml || '';
+    // Extraer solo texto plano del cuerpo HTML para la miniatura
+    const cuerpoTexto = this.stripHtml(data.cuerpoHtml || '').substring(0, 100);
+    const usarMembrete = data.usarMembrete ?? false;
+    const firmas = data.firmasAgregadas ?? [];
 
-    return `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 10px; line-height: 1.4; color: #111827;">
-        <div style="display:flex; justify-content: space-between; align-items:flex-start; gap: 10px;">
-          <div style="font-weight: 700; letter-spacing: .02em; color:#10b981;">AYNI</div>
-          <div style="text-align:right; font-size: 10px; color:#6b7280;">${fecha}</div>
+    // Construir HTML de firmas en miniatura
+    const firmasHtml = this.buildMiniFirmasHtml(firmas);
+
+    // Si tiene membrete, mostrar con fondo de imagen
+    if (usarMembrete) {
+      return `
+        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.3; color: #111827; position: relative; min-height: 120px; background-image: url('/HojaMembretada.png'); background-size: cover; background-position: top center;">
+          <div style="padding: 35px 8px 8px 8px;">
+            <div style="font-size: 8px; color: #374151; overflow: hidden; text-overflow: ellipsis;">${cuerpoTexto}</div>
+            ${firmasHtml}
+          </div>
         </div>
-        <div style="margin-top: 8px; font-size: 12px; font-weight: 700;">${titulo}</div>
-        <hr style="margin: 8px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
-        <div>${cuerpo}</div>
+      `;
+    }
+
+    // Sin membrete - formato normal
+    return `
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.3; color: #111827;">
+        <div style="display:flex; justify-content: space-between; align-items:flex-start; gap: 4px;">
+          <div style="font-weight: 700; font-size: 10px; letter-spacing: .02em; color:#10b981;">AYNI</div>
+          <div style="text-align:right; font-size: 7px; color:#6b7280;">${fecha}</div>
+        </div>
+        <div style="margin-top: 4px; font-size: 9px; font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${titulo}</div>
+        <hr style="margin: 4px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
+        <div style="font-size: 8px; color: #374151; overflow: hidden;">${cuerpoTexto}</div>
+        ${firmasHtml}
       </div>
     `;
+  }
+
+  /**
+   * Construye HTML simplificado de firmas para la miniatura
+   */
+  private buildMiniFirmasHtml(firmas: string[]): string {
+    if (!firmas || firmas.length === 0) {
+      return '';
+    }
+
+    const firmasItems = firmas.slice(0, 3).map((nombre) => {
+      return `
+        <div style="text-align: center; flex: 1; min-width: 40px;">
+          <div style="height: 12px; border-bottom: 1px solid #6b7280;"></div>
+          <div style="font-size: 6px; color: #6b7280; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.escapeHtml(nombre)}</div>
+        </div>
+      `;
+    });
+
+    return `
+      <div style="margin-top: 8px; display: flex; gap: 6px; justify-content: center;">
+        ${firmasItems.join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Elimina etiquetas HTML y retorna solo texto plano
+   */
+  private stripHtml(html: string): string {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    return (tmp.textContent || tmp.innerText || '').trim();
   }
 
   private escapeHtml(value: string): string {

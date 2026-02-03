@@ -1,0 +1,168 @@
+@if (visible) {
+  <div class="fixed inset-0 z-50">
+    <div
+      class="absolute inset-0 flex items-center justify-center p-4"
+      appModalDismiss
+      [enabled]="visible"
+      (dismissed)="onCloseClick()">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40"></div>
+
+      <div
+        data-modal-content
+        class="relative z-10 w-full max-w-lg max-h-[90vh] rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden flex flex-col">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-3 bg-green-600 text-white">
+          <div class="text-sm font-semibold">
+            {{ form.id ? 'Editar Firma' : 'Nueva Firma' }}
+          </div>
+
+          <button
+            type="button"
+            class="p-2 rounded-lg hover:bg-white/10"
+            (click)="onCloseClick()"
+            aria-label="Cerrar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-4">
+          <!-- Nombre de la firma -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nombre de la Firma *
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="form.nombre"
+              placeholder="Ej: Ing. Juan Pérez"
+              [class.border-red-500]="tieneError('nombre')"
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
+            @if (tieneError('nombre')) {
+              <span class="text-xs text-red-500 mt-1">{{ errores['nombre'] }}</span>
+            }
+          </div>
+
+          <!-- Cargo -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Cargo (opcional)
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="form.cargo"
+              placeholder="Ej: Gerente de Proyectos"
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
+          </div>
+
+          <!-- Área de firma (Canvas) -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Dibujar Firma *
+              </label>
+              <div class="flex items-center gap-3">
+                <!-- Selector de color -->
+                <div class="flex items-center gap-1">
+                  <label class="text-xs text-gray-500 dark:text-gray-400">Color:</label>
+                  <input
+                    type="color"
+                    [(ngModel)]="strokeColor"
+                    (change)="updateStrokeSettings()"
+                    class="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600" />
+                </div>
+                
+                <!-- Selector de grosor -->
+                <div class="flex items-center gap-1">
+                  <label class="text-xs text-gray-500 dark:text-gray-400">Grosor:</label>
+                  <input
+                    type="range"
+                    [(ngModel)]="strokeWidth"
+                    (change)="updateStrokeSettings()"
+                    min="1"
+                    max="5"
+                    class="w-16 h-2 accent-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div 
+              class="relative border-2 border-dashed rounded-lg overflow-hidden"
+              [class.border-gray-300]="!tieneError('firma')"
+              [class.dark:border-gray-600]="!tieneError('firma')"
+              [class.border-red-500]="tieneError('firma')">
+              
+              <!-- Canvas para dibujar -->
+              <canvas
+                #canvasFirma
+                width="460"
+                height="200"
+                class="w-full bg-white cursor-crosshair touch-none"
+                style="max-height: 200px;">
+              </canvas>
+
+              <!-- Texto guía cuando no hay firma -->
+              @if (!hasSignature && !form.imagenBase64) {
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span class="text-gray-400 text-sm">Dibuje su firma aquí</span>
+                </div>
+              }
+            </div>
+
+            @if (tieneError('firma')) {
+              <span class="text-xs text-red-500 mt-1 block">{{ errores['firma'] }}</span>
+            }
+
+            <!-- Botón para limpiar -->
+            <div class="flex justify-end mt-2">
+              <button
+                type="button"
+                (click)="clearCanvas()"
+                class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Limpiar
+              </button>
+            </div>
+          </div>
+
+          <!-- Vista previa de firma guardada (solo para edición) -->
+          @if (form.id && form.imagenBase64) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Firma actual
+              </label>
+              <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <img 
+                  [src]="form.imagenBase64" 
+                  alt="Firma actual"
+                  class="max-h-24 mx-auto" />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+          <button
+            type="button"
+            (click)="onCloseClick()"
+            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="onGuardar()"
+            class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+            {{ form.id ? 'Actualizar Firma' : 'Guardar Firma' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

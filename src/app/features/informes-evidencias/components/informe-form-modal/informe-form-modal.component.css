@@ -158,3 +158,79 @@
 ::ng-deep .ck.ck-balloon-panel.ck-powered-by-balloon {
 	z-index: 9999 !important;
 }
+
+/* Estilos para panel de color de CKEditor */
+::ng-deep .ck-color-grid {
+	padding: 8px !important;
+}
+
+::ng-deep .ck-color-grid__tile {
+	width: 24px !important;
+	height: 24px !important;
+	min-width: 24px !important;
+	min-height: 24px !important;
+	border: 1px solid #e5e7eb !important;
+	border-radius: 4px !important;
+	margin: 2px !important;
+}
+
+::ng-deep .ck-color-grid__tile:hover {
+	border-color: #10b981 !important;
+	transform: scale(1.1);
+}
+
+::ng-deep .ck-color-grid__tile.ck-on {
+	border: 2px solid #10b981 !important;
+	box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3) !important;
+}
+
+::ng-deep .ck.ck-color-picker {
+	padding: 12px !important;
+	background: white !important;
+}
+
+::ng-deep .ck.ck-color-picker__row {
+	padding: 4px 0 !important;
+}
+
+::ng-deep .ck.ck-input-color {
+	width: 100% !important;
+	padding: 8px !important;
+	border: 1px solid #d1d5db !important;
+	border-radius: 6px !important;
+	font-size: 14px !important;
+}
+
+::ng-deep .ck.ck-color-selector {
+	max-width: 280px !important;
+}
+
+::ng-deep .ck.ck-color-selector__remove-color {
+	width: 100% !important;
+	padding: 8px 12px !important;
+	border-radius: 6px !important;
+	margin-bottom: 8px !important;
+}
+
+::ng-deep .ck.ck-color-selector__remove-color:hover {
+	background-color: #f3f4f6 !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-color-picker,
+:host-context(.dark) ::ng-deep .ck.ck-color-selector {
+	background: rgb(55 65 81) !important;
+}
+
+:host-context(.dark) ::ng-deep .ck-color-grid__tile {
+	border-color: #4b5563 !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-input-color {
+	background: rgb(31 41 55) !important;
+	border-color: #4b5563 !important;
+	color: white !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-color-selector__remove-color:hover {
+	background-color: rgb(75 85 99) !important;
+}

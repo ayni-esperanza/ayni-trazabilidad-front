@@ -21,6 +21,9 @@ import { ModalDismissDirective } from '../../../../shared/directives/modal-dismi
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { WatermarkService } from '../../services/watermark.service';
 import { PdfExportService } from '../../services/pdf-export.service';
+import { FirmaFormModalComponent, FirmaFormData } from '../firma-form-modal/firma-form-modal.component';
+import { FirmasService } from '../../services/firmas.service';
+import { Firma } from '../../models/firma.model';
 
 export interface InformeFormData {
   id?: string;
@@ -28,12 +31,14 @@ export interface InformeFormData {
   fecha: string; // yyyy-mm-dd
   cuerpoHtml: string;
   firma: string;
+  usarMembrete?: boolean;
+  firmasAgregadas?: string[];
 }
 
 @Component({
   selector: 'app-informe-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, FirmaFormModalComponent],
   templateUrl: './informe-form-modal.component.html',
   styleUrls: ['./informe-form-modal.component.css'],
 })
@@ -60,7 +65,7 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   protected previewPages: SafeHtml[] = [];
   private previewHtmlRaw = '';
 
-  protected zoom = 0.7;
+  protected zoom = 0.6;
   protected readonly zoomMin = 0.5;
   protected readonly zoomMax = 2;
 
@@ -102,12 +107,19 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   @ViewChildren('exportPage')
   private exportPageRefs?: QueryList<ElementRef<HTMLElement>>;
 
-  protected readonly opcionesFirma: string[] = ['Firma 1', 'Firma 2', 'Firma 3'];
+  // Firmas disponibles (cargadas del backend/servicio)
+  protected firmasDisponibles: Firma[] = [];
+  protected opcionesFirma: string[] = ['Firma 1', 'Firma 2', 'Firma 3'];
+
+  // Modal de nueva firma
+  protected mostrarModalFirma = false;
+  protected firmaParaEditar: Firma | null = null;
 
   constructor(
     private sanitizer: DomSanitizer,
     private watermarkService: WatermarkService,
     private pdfExportService: PdfExportService,
+    private firmasService: FirmasService,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) platformId: object
   ) {
@@ -115,6 +127,9 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   }
 
   ngOnInit(): void {
+    // Cargar firmas disponibles
+    this.cargarFirmas();
+
     if (this.isBrowser) {
       import('ckeditor5').then(({
         ClassicEditor,
@@ -211,6 +226,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       fecha: this.form.fecha || '',
       cuerpoHtml: this.form.cuerpoHtml || '',
       firma: this.form.firma || 'Todas las Firmas',
+      usarMembrete: this.usarMembrete,
+      firmasAgregadas: [...this.firmasAgregadas],
     };
 
     this.guardar.emit(payload);
@@ -280,6 +297,85 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       const delta = event.deltaY > 0 ? -0.1 : 0.1;
       this.zoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoom + delta));
     }
+  }
+
+  // ==================== GESTIÓN DE FIRMAS ====================
+
+  private cargarFirmas(): void {
+    this.firmasService.obtenerFirmas().subscribe({
+      next: (firmas) => {
+        this.firmasDisponibles = firmas;
+        this.actualizarOpcionesFirma();
+      },
+      error: (err) => {
+        console.error('Error al cargar firmas:', err);
+      },
+    });
+  }
+
+  private actualizarOpcionesFirma(): void {
+    // Combinar firmas por defecto con las personalizadas
+    const firmasPorDefecto = ['Firma 1', 'Firma 2', 'Firma 3'];
+    const firmasPersonalizadas = this.firmasDisponibles.map((f) => f.nombre);
+    this.opcionesFirma = [...firmasPorDefecto, ...firmasPersonalizadas];
+  }
+
+  protected abrirModalNuevaFirma(): void {
+    this.firmaParaEditar = null;
+    this.mostrarModalFirma = true;
+  }
+
+  protected cerrarModalFirma(): void {
+    this.mostrarModalFirma = false;
+    this.firmaParaEditar = null;
+  }
+
+  protected onGuardarFirma(data: FirmaFormData): void {
+    if (data.id) {
+      // Actualizar firma existente
+      this.firmasService.actualizarFirma(data.id, {
+        nombre: data.nombre,
+        cargo: data.cargo,
+        imagenBase64: data.imagenBase64,
+      }).subscribe({
+        next: () => {
+          this.cargarFirmas();
+          this.cerrarModalFirma();
+        },
+        error: (err) => {
+          console.error('Error al actualizar firma:', err);
+        },
+      });
+    } else {
+      // Crear nueva firma
+      this.firmasService.crearFirma({
+        nombre: data.nombre,
+        cargo: data.cargo,
+        imagenBase64: data.imagenBase64,
+      }).subscribe({
+        next: (response) => {
+          this.cargarFirmas();
+          // Seleccionar automáticamente la nueva firma
+          this.form.firma = response.firma.nombre;
+          this.cerrarModalFirma();
+        },
+        error: (err) => {
+          console.error('Error al crear firma:', err);
+        },
+      });
+    }
+  }
+
+  /**
+   * Obtiene la firma completa por nombre
+   */
+  protected obtenerFirma(nombreFirma: string): Firma | null {
+    return this.firmasDisponibles.find((f) => f.nombre === nombreFirma) || null;
+  }
+
+  protected obtenerFirmaImagen(nombreFirma: string): string | null {
+    const firma = this.firmasDisponibles.find((f) => f.nombre === nombreFirma);
+    return firma?.imagenBase64 || null;
   }
 
   protected agregarFirma(): void {
@@ -357,6 +453,9 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
         cuerpoHtml: this.informe.cuerpoHtml ?? '',
         firma: this.informe.firma ?? 'Todas las Firmas',
       };
+      // Restaurar membretado y firmas agregadas
+      this.usarMembrete = this.informe.usarMembrete ?? false;
+      this.firmasAgregadas = this.informe.firmasAgregadas ? [...this.informe.firmasAgregadas] : [];
       return;
     }
 
@@ -366,6 +465,9 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       cuerpoHtml: '<p>Escribe aquí el contenido del informe...</p>',
       firma: 'Todas las Firmas',
     };
+    // Resetear membretado y firmas para nuevo informe
+    this.usarMembrete = false;
+    this.firmasAgregadas = [];
   }
 
   protected actualizarPreview(): void {
@@ -530,24 +632,20 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     const editorStyles = `
       <style>
         * { box-sizing: border-box; }
-        [style*="font-size"] { font-size: inherit !important; }
-        [style*="color"] { color: inherit !important; }
-        [style*="background-color"] { background-color: inherit !important; }
+        p, div, span, td, th, li { word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
       </style>
     `;
 
+    // Construir HTML de firmas con imagen, nombre y cargo
+    const firmasHtml = this.buildFirmasHtml();
+
     // Si hay membrete, omitir el header y ajustar margen superior
     if (letterhead) {
-      const firmasHtml = this.firmasAgregadas.length > 0
-        ? `<div style="margin-top: 60px; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
-             ${this.firmasAgregadas.map(f => `<div style="text-align: center; min-width: 150px;"><div style="border-top: 1px solid #111827; padding-top: 8px; font-size: 11px;">${this.escapeHtml(f)}</div></div>`).join('')}
-           </div>`
-        : '';
       return `
         ${editorStyles}
-        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%;">
-          <div style="position: relative; z-index: 1; margin-top: 120px; padding: 0 80px;">
-            <div>${bodyHtml}</div>
+        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word;">
+          <div style="position: relative; z-index: 1; margin-top: 120px; padding: 0 80px; word-wrap: break-word; overflow-wrap: break-word;">
+            <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">${bodyHtml}</div>
             ${firmasHtml}
           </div>
         </div>
@@ -556,20 +654,62 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
 
     // Sin membrete, mostrar header completo
     const header = this.buildHeaderHtml();
-    const firmasHtml = this.firmasAgregadas.length > 0
-      ? `<div style="margin-top: 60px; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
-           ${this.firmasAgregadas.map(f => `<div style="text-align: center; min-width: 150px;"><div style="border-top: 1px solid #111827; padding-top: 8px; font-size: 11px;">${this.escapeHtml(f)}</div></div>`).join('')}
-         </div>`
-      : '';
     return `
       ${editorStyles}
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%;">
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word;">
         <div style="position: relative; z-index: 1;">
           ${header}
           <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
-          <div>${bodyHtml}</div>
+          <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">${bodyHtml}</div>
           ${firmasHtml}
         </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Construye el HTML de las firmas para el PDF
+   * Incluye imagen de firma, nombre y cargo si están disponibles
+   */
+  private buildFirmasHtml(): string {
+    if (this.firmasAgregadas.length === 0) {
+      return '';
+    }
+
+    const firmasItems = this.firmasAgregadas.map((nombreFirma) => {
+      const firma = this.obtenerFirma(nombreFirma);
+      
+      if (firma && firma.imagenBase64) {
+        // Firma personalizada con imagen
+        const cargoHtml = firma.cargo 
+          ? `<div style="font-size: 10px; color: #6b7280; margin-top: 2px;">${this.escapeHtml(firma.cargo)}</div>`
+          : '';
+        
+        return `
+          <div style="text-align: center; min-width: 180px;">
+            <img src="${firma.imagenBase64}" alt="Firma" style="max-height: 60px; max-width: 150px; margin: 0 auto 8px auto; display: block;" />
+            <div style="border-top: 1px solid #111827; padding-top: 8px;">
+              <div style="font-size: 11px; font-weight: 600;">${this.escapeHtml(firma.nombre)}</div>
+              ${cargoHtml}
+            </div>
+          </div>
+        `;
+      } else {
+        // Firma por defecto (solo línea y nombre)
+        return `
+          <div style="text-align: center; min-width: 150px;">
+            <div style="height: 60px;"></div>
+            <div style="border-top: 1px solid #111827; padding-top: 8px; font-size: 11px;">
+              ${this.escapeHtml(nombreFirma)}
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    return `
+      <div style="margin-top: 60px; display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
+        ${firmasItems.join('')}
       </div>
     `;
   }
