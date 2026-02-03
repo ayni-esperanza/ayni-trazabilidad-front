@@ -24,10 +24,9 @@ export interface LoginResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-  
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private apiUrl = environment.apiUrl;
@@ -35,15 +34,17 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
   ) {
     // Verificar primero en localStorage, luego en sessionStorage (solo en el navegador)
     let storedUser: string | null = null;
     if (isPlatformBrowser(this.platformId)) {
-      storedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      storedUser =
+        localStorage.getItem('currentUser') ||
+        sessionStorage.getItem('currentUser');
     }
     this.currentUserSubject = new BehaviorSubject<User | null>(
-      storedUser ? JSON.parse(storedUser) : null
+      storedUser ? JSON.parse(storedUser) : null,
     );
     this.currentUser = this.currentUserSubject.asObservable();
   }
@@ -52,64 +53,50 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  login(username: string, password: string, rememberMe: boolean = false): Observable<User> {
-    // TODO: Descomentar cuando el backend esté listo
-    // return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { username, password })
-    //   .pipe(
-    //     map(response => {
-    //       const user = { ...response.user, token: response.token };
-    //       this.setUser(user, rememberMe);
-    //       return user;
-    //     }),
-    //     catchError(error => {
-    //       return throwError(() => new Error(error.error?.message || 'Error al iniciar sesión'));
-    //     })
-    //   );
-
-    // Simulación temporal para desarrollo
-    return this.mockLogin(username, password, rememberMe);
-  }
-
-  private mockLogin(username: string, password: string, rememberMe: boolean): Observable<User> {
-    // Simulación de login para desarrollo
-    return of(null).pipe(
-      delay(1000), // Simular latencia de red
-      map(() => {
-        // Usuarios de prueba
-        if ((username === 'admin' && password === 'admin123') || 
-            (username === 'usuario' && password === 'usuario123')) {
+  login(
+    username: string,
+    password: string,
+    rememberMe: boolean = false,
+  ): Observable<User> {
+    return this.http
+      .post<any>(`${this.apiUrl}/auth/login`, {
+        usernameOrEmail: username,
+        password,
+      })
+      .pipe(
+        map((response) => {
           const user: User = {
-            id: 1,
-            username: username,
-            email: `${username}@ayni.com`,
-            nombre: username === 'admin' ? 'Administrador' : 'Usuario',
-            apellido: 'Sistema',
-            token: 'mock-jwt-token-' + Math.random().toString(36).substr(2, 9),
-            roles: username === 'admin' ? ['ADMIN', 'USER'] : ['USER'],
-            permissions: username === 'admin' 
-              ? ['READ', 'WRITE', 'DELETE', 'ADMIN'] 
-              : ['READ', 'WRITE']
+            id: response.usuario.id,
+            username: response.usuario.username,
+            email: response.usuario.email,
+            nombre: response.usuario.nombre,
+            apellido: response.usuario.apellido,
+            token: response.accessToken,
+            roles: response.usuario.roles || [],
+            permissions: [],
           };
           this.setUser(user, rememberMe);
           return user;
-        }
-        throw new Error('Usuario o contraseña incorrectos');
-      }),
-      catchError(error => {
-        return throwError(() => error);
-      })
-    );
+        }),
+        catchError((error) => {
+          return throwError(
+            () => new Error(error.error?.message || 'Error al iniciar sesión'),
+          );
+        }),
+      );
   }
 
   private setUser(user: User, rememberMe: boolean): void {
     // Solo guardar en storage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
-      // Siempre guardar en sessionStorage para la sesión actual
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Si rememberMe está activo, también guardar en localStorage para persistir
       if (rememberMe) {
+        // Guardar en localStorage para persistir entre sesiones
         localStorage.setItem('currentUser', JSON.stringify(user));
+        sessionStorage.removeItem('currentUser');
+      } else {
+        // Guardar en sessionStorage solo para esta sesión
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.removeItem('currentUser');
       }
     }
     this.currentUserSubject.next(user);

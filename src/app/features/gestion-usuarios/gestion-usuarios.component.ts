@@ -20,20 +20,20 @@ interface Filtros {
   styleUrls: ['./gestion-usuarios.component.css']
 })
 export class GestionUsuariosComponent implements OnInit, OnDestroy {
-  
+
   private destroy$ = new Subject<void>();
   private busqueda$ = new Subject<string>();
-  
+
   // Estados de carga
   cargando = false;
   cargandoEstadisticas = false;
   guardando = false;
   error: string | null = null;
-  
+
   // Datos
   usuarios: Usuario[] = [];
   roles: Rol[] = [];
-  
+
   // Estadísticas
   estadisticas: EstadisticasUsuarios = {
     totalUsuarios: 0,
@@ -41,13 +41,13 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     ingenieros: 0,
     usuariosActivos: 0
   };
-  
+
   // Filtros
   filtros: Filtros = {
     busqueda: '',
     rol: ''
   };
-  
+
   // Paginación
   paginacion: PaginacionConfig = {
     paginaActual: 0,
@@ -55,7 +55,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     totalElementos: 0,
     totalPaginas: 0
   };
-  
+
   // Modal
   mostrarModal = false;
   usuarioSeleccionado: Usuario | null = null;
@@ -66,14 +66,14 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     this.configurarBusquedaDebounce();
     this.cargarDatosIniciales();
   }
-  
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
+
   // ==================== CONFIGURACIÓN ====================
-  
+
   private configurarBusquedaDebounce(): void {
     this.busqueda$
       .pipe(
@@ -86,15 +86,15 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         this.cargarUsuarios();
       });
   }
-  
+
   // ==================== CARGA DE DATOS ====================
-  
+
   private cargarDatosIniciales(): void {
     this.cargarRoles();
     this.cargarUsuarios();
     this.cargarEstadisticas();
   }
-  
+
   private cargarRoles(): void {
     this.usuariosService.obtenerRoles()
       .pipe(takeUntil(this.destroy$))
@@ -107,18 +107,25 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   cargarUsuarios(): void {
     this.cargando = true;
     this.error = null;
-    
-    const params = {
+
+    const params: any = {
       page: this.paginacion.paginaActual,
-      size: this.paginacion.porPagina,
-      search: this.filtros.busqueda || undefined,
-      rolId: this.filtros.rol ? parseInt(this.filtros.rol) : undefined
+      size: this.paginacion.porPagina
     };
-    
+
+    // Solo agregar parámetros si tienen valor
+    if (this.filtros.busqueda) {
+      params.search = this.filtros.busqueda;
+    }
+
+    if (this.filtros.rol) {
+      params.rolId = parseInt(this.filtros.rol);
+    }
+
     this.usuariosService.obtenerUsuarios(params)
       .pipe(
         takeUntil(this.destroy$),
@@ -136,10 +143,10 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   cargarEstadisticas(): void {
     this.cargandoEstadisticas = true;
-    
+
     this.usuariosService.obtenerEstadisticas()
       .pipe(
         takeUntil(this.destroy$),
@@ -154,34 +161,34 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   // ==================== FILTROS ====================
-  
+
   onBusquedaChange(): void {
     this.busqueda$.next(this.filtros.busqueda);
   }
-  
+
   onRolChange(): void {
     this.paginacion.paginaActual = 0;
     this.cargarUsuarios();
   }
-  
+
   limpiarFiltros(): void {
     this.filtros = { busqueda: '', rol: '' };
     this.paginacion.paginaActual = 0;
     this.cargarUsuarios();
   }
-  
+
   // ==================== PAGINACIÓN ====================
-  
+
   onCambioPagina(evento: CambioPaginaEvent): void {
     this.paginacion.paginaActual = evento.pagina;
     this.paginacion.porPagina = evento.porPagina;
     this.cargarUsuarios();
   }
-  
+
   // ==================== UTILIDADES ====================
-  
+
   getRolClasses(rolNombre: string): string {
     const nombre = rolNombre.toUpperCase();
     switch (nombre) {
@@ -199,27 +206,27 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200';
     }
   }
-  
+
   // ==================== MODAL CREAR/EDITAR ====================
-  
+
   abrirModalNuevoUsuario(): void {
     this.usuarioSeleccionado = null;
     this.mostrarModal = true;
   }
-  
+
   seleccionarUsuario(usuario: Usuario): void {
     this.usuarioSeleccionado = usuario;
     this.mostrarModal = true;
   }
-  
+
   cerrarModal(): void {
     this.mostrarModal = false;
     this.usuarioSeleccionado = null;
   }
-  
+
   onGuardarUsuario(formData: UsuarioFormData): void {
     this.guardando = true;
-    
+
     const request: UsuarioRequest = {
       nombre: formData.nombre,
       apellido: formData.apellido,
@@ -232,11 +239,11 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       activo: formData.activo,
       foto: formData.foto
     };
-    
+
     const operacion = formData.id
       ? this.usuariosService.actualizarUsuario(formData.id, request)
       : this.usuariosService.crearUsuario(request);
-    
+
     operacion
       .pipe(
         takeUntil(this.destroy$),
@@ -254,7 +261,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   onEliminarUsuario(id: number): void {
     this.usuariosService.eliminarUsuario(id)
       .pipe(takeUntil(this.destroy$))
