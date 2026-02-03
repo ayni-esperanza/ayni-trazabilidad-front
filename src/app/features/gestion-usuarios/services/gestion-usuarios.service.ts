@@ -15,10 +15,10 @@ import {
 
 // Configuración de endpoints - Cambiar cuando el backend esté listo
 const API_ENDPOINTS = {
-  usuarios: '/usuarios',
-  roles: '/roles',
-  permisos: '/permisos',
-  estadisticas: '/usuarios/estadisticas',
+  usuarios: '/v1/usuarios',
+  roles: '/v1/roles',
+  permisos: '/v1/permisos',
+  estadisticas: '/v1/usuarios/estadisticas',
 };
 
 // Flag para usar datos mock mientras no hay backend
