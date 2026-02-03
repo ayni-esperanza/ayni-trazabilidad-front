@@ -59,7 +59,7 @@ export class AuthService {
     rememberMe: boolean = false,
   ): Observable<User> {
     return this.http
-      .post<any>(`${this.apiUrl}/auth/login`, {
+      .post<any>(`${this.apiUrl}/v1/auth/login`, {
         usernameOrEmail: username,
         password,
       })
