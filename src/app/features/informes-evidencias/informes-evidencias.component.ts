@@ -23,6 +23,8 @@ interface InformeItem {
   previewHtml: SafeHtml;
 }
 
+type ModoVisualizacion = 'lista' | 'iconos-medianos' | 'iconos-grandes';
+
 @Component({
   selector: 'app-informes-evidencias',
   standalone: true,
@@ -38,6 +40,10 @@ export class InformesEvidenciasComponent implements OnInit {
 
   protected mostrarModal = false;
   protected informeSeleccionado: InformeFormData | null = null;
+
+  // Modo de visualización
+  protected modoVisualizacion: ModoVisualizacion = 'iconos-medianos';
+  protected mostrarMenuVisualizacion = false;
 
   protected paginacion: PaginacionConfig = {
     paginaActual: 0,
@@ -96,6 +102,25 @@ export class InformesEvidenciasComponent implements OnInit {
   protected cerrarModal(): void {
     this.mostrarModal = false;
     this.informeSeleccionado = null;
+  }
+
+  protected cambiarModoVisualizacion(modo: ModoVisualizacion): void {
+    this.modoVisualizacion = modo;
+    this.mostrarMenuVisualizacion = false;
+  }
+
+  protected toggleMenuVisualizacion(): void {
+    this.mostrarMenuVisualizacion = !this.mostrarMenuVisualizacion;
+  }
+
+  protected cerrarMenuVisualizacion(): void {
+    this.mostrarMenuVisualizacion = false;
+  }
+
+  protected formatearFecha(fecha: string): string {
+    if (!fecha) return '';
+    const [year, month, day] = fecha.split('-');
+    return `${day}/${month}/${year}`;
   }
 
   protected onGuardarInforme(data: InformeFormData): void {
