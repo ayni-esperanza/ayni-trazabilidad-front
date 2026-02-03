@@ -25,6 +25,8 @@ interface InformeItem {
 
 type ModoVisualizacion = 'lista' | 'iconos-medianos' | 'iconos-grandes';
 
+const STORAGE_KEY_MODO_VISUALIZACION = 'informes_modo_visualizacion';
+
 @Component({
   selector: 'app-informes-evidencias',
   standalone: true,
@@ -58,8 +60,16 @@ export class InformesEvidenciasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.cargarModoVisualizacion();
     this.seedMock();
     this.recalcularPaginacion();
+  }
+
+  private cargarModoVisualizacion(): void {
+    const guardado = localStorage.getItem(STORAGE_KEY_MODO_VISUALIZACION);
+    if (guardado && ['lista', 'iconos-medianos', 'iconos-grandes'].includes(guardado)) {
+      this.modoVisualizacion = guardado as ModoVisualizacion;
+    }
   }
 
   protected get informesPaginados(): InformeItem[] {
@@ -107,6 +117,7 @@ export class InformesEvidenciasComponent implements OnInit {
   protected cambiarModoVisualizacion(modo: ModoVisualizacion): void {
     this.modoVisualizacion = modo;
     this.mostrarMenuVisualizacion = false;
+    localStorage.setItem(STORAGE_KEY_MODO_VISUALIZACION, modo);
   }
 
   protected toggleMenuVisualizacion(): void {
