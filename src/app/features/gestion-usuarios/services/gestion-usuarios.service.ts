@@ -8,6 +8,7 @@ import {
   Permiso,
   UsuarioRequest,
   UsuarioResponse,
+  UsuarioCreacionResponse,
   PaginatedResponse,
   EstadisticasUsuarios,
 } from '../models/usuario.model';
@@ -194,7 +195,7 @@ export class GestionUsuariosService {
     );
   }
 
-  crearUsuario(request: UsuarioRequest): Observable<Usuario> {
+  crearUsuario(request: UsuarioRequest): Observable<UsuarioCreacionResponse> {
     if (USE_MOCK_DATA) {
       const rol = this.mockRoles.find((r) => r.id === request.rolId);
       const nuevoUsuario: Usuario = {
@@ -212,10 +213,15 @@ export class GestionUsuariosService {
         permisos: [],
       };
       this.mockUsuarios.push(nuevoUsuario);
-      return of(nuevoUsuario).pipe(delay(500));
+
+      const response: UsuarioCreacionResponse = {
+        usuario: nuevoUsuario as any,
+        passwordGenerado: 'Mock1234',
+      };
+      return of(response).pipe(delay(500));
     }
 
-    return this.http.post<Usuario>(
+    return this.http.post<UsuarioCreacionResponse>(
       `${this.baseUrl}${API_ENDPOINTS.usuarios}`,
       request,
     );

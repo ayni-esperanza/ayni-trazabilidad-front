@@ -1,11 +1,31 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, finalize, debounceTime, distinctUntilChanged } from 'rxjs';
+import {
+  Subject,
+  takeUntil,
+  finalize,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs';
 import { GestionUsuariosService } from './services/gestion-usuarios.service';
-import { Usuario, Rol, EstadisticasUsuarios, UsuarioRequest } from './models/usuario.model';
-import { UsuarioFormModalComponent, UsuarioFormData } from './components/usuario-form-modal/usuario-form-modal.component';
-import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
+import {
+  Usuario,
+  Rol,
+  EstadisticasUsuarios,
+  UsuarioRequest,
+  UsuarioResponse,
+} from './models/usuario.model';
+import {
+  UsuarioFormModalComponent,
+  UsuarioFormData,
+} from './components/usuario-form-modal/usuario-form-modal.component';
+import { ModalCredencialesComponent } from './components/modal-credenciales/modal-credenciales.component';
+import {
+  PaginacionComponent,
+  PaginacionConfig,
+  CambioPaginaEvent,
+} from '../../shared/components/paginacion/paginacion.component';
 
 interface Filtros {
   busqueda: string;
@@ -15,12 +35,17 @@ interface Filtros {
 @Component({
   selector: 'app-gestion-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, UsuarioFormModalComponent, PaginacionComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    UsuarioFormModalComponent,
+    ModalCredencialesComponent,
+    PaginacionComponent,
+  ],
   templateUrl: './gestion-usuarios.component.html',
-  styleUrls: ['./gestion-usuarios.component.css']
+  styleUrls: ['./gestion-usuarios.component.css'],
 })
 export class GestionUsuariosComponent implements OnInit, OnDestroy {
-
   private destroy$ = new Subject<void>();
   private busqueda$ = new Subject<string>();
 
@@ -39,13 +64,13 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     totalUsuarios: 0,
     administradores: 0,
     ingenieros: 0,
-    usuariosActivos: 0
+    usuariosActivos: 0,
   };
 
   // Filtros
   filtros: Filtros = {
     busqueda: '',
-    rol: ''
+    rol: '',
   };
 
   // Paginación
@@ -53,12 +78,17 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     paginaActual: 0,
     porPagina: 100,
     totalElementos: 0,
-    totalPaginas: 0
+    totalPaginas: 0,
   };
 
   // Modal
   mostrarModal = false;
   usuarioSeleccionado: Usuario | null = null;
+
+  // Modal de credenciales
+  mostrarModalCredenciales = false;
+  usuarioCreado: UsuarioResponse | null = null;
+  passwordGenerado: string = '';
 
   constructor(private usuariosService: GestionUsuariosService) {}
 
@@ -76,11 +106,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
 
   private configurarBusquedaDebounce(): void {
     this.busqueda$
-      .pipe(
-        debounceTime(400),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
         this.paginacion.paginaActual = 0;
         this.cargarUsuarios();
@@ -96,7 +122,8 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   }
 
   private cargarRoles(): void {
-    this.usuariosService.obtenerRoles()
+    this.usuariosService
+      .obtenerRoles()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (roles) => {
@@ -104,7 +131,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error al cargar roles:', err);
-        }
+        },
       });
   }
 
@@ -114,7 +141,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
 
     const params: any = {
       page: this.paginacion.paginaActual,
-      size: this.paginacion.porPagina
+      size: this.paginacion.porPagina,
     };
 
     // Solo agregar parámetros si tienen valor
@@ -126,10 +153,11 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       params.rolId = parseInt(this.filtros.rol);
     }
 
-    this.usuariosService.obtenerUsuarios(params)
+    this.usuariosService
+      .obtenerUsuarios(params)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.cargando = false)
+        finalize(() => (this.cargando = false)),
       )
       .subscribe({
         next: (response) => {
@@ -138,19 +166,21 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
           this.paginacion.totalPaginas = response.totalPages;
         },
         error: (err) => {
-          this.error = 'Error al cargar usuarios. Por favor, intente nuevamente.';
+          this.error =
+            'Error al cargar usuarios. Por favor, intente nuevamente.';
           console.error('Error al cargar usuarios:', err);
-        }
+        },
       });
   }
 
   cargarEstadisticas(): void {
     this.cargandoEstadisticas = true;
 
-    this.usuariosService.obtenerEstadisticas()
+    this.usuariosService
+      .obtenerEstadisticas()
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.cargandoEstadisticas = false)
+        finalize(() => (this.cargandoEstadisticas = false)),
       )
       .subscribe({
         next: (stats) => {
@@ -158,7 +188,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error al cargar estadísticas:', err);
-        }
+        },
       });
   }
 
@@ -237,33 +267,61 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       area: formData.area,
       rolId: formData.rolId!,
       activo: formData.activo,
-      foto: formData.foto
+      foto: formData.foto,
+      password: undefined, // No enviar password, se generará automáticamente
     };
 
-    const operacion = formData.id
-      ? this.usuariosService.actualizarUsuario(formData.id, request)
-      : this.usuariosService.crearUsuario(request);
-
-    operacion
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.guardando = false)
-      )
-      .subscribe({
-        next: () => {
-          this.cerrarModal();
-          this.cargarUsuarios();
-          this.cargarEstadisticas();
-        },
-        error: (err) => {
-          console.error('Error al guardar usuario:', err);
-          alert('Error al guardar el usuario. Por favor, intente nuevamente.');
-        }
-      });
+    if (formData.id) {
+      // Actualizar usuario existente
+      this.usuariosService
+        .actualizarUsuario(formData.id, request)
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => (this.guardando = false)),
+        )
+        .subscribe({
+          next: () => {
+            this.cerrarModal();
+            this.cargarUsuarios();
+            this.cargarEstadisticas();
+          },
+          error: (err) => {
+            console.error('Error al guardar usuario:', err);
+            alert(
+              'Error al guardar el usuario. Por favor, intente nuevamente.',
+            );
+          },
+        });
+    } else {
+      // Crear nuevo usuario
+      this.usuariosService
+        .crearUsuario(request)
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => (this.guardando = false)),
+        )
+        .subscribe({
+          next: (response) => {
+            this.cerrarModal();
+            this.usuarioCreado = response.usuario;
+            this.passwordGenerado = response.passwordGenerado;
+            this.mostrarModalCredenciales = true;
+            this.cargarUsuarios();
+            this.cargarEstadisticas();
+          },
+          error: (err) => {
+            console.error('Error al guardar usuario:', err);
+            alert(
+              'Error al guardar el usuario. Por favor, intente nuevamente.',
+            );
+          },
+        });
+    }
   }
 
   onEliminarUsuario(id: number): void {
-    this.usuariosService.eliminarUsuario(id)
+    this.usuariosService
+      .eliminarUsuario(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -274,7 +332,13 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error al eliminar usuario:', err);
           alert('Error al eliminar el usuario. Por favor, intente nuevamente.');
-        }
+        },
       });
+  }
+
+  cerrarModalCredenciales(): void {
+    this.mostrarModalCredenciales = false;
+    this.usuarioCreado = null;
+    this.passwordGenerado = '';
   }
 }

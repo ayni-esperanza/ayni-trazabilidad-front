@@ -71,6 +71,11 @@ export interface UsuarioResponse {
   foto?: string;
 }
 
+export interface UsuarioCreacionResponse {
+  usuario: UsuarioResponse;
+  passwordGenerado: string; // Contraseña generada automáticamente
+}
+
 export interface PaginatedResponse<T> {
   content: T[];
   totalElements: number;
