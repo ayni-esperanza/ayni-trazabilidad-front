@@ -65,8 +65,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   protected previewPages: SafeHtml[] = [];
   private previewHtmlRaw = '';
 
-  protected zoom = 0.6;
-  protected readonly zoomMin = 0.5;
+  protected zoom = 0.5;
+  protected readonly zoomMin = 0.4;
   protected readonly zoomMax = 2;
 
   // Pan/drag state
@@ -418,8 +418,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       this.actualizarPreview();
       this.cdr.detectChanges();
 
-      // Esperar un tick para que Angular actualice las páginas de exportación
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Esperar un tick mínimo para que Angular actualice las páginas de exportación
+      await new Promise(resolve => requestAnimationFrame(resolve));
 
       const pages = this.exportPageRefs?.toArray().map((r) => r.nativeElement) ?? [];
       if (!pages.length) {
@@ -431,8 +431,6 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
       await this.pdfExportService.exportToPdf(pages, {
         action: options.action,
         fileName: options.fileName,
-        scale: 2,
-        imageQuality: 1,
       });
     } finally {
       // Restaurar marca de agua después de exportar
@@ -486,7 +484,7 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     const cuerpo = this.form.cuerpoHtml || '';
 
     return `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827;">
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.5; color: #111827;">
         <div style="display:flex; justify-content: space-between; align-items:flex-start; gap: 12px;">
           <div style="font-weight: 700; letter-spacing: .02em; color:#10b981;">AYNI</div>
           <div style="text-align:right; font-size: 11px; color:#6b7280;">${fecha}</div>
@@ -512,33 +510,43 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     const pageWidthPx = 794;
     const pageHeightPx = 1123;
     const paddingPx = 48; // ~0.5in
+    const paddingBottomPx = 120; // Mayor padding inferior para no tapar el pie del membrete
     const letterhead = this.usarMembrete && this.membreteUri;
+
+    // Espacio reservado para membrete en la parte superior
+    const letterheadTopMargin = letterhead ? 120 : 0;
+    const letterheadHorizontalPadding = letterhead ? 40 : 0;
 
     // Arma una página de medición.
     const pageEl = document.createElement('div');
     pageEl.style.width = `${pageWidthPx}px`;
     pageEl.style.height = `${pageHeightPx}px`;
-    pageEl.style.padding = `${paddingPx}px`;
+    pageEl.style.padding = `${paddingPx}px ${paddingPx}px ${paddingBottomPx}px ${paddingPx}px`;
     pageEl.style.boxSizing = 'border-box';
     pageEl.style.background = '#ffffff';
 
-    // Si hay membrete, agregar margen superior y padding horizontal
+    // Si hay membrete, agregar padding horizontal extra
     if (letterhead) {
-      pageEl.style.marginTop = '120px';
-      pageEl.style.paddingLeft = '80px';
-      pageEl.style.paddingRight = '80px';
+      pageEl.style.paddingLeft = `${paddingPx + letterheadHorizontalPadding}px`;
+      pageEl.style.paddingRight = `${paddingPx + letterheadHorizontalPadding}px`;
     }
 
     const headerEl = document.createElement('div');
-    // Solo mostrar header si no hay membrete
+    // Solo mostrar header si no hay membrete, pero reservar espacio si hay membrete
     if (!letterhead) {
       headerEl.innerHTML = this.buildHeaderHtml();
+    } else {
+      // Reservar espacio para el área del membrete
+      headerEl.style.height = `${letterheadTopMargin}px`;
     }
 
     const hr = document.createElement('hr');
     hr.style.margin = '10px 0';
     hr.style.border = '0';
     hr.style.borderTop = '1px solid #e5e7eb';
+    if (letterhead) {
+      hr.style.display = 'none';
+    }
 
     const bodyEl = document.createElement('div');
     bodyEl.style.overflow = 'hidden';
@@ -548,7 +556,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     pageEl.appendChild(bodyEl);
     host.appendChild(pageEl);
 
-    const available = pageEl.clientHeight - headerEl.offsetHeight - hr.offsetHeight;
+    const hrHeight = letterhead ? 0 : hr.offsetHeight;
+    const available = pageEl.clientHeight - headerEl.offsetHeight - hrHeight;
     bodyEl.style.height = `${Math.max(1, available)}px`;
 
     // Parse del cuerpo a nodos.
@@ -643,8 +652,8 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     if (letterhead) {
       return `
         ${editorStyles}
-        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word;">
-          <div style="position: relative; z-index: 1; margin-top: 120px; padding: 0 80px; word-wrap: break-word; overflow-wrap: break-word;">
+        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;">
+          <div style="position: relative; z-index: 1; margin-top: 120px; padding: 0 40px; word-wrap: break-word; overflow-wrap: break-word; height: calc(100% - 120px); overflow: hidden;">
             <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">${bodyHtml}</div>
             ${firmasHtml}
           </div>
@@ -656,11 +665,11 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
     const header = this.buildHeaderHtml();
     return `
       ${editorStyles}
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 12px; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word;">
-        <div style="position: relative; z-index: 1;">
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height: 1.5; color: #111827; ${backgroundStyles} position: relative; width: 100%; height: 100%; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden;">
+        <div style="position: relative; z-index: 1; height: 100%; overflow: hidden;">
           ${header}
           <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
-          <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">${bodyHtml}</div>
+          <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; overflow: hidden;">${bodyHtml}</div>
           ${firmasHtml}
         </div>
       </div>

@@ -12,6 +12,21 @@ declare global {
 })
 export class PdfExportService {
   private librariesLoaded = false;
+  private librariesPromise: Promise<{ html2canvas: any; jsPDF: any }> | null = null;
+
+  constructor() {
+    // Pre-cargar librerías inmediatamente al instanciar el servicio
+    this.preloadLibraries();
+  }
+
+  /**
+   * Pre-carga las librerías en segundo plano para tenerlas listas.
+   */
+  private preloadLibraries(): void {
+    if (!this.librariesPromise) {
+      this.librariesPromise = this.loadLibrariesInternal();
+    }
+  }
 
   /**
    * Carga un script externo de forma dinámica.
@@ -34,9 +49,9 @@ export class PdfExportService {
   }
 
   /**
-   * Carga las librerías desde CDN y las cachea para usos posteriores.
+   * Carga las librerías desde CDN internamente.
    */
-  private async loadLibraries(): Promise<{ html2canvas: any; jsPDF: any }> {
+  private async loadLibrariesInternal(): Promise<{ html2canvas: any; jsPDF: any }> {
     if (!this.librariesLoaded) {
       // Cargar ambas librerías desde CDN en paralelo
       await Promise.all([
@@ -51,6 +66,16 @@ export class PdfExportService {
       html2canvas: window.html2canvas,
       jsPDF: window.jspdf?.jsPDF,
     };
+  }
+
+  /**
+   * Carga las librerías desde CDN y las cachea para usos posteriores.
+   */
+  private async loadLibraries(): Promise<{ html2canvas: any; jsPDF: any }> {
+    if (!this.librariesPromise) {
+      this.librariesPromise = this.loadLibrariesInternal();
+    }
+    return this.librariesPromise;
   }
 
   /**
@@ -81,17 +106,23 @@ export class PdfExportService {
     const scale = options.scale ?? 2;
     const imageQuality = options.imageQuality ?? 1;
 
-    for (let i = 0; i < pages.length; i++) {
-      const pageEl = pages[i];
-      const canvas = await html2canvas(pageEl, {
+    // Procesar todas las páginas en paralelo para mayor velocidad
+    const canvasPromises = pages.map(pageEl => 
+      html2canvas(pageEl, {
         backgroundColor: '#ffffff',
         scale,
         useCORS: true,
         logging: false,
         allowTaint: false,
         imageTimeout: 15000,
-      });
+        removeContainer: true,
+      })
+    );
 
+    const canvases = await Promise.all(canvasPromises);
+
+    for (let i = 0; i < canvases.length; i++) {
+      const canvas = canvases[i];
       // Usar PNG para mejor calidad de texto y gráficos con compresión
       const imgData = canvas.toDataURL('image/png', imageQuality);
       if (i > 0) pdf.addPage();
