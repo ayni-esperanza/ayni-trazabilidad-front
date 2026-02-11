@@ -164,7 +164,7 @@ export class UsuarioFormModalComponent implements OnChanges {
   }
   
   onEliminar(): void {
-    if (this.formData.id && confirm('¿Está seguro de eliminar este usuario? Esta acción no se puede deshacer.')) {
+    if (this.formData.id) {
       this.eliminar.emit(this.formData.id);
     }
   }

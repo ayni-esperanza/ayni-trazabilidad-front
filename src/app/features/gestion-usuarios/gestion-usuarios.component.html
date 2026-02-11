@@ -264,3 +264,12 @@
   (cerrarModal)="cerrarModalCredenciales()">
 </app-modal-credenciales>
 }
+
+<!-- Modal Confirmación de Eliminación -->
+<app-confirm-delete-modal
+  [visible]="mostrarModalEliminar"
+  [loading]="eliminando"
+  [config]="deleteConfig"
+  (confirmar)="confirmarEliminacion()"
+  (cancelar)="cancelarEliminacion()">
+</app-confirm-delete-modal>

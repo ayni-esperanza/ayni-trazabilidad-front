@@ -26,6 +26,10 @@ import {
   PaginacionConfig,
   CambioPaginaEvent,
 } from '../../shared/components/paginacion/paginacion.component';
+import {
+  ConfirmDeleteModalComponent,
+  ConfirmDeleteConfig,
+} from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 interface Filtros {
   busqueda: string;
@@ -41,6 +45,7 @@ interface Filtros {
     UsuarioFormModalComponent,
     ModalCredencialesComponent,
     PaginacionComponent,
+    ConfirmDeleteModalComponent,
   ],
   templateUrl: './gestion-usuarios.component.html',
   styleUrls: ['./gestion-usuarios.component.css'],
@@ -89,6 +94,12 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   mostrarModalCredenciales = false;
   usuarioCreado: UsuarioResponse | null = null;
   passwordGenerado: string = '';
+
+  // Modal de confirmación de eliminación
+  mostrarModalEliminar = false;
+  eliminando = false;
+  usuarioAEliminar: Usuario | null = null;
+  deleteConfig: ConfirmDeleteConfig = {};
 
   constructor(private usuariosService: GestionUsuariosService) {}
 
@@ -320,11 +331,29 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   }
 
   onEliminarUsuario(id: number): void {
+    const usuario = this.usuarios.find((u) => u.id === id);
+    if (usuario) {
+      this.usuarioAEliminar = usuario;
+      this.deleteConfig = {
+        itemNombre: usuario.nombre || usuario.email,
+      };
+      this.mostrarModalEliminar = true;
+    }
+  }
+
+  confirmarEliminacion(): void {
+    if (!this.usuarioAEliminar) return;
+
+    this.eliminando = true;
     this.usuariosService
-      .eliminarUsuario(id)
-      .pipe(takeUntil(this.destroy$))
+      .eliminarUsuario(this.usuarioAEliminar.id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => (this.eliminando = false))
+      )
       .subscribe({
         next: () => {
+          this.cancelarEliminacion();
           this.cerrarModal();
           this.cargarUsuarios();
           this.cargarEstadisticas();
@@ -334,6 +363,11 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
           alert('Error al eliminar el usuario. Por favor, intente nuevamente.');
         },
       });
+  }
+
+  cancelarEliminacion(): void {
+    this.mostrarModalEliminar = false;
+    this.usuarioAEliminar = null;
   }
 
   cerrarModalCredenciales(): void {
