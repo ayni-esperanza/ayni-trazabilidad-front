@@ -157,6 +157,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       descripcion: data.descripcion!, fechaSolicitud: new Date(), estado: 'Pendiente'
     };
     this.solicitudes.push(solicitud);
+    this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
     this.solicitudActual = solicitud;
     this.showNuevaSolicitudModal = false;
     this.showIniciarProyectoModal = true;
@@ -167,6 +168,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   onCancelarProyecto(): void {
     if (this.solicitudActual) this.solicitudActual.estado = 'Cancelado';
+    this.aplicarFiltros();
     this.showIniciarProyectoModal = false;
   }
 
@@ -185,6 +187,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
       if (i !== -1) this.solicitudes[i] = this.solicitudActual;
     }
+    this.aplicarFiltros();
     this.proyectoActual = proyecto;
     this.showIniciarProyectoModal = false;
     this.showProcesoProyectoModal = true;
@@ -200,6 +203,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       const si = this.solicitudes.findIndex(s => s.id === this.proyectoActual!.solicitudId);
       if (si !== -1) this.solicitudes[si].estado = 'Cancelado';
     }
+    this.aplicarFiltros();
     this.showProcesoProyectoModal = false;
   }
 
@@ -217,6 +221,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     if (solicitud) {
       solicitud.estado = 'Completado';
     }
+    this.aplicarFiltros();
   }
 
   onCambiarProyecto(proyectoId: number): void {
