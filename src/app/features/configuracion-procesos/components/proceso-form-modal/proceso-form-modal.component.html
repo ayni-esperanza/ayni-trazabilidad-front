@@ -54,17 +54,6 @@
               <span *ngIf="tieneError('area')" class="text-xs text-red-500 mt-1">{{ errores['area'] }}</span>
             </div>
 
-            <div class="sm:col-span-1">
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Etapas <span class="text-red-500">*</span></label>
-              <input
-                type="number"
-                min="1"
-                [(ngModel)]="form.etapas"
-                [class.border-red-500]="tieneError('etapas')"
-                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
-              <span *ngIf="tieneError('etapas')" class="text-xs text-red-500 mt-1">{{ errores['etapas'] }}</span>
-            </div>
-
             <div class="sm:col-span-2">
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Flujo <span class="text-red-500">*</span></label>
               <input

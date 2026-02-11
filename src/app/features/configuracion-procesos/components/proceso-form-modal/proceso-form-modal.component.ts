@@ -7,7 +7,6 @@ export interface ProcesoFormData {
   id?: number;
   proceso: string;
   area: string;
-  etapas: number;
   flujo: string[];
 }
 
@@ -29,7 +28,6 @@ export class ProcesoFormModalComponent implements OnChanges {
   form: ProcesoFormData = {
     proceso: '',
     area: '',
-    etapas: 1,
     flujo: ['Inicio'],
   };
 
@@ -57,11 +55,10 @@ export class ProcesoFormModalComponent implements OnChanges {
         id: this.proceso.id,
         proceso: this.proceso.proceso ?? '',
         area: this.proceso.area ?? '',
-        etapas: Number.isFinite(this.proceso.etapas) ? this.proceso.etapas : 1,
         flujo: Array.isArray(this.proceso.flujo) && this.proceso.flujo.length ? [...this.proceso.flujo] : ['Inicio'],
       };
     } else {
-      this.form = { proceso: '', area: '', etapas: 1, flujo: ['Inicio'] };
+      this.form = { proceso: '', area: '', flujo: ['Inicio'] };
     }
 
     this.flujoTexto = this.form.flujo.join(', ');
@@ -90,7 +87,6 @@ export class ProcesoFormModalComponent implements OnChanges {
       id: this.form.id,
       proceso: (this.form.proceso || '').trim(),
       area: (this.form.area || '').trim(),
-      etapas: Math.max(1, Number(this.form.etapas) || 1),
       flujo,
     };
 
@@ -105,9 +101,6 @@ export class ProcesoFormModalComponent implements OnChanges {
     }
     if (!(this.form.area || '').trim()) {
       this.errores['area'] = 'El área es requerida';
-    }
-    if (!this.form.etapas || this.form.etapas < 2) {
-      this.errores['etapas'] = 'Debe tener al menos 2 etapas';
     }
     if (!this.flujoTexto.trim() || this.parseFlujo(this.flujoTexto).length < 2) {
       this.errores['flujo'] = 'El flujo debe tener al menos 2 etapas';

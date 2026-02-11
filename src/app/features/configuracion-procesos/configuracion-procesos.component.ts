@@ -15,11 +15,11 @@ type ProcesoConfigurado = ProcesoFormData & { id: number };
 export class ConfiguracionProcesosComponent implements OnInit {
 
   procesos: ProcesoConfigurado[] = [
-    { id: 1, proceso: 'Ejemplo1', area: 'Ejemplo1', etapas: 1, flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio', 'Inicio'] },
-    { id: 2, proceso: 'Ejemplo1', area: 'Ejemplo1', etapas: 1, flujo: ['Inicio', 'Inicio', 'Inicio'] },
-    { id: 3, proceso: 'Ejemplo1', area: 'Ejemplo1', etapas: 1, flujo: ['Inicio', 'Inicio'] },
-    { id: 4, proceso: 'Ejemplo1', area: 'Ejemplo1', etapas: 1, flujo: ['Inicio', 'Inicio'] },
-    { id: 5, proceso: 'Ejemplo1', area: 'Ejemplo1', etapas: 1, flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio'] },
+    { id: 1, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio', 'Inicio'] },
+    { id: 2, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio'] },
+    { id: 3, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio'] },
+    { id: 4, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio'] },
+    { id: 5, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio'] },
   ];
 
   mostrarModal = false;
