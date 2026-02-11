@@ -56,18 +56,23 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   @Input() responsables: Responsable[] = [];
   @Input() procesos: ProcesoSimple[] = [];
   @Output() cerrar = new EventEmitter<void>();
-  @Output() cancelarProy = new EventEmitter<void>();
+  @Output() cancelarProy = new EventEmitter<{motivo: string}>();
   @Output() finalizarEtapa = new EventEmitter<EtapaProyecto>();
   @Output() finalizarProy = new EventEmitter<Proyecto>();
   @Output() cambiarProyecto = new EventEmitter<number>();
 
   etapas: EtapaProyecto[] = [];
   proyectoFinalizado = false;
+  proyectoCancelado = false;
   infoProyectoExpandida = false;
   mostrarConfeti = false;
   confetis: { id: number; tipo: string; color: string; left: number; delay: number; duration: number }[] = [];
   etapaSeleccionada: EtapaProyecto | null = null;
   proyectoSeleccionadoId = 0;
+
+  // Modal de cancelación
+  mostrarModalCancelacion = false;
+  motivoCancelacion = '';
 
   // Sección de Costos
   seccionCostosExpandida = true;
@@ -102,7 +107,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
-      this.proyectoFinalizado = this.proyecto.estado === 'Finalizado';
+      this.proyectoFinalizado = this.proyecto.estado === 'Completado';
+      this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
       this.generarEtapas();
     }
   }
@@ -112,7 +118,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   get modoSoloLectura(): boolean {
-    return this.proyectoFinalizado || this.todasEtapasCompletadas;
+    return this.proyectoFinalizado || this.proyectoCancelado || this.todasEtapasCompletadas;
   }
 
   generarEtapas(): void {
@@ -141,8 +147,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   generarTareasEjemplo(etapaId: number): TareaAsignada[] {
     return [
-      { id: 1, etapaProyectoId: etapaId, responsableId: 1, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Con Retraso' },
-      { id: 2, etapaProyectoId: etapaId, responsableId: 1, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Con Retraso' },
+      { id: 1, etapaProyectoId: etapaId, responsableId: 1, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Retrasado' },
+      { id: 2, etapaProyectoId: etapaId, responsableId: 1, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Retrasado' },
       { id: 3, etapaProyectoId: etapaId, responsableId: 2, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Completado' },
       { id: 4, etapaProyectoId: etapaId, responsableId: 3, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Completado' },
       { id: 5, etapaProyectoId: etapaId, responsableId: 4, responsableNombre: 'Ejemplo1', tarea: 'Ejemplo1', fechaInicio: new Date(), fechaFin: new Date(), estado: 'Completado' }
@@ -178,7 +184,21 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onCancelarProyecto(): void {
-    this.cancelarProy.emit();
+    this.mostrarModalCancelacion = true;
+    this.motivoCancelacion = '';
+  }
+
+  cerrarModalCancelacion(): void {
+    this.mostrarModalCancelacion = false;
+    this.motivoCancelacion = '';
+  }
+
+  confirmarCancelacion(): void {
+    if (this.motivoCancelacion.trim()) {
+      this.cancelarProy.emit({ motivo: this.motivoCancelacion });
+      this.mostrarModalCancelacion = false;
+      this.motivoCancelacion = '';
+    }
   }
 
   onFinalizarEtapa(): void {
@@ -230,16 +250,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   getEstadoIcon(tarea: TareaAsignada): string {
-    return tarea.estado === 'Con Retraso' ? 'warning' : tarea.estado === 'Completado' ? 'check' : '';
+    return tarea.estado === 'Retrasado' ? 'warning' : tarea.estado === 'Completado' ? 'check' : '';
   }
 
-  isConRetraso(tarea: TareaAsignada): boolean {
-    return tarea.estado === 'Con Retraso';
+  isRetrasado(tarea: TareaAsignada): boolean {
+    return tarea.estado === 'Retrasado';
   }
 
   onFinalizarProyecto(): void {
     if (this.proyecto && this.todasEtapasCompletadas) {
-      this.proyecto.estado = 'Finalizado';
+      this.proyecto.estado = 'Completado';
       this.proyectoFinalizado = true;
       this.lanzarConfeti();
       this.finalizarProy.emit(this.proyecto);

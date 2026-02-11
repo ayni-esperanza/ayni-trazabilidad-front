@@ -164,7 +164,7 @@ export class TableroControlService {
       { id: 1, responsable: 'Juan Pérez', tarea: 'Implementar módulo ventas', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '15/01 - 25/01', estado: 'En Proceso' as const },
       { id: 2, responsable: 'Juan Pérez', tarea: 'Revisar base de datos', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '26/01 - 30/01', estado: 'Completado' as const },
       { id: 3, responsable: 'María García', tarea: 'Diseñar pantallas', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '20/01 - 28/01', estado: 'Completado' as const },
-      { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Con Retraso' as const },
+      { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Retrasado' as const },
       { id: 5, responsable: 'Carlos López', tarea: 'Análisis de requerimientos', proyecto: 'Portal Web', proyectoId: 3, etapa: 'Análisis', fechas: '01/02 - 15/02', estado: 'Completado' as const }
     ]).pipe(delay(100));
   }
@@ -238,14 +238,14 @@ export class TableroControlService {
         { id: 3, proyecto: 'Portal Web', responsable: 'Carlos López', etapa: 'Análisis', fechas: '01/02 - 28/02', estado: 'Completado', mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 12000 },
         { id: 4, proyecto: 'API REST', responsable: 'Ana Martínez', etapa: 'Pruebas', fechas: '05/02 - 20/03', estado: 'En Proceso', mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 8500 },
         { id: 5, proyecto: 'Dashboard BI', responsable: 'Pedro Sánchez', etapa: 'Desarrollo', fechas: '10/02 - 30/04', estado: 'Pendiente', mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 5000 },
-        { id: 6, proyecto: 'CRM Ventas', responsable: 'Luis Torres', etapa: 'Finalizado', fechas: '01/01 - 30/01', estado: 'Finalizado', mes: 'Ene', fechaCreacion: new Date('2026-01-01'), gastoTotal: 32000 },
-        { id: 7, proyecto: 'Inventario', responsable: 'Rosa Díaz', etapa: 'Finalizado', fechas: '15/01 - 15/02', estado: 'Finalizado', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 15000 }
+        { id: 6, proyecto: 'CRM Ventas', responsable: 'Luis Torres', etapa: 'Completado', fechas: '01/01 - 30/01', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-01'), gastoTotal: 32000 },
+        { id: 7, proyecto: 'Inventario', responsable: 'Rosa Díaz', etapa: 'Completado', fechas: '15/01 - 15/02', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 15000 }
       ],
       tareasEncargados: [
         { id: 1, responsable: 'Juan Pérez', tarea: 'Implementar módulo ventas', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '15/01 - 25/01', estado: 'En Proceso' },
         { id: 2, responsable: 'Juan Pérez', tarea: 'Revisar base de datos', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '26/01 - 30/01', estado: 'Completado' },
         { id: 3, responsable: 'María García', tarea: 'Diseñar pantallas', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '20/01 - 28/01', estado: 'Completado' },
-        { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Con Retraso' },
+        { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Retrasado' },
         { id: 5, responsable: 'Carlos López', tarea: 'Análisis de requerimientos', proyecto: 'Portal Web', proyectoId: 3, etapa: 'Análisis', fechas: '01/02 - 15/02', estado: 'Completado' },
         { id: 6, responsable: 'Ana Martínez', tarea: 'Pruebas unitarias', proyecto: 'API REST', proyectoId: 4, etapa: 'Pruebas', fechas: '05/02 - 12/02', estado: 'En Proceso' },
         { id: 7, responsable: 'Pedro Sánchez', tarea: 'Crear dashboards', proyecto: 'Dashboard BI', proyectoId: 5, etapa: 'Desarrollo', fechas: '10/02 - 28/02', estado: 'Pendiente' }

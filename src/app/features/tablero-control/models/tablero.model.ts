@@ -1,5 +1,6 @@
 // Estados consistentes con registro de solicitudes
-export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
+export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado';
+export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
 
 export interface ProyectoEnCurso {
   id: number;
@@ -21,7 +22,7 @@ export interface TareaEncargado {
   proyectoId: number; // ID del proyecto asociado
   etapa: string;
   fechas: string;
-  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Con Retraso';
+  estado: EstadoTarea;
 }
 
 // Modelo para gastos por proyecto

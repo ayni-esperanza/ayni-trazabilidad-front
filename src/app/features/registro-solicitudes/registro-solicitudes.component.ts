@@ -32,6 +32,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Filtros
   busqueda = '';
   estadoFiltro = '';
+  responsableFiltro = '';
 
   // Paginación
   paginacionConfig: PaginacionConfig = {
@@ -72,6 +73,11 @@ export class RegistroSolicitudesComponent implements OnInit {
       resultado = resultado.filter(s => s.estado === this.estadoFiltro);
     }
 
+    // Filtro de responsable
+    if (this.responsableFiltro) {
+      resultado = resultado.filter(s => s.responsableId?.toString() === this.responsableFiltro);
+    }
+
     this.solicitudesFiltradas = resultado;
     this.actualizarPaginacion();
   }
@@ -101,6 +107,11 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   onFiltrarEstado(): void {
+    this.paginacionConfig.paginaActual = 0;
+    this.aplicarFiltros();
+  }
+
+  onFiltrarResponsable(): void {
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
   }
@@ -196,15 +207,19 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Modal Proceso Proyecto
   cerrarProcesoProyecto(): void { this.showProcesoProyectoModal = false; }
 
-  onCancelarProyectoDesdeModal(): void {
+  onCancelarProyectoDesdeModal(evento: {motivo: string}): void {
     if (this.proyectoActual) {
       const pi = this.proyectos.findIndex(p => p.id === this.proyectoActual!.id);
-      if (pi !== -1) this.proyectos[pi].estado = 'Cancelado';
+      if (pi !== -1) {
+        this.proyectos[pi].estado = 'Cancelado';
+        this.proyectos[pi].motivoCancelacion = evento.motivo;
+      }
       const si = this.solicitudes.findIndex(s => s.id === this.proyectoActual!.solicitudId);
       if (si !== -1) this.solicitudes[si].estado = 'Cancelado';
+      // Actualizar el proyecto actual para que se refleje en el modal
+      this.proyectoActual = { ...this.proyectoActual, estado: 'Cancelado', motivoCancelacion: evento.motivo };
     }
     this.aplicarFiltros();
-    this.showProcesoProyectoModal = false;
   }
 
   onFinalizarEtapa(etapa: EtapaProyecto): void { console.log('Etapa finalizada:', etapa); }
@@ -214,7 +229,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     // Actualizar el proyecto en la lista
     const index = this.proyectos.findIndex(p => p.id === proyecto.id);
     if (index >= 0) {
-      this.proyectos[index] = { ...proyecto, estado: 'Finalizado' };
+      this.proyectos[index] = { ...proyecto, estado: 'Completado' };
     }
     // Actualizar estado de la solicitud asociada
     const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);

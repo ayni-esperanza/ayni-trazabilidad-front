@@ -90,9 +90,10 @@
             <p *ngIf="proyecto?.ordenCompra"><span class="font-medium">Orden de Compra:</span> {{ proyecto?.ordenCompra }}</p>
             <p><span class="font-medium">Estado:</span> 
               <span [ngClass]="{
-                'text-green-600': proyecto?.estado === 'Completado' || proyecto?.estado === 'Finalizado',
+                'text-green-600': proyecto?.estado === 'Completado',
                 'text-blue-600': proyecto?.estado === 'En Proceso',
                 'text-yellow-600': proyecto?.estado === 'Pendiente',
+                'text-orange-600': proyecto?.estado === 'Retrasado',
                 'text-red-600': proyecto?.estado === 'Cancelado'
               }">{{ proyecto?.estado }}</span>
             </p>
@@ -100,6 +101,16 @@
             <div class="pt-1">
               <p class="font-medium">Descripción:</p>
               <div class="text-gray-500 dark:text-gray-400 prose prose-sm dark:prose-invert max-w-none" [innerHTML]="proyecto?.descripcion"></div>
+            </div>
+            <!-- Motivo de Cancelación -->
+            <div *ngIf="proyecto?.motivoCancelacion" class="pt-3 mt-3 border-t border-red-200 dark:border-red-800">
+              <p class="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                Motivo de Cancelación:
+              </p>
+              <p class="text-red-500 dark:text-red-300 mt-1">{{ proyecto?.motivoCancelacion }}</p>
             </div>
           </div>
         </div>
@@ -202,15 +213,15 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr *ngFor="let tarea of etapaSeleccionada.tareas" [ngClass]="{'bg-red-50 dark:bg-red-900/10': isConRetraso(tarea)}">
+              <tr *ngFor="let tarea of etapaSeleccionada.tareas" [ngClass]="{'bg-red-50 dark:bg-red-900/10': isRetrasado(tarea)}">
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.tarea }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
                 <td class="py-1.5 px-2">
-                  <span class="flex items-center gap-1" [ngClass]="{'text-red-500': isConRetraso(tarea), 'text-green-500': tarea.estado === 'Completado'}">
+                  <span class="flex items-center gap-1" [ngClass]="{'text-red-500': isRetrasado(tarea), 'text-green-500': tarea.estado === 'Completado'}">
                     {{ tarea.responsableNombre }}
-                    <svg *ngIf="isConRetraso(tarea)" class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg *ngIf="isRetrasado(tarea)" class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                     <svg *ngIf="tarea.estado === 'Completado'" class="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -567,26 +578,32 @@
 
     <!-- Footer -->
     <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-      <button *ngIf="!proyectoFinalizado && tabActiva === 'proceso'" (click)="onCancelarProyecto()" class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
+      <button *ngIf="!proyectoFinalizado && !proyectoCancelado && tabActiva === 'proceso'" (click)="onCancelarProyecto()" class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
         Cancelar Proyecto
       </button>
       <div *ngIf="proyectoFinalizado" class="flex items-center gap-2">
         <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
         </svg>
-        <span class="text-sm font-medium text-green-600 dark:text-green-400">Proyecto Finalizado</span>
+        <span class="text-sm font-medium text-green-600 dark:text-green-400">Proyecto Completado</span>
       </div>
-      <div class="flex gap-2" [ngClass]="{'ml-auto': proyectoFinalizado || tabActiva === 'costos'}">
+      <div *ngIf="proyectoCancelado" class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-sm font-medium text-red-600 dark:text-red-400">Proyecto Cancelado</span>
+      </div>
+      <div class="flex gap-2" [ngClass]="{'ml-auto': proyectoFinalizado || proyectoCancelado || tabActiva === 'costos'}">
         <button (click)="onCerrar()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-          {{ proyectoFinalizado ? 'Cerrar' : 'Cancelar' }}
+          {{ (proyectoFinalizado || proyectoCancelado) ? 'Cerrar' : 'Cancelar' }}
         </button>
         <!-- Botón Finalizar Etapa (cuando hay etapas pendientes) -->
-        <button *ngIf="!todasEtapasCompletadas && !proyectoFinalizado && tabActiva === 'proceso'" (click)="onFinalizarEtapa()" 
+        <button *ngIf="!todasEtapasCompletadas && !proyectoFinalizado && !proyectoCancelado && tabActiva === 'proceso'" (click)="onFinalizarEtapa()" 
           class="px-3 py-1.5 text-sm text-white bg-green-500 rounded hover:bg-green-600">
           Finalizar Etapa
         </button>
         <!-- Botón Finalizar Proyecto (cuando todas las etapas están completadas) -->
-        <button *ngIf="todasEtapasCompletadas && !proyectoFinalizado && tabActiva === 'proceso'" (click)="onFinalizarProyecto()" 
+        <button *ngIf="todasEtapasCompletadas && !proyectoFinalizado && !proyectoCancelado && tabActiva === 'proceso'" (click)="onFinalizarProyecto()" 
           class="px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -594,6 +611,38 @@
           Finalizar Proyecto
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Cancelación -->
+<div *ngIf="mostrarModalCancelacion" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="bg-red-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
+      <h2 class="text-lg font-semibold text-white">Cancelar Proyecto</h2>
+      <button (click)="cerrarModalCancelacion()" class="text-white hover:text-gray-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-4">
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+        ¿Está seguro que desea cancelar el proyecto <strong>{{ proyecto?.nombreProyecto }}</strong>?
+        Por favor, ingrese el motivo de la cancelación:
+      </p>
+      <textarea [(ngModel)]="motivoCancelacion" rows="4" placeholder="Ingrese el motivo de la cancelación..."
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+    </div>
+    <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+      <button (click)="cerrarModalCancelacion()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+        No, volver
+      </button>
+      <button (click)="confirmarCancelacion()" [disabled]="!motivoCancelacion.trim()"
+        [class.opacity-50]="!motivoCancelacion.trim()" [class.cursor-not-allowed]="!motivoCancelacion.trim()"
+        class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
+        Sí, cancelar proyecto
+      </button>
     </div>
   </div>
 </div>

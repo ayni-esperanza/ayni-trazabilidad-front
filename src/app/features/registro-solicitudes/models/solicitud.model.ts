@@ -1,3 +1,6 @@
+export type EstadoSolicitud = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado';
+export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
+
 export interface Solicitud {
   id: number;
   nombreProyecto: string;
@@ -7,7 +10,7 @@ export interface Solicitud {
   responsableNombre?: string;
   descripcion: string;
   fechaSolicitud?: Date;
-  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
+  estado: EstadoSolicitud;
 }
 
 export interface Proyecto {
@@ -24,8 +27,9 @@ export interface Proyecto {
   fechaFinalizacion: Date | string;
   procesoId: number;
   procesoNombre?: string;
-  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
+  estado: EstadoSolicitud;
   etapaActual?: number;
+  motivoCancelacion?: string;
 }
 
 export interface EtapaProyecto {
@@ -51,7 +55,7 @@ export interface TareaAsignada {
   tarea: string;
   fechaInicio: Date;
   fechaFin: Date;
-  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Con Retraso';
+  estado: EstadoTarea;
 }
 
 export interface Responsable {

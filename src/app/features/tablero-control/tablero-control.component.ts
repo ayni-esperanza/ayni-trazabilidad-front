@@ -341,7 +341,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtrar por estado según la métrica seleccionada
     if (this.metricaSeleccionada === 'finalizados') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
-        p.estado === 'Completado' || p.estado === 'Finalizado'
+        p.estado === 'Completado'
       );
     } else if (this.metricaSeleccionada === 'activos') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
@@ -397,9 +397,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   getEstadoClass(estado: EstadoProyecto): string {
     const classes: Record<string, string> = {
       'Completado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-      'Finalizado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
       'En Proceso': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
       'Cancelado': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+      'Retrasado': 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
       'Pendiente': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
     };
     return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
@@ -413,7 +413,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       'Completado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
       'En Proceso': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
       'Pendiente': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
-      'Con Retraso': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+      'Retrasado': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
     };
     return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
   }
