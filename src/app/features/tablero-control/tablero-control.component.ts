@@ -8,7 +8,9 @@ import { takeUntil } from 'rxjs/operators';
 import { 
   ProyectoEnCurso, 
   TareaEncargado, 
-  DatoGrafico 
+  DatoGrafico,
+  GastoProyecto,
+  EstadoProyecto
 } from './models/tablero.model';
 
 // Registrar locale español
@@ -101,9 +103,24 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   
   // Proyectos en curso
   proyectosEnCurso: ProyectoEnCurso[] = [];
+  proyectosEnCursoFiltrados: ProyectoEnCurso[] = [];
   
   // Tareas de los encargados
   tareasEncargados: TareaEncargado[] = [];
+  tareasFiltradas: TareaEncargado[] = [];
+  
+  // Gastos por proyecto (para vista de gastos)
+  gastosProyectos: GastoProyecto[] = [];
+  gastosFiltrados: GastoProyecto[] = [];
+  
+  // Filtros de selección
+  mesSeleccionado: string | null = null;
+  proyectoSeleccionado: ProyectoEnCurso | null = null;
+  categoriaSeleccionada: string | null = null;
+  
+  // Control de visibilidad de tablas (compactables)
+  tablaProyectosVisible = true;
+  tablaDetalleVisible = true;
   
   constructor(
     private tableroService: TableroControlService,
@@ -135,6 +152,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.cargando = true;
     this.error = null;
     
+    // Resetear filtros
+    this.mesSeleccionado = null;
+    this.proyectoSeleccionado = null;
+    
     // Cargar todos los datos en paralelo usando el resumen
     this.tableroService.obtenerResumenTablero()
       .pipe(takeUntil(this.destroy$))
@@ -152,9 +173,15 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
           this.datosProyectosActivos = resumen.datosProyectosActivos;
           this.datosGastos = resumen.datosGastos;
           
-          // Tablas
-          this.proyectosEnCurso = resumen.proyectosEnCurso;
+          // Tablas - ordenar por fecha de creación (más nuevo primero)
+          this.proyectosEnCurso = resumen.proyectosEnCurso.sort((a, b) => 
+            new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+          );
           this.tareasEncargados = resumen.tareasEncargados;
+          this.gastosProyectos = resumen.gastosProyectos || [];
+          
+          // Inicializar datos filtrados con todos los datos
+          this.aplicarFiltros();
           
           this.cargando = false;
           this.cdr.detectChanges();
@@ -216,6 +243,38 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   
   seleccionarMetrica(metrica: 'finalizados' | 'activos' | 'gastos'): void {
     this.metricaSeleccionada = metrica;
+    // Resetear filtros al cambiar de métrica
+    this.mesSeleccionado = null;
+    this.proyectoSeleccionado = null;
+    this.categoriaSeleccionada = null;
+    this.aplicarFiltros();
+  }
+  
+  /**
+   * Toggle visibilidad de tabla de proyectos
+   */
+  toggleTablaProyectos(): void {
+    this.tablaProyectosVisible = !this.tablaProyectosVisible;
+  }
+  
+  /**
+   * Toggle visibilidad de tabla de detalle (tareas/gastos)
+   */
+  toggleTablaDetalle(): void {
+    this.tablaDetalleVisible = !this.tablaDetalleVisible;
+  }
+  
+  /**
+   * Selecciona una categoría de gastos para filtrar
+   */
+  seleccionarCategoria(categoria: string): void {
+    // Si ya está seleccionada, deseleccionar
+    if (this.categoriaSeleccionada === categoria) {
+      this.categoriaSeleccionada = null;
+    } else {
+      this.categoriaSeleccionada = categoria;
+    }
+    this.aplicarFiltros();
   }
   
   cambiarTipoGrafico(tipo: 'barras' | 'linea' | 'pie'): void {
@@ -227,5 +286,183 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       return 'S/. ' + (valor / 1000).toFixed(1) + 'k';
     }
     return 'S/. ' + valor.toFixed(0);
+  }
+  
+  /**
+   * Maneja el clic en una barra/punto/segmento del gráfico
+   * Filtra los proyectos en curso por el mes seleccionado
+   */
+  onSelectGrafico(event: any): void {
+    const mes = event.name || event;
+    
+    // Si se hace clic en el mismo mes, deseleccionar
+    if (this.mesSeleccionado === mes) {
+      this.mesSeleccionado = null;
+      this.proyectoSeleccionado = null;
+    } else {
+      this.mesSeleccionado = mes;
+      this.proyectoSeleccionado = null;
+    }
+    
+    this.aplicarFiltros();
+  }
+  
+  /**
+   * Maneja la selección de un proyecto en la tabla
+   * Filtra las tareas por el proyecto seleccionado
+   */
+  onSelectProyecto(proyecto: ProyectoEnCurso): void {
+    // Si se hace clic en el mismo proyecto, deseleccionar
+    if (this.proyectoSeleccionado?.id === proyecto.id) {
+      this.proyectoSeleccionado = null;
+    } else {
+      this.proyectoSeleccionado = proyecto;
+    }
+    
+    this.aplicarFiltros();
+  }
+  
+  /**
+   * Limpia todos los filtros y muestra todos los datos
+   */
+  limpiarFiltros(): void {
+    this.mesSeleccionado = null;
+    this.proyectoSeleccionado = null;
+    this.categoriaSeleccionada = null;
+    this.aplicarFiltros();
+  }
+  
+  /**
+   * Aplica los filtros actuales a proyectos y tareas
+   */
+  private aplicarFiltros(): void {
+    let proyectosFiltrados = [...this.proyectosEnCurso];
+    
+    // Filtrar por estado según la métrica seleccionada
+    if (this.metricaSeleccionada === 'finalizados') {
+      proyectosFiltrados = proyectosFiltrados.filter(p => 
+        p.estado === 'Completado' || p.estado === 'Finalizado'
+      );
+    } else if (this.metricaSeleccionada === 'activos') {
+      proyectosFiltrados = proyectosFiltrados.filter(p => 
+        p.estado === 'En Proceso' || p.estado === 'Pendiente'
+      );
+    }
+    // Para 'gastos' mostramos todos los proyectos
+    
+    // Filtrar por mes si está seleccionado
+    if (this.mesSeleccionado) {
+      proyectosFiltrados = proyectosFiltrados.filter(p => p.mes === this.mesSeleccionado);
+    }
+    
+    // Ordenar del más nuevo al más viejo
+    this.proyectosEnCursoFiltrados = proyectosFiltrados.sort((a, b) => 
+      new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+    );
+    
+    // Filtrar tareas o gastos por proyecto según la métrica
+    if (this.metricaSeleccionada === 'gastos') {
+      // Para gastos, mostramos los gastos detallados
+      let gastosTemp = [...this.gastosProyectos];
+      
+      // Filtrar por categoría si está seleccionada
+      if (this.categoriaSeleccionada) {
+        gastosTemp = gastosTemp.filter(g => g.categoria === this.categoriaSeleccionada);
+      }
+      
+      if (this.proyectoSeleccionado) {
+        this.gastosFiltrados = gastosTemp.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
+      } else if (this.mesSeleccionado) {
+        // Filtrar gastos de proyectos del mes seleccionado
+        const idsProyectosMes = this.proyectosEnCursoFiltrados.map(p => p.id);
+        this.gastosFiltrados = gastosTemp.filter(g => idsProyectosMes.includes(g.proyectoId));
+      } else {
+        this.gastosFiltrados = gastosTemp;
+      }
+      this.tareasFiltradas = [];
+    } else {
+      // Para otras métricas, mostramos tareas
+      if (this.proyectoSeleccionado) {
+        this.tareasFiltradas = this.tareasEncargados.filter(t => t.proyectoId === this.proyectoSeleccionado!.id);
+      } else {
+        this.tareasFiltradas = [...this.tareasEncargados];
+      }
+      this.gastosFiltrados = [];
+    }
+  }
+  
+  /**
+   * Obtiene la clase CSS para el estado del proyecto
+   */
+  getEstadoClass(estado: EstadoProyecto): string {
+    const classes: Record<string, string> = {
+      'Completado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+      'Finalizado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+      'En Proceso': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+      'Cancelado': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+      'Pendiente': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+    };
+    return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
+  }
+  
+  /**
+   * Obtiene la clase CSS para el estado de la tarea
+   */
+  getEstadoTareaClass(estado: string): string {
+    const classes: Record<string, string> = {
+      'Completado': 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+      'En Proceso': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+      'Pendiente': 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+      'Con Retraso': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+    };
+    return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
+  }
+  
+  /**
+   * Agrupa los gastos por categoría para mostrar en la tabla
+   */
+  get gastosAgrupadosPorCategoria(): { categoria: string; total: number; gastos: GastoProyecto[] }[] {
+    const grupos: Record<string, GastoProyecto[]> = {};
+    
+    this.gastosFiltrados.forEach(gasto => {
+      if (!grupos[gasto.categoria]) {
+        grupos[gasto.categoria] = [];
+      }
+      grupos[gasto.categoria].push(gasto);
+    });
+    
+    return Object.keys(grupos).map(categoria => ({
+      categoria,
+      total: grupos[categoria].reduce((sum, g) => sum + g.monto, 0),
+      gastos: grupos[categoria]
+    }));
+  }
+  
+  /**
+   * Obtiene el total de gastos filtrados
+   */
+  get totalGastosFiltrados(): number {
+    return this.gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
+  }
+  
+  /**
+   * Obtiene el total de gastos por categoría (considera el proyecto seleccionado)
+   */
+  getTotalPorCategoria(categoria: string): number {
+    let gastos = [...this.gastosProyectos];
+    
+    // Filtrar por proyecto si hay uno seleccionado
+    if (this.proyectoSeleccionado) {
+      gastos = gastos.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
+    } else if (this.mesSeleccionado) {
+      const idsProyectosMes = this.proyectosEnCurso
+        .filter(p => p.mes === this.mesSeleccionado)
+        .map(p => p.id);
+      gastos = gastos.filter(g => idsProyectosMes.includes(g.proyectoId));
+    }
+    
+    return gastos
+      .filter(g => g.categoria === categoria)
+      .reduce((sum, g) => sum + g.monto, 0);
   }
 }

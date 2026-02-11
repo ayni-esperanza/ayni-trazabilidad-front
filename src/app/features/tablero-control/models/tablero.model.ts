@@ -1,10 +1,16 @@
+// Estados consistentes con registro de solicitudes
+export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
+
 export interface ProyectoEnCurso {
   id: number;
   proyecto: string;
   responsable: string;
   etapa: string;
   fechas: string;
-  estado: 'warning' | 'success' | 'danger';
+  estado: EstadoProyecto;
+  mes: string; // Ene, Feb, Mar, etc.
+  fechaCreacion: Date;
+  gastoTotal?: number; // Para vista de gastos
 }
 
 export interface TareaEncargado {
@@ -12,9 +18,22 @@ export interface TareaEncargado {
   responsable: string;
   tarea: string;
   proyecto: string;
+  proyectoId: number; // ID del proyecto asociado
   etapa: string;
   fechas: string;
-  estado: 'warning' | 'success' | 'danger';
+  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Con Retraso';
+}
+
+// Modelo para gastos por proyecto
+export interface GastoProyecto {
+  id: number;
+  proyectoId: number;
+  proyecto: string;
+  categoria: 'Materiales' | 'Mano de Obra' | string; // string para otros costos personalizados
+  descripcion: string;
+  monto: number;
+  fecha: Date | string;
+  responsable?: string;
 }
 
 export interface MetricaProyecto {
@@ -43,4 +62,5 @@ export interface ResumenTablero {
   datosGastos: DatoGrafico[];
   proyectosEnCurso: ProyectoEnCurso[];
   tareasEncargados: TareaEncargado[];
+  gastosProyectos: GastoProyecto[]; // Nuevo: gastos detallados
 }
