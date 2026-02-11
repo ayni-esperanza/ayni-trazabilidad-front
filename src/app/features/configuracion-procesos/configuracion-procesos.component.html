@@ -17,7 +17,6 @@
       <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-gray-800/60">
           <tr>
-            <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
             <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proceso</th>
             <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Area</th>
             <th class="text-left py-2 px-4 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Flujo</th>
@@ -29,7 +28,6 @@
             <tr
               (click)="seleccionarProceso(p)"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors cursor-pointer">
-              <td class="py-2 px-4 text-gray-700 dark:text-gray-300">{{ p.id }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ p.proceso }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ p.area }}</td>
               <td class="py-2 px-4">

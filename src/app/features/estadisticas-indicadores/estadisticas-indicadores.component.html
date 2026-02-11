@@ -161,7 +161,6 @@
           <table class="w-full text-xs">
             <thead>
               <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Id</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Responsable</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Proyecto</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-600 dark:text-gray-400">Tarea</th>
@@ -174,7 +173,6 @@
               <tr *ngFor="let tarea of tareasProyecto"
                 class="border-b border-gray-100 dark:border-gray-700"
                 [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
-                <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.id }}</td>
                 <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
                 <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
                 <td class="py-2 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
@@ -274,7 +272,6 @@
             <table class="w-full text-sm">
               <thead class="bg-gray-50 dark:bg-gray-800/60">
                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                  <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
@@ -285,7 +282,6 @@
                 <tr *ngFor="let tarea of tareasProyecto; let i = index"
                   class="hover:bg-gray-50 dark:hover:bg-gray-800/40"
                   [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
-                  <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ i + 1 }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.proyecto }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.etapa }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.inicioFin }}</td>
@@ -312,7 +308,6 @@
             <table class="w-full text-sm">
               <thead class="bg-gray-50 dark:bg-gray-800/60">
                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                  <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
                   <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
@@ -324,7 +319,6 @@
                 <tr *ngFor="let tarea of tareasProyecto"
                   class="hover:bg-gray-50 dark:hover:bg-gray-800/40"
                   [ngClass]="{'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta'}">
-                  <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.tarea }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.proyecto }}</td>
                   <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.etapa }}</td>

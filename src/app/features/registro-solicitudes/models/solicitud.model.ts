@@ -10,6 +10,8 @@ export interface Solicitud {
   responsableNombre?: string;
   descripcion: string;
   fechaSolicitud?: Date;
+  fechaInicio?: Date | string;
+  fechaFin?: Date | string;
   estado: EstadoSolicitud;
 }
 

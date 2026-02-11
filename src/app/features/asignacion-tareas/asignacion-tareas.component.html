@@ -83,7 +83,7 @@
       <select 
         [(ngModel)]="estadoFiltro"
         (ngModelChange)="aplicarFiltros()"
-        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
+        class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
         <option value="">Todos los Estados</option>
         <option value="pendiente">Pendiente</option>
         <option value="en-progreso">En Progreso</option>
@@ -99,7 +99,6 @@
       <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-gray-800/60">
           <tr>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Id</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
@@ -112,7 +111,6 @@
             <tr 
               (click)="abrirModalEditar(tarea)"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
-              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ tarea.nombre }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ getNombreProyecto(tarea.proyectoId) }}</td>
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ getNombreResponsable(tarea.responsableId) }}</td>
@@ -125,7 +123,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="5" class="py-8 text-center text-gray-500 dark:text-gray-400">
                 No se encontraron tareas
               </td>
             </tr>

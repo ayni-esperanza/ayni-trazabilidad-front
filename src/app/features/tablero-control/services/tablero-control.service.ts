@@ -145,11 +145,11 @@ export class TableroControlService {
     // return this.http.get<ProyectoEnCurso[]>(`${this.API_URL}/proyectos-en-curso`);
     
     return of([
-      { id: 1, proyecto: 'Sistema ERP', responsable: 'Juan Pérez', etapa: 'Desarrollo', fechas: '15/01 - 30/03', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 25000 },
-      { id: 2, proyecto: 'App Móvil', responsable: 'María García', etapa: 'Diseño', fechas: '20/01 - 15/04', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 18000 },
-      { id: 3, proyecto: 'Portal Web', responsable: 'Carlos López', etapa: 'Análisis', fechas: '01/02 - 28/02', estado: 'Completado' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 12000 },
-      { id: 4, proyecto: 'API REST', responsable: 'Ana Martínez', etapa: 'Pruebas', fechas: '05/02 - 20/03', estado: 'En Proceso' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 8500 },
-      { id: 5, proyecto: 'Dashboard BI', responsable: 'Pedro Sánchez', etapa: 'Desarrollo', fechas: '10/02 - 30/04', estado: 'Pendiente' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 5000 }
+      { id: 1, proyecto: 'Línea Producción Textil', responsable: 'Juan Pérez', etapa: 'Ingeniería', fechas: '15/01 - 30/03', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 45000 },
+      { id: 2, proyecto: 'Sistema Ventilación Industrial', responsable: 'María García', etapa: 'Instalación', fechas: '20/01 - 15/04', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 32000 },
+      { id: 3, proyecto: 'Diseño Puente Vehicular', responsable: 'Carlos López', etapa: 'Cálculo Estructural', fechas: '01/02 - 28/02', estado: 'Completado' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 28000 },
+      { id: 4, proyecto: 'Mantenimiento Maquinaria', responsable: 'Ana Martínez', etapa: 'Diagnóstico', fechas: '05/02 - 20/03', estado: 'En Proceso' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 15500 },
+      { id: 5, proyecto: 'Sistema Automatización', responsable: 'Pedro Sánchez', etapa: 'Diseño', fechas: '10/02 - 30/04', estado: 'Pendiente' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 22000 }
     ]).pipe(delay(100));
   }
 
@@ -161,11 +161,11 @@ export class TableroControlService {
     // return this.http.get<TareaEncargado[]>(`${this.API_URL}/tareas-encargados`);
     
     return of([
-      { id: 1, responsable: 'Juan Pérez', tarea: 'Implementar módulo ventas', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '15/01 - 25/01', estado: 'En Proceso' as const },
-      { id: 2, responsable: 'Juan Pérez', tarea: 'Revisar base de datos', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '26/01 - 30/01', estado: 'Completado' as const },
-      { id: 3, responsable: 'María García', tarea: 'Diseñar pantallas', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '20/01 - 28/01', estado: 'Completado' as const },
-      { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Retrasado' as const },
-      { id: 5, responsable: 'Carlos López', tarea: 'Análisis de requerimientos', proyecto: 'Portal Web', proyectoId: 3, etapa: 'Análisis', fechas: '01/02 - 15/02', estado: 'Completado' as const }
+      { id: 1, responsable: 'Juan Pérez', tarea: 'Diseño de layout de planta', proyecto: 'Línea Producción Textil', proyectoId: 1, etapa: 'Ingeniería', fechas: '15/01 - 25/01', estado: 'En Proceso' as const },
+      { id: 2, responsable: 'Juan Pérez', tarea: 'Selección de equipos', proyecto: 'Línea Producción Textil', proyectoId: 1, etapa: 'Ingeniería', fechas: '26/01 - 30/01', estado: 'Completado' as const },
+      { id: 3, responsable: 'María García', tarea: 'Instalación de ductos', proyecto: 'Sistema Ventilación Industrial', proyectoId: 2, etapa: 'Instalación', fechas: '20/01 - 28/01', estado: 'Completado' as const },
+      { id: 4, responsable: 'María García', tarea: 'Montaje de extractores', proyecto: 'Sistema Ventilación Industrial', proyectoId: 2, etapa: 'Instalación', fechas: '29/01 - 10/02', estado: 'Retrasado' as const },
+      { id: 5, responsable: 'Carlos López', tarea: 'Cálculo de cargas', proyecto: 'Diseño Puente Vehicular', proyectoId: 3, etapa: 'Cálculo Estructural', fechas: '01/02 - 15/02', estado: 'Completado' as const }
     ]).pipe(delay(100));
   }
 
@@ -233,43 +233,43 @@ export class TableroControlService {
         { name: 'Dic', value: 0 }
       ],
       proyectosEnCurso: [
-        { id: 1, proyecto: 'Sistema ERP', responsable: 'Juan Pérez', etapa: 'Desarrollo', fechas: '15/01 - 30/03', estado: 'En Proceso', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 25000 },
-        { id: 2, proyecto: 'App Móvil', responsable: 'María García', etapa: 'Diseño', fechas: '20/01 - 15/04', estado: 'En Proceso', mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 18000 },
-        { id: 3, proyecto: 'Portal Web', responsable: 'Carlos López', etapa: 'Análisis', fechas: '01/02 - 28/02', estado: 'Completado', mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 12000 },
-        { id: 4, proyecto: 'API REST', responsable: 'Ana Martínez', etapa: 'Pruebas', fechas: '05/02 - 20/03', estado: 'En Proceso', mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 8500 },
-        { id: 5, proyecto: 'Dashboard BI', responsable: 'Pedro Sánchez', etapa: 'Desarrollo', fechas: '10/02 - 30/04', estado: 'Pendiente', mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 5000 },
-        { id: 6, proyecto: 'CRM Ventas', responsable: 'Luis Torres', etapa: 'Completado', fechas: '01/01 - 30/01', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-01'), gastoTotal: 32000 },
-        { id: 7, proyecto: 'Inventario', responsable: 'Rosa Díaz', etapa: 'Completado', fechas: '15/01 - 15/02', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 15000 }
+        { id: 1, proyecto: 'Línea Producción Textil', responsable: 'Juan Pérez', etapa: 'Ingeniería', fechas: '15/01 - 30/03', estado: 'En Proceso', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 45000 },
+        { id: 2, proyecto: 'Sistema Ventilación Industrial', responsable: 'María García', etapa: 'Instalación', fechas: '20/01 - 15/04', estado: 'En Proceso', mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 32000 },
+        { id: 3, proyecto: 'Diseño Puente Vehicular', responsable: 'Carlos López', etapa: 'Cálculo Estructural', fechas: '01/02 - 28/02', estado: 'Completado', mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 28000 },
+        { id: 4, proyecto: 'Mantenimiento Maquinaria', responsable: 'Ana Martínez', etapa: 'Diagnóstico', fechas: '05/02 - 20/03', estado: 'En Proceso', mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 15500 },
+        { id: 5, proyecto: 'Sistema Automatización', responsable: 'Pedro Sánchez', etapa: 'Diseño', fechas: '10/02 - 30/04', estado: 'Pendiente', mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 22000 },
+        { id: 6, proyecto: 'Planta Tratamiento Agua', responsable: 'Luis Torres', etapa: 'Completado', fechas: '01/01 - 30/01', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-01'), gastoTotal: 52000 },
+        { id: 7, proyecto: 'Sistema Transportador', responsable: 'Rosa Díaz', etapa: 'Completado', fechas: '15/01 - 15/02', estado: 'Completado', mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 38000 }
       ],
       tareasEncargados: [
-        { id: 1, responsable: 'Juan Pérez', tarea: 'Implementar módulo ventas', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '15/01 - 25/01', estado: 'En Proceso' },
-        { id: 2, responsable: 'Juan Pérez', tarea: 'Revisar base de datos', proyecto: 'Sistema ERP', proyectoId: 1, etapa: 'Desarrollo', fechas: '26/01 - 30/01', estado: 'Completado' },
-        { id: 3, responsable: 'María García', tarea: 'Diseñar pantallas', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '20/01 - 28/01', estado: 'Completado' },
-        { id: 4, responsable: 'María García', tarea: 'Crear prototipos', proyecto: 'App Móvil', proyectoId: 2, etapa: 'Diseño', fechas: '29/01 - 10/02', estado: 'Retrasado' },
-        { id: 5, responsable: 'Carlos López', tarea: 'Análisis de requerimientos', proyecto: 'Portal Web', proyectoId: 3, etapa: 'Análisis', fechas: '01/02 - 15/02', estado: 'Completado' },
-        { id: 6, responsable: 'Ana Martínez', tarea: 'Pruebas unitarias', proyecto: 'API REST', proyectoId: 4, etapa: 'Pruebas', fechas: '05/02 - 12/02', estado: 'En Proceso' },
-        { id: 7, responsable: 'Pedro Sánchez', tarea: 'Crear dashboards', proyecto: 'Dashboard BI', proyectoId: 5, etapa: 'Desarrollo', fechas: '10/02 - 28/02', estado: 'Pendiente' }
+        { id: 1, responsable: 'Juan Pérez', tarea: 'Diseño de layout de planta', proyecto: 'Línea Producción Textil', proyectoId: 1, etapa: 'Ingeniería', fechas: '15/01 - 25/01', estado: 'En Proceso' },
+        { id: 2, responsable: 'Juan Pérez', tarea: 'Selección de equipos', proyecto: 'Línea Producción Textil', proyectoId: 1, etapa: 'Ingeniería', fechas: '26/01 - 30/01', estado: 'Completado' },
+        { id: 3, responsable: 'María García', tarea: 'Instalación de ductos', proyecto: 'Sistema Ventilación Industrial', proyectoId: 2, etapa: 'Instalación', fechas: '20/01 - 28/01', estado: 'Completado' },
+        { id: 4, responsable: 'María García', tarea: 'Montaje de extractores', proyecto: 'Sistema Ventilación Industrial', proyectoId: 2, etapa: 'Instalación', fechas: '29/01 - 10/02', estado: 'Retrasado' },
+        { id: 5, responsable: 'Carlos López', tarea: 'Cálculo de cargas', proyecto: 'Diseño Puente Vehicular', proyectoId: 3, etapa: 'Cálculo Estructural', fechas: '01/02 - 15/02', estado: 'Completado' },
+        { id: 6, responsable: 'Ana Martínez', tarea: 'Inspección de equipos', proyecto: 'Mantenimiento Maquinaria', proyectoId: 4, etapa: 'Diagnóstico', fechas: '05/02 - 12/02', estado: 'En Proceso' },
+        { id: 7, responsable: 'Pedro Sánchez', tarea: 'Planos de automatización', proyecto: 'Sistema Automatización', proyectoId: 5, etapa: 'Diseño', fechas: '10/02 - 28/02', estado: 'Pendiente' }
       ],
       gastosProyectos: [
-        // Sistema ERP - Gastos
-        { id: 1, proyectoId: 1, proyecto: 'Sistema ERP', categoria: 'Materiales', descripcion: 'Licencias de software', monto: 8000, fecha: '2026-01-20', responsable: 'Juan Pérez' },
-        { id: 2, proyectoId: 1, proyecto: 'Sistema ERP', categoria: 'Mano de Obra', descripcion: 'Desarrollo backend', monto: 12000, fecha: '2026-01-25', responsable: 'Juan Pérez' },
-        { id: 3, proyectoId: 1, proyecto: 'Sistema ERP', categoria: 'Capacitación', descripcion: 'Curso AWS', monto: 3000, fecha: '2026-01-28', responsable: 'Juan Pérez' },
-        { id: 4, proyectoId: 1, proyecto: 'Sistema ERP', categoria: 'Hosting', descripcion: 'Servidor cloud mensual', monto: 2000, fecha: '2026-02-01', responsable: 'Juan Pérez' },
-        // App Móvil - Gastos
-        { id: 5, proyectoId: 2, proyecto: 'App Móvil', categoria: 'Materiales', descripcion: 'Dispositivos de prueba', monto: 5000, fecha: '2026-01-22', responsable: 'María García' },
-        { id: 6, proyectoId: 2, proyecto: 'App Móvil', categoria: 'Mano de Obra', descripcion: 'Diseño UI/UX', monto: 10000, fecha: '2026-01-30', responsable: 'María García' },
-        { id: 7, proyectoId: 2, proyecto: 'App Móvil', categoria: 'Licencias', descripcion: 'Figma Pro anual', monto: 3000, fecha: '2026-02-05', responsable: 'María García' },
-        // Portal Web - Gastos
-        { id: 8, proyectoId: 3, proyecto: 'Portal Web', categoria: 'Materiales', descripcion: 'Dominio y SSL', monto: 500, fecha: '2026-02-01', responsable: 'Carlos López' },
-        { id: 9, proyectoId: 3, proyecto: 'Portal Web', categoria: 'Mano de Obra', descripcion: 'Desarrollo frontend', monto: 8000, fecha: '2026-02-10', responsable: 'Carlos López' },
-        { id: 10, proyectoId: 3, proyecto: 'Portal Web', categoria: 'Hosting', descripcion: 'Hosting anual', monto: 3500, fecha: '2026-02-15', responsable: 'Carlos López' },
-        // API REST - Gastos
-        { id: 11, proyectoId: 4, proyecto: 'API REST', categoria: 'Mano de Obra', descripcion: 'Desarrollo API', monto: 6000, fecha: '2026-02-08', responsable: 'Ana Martínez' },
-        { id: 12, proyectoId: 4, proyecto: 'API REST', categoria: 'Testing', descripcion: 'Herramientas de prueba', monto: 2500, fecha: '2026-02-12', responsable: 'Ana Martínez' },
-        // Dashboard BI - Gastos
-        { id: 13, proyectoId: 5, proyecto: 'Dashboard BI', categoria: 'Materiales', descripcion: 'Licencia Power BI', monto: 3000, fecha: '2026-02-10', responsable: 'Pedro Sánchez' },
-        { id: 14, proyectoId: 5, proyecto: 'Dashboard BI', categoria: 'Mano de Obra', descripcion: 'Análisis de datos', monto: 2000, fecha: '2026-02-15', responsable: 'Pedro Sánchez' }
+        // Línea Producción Textil - Gastos
+        { id: 1, proyectoId: 1, proyecto: 'Línea Producción Textil', categoria: 'Materiales', descripcion: 'Rodillos y poleas industriales', monto: 15000, fecha: '2026-01-20', responsable: 'Juan Pérez' },
+        { id: 2, proyectoId: 1, proyecto: 'Línea Producción Textil', categoria: 'Mano de Obra', descripcion: 'Ingeniería de diseño', monto: 18000, fecha: '2026-01-25', responsable: 'Juan Pérez' },
+        { id: 3, proyectoId: 1, proyecto: 'Línea Producción Textil', categoria: 'Equipos', descripcion: 'Sistema de control PLC', monto: 10000, fecha: '2026-01-28', responsable: 'Juan Pérez' },
+        { id: 4, proyectoId: 1, proyecto: 'Línea Producción Textil', categoria: 'Instalación', descripcion: 'Montaje mecánico', monto: 2000, fecha: '2026-02-01', responsable: 'Juan Pérez' },
+        // Sistema Ventilación Industrial - Gastos
+        { id: 5, proyectoId: 2, proyecto: 'Sistema Ventilación Industrial', categoria: 'Materiales', descripcion: 'Ductos galvanizados', monto: 8000, fecha: '2026-01-22', responsable: 'María García' },
+        { id: 6, proyectoId: 2, proyecto: 'Sistema Ventilación Industrial', categoria: 'Equipos', descripcion: 'Extractores industriales', monto: 18000, fecha: '2026-01-30', responsable: 'María García' },
+        { id: 7, proyectoId: 2, proyecto: 'Sistema Ventilación Industrial', categoria: 'Mano de Obra', descripcion: 'Instalación especializada', monto: 6000, fecha: '2026-02-05', responsable: 'María García' },
+        // Diseño Puente Vehicular - Gastos
+        { id: 8, proyectoId: 3, proyecto: 'Diseño Puente Vehicular', categoria: 'Mano de Obra', descripcion: 'Ingeniería estructural', monto: 12000, fecha: '2026-02-01', responsable: 'Carlos López' },
+        { id: 9, proyectoId: 3, proyecto: 'Diseño Puente Vehicular', categoria: 'Software', descripcion: 'Licencia SAP2000', monto: 8000, fecha: '2026-02-10', responsable: 'Carlos López' },
+        { id: 10, proyectoId: 3, proyecto: 'Diseño Puente Vehicular', categoria: 'Estudios', descripcion: 'Estudio de suelos', monto: 8000, fecha: '2026-02-15', responsable: 'Carlos López' },
+        // Mantenimiento Maquinaria - Gastos
+        { id: 11, proyectoId: 4, proyecto: 'Mantenimiento Maquinaria', categoria: 'Mano de Obra', descripcion: 'Personal técnico', monto: 8000, fecha: '2026-02-08', responsable: 'Ana Martínez' },
+        { id: 12, proyectoId: 4, proyecto: 'Mantenimiento Maquinaria', categoria: 'Repuestos', descripcion: 'Rodamientos y sellos', monto: 7500, fecha: '2026-02-12', responsable: 'Ana Martínez' },
+        // Sistema Automatización - Gastos
+        { id: 13, proyectoId: 5, proyecto: 'Sistema Automatización', categoria: 'Equipos', descripcion: 'Controladores PLC Siemens', monto: 16000, fecha: '2026-02-10', responsable: 'Pedro Sánchez' },
+        { id: 14, proyectoId: 5, proyecto: 'Sistema Automatización', categoria: 'Mano de Obra', descripcion: 'Programación de sistemas', monto: 6000, fecha: '2026-02-15', responsable: 'Pedro Sánchez' }
       ]
     };
   }

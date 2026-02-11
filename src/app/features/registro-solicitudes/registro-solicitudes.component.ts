@@ -145,12 +145,13 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.solicitudes = [
-      { id: 1, nombreProyecto: 'Sistema ERP', cliente: 'Empresa ABC', costo: 50000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Implementación ERP', estado: 'Pendiente' },
-      { id: 2, nombreProyecto: 'App Móvil', cliente: 'Startup XYZ', costo: 25000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Desarrollo app', estado: 'En Proceso' }
+      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'Pendiente' },
+      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
+      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
     ];
 
     this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'App Móvil', cliente: 'Startup XYZ', costo: 25000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Desarrollo app', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
+      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalación de sistema de ventilación para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
     ];
 
     this.aplicarFiltros();
@@ -165,7 +166,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     const solicitud: Solicitud = {
       id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
       costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
-      descripcion: data.descripcion!, fechaSolicitud: new Date(), estado: 'Pendiente'
+      descripcion: data.descripcion!, fechaSolicitud: new Date(), 
+      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, estado: 'Pendiente'
     };
     this.solicitudes.push(solicitud);
     this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud

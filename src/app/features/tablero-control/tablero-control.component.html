@@ -196,7 +196,6 @@
         <table class="w-full text-xs">
           <thead class="sticky top-0 bg-white dark:bg-gray-800">
             <tr class="border-b border-gray-200 dark:border-gray-700">
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Id</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
@@ -212,7 +211,6 @@
               <tr (click)="onSelectProyecto(proyecto)" 
                   class="border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors"
                   [ngClass]="{'bg-green-50 dark:bg-green-900/20': proyectoSeleccionado?.id === proyecto.id, 'hover:bg-gray-50 dark:hover:bg-gray-700/50': proyectoSeleccionado?.id !== proyecto.id}">
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.id }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.etapa }}</td>
@@ -230,7 +228,7 @@
               </tr>
             } @empty {
               <tr>
-                <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 7 : 6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 6 : 5" class="py-4 text-center text-gray-500 dark:text-gray-400">
                   No hay proyectos para el mes seleccionado
                 </td>
               </tr>
@@ -341,20 +339,20 @@
             <table class="w-full text-xs">
               <thead class="sticky top-0 bg-white dark:bg-gray-800">
               <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Id</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Categoría</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Descripción</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha</th>
-                <th class="text-right py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Monto</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Fecha</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Descripción</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Categoría</th>
+                <th class="text-right py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Monto</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               @for (gasto of gastosFiltrados; track gasto.id) {
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ gasto.id }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ gasto.proyecto }}</td>
-                  <td class="py-1.5 px-1">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha }}</td>
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.responsable }}</td>
+                  <td class="py-1.5 px-2">
                     <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
                       [ngClass]="{
                         'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400': gasto.categoria === 'Materiales',
@@ -364,15 +362,15 @@
                       {{ gasto.categoria }}
                     </span>
                   </td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ gasto.fecha }}</td>
-                  <td class="py-1.5 px-1 text-right font-medium text-gray-700 dark:text-gray-300">
-                    S/. {{ gasto.monto.toLocaleString('es-PE') }}
+                  <td class="py-1.5 px-2 text-right font-medium text-gray-700 dark:text-gray-300">
+                    <span class="block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">
+                      S/ {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                    </span>
                   </td>
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
                     No hay gastos para el proyecto seleccionado
                   </td>
                 </tr>
@@ -384,7 +382,6 @@
           <table class="w-full text-xs">
             <thead class="sticky top-0 bg-white dark:bg-gray-800">
               <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Id</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
                 <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
@@ -396,7 +393,6 @@
             <tbody>
               @for (tarea of tareasFiltradas; track tarea.id) {
                 <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.id }}</td>
                   <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
                   <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
                   <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
@@ -410,7 +406,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="7" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">
                     No hay tareas para el proyecto seleccionado
                   </td>
                 </tr>

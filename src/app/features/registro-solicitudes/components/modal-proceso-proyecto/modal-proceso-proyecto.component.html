@@ -205,7 +205,6 @@
           <table class="w-full text-xs">
             <thead class="bg-gray-50 dark:bg-gray-800/60">
               <tr>
-                <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Id</th>
                 <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
                 <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
                 <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
@@ -214,7 +213,6 @@
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <tr *ngFor="let tarea of etapaSeleccionada.tareas" [ngClass]="{'bg-red-50 dark:bg-red-900/10': isRetrasado(tarea)}">
-                <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.id }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.tarea }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
