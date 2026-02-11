@@ -118,7 +118,7 @@
       <!-- Pasos del Proceso -->
       <div class="mb-4 flex items-center justify-center gap-2 overflow-x-auto py-2 px-1">
         <ng-container *ngFor="let etapa of etapas; let i = index; let last = last">
-          <div class="flex flex-col items-center cursor-pointer min-w-[70px] py-1" (click)="seleccionarEtapa(etapa)">
+          <div class="flex flex-col items-center cursor-pointer min-w-[90px] py-1" (click)="seleccionarEtapa(etapa)">
             <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 transition-all"
               [ngClass]="{
                 'bg-green-500 text-white': etapa.estado === 'Completado',
@@ -131,7 +131,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
             </div>
-            <span class="text-[10px] font-medium text-gray-600 dark:text-gray-300 text-center">Paso {{ i + 1 }}</span>
+            <span class="text-[10px] font-medium text-gray-600 dark:text-gray-300 text-center leading-tight max-w-[90px] break-words">{{ etapa.nombre }}</span>
           </div>
           <div *ngIf="!last" class="flex-shrink-0 w-8 h-0.5 bg-gray-200 dark:bg-gray-700 mt-[-12px]"
             [ngClass]="{'bg-green-500': etapa.estado === 'Completado'}"></div>

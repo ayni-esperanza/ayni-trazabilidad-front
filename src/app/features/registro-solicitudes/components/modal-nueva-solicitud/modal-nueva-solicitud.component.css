@@ -35,23 +35,58 @@
 }
 
 /* Dark mode */
-:host ::ng-deep .dark .ck.ck-toolbar {
+:host-context(.dark) ::ng-deep .ck.ck-toolbar {
   background-color: rgb(55 65 81) !important;
   border-color: rgb(75 85 99) !important;
 }
 
-:host ::ng-deep .dark .ck.ck-editor__editable_inline {
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable_inline {
   background-color: rgb(55 65 81) !important;
   border-color: rgb(75 85 99) !important;
   color: white !important;
 }
 
-:host ::ng-deep .dark .ck.ck-button {
+:host-context(.dark) ::ng-deep .ck.ck-button {
   color: rgb(209 213 219) !important;
 }
 
-:host ::ng-deep .dark .ck.ck-button:hover {
+:host-context(.dark) ::ng-deep .ck.ck-button:hover {
   background-color: rgb(75 85 99) !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-button.ck-on {
+  background-color: rgb(59 130 246) !important;
+  color: white !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-toolbar__separator {
+  background-color: rgb(75 85 99) !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable p {
+  color: white !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h1,
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h2,
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h3,
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h4,
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h5,
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable h6 {
+  color: white !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable li {
+  color: white !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable a {
+  color: rgb(96 165 250) !important;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__editable:focus {
+  border-color: rgb(59 130 246) !important;
+  box-shadow: 0 0 0 1px rgb(59 130 246) !important;
 }
 
 /* Asegurar que los dropdowns se muestren sobre el modal */
