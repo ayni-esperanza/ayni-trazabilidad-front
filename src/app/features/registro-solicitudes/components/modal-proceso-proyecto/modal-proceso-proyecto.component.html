@@ -99,7 +99,7 @@
             <p><span class="font-medium">Duración:</span> {{ proyecto ? formatDisplayDate(proyecto.fechaInicio) : '' }} - {{ proyecto ? formatDisplayDate(proyecto.fechaFinalizacion) : '' }}</p>
             <div class="pt-1">
               <p class="font-medium">Descripción:</p>
-              <p class="text-gray-500 dark:text-gray-400">{{ proyecto?.descripcion }}</p>
+              <div class="text-gray-500 dark:text-gray-400 prose prose-sm dark:prose-invert max-w-none" [innerHTML]="proyecto?.descripcion"></div>
             </div>
           </div>
         </div>

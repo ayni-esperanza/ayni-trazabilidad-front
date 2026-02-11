@@ -87,10 +87,21 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción *</label>
-        <textarea [(ngModel)]="proyecto.descripcion" rows="3"
-          [class.border-red-500]="tieneError('descripcion')"
-          [class.ring-red-500]="tieneError('descripcion')"
-          class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+        @if (isBrowser && Editor) {
+          <div [class.border-red-500]="tieneError('descripcion')" [class.border]="tieneError('descripcion')" [class.rounded-lg]="tieneError('descripcion')">
+            <ckeditor
+              [(ngModel)]="proyecto.descripcion"
+              [editor]="Editor"
+              [config]="ckeditorConfig"
+              class="ckeditor-host">
+            </ckeditor>
+          </div>
+        } @else {
+          <textarea [(ngModel)]="proyecto.descripcion" rows="3"
+            [class.border-red-500]="tieneError('descripcion')"
+            [class.ring-red-500]="tieneError('descripcion')"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+        }
         <span *ngIf="tieneError('descripcion')" class="text-xs text-red-500 mt-0.5 block">{{ errores['descripcion'] }}</span>
       </div>
 

@@ -1,16 +1,18 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective],
-  templateUrl: './modal-iniciar-proyecto.component.html'
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule],
+  templateUrl: './modal-iniciar-proyecto.component.html',
+  styleUrls: ['./modal-iniciar-proyecto.component.css']
 })
-export class ModalIniciarProyectoComponent implements OnChanges {
+export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   @Input() visible = false;
   @Input() solicitud: Solicitud | null = null;
   @Input() responsables: Responsable[] = [];
@@ -21,10 +23,93 @@ export class ModalIniciarProyectoComponent implements OnChanges {
 
   proyecto: Partial<Proyecto> = {};
 
+  // CKEditor
+  protected Editor: any;
+  protected ckeditorConfig: any = {};
+  protected isBrowser = false;
+
   // Control de validación
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      import('ckeditor5').then(({
+        ClassicEditor,
+        Bold,
+        Essentials,
+        FontBackgroundColor,
+        FontColor,
+        FontSize,
+        Heading,
+        Highlight,
+        Indent,
+        IndentBlock,
+        Italic,
+        Link,
+        List,
+        Paragraph,
+        Table,
+        Undo,
+      }) => {
+        this.Editor = ClassicEditor;
+        this.ckeditorConfig = {
+          licenseKey: 'GPL',
+          toolbar: {
+            items: [
+              'undo',
+              'redo',
+              '|',
+              'heading',
+              '|',
+              'fontSize',
+              'fontColor',
+              'fontBackgroundColor',
+              '|',
+              'bold',
+              'italic',
+              'highlight',
+              '|',
+              'link',
+              'insertTable',
+              '|',
+              'bulletedList',
+              'numberedList',
+              'indent',
+              'outdent',
+            ],
+            shouldNotGroupWhenFull: true
+          },
+          plugins: [
+            Bold,
+            Essentials,
+            FontBackgroundColor,
+            FontColor,
+            FontSize,
+            Heading,
+            Highlight,
+            Indent,
+            IndentBlock,
+            Italic,
+            Link,
+            List,
+            Paragraph,
+            Table,
+            Undo,
+          ],
+        };
+        this.cdr.detectChanges();
+      });
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['solicitud'] && this.solicitud) {
