@@ -37,17 +37,25 @@
   <nav class="flex-1 p-2 overflow-y-auto">
     <ul class="space-y-0.5">
       @for (item of menuItems; track item.route) {
-        <li>
+        <li 
+          [@activeIndicator]="getAnimationState(item.route)"
+          [@pulseEffect]="getAnimationState(item.route)"
+          class="menu-item-container">
           <a 
             [routerLink]="item.route"
             routerLinkActive="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-l-4 border-green-500"
             [routerLinkActiveOptions]="{exact: false}"
-            class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors group"
+            class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all duration-200 group relative overflow-hidden"
             [class.justify-center]="!isExpanded()"
             [title]="!isExpanded() ? item.label : ''">
-            <span class="text-lg flex-shrink-0">{{ item.icon }}</span>
+            <!-- Active indicator bar animation -->
+            @if (isActiveRoute(item.route)) {
+              <span class="absolute left-0 top-0 h-full w-1 bg-green-500 animate-slide-in"></span>
+            }
+            <span class="text-lg flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
+                  [class.animate-bounce-subtle]="isActiveRoute(item.route)">{{ item.icon }}</span>
             @if (isExpanded()) {
-              <span class="text-xs font-medium truncate">{{ item.label }}</span>
+              <span class="text-xs font-medium truncate transition-all duration-200">{{ item.label }}</span>
             }
           </a>
         </li>

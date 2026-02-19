@@ -1,8 +1,10 @@
 import { Component, signal, inject, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { trigger, state, style, transition, animate, query, stagger } from '@angular/animations';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { filter } from 'rxjs/operators';
 
 interface MenuItem {
   icon: string;
@@ -15,15 +17,71 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css'
+  styleUrl: './sidebar.component.css',
+  animations: [
+    trigger('routeChange', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(-10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ]),
+    trigger('activeIndicator', [
+      state('active', style({
+        transform: 'scale(1)'
+      })),
+      state('inactive', style({
+        transform: 'scale(1)'
+      })),
+      transition('inactive => active', [
+        animate('250ms cubic-bezier(0.4, 0, 0.2, 1)')
+      ]),
+      transition('active => inactive', [
+        animate('200ms cubic-bezier(0.4, 0, 0.2, 1)')
+      ])
+    ]),
+    trigger('pulseEffect', [
+      transition('* => active', [
+        animate('400ms ease-out', style({ transform: 'scale(1.02)' })),
+        animate('200ms ease-in', style({ transform: 'scale(1)' }))
+      ])
+    ])
+  ]
 })
 export class SidebarComponent {
   protected themeService = inject(ThemeService);
   protected authService = inject(AuthService);
   private elementRef = inject(ElementRef);
+  private router = inject(Router);
   
   isExpanded = signal(true);
   showUserMenu = signal(false);
+  currentRoute = signal('');
+  animationState = signal<Record<string, string>>({});
+
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.currentRoute.set(event.urlAfterRedirects);
+      this.triggerRouteAnimation(event.urlAfterRedirects);
+    });
+  }
+
+  private triggerRouteAnimation(route: string): void {
+    const newState: Record<string, string> = {};
+    this.menuItems.forEach(item => {
+      newState[item.route] = route.startsWith(item.route) ? 'active' : 'inactive';
+    });
+    this.animationState.set(newState);
+  }
+
+  getAnimationState(route: string): string {
+    return this.animationState()[route] || 'inactive';
+  }
+
+  isActiveRoute(route: string): boolean {
+    return this.currentRoute().startsWith(route);
+  }
 
   menuItems: MenuItem[] = [
     { icon: '📊', label: 'Tablero de control', route: '/tablero-control' },

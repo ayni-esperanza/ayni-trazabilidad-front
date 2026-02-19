@@ -28,3 +28,64 @@ a.bg-green-50 {
   margin-left: -4px;
   padding-left: calc(0.75rem + 4px);
 }
+
+/* ====== Animaciones de cambio de sección ====== */
+
+/* Animación para el indicador lateral que aparece */
+@keyframes slide-in {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: center;
+}
+
+/* Animación sutil de rebote para el ícono activo */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 0.3s ease-out;
+}
+
+/* Contenedor de elementos del menú */
+.menu-item-container {
+  position: relative;
+}
+
+/* Transición suave para el fondo del elemento activo */
+.menu-item-container a {
+  position: relative;
+  z-index: 1;
+}
+
+/* Animación de entrada para elementos del menú */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Hover mejorado con transición */
+.menu-item-container a:hover {
+  transform: translateX(2px);
+}
