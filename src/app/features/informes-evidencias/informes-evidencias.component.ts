@@ -11,6 +11,11 @@ import {
   InformeFormData,
   InformeFormModalComponent,
 } from './components/informe-form-modal/informe-form-modal.component';
+import { 
+  DocumentoFirmadoData, 
+  FirmarDocumentoModalComponent 
+} from './components/firmar-documento-modal/firmar-documento-modal.component';
+import { Firma } from './models/firma.model';
 
 interface InformeItem {
   id: string;
@@ -30,7 +35,7 @@ const STORAGE_KEY_MODO_VISUALIZACION = 'informes_modo_visualizacion';
 @Component({
   selector: 'app-informes-evidencias',
   standalone: true,
-  imports: [CommonModule, PaginacionComponent, InformeFormModalComponent],
+  imports: [CommonModule, PaginacionComponent, InformeFormModalComponent, FirmarDocumentoModalComponent],
   templateUrl: './informes-evidencias.component.html',
   styleUrls: ['./informes-evidencias.component.css']
 })
@@ -42,6 +47,10 @@ export class InformesEvidenciasComponent implements OnInit {
 
   protected mostrarModal = false;
   protected informeSeleccionado: InformeFormData | null = null;
+
+  // Modal de firmar documento
+  protected mostrarModalFirmarDocumento = false;
+  protected firmasDisponibles: Firma[] = [];
 
   // Modo de visualización
   protected modoVisualizacion: ModoVisualizacion = 'iconos-medianos';
@@ -61,6 +70,7 @@ export class InformesEvidenciasComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarModoVisualizacion();
+    this.cargarFirmasDisponibles();
     this.seedMock();
     this.recalcularPaginacion();
   }
@@ -113,6 +123,61 @@ export class InformesEvidenciasComponent implements OnInit {
     this.mostrarModal = false;
     this.informeSeleccionado = null;
   }
+
+  // ==================== Modal de firmar documento ====================
+
+  private cargarFirmasDisponibles(): void {
+    // Mock de firmas disponibles - en producción esto vendría de un servicio
+    this.firmasDisponibles = [
+      {
+        id: 1,
+        nombre: 'Ing. Juan Pérez',
+        cargo: 'Gerente de Proyectos',
+        imagenBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        fechaCreacion: new Date(),
+        activo: true,
+      },
+      {
+        id: 2,
+        nombre: 'Dra. María García',
+        cargo: 'Directora Técnica',
+        imagenBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+        fechaCreacion: new Date(),
+        activo: true,
+      },
+    ];
+  }
+
+  protected abrirModalFirmarDocumento(): void {
+    this.mostrarModalFirmarDocumento = true;
+  }
+
+  protected cerrarModalFirmarDocumento(): void {
+    this.mostrarModalFirmarDocumento = false;
+  }
+
+  protected onDocumentoFirmado(data: DocumentoFirmadoData): void {
+    console.log('Documento firmado exitosamente:', {
+      archivo: data.archivo.name,
+      firma: data.firmaNombre,
+      posicion: `X: ${data.posicionX}, Y: ${data.posicionY}`,
+      pagina: data.pagina,
+      tamano: data.tamano
+    });
+    
+    // El documento ya fue descargado por el modal
+    // Aquí podrías:
+    // 1. Guardar un registro en la BD de que el documento fue firmado
+    // 2. Enviar notificaciones
+    // 3. Actualizar estados
+    
+    // Mostrar mensaje de éxito
+    alert(`✓ Documento "${data.archivo.name}" firmado exitosamente por ${data.firmaNombre} en la página ${data.pagina}.\n\nEl documento firmado se ha descargado automáticamente.`);
+    
+    this.cerrarModalFirmarDocumento();
+  }
+
+  // ==================== Fin modal de firmar documento ====================
 
   protected cambiarModoVisualizacion(modo: ModoVisualizacion): void {
     this.modoVisualizacion = modo;

@@ -1,0 +1,18 @@
+/* Estilos personalizados para el modal de firmar documento */
+
+/* Animación de entrada del modal */
+:host {
+  display: contents;
+}
+
+/* Estilos para el área de drag & drop */
+.cursor-pointer:hover {
+  transform: translateY(-2px);
+}
+
+/* Transiciones suaves */
+button,
+select,
+input {
+  transition: all 0.2s ease-in-out;
+}
