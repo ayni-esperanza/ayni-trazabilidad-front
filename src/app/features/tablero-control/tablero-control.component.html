@@ -1,19 +1,19 @@
-<div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
+<div class="p-4 bg-gray-50 dark:bg-gray-900 h-screen flex flex-col overflow-hidden">
   
   <!-- Header con título y fecha -->
-  <div class="mb-4">
+  <div class="mb-4 flex-shrink-0">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Tablero de Control</h1>
     <p class="text-xs text-gray-500 dark:text-gray-400">{{ fechaActual | date:'d \'de\' MMMM \'del\' yyyy':'':'es' }}</p>
   </div>
   
   <!-- Layout principal - 2 columnas -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 overflow-hidden">
     
     <!-- Columna izquierda - Métricas y Gráfico -->
-    <div class="lg:col-span-4 flex flex-col gap-3">
+    <div class="lg:col-span-4 flex flex-col gap-3 overflow-auto">
       
       <!-- Métricas -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-3 flex-shrink-0">
       
       <!-- Proyectos Finalizados -->
       <div 
@@ -66,8 +66,8 @@
     </div>
       
     <!-- Gráfico dinámico según métrica seleccionada -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 flex-1">
-      <div class="flex justify-between items-center mb-1">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 flex-1 flex flex-col overflow-hidden min-h-0">
+      <div class="flex justify-between items-center mb-1 flex-shrink-0">
         <div>
           <h3 class="text-sm font-semibold text-gray-800 dark:text-white">{{ tituloGrafico }}</h3>
           <span class="text-[10px] text-gray-500 dark:text-gray-400">
@@ -104,7 +104,7 @@
       </div>
       
       <!-- Gráfico ngx-charts compacto -->
-      <div [class]="tipoGrafico === 'pie' ? 'h-64 mt-2' : 'h-36 mt-2'">
+      <div class="flex-1 mt-2 min-h-0">
         @if (graficosListos) {
           @if (tipoGrafico === 'barras') {
             <ngx-charts-bar-vertical
@@ -159,14 +159,14 @@
     </div>
     
     <!-- Columna derecha - Contenedor flex para ambas tablas -->
-    <div class="lg:col-span-8 flex flex-col gap-3 min-h-[500px]">
+    <div class="lg:col-span-8 flex flex-col gap-3 overflow-hidden">
     
     <!-- Tabla Proyectos en Curso -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden flex flex-col"
-      [class.flex-1]="!tablaDetalleVisible"
-      [class.flex-shrink-0]="tablaDetalleVisible"
-      [class.max-h-[200px]]="tablaDetalleVisible && tablaProyectosVisible">
-      <div class="flex justify-between items-center" [class.mb-2]="tablaProyectosVisible">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden flex flex-col min-h-0"
+      [class.flex-1]="tablaProyectosVisible"
+      [class.h-12]="!tablaProyectosVisible"
+      [class.flex-shrink-0]="!tablaProyectosVisible">
+      <div class="flex justify-between items-center flex-shrink-0" [class.mb-2]="tablaProyectosVisible">
         <div class="flex items-center gap-2">
           <button (click)="toggleTablaProyectos()" 
             class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-transform"
@@ -240,11 +240,11 @@
     </div>
     
     <!-- Tareas de los Encargados / Gastos del Proyecto -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden flex flex-col"
-      [class.flex-1]="!tablaProyectosVisible"
-      [class.flex-shrink-0]="tablaProyectosVisible"
-      [class.max-h-[200px]]="tablaProyectosVisible && tablaDetalleVisible">
-      <div class="flex items-center justify-between" [class.mb-2]="tablaDetalleVisible">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden flex flex-col min-h-0"
+      [class.flex-1]="tablaDetalleVisible"
+      [class.h-12]="!tablaDetalleVisible"
+      [class.flex-shrink-0]="!tablaDetalleVisible">
+      <div class="flex items-center justify-between flex-shrink-0" [class.mb-2]="tablaDetalleVisible">
         <div class="flex items-center gap-2">
           <button (click)="toggleTablaDetalle()" 
             class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-transform"
@@ -273,6 +273,29 @@
             </span>
           }
         </div>
+        <div class="flex items-center gap-2">
+          <!-- Botones para cambiar vista (solo para tareas, no para gastos) -->
+          @if (metricaSeleccionada !== 'gastos' && tablaDetalleVisible) {
+            <div class="flex gap-0.5">
+              <button 
+                (click)="cambiarModoVisualizacionTareas('tabla')"
+                [class]="modoVisualizacionTareas === 'tabla' ? 'p-1.5 rounded bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : 'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'"
+                title="Vista tabla">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button 
+                (click)="cambiarModoVisualizacionTareas('timeline')"
+                [class]="modoVisualizacionTareas === 'timeline' ? 'p-1.5 rounded bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : 'p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400'"
+                title="Vista timeline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
         @if (metricaSeleccionada === 'gastos' && gastosFiltrados.length > 0 && tablaDetalleVisible) {
           <div class="flex items-center gap-2">
             @if (categoriaSeleccionada) {
@@ -289,7 +312,7 @@
       
       @if (metricaSeleccionada === 'gastos') {
         <!-- Cards resumen por categorías - clickeables para filtrar -->
-        <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
           <div (click)="seleccionarCategoria('Materiales')" 
             class="p-2 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
             [ngClass]="{
@@ -378,41 +401,108 @@
             </tbody>
           </table>
         } @else {
-          <!-- Tabla de tareas -->
-          <table class="w-full text-xs">
-            <thead class="sticky top-0 bg-white dark:bg-gray-800">
-              <tr class="border-b border-gray-200 dark:border-gray-700">
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
-                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (tarea of tareasFiltradas; track tarea.id) {
-                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
-                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
-                  <td class="py-1.5 px-1">
-                    <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoTareaClass(tarea.estado)">
-                      {{ tarea.estado }}
-                    </span>
-                  </td>
+          <!-- Tabla de tareas o vista timeline -->
+          @if (modoVisualizacionTareas === 'tabla') {
+            <!-- Vista de tabla -->
+            <table class="w-full text-xs">
+              <thead class="sticky top-0 bg-white dark:bg-gray-800">
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
                 </tr>
+              </thead>
+              <tbody>
+                @for (tarea of tareasFiltradas; track tarea.id) {
+                  <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
+                    <td class="py-1.5 px-1">
+                      <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoTareaClass(tarea.estado)">
+                        {{ tarea.estado }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                      No hay tareas para el proyecto seleccionado
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <!-- Vista de timeline -->
+            <div class="space-y-2 px-2">
+              @for (tarea of tareasFiltradas; track tarea.id; let isFirst = $first; let isLast = $last) {
+                <div class="relative pl-8 pb-4 timeline-item">
+                  <!-- Línea vertical conectora -->
+                  @if (!isLast) {
+                    <div class="absolute left-2 top-6 bottom-0 w-0.5 timeline-line"></div>
+                  }
+                  
+                  <!-- Indicador circular -->
+                  <div class="absolute left-0 top-1.5 flex items-center justify-center timeline-indicator">
+                    <div class="w-4 h-4 rounded-full border-2 bg-white dark:bg-gray-800"
+                      [ngClass]="{
+                        'border-green-500 bg-green-50 dark:bg-green-900/30': tarea.estado === 'Completado',
+                        'border-blue-500 bg-blue-50 dark:bg-blue-900/30': tarea.estado === 'En Proceso',
+                        'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30': tarea.estado === 'Pendiente',
+                        'border-red-500 bg-red-50 dark:bg-red-900/30': tarea.estado === 'Retrasado'
+                      }">
+                      @if (tarea.estado === 'Completado') {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                      }
+                    </div>
+                  </div>
+                  
+                  <!-- Contenido del evento -->
+                  <div class="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                      <div class="flex-1">
+                        <h4 class="text-sm font-semibold text-gray-800 dark:text-white">{{ tarea.tarea }}</h4>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ tarea.proyecto }} - {{ tarea.etapa }}</p>
+                      </div>
+                      <span class="px-2 py-0.5 text-[10px] font-medium rounded-full whitespace-nowrap" [ngClass]="getEstadoTareaClass(tarea.estado)">
+                        {{ tarea.estado }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">
+                      <div class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>{{ tarea.responsable }}</span>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{{ tarea.fechas }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               } @empty {
-                <tr>
-                  <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">
-                    No hay tareas para el proyecto seleccionado
-                  </td>
-                </tr>
+                <div class="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="text-sm">No hay tareas para mostrar</p>
+                  <p class="text-xs mt-1">Selecciona un proyecto para ver sus tareas</p>
+                </div>
               }
-            </tbody>
-          </table>
+            </div>
+          }
         }
         </div>
       }

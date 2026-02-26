@@ -122,6 +122,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   tablaProyectosVisible = true;
   tablaDetalleVisible = true;
   
+  // Control de modo de visualización de tareas (tabla o timeline)
+  modoVisualizacionTareas: 'tabla' | 'timeline' = 'tabla';
+  
   constructor(
     private tableroService: TableroControlService,
     private cdr: ChangeDetectorRef
@@ -262,6 +265,13 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    */
   toggleTablaDetalle(): void {
     this.tablaDetalleVisible = !this.tablaDetalleVisible;
+  }
+  
+  /**
+   * Cambia el modo de visualización de tareas entre tabla y timeline
+   */
+  cambiarModoVisualizacionTareas(modo: 'tabla' | 'timeline'): void {
+    this.modoVisualizacionTareas = modo;
   }
   
   /**
