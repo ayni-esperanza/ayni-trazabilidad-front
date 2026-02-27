@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { AsignacionTareasService } from './services/asignacion-tareas.service';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { TareaFormModalComponent, Tarea } from './components/tarea-form-modal/tarea-form-modal.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-asignacion-tareas',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginacionComponent, TareaFormModalComponent],
+  imports: [CommonModule, FormsModule, PaginacionComponent, TareaFormModalComponent, ConfirmDeleteModalComponent],
   templateUrl: './asignacion-tareas.component.html',
   styleUrls: ['./asignacion-tareas.component.css']
 })
@@ -41,6 +42,12 @@ export class AsignacionTareasComponent implements OnInit {
   ];
 
   tareasFiltradas: Tarea[] = [];
+  
+  // Selección de tareas
+  tareasSeleccionadas: Set<number> = new Set();
+  mostrarConfirmacionEliminar = false;
+  cargandoEliminacion = false;
+  configEliminarModal: ConfirmDeleteConfig = {};
   
   // Configuración de paginación
   paginacionConfig: PaginacionConfig = {
@@ -145,6 +152,88 @@ export class AsignacionTareasComponent implements OnInit {
   eliminarTarea(id: number): void {
     this.tareas = this.tareas.filter(t => t.id !== id);
     this.aplicarFiltros();
+  }
+
+  // Métodos de selección
+  toggleSeleccion(id: number): void {
+    if (this.tareasSeleccionadas.has(id)) {
+      this.tareasSeleccionadas.delete(id);
+    } else {
+      this.tareasSeleccionadas.add(id);
+    }
+  }
+
+  toggleSeleccionTodos(): void {
+    if (this.todosPaginadosSeleccionados) {
+      // Deseleccionar todos los de la página actual
+      this.tareasPaginadas.forEach(tarea => {
+        if (tarea.id) this.tareasSeleccionadas.delete(tarea.id);
+      });
+    } else {
+      // Seleccionar todos los de la página actual
+      this.tareasPaginadas.forEach(tarea => {
+        if (tarea.id) this.tareasSeleccionadas.add(tarea.id);
+      });
+    }
+  }
+
+  estaSeleccionado(id: number | undefined): boolean {
+    return id !== undefined && this.tareasSeleccionadas.has(id);
+  }
+
+  get todosPaginadosSeleccionados(): boolean {
+    return this.tareasPaginadas.length > 0 && 
+           this.tareasPaginadas.every(tarea => this.estaSeleccionado(tarea.id));
+  }
+
+  get algunosPaginadosSeleccionados(): boolean {
+    return this.tareasPaginadas.some(tarea => this.estaSeleccionado(tarea.id)) &&
+           !this.todosPaginadosSeleccionados;
+  }
+
+  iniciarEliminarSeleccionados(): void {
+    if (this.tareasSeleccionadas.size > 0) {
+      this.configEliminarModal = {
+        titulo: 'Eliminar tareas',
+        cantidadElementos: this.tareasSeleccionadas.size,
+        tipoElemento: this.tareasSeleccionadas.size === 1 ? 'tarea' : 'tareas',
+        textoConfirmar: 'Eliminar'
+      };
+      this.mostrarConfirmacionEliminar = true;
+    }
+  }
+
+  async confirmarEliminarSeleccionados(): Promise<void> {
+    this.cargandoEliminacion = true;
+    
+    try {
+      const idsAEliminar = Array.from(this.tareasSeleccionadas);
+      
+      // TODO: Implementar llamada al backend
+      // await this.tareasService.eliminarMasivo(idsAEliminar);
+      
+      // Simulación de llamada al backend (remover cuando se integre)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Eliminar localmente (esto se reemplazará con actualización desde backend)
+      this.tareas = this.tareas.filter(t => !this.tareasSeleccionadas.has(t.id || 0));
+      this.tareasSeleccionadas.clear();
+      this.mostrarConfirmacionEliminar = false;
+      this.aplicarFiltros();
+      
+      console.log('Tareas eliminadas exitosamente:', idsAEliminar);
+      // TODO: Mostrar notificación de éxito
+      
+    } catch (error) {
+      console.error('Error al eliminar tareas:', error);
+      // TODO: Mostrar notificación de error
+    } finally {
+      this.cargandoEliminacion = false;
+    }
+  }
+
+  cancelarEliminarSeleccionados(): void {
+    this.mostrarConfirmacionEliminar = false;
   }
 
   // Helpers

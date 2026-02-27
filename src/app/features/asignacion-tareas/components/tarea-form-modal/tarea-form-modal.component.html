@@ -166,14 +166,26 @@
         </div>
       </div>
 
+      <!-- Checkbox de Eliminación (solo en modo edición) -->
+      @if (modoEdicion && tarea?.id) {
+        <div class="px-5 py-0">
+          <app-delete-checkbox
+            [visible]="mostrarCheckboxEliminar"
+            [textoConfirmacion]="'Confirmo que deseo eliminar esta tarea'"
+            [textoBoton]="'Eliminar Tarea'"
+            (confirmar)="onConfirmarEliminar()">
+          </app-delete-checkbox>
+        </div>
+      }
+
       <!-- Footer -->
       <div class="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3 rounded-b-xl">
         
         <!-- Botón Eliminar (solo en modo edición) -->
         <div>
-          @if (modoEdicion && tarea?.id) {
+          @if (modoEdicion && tarea?.id && !mostrarCheckboxEliminar) {
             <button
-              (click)="onEliminar()"
+              (click)="onMostrarCheckboxEliminar()"
               class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
               Eliminar Tarea
             </button>

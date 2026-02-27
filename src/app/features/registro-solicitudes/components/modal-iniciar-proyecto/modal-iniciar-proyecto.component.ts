@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, DeleteCheckboxComponent],
   templateUrl: './modal-iniciar-proyecto.component.html',
   styleUrls: ['./modal-iniciar-proyecto.component.css']
 })
@@ -32,6 +33,7 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
+  mostrarCheckboxCancelar = false;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -132,10 +134,15 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   onCerrar(): void {
     this.intentoGuardar = false;
     this.errores = {};
+    this.mostrarCheckboxCancelar = false;
     this.cerrar.emit();
   }
 
-  onCancelarProyecto(): void {
+  onMostrarCheckboxCancelar(): void {
+    this.mostrarCheckboxCancelar = true;
+  }
+
+  onConfirmarCancelar(): void {
     this.cancelarProy.emit();
   }
 

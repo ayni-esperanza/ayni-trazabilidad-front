@@ -614,33 +614,47 @@
 </div>
 
 <!-- Modal de Cancelación -->
-<div *ngIf="mostrarModalCancelacion" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
-    <div class="bg-red-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
-      <h2 class="text-lg font-semibold text-white">Cancelar Proyecto</h2>
-      <button (click)="cerrarModalCancelacion()" class="text-white hover:text-gray-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    <div class="p-4">
-      <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
-        ¿Está seguro que desea cancelar el proyecto <strong>{{ proyecto?.nombreProyecto }}</strong>?
-        Por favor, ingrese el motivo de la cancelación:
-      </p>
-      <textarea [(ngModel)]="motivoCancelacion" rows="4" placeholder="Ingrese el motivo de la cancelación..."
-        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
-    </div>
-    <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
-      <button (click)="cerrarModalCancelacion()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-        No, volver
-      </button>
-      <button (click)="confirmarCancelacion()" [disabled]="!motivoCancelacion.trim()"
-        [class.opacity-50]="!motivoCancelacion.trim()" [class.cursor-not-allowed]="!motivoCancelacion.trim()"
-        class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
-        Sí, cancelar proyecto
-      </button>
+@if (mostrarModalCancelacion) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div class="bg-red-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
+        <h2 class="text-lg font-semibold text-white">Cancelar Proyecto</h2>
+        <button (click)="cerrarModalCancelacion()" class="text-white hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+          ¿Está seguro que desea cancelar el proyecto <strong>{{ proyecto?.nombreProyecto }}</strong>?
+          Por favor, ingrese el motivo de la cancelación:
+        </p>
+        <textarea [(ngModel)]="motivoCancelacion" rows="4" placeholder="Ingrese el motivo de la cancelación..."
+          class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+
+        <!-- Checkbox de confirmación -->
+        <div class="mt-3">
+          <app-delete-checkbox
+            [visible]="mostrarCheckboxCancelar"
+            [textoConfirmacion]="'Confirmo que deseo cancelar este proyecto'"
+            [textoBoton]="'Sí, cancelar proyecto'"
+            (confirmar)="confirmarCancelacion()">
+          </app-delete-checkbox>
+        </div>
+      </div>
+      <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+        <button (click)="cerrarModalCancelacion()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+          No, volver
+        </button>
+        @if (!mostrarCheckboxCancelar) {
+          <button (click)="onMostrarCheckboxCancelar()" [disabled]="!motivoCancelacion.trim()"
+            [class.opacity-50]="!motivoCancelacion.trim()" [class.cursor-not-allowed]="!motivoCancelacion.trim()"
+            class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
+            Continuar
+          </button>
+        }
+      </div>
     </div>
   </div>
-</div>
+}

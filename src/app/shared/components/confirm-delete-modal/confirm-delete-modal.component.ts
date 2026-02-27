@@ -6,6 +6,8 @@ export interface ConfirmDeleteConfig {
   titulo?: string;
   mensaje?: string;
   itemNombre?: string;
+  cantidadElementos?: number;
+  tipoElemento?: string;
   textoConfirmar?: string;
   textoCancelar?: string;
 }
@@ -30,9 +32,19 @@ export class ConfirmDeleteModalComponent {
 
   get mensaje(): string {
     if (this.config.mensaje) return this.config.mensaje;
+    
+    // Mensaje para eliminación masiva
+    if (this.config.cantidadElementos && this.config.cantidadElementos > 1) {
+      const tipo = this.config.tipoElemento || 'elemento(s)';
+      return `¿Está seguro de que desea eliminar ${this.config.cantidadElementos} ${tipo}?`;
+    }
+    
+    // Mensaje para elemento individual con nombre
     if (this.config.itemNombre) {
       return `¿Estás seguro de que deseas eliminar "${this.config.itemNombre}"?`;
     }
+    
+    // Mensaje por defecto
     return '¿Estás seguro de que deseas eliminar este elemento?';
   }
 
@@ -42,6 +54,10 @@ export class ConfirmDeleteModalComponent {
 
   get textoCancelar(): string {
     return this.config.textoCancelar || 'Cancelar';
+  }
+
+  get esEliminacionMasiva(): boolean {
+    return (this.config.cantidadElementos || 0) > 1;
   }
 
   onConfirmar(): void {

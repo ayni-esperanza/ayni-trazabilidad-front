@@ -395,7 +395,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       if (this.proyectoSeleccionado) {
         this.tareasFiltradas = this.tareasEncargados.filter(t => t.proyectoId === this.proyectoSeleccionado!.id);
       } else {
-        this.tareasFiltradas = [...this.tareasEncargados];
+        // Filtrar tareas solo de los proyectos que están visibles en la tabla
+        const idsProyectosVisibles = this.proyectosEnCursoFiltrados.map(p => p.id);
+        this.tareasFiltradas = this.tareasEncargados.filter(t => idsProyectosVisibles.includes(t.proyectoId));
       }
       this.gastosFiltrados = [];
     }

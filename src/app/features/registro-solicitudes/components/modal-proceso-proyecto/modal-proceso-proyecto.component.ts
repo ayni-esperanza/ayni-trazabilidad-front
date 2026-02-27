@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
+import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -45,7 +46,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, DeleteCheckboxComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -73,6 +74,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   // Modal de cancelación
   mostrarModalCancelacion = false;
   motivoCancelacion = '';
+  mostrarCheckboxCancelar = false;
 
   // Sección de Costos
   seccionCostosExpandida = true;
@@ -186,11 +188,19 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onCancelarProyecto(): void {
     this.mostrarModalCancelacion = true;
     this.motivoCancelacion = '';
+    this.mostrarCheckboxCancelar = false;
   }
 
   cerrarModalCancelacion(): void {
     this.mostrarModalCancelacion = false;
     this.motivoCancelacion = '';
+    this.mostrarCheckboxCancelar = false;
+  }
+
+  onMostrarCheckboxCancelar(): void {
+    if (this.motivoCancelacion.trim()) {
+      this.mostrarCheckboxCancelar = true;
+    }
   }
 
   confirmarCancelacion(): void {
@@ -198,6 +208,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.cancelarProy.emit({ motivo: this.motivoCancelacion });
       this.mostrarModalCancelacion = false;
       this.motivoCancelacion = '';
+      this.mostrarCheckboxCancelar = false;
     }
   }
 

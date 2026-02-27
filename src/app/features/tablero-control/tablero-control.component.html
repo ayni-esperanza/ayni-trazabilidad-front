@@ -176,7 +176,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Proyectos en Curso</h3>
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+            {{ metricaSeleccionada === 'finalizados' ? 'Proyectos Finalizados' : metricaSeleccionada === 'activos' ? 'Proyectos Activos' : 'Proyectos (Gastos)' }}
+          </h3>
           @if (mesSeleccionado && tablaProyectosVisible) {
             <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
               {{ mesSeleccionado }}

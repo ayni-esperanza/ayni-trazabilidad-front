@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
 
 export interface Tarea {
   id?: number;
@@ -17,7 +18,7 @@ export interface Tarea {
 @Component({
   selector: 'app-tarea-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DeleteCheckboxComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
 export class TareaFormModalComponent implements OnChanges {
@@ -43,6 +44,7 @@ export class TareaFormModalComponent implements OnChanges {
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
+  mostrarCheckboxEliminar = false;
 
   // Opciones para los dropdowns
   proyectos = [
@@ -88,6 +90,7 @@ export class TareaFormModalComponent implements OnChanges {
     };
     this.intentoGuardar = false;
     this.errores = {};
+    this.mostrarCheckboxEliminar = false;
   }
 
   onCerrar(): void {
@@ -107,8 +110,12 @@ export class TareaFormModalComponent implements OnChanges {
     }
   }
 
-  onEliminar(): void {
-    if (this.tarea?.id && confirm('¿Estás seguro de que deseas eliminar esta tarea?')) {
+  onMostrarCheckboxEliminar(): void {
+    this.mostrarCheckboxEliminar = true;
+  }
+
+  onConfirmarEliminar(): void {
+    if (this.tarea?.id) {
       this.eliminar.emit(this.tarea.id);
       this.onCerrar();
     }

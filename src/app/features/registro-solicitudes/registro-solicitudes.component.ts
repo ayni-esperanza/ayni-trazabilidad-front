@@ -7,11 +7,12 @@ import { ModalIniciarProyectoComponent } from './components/modal-iniciar-proyec
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
 import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalIniciarProyectoComponent, ModalProcesoProyectoComponent, PaginacionComponent],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalIniciarProyectoComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })
@@ -46,11 +47,102 @@ export class RegistroSolicitudesComponent implements OnInit {
   solicitudActual: Solicitud | null = null;
   proyectoActual: Proyecto | null = null;
 
+  // Selección múltiple
+  solicitudesSeleccionadas: Set<number> = new Set();
+  mostrarConfirmacionEliminar = false;
+  cargandoEliminacion = false;
+  configEliminarModal: ConfirmDeleteConfig = {};
+
   constructor(private solicitudesService: RegistroSolicitudesService) {}
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
     this.aplicarFiltros();
+  }
+
+  // ==================== SELECCIÓN MÚLTIPLE ====================
+
+  toggleSeleccion(id: number, event: Event): void {
+    event.stopPropagation();
+    if (this.solicitudesSeleccionadas.has(id)) {
+      this.solicitudesSeleccionadas.delete(id);
+    } else {
+      this.solicitudesSeleccionadas.add(id);
+    }
+  }
+
+  toggleSeleccionTodos(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    if (checkbox.checked) {
+      this.solicitudesPaginadas.forEach(s => {
+        if (s.id) this.solicitudesSeleccionadas.add(s.id);
+      });
+    } else {
+      this.solicitudesPaginadas.forEach(s => {
+        if (s.id) this.solicitudesSeleccionadas.delete(s.id);
+      });
+    }
+  }
+
+  estaSeleccionado(id: number | undefined): boolean {
+    return id ? this.solicitudesSeleccionadas.has(id) : false;
+  }
+
+  get todosPaginadosSeleccionados(): boolean {
+    return this.solicitudesPaginadas.length > 0 && 
+           this.solicitudesPaginadas.every(s => s.id && this.solicitudesSeleccionadas.has(s.id));
+  }
+
+  get algunosPaginadosSeleccionados(): boolean {
+    return this.solicitudesPaginadas.some(s => s.id && this.solicitudesSeleccionadas.has(s.id)) &&
+           !this.todosPaginadosSeleccionados;
+  }
+
+  iniciarEliminarSeleccionados(): void {
+    if (this.solicitudesSeleccionadas.size > 0) {
+      this.configEliminarModal = {
+        titulo: 'Eliminar solicitudes',
+        cantidadElementos: this.solicitudesSeleccionadas.size,
+        tipoElemento: this.solicitudesSeleccionadas.size === 1 ? 'solicitud' : 'solicitudes',
+        textoConfirmar: 'Eliminar'
+      };
+      this.mostrarConfirmacionEliminar = true;
+    }
+  }
+
+  async confirmarEliminarSeleccionados(): Promise<void> {
+    this.cargandoEliminacion = true;
+    
+    try {
+      const idsAEliminar = Array.from(this.solicitudesSeleccionadas);
+      
+      // TODO: Implementar llamada al backend
+      // await this.solicitudesService.eliminarMasivo(idsAEliminar);
+      
+      // Simulación de llamada al backend (remover cuando se integre)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Eliminar localmente (esto se reemplazará con actualización desde backend)
+      this.solicitudes = this.solicitudes.filter(s => !this.solicitudesSeleccionadas.has(s.id!));
+      this.aplicarFiltros();
+      
+      // Limpiar selección
+      this.solicitudesSeleccionadas.clear();
+      this.mostrarConfirmacionEliminar = false;
+      
+      console.log('Solicitudes eliminadas exitosamente:', idsAEliminar);
+      // TODO: Mostrar notificación de éxito
+      
+    } catch (error) {
+      console.error('Error al eliminar solicitudes:', error);
+      // TODO: Mostrar notificación de error
+    } finally {
+      this.cargandoEliminacion = false;
+    }
+  }
+
+  cancelarEliminarSeleccionados(): void {
+    this.mostrarConfirmacionEliminar = false;
   }
 
   // ==================== FILTROS Y PAGINACIÓN ====================

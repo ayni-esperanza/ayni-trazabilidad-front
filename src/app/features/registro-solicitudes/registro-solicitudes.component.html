@@ -93,10 +93,36 @@
 
   <!-- Tabla de solicitudes -->
   <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+    <!-- Barra de acciones para elementos seleccionados -->
+    @if (solicitudesSeleccionadas.size > 0) {
+      <div class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex items-center justify-between">
+        <span class="text-sm text-blue-700 dark:text-blue-300 font-medium">
+          {{ solicitudesSeleccionadas.size }} solicitud(es) seleccionada(s)
+        </span>
+        <button 
+          (click)="iniciarEliminarSeleccionados()"
+          class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Eliminar seleccionados
+        </button>
+      </div>
+    }
+
     <div class="overflow-x-auto">
       <table class="w-full text-xs">
         <thead class="bg-gray-50 dark:bg-gray-800/60">
           <tr>
+            <th class="py-1.5 px-3 text-left w-10">
+              <input 
+                type="checkbox"
+                [checked]="todosPaginadosSeleccionados"
+                [indeterminate]="algunosPaginadosSeleccionados"
+                (change)="toggleSeleccionTodos($event)"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            </th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Cliente</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
@@ -107,55 +133,57 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-          <tr *ngFor="let solicitud of solicitudesPaginadas" 
-              class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer"
-              (click)="abrirProcesoDesdeTabla(solicitud)">
-            <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200 font-medium">{{ solicitud.nombreProyecto }}</td>
-            <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200">{{ solicitud.cliente }}</td>
-            <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200">{{ solicitud.responsableNombre }}</td>
-            <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200">
-              @if (solicitud.fechaInicio && solicitud.fechaFin) {
-                {{ solicitud.fechaInicio | date:'dd/MM/yy' }} - {{ solicitud.fechaFin | date:'dd/MM/yy' }}
-              } @else {
-                -
-              }
-            </td>
-            <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200">S/. {{ solicitud.costo | number:'1.2-2' }}</td>
-            <td class="py-2 px-4">
-              <span class="px-3 py-1 text-xs font-medium rounded-full" [ngClass]="getEstadoClass(solicitud.estado)">
-                <svg *ngIf="solicitud.estado === 'Pendiente'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                </svg>
-                <svg *ngIf="solicitud.estado === 'Completado'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <svg *ngIf="solicitud.estado === 'Cancelado'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <svg *ngIf="solicitud.estado === 'En Proceso'" class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
-                </svg>
-                {{ solicitud.estado }}
-              </span>
-            </td>
-            <td class="py-1.5 px-3">
-              <button *ngIf="solicitud.estado === 'Pendiente'" 
-                      (click)="abrirIniciarProyecto(solicitud); $event.stopPropagation()"
-                      class="px-2 py-0.5 text-[10px] font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white">
-                Iniciar Proyecto
-              </button>
-              <button *ngIf="solicitud.estado === 'En Proceso'" 
-                      (click)="abrirProcesoDesdeTabla(solicitud); $event.stopPropagation()"
-                      class="px-2 py-0.5 text-[10px] font-medium rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-                Ver Proceso
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="solicitudesFiltradas.length === 0">
-            <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400">
-              No hay solicitudes registradas. Haz clic en "Nueva Solicitud" para crear una.
-            </td>
-          </tr>
+          @for (solicitud of solicitudesPaginadas; track solicitud.id) {
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer"
+                [class.bg-blue-50]="estaSeleccionado(solicitud.id)">
+              <td class="py-1.5 px-3" (click)="$event.stopPropagation()">
+                <input 
+                  type="checkbox"
+                  [checked]="estaSeleccionado(solicitud.id)"
+                  (change)="toggleSeleccion(solicitud.id!, $event)"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+              </td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200 font-medium" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.nombreProyecto }}</td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.cliente }}</td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.responsableNombre }}</td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">
+                @if (solicitud.fechaInicio && solicitud.fechaFin) {
+                  {{ solicitud.fechaInicio | date:'dd/MM/yy' }} - {{ solicitud.fechaFin | date:'dd/MM/yy' }}
+                } @else {
+                  -
+                }
+              </td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">S/. {{ solicitud.costo | number:'1.2-2' }}</td>
+              <td class="py-2 px-4" (click)="abrirProcesoDesdeTabla(solicitud)">
+                <span class="px-3 py-1 text-xs font-medium rounded-full" [ngClass]="getEstadoClass(solicitud.estado)">
+                  {{ solicitud.estado }}
+                </span>
+              </td>
+              <td class="py-1.5 px-3">
+                @if (solicitud.estado === 'Pendiente') {
+                  <button 
+                    (click)="abrirIniciarProyecto(solicitud); $event.stopPropagation()"
+                    class="px-2 py-0.5 text-[10px] font-medium rounded-lg bg-green-500 hover:bg-green-600 text-white">
+                    Iniciar Proyecto
+                  </button>
+                }
+                @if (solicitud.estado === 'En Proceso') {
+                  <button 
+                    (click)="abrirProcesoDesdeTabla(solicitud); $event.stopPropagation()"
+                    class="px-2 py-0.5 text-[10px] font-medium rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
+                    Ver Proceso
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+          @if (solicitudesFiltradas.length === 0) {
+            <tr>
+              <td colspan="8" class="py-8 text-center text-gray-500 dark:text-gray-400">
+                No hay solicitudes registradas. Haz clic en "Nueva Solicitud" para crear una.
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -199,3 +227,12 @@
   (finalizarProy)="onFinalizarProyecto($event)"
   (cambiarProyecto)="onCambiarProyecto($event)">
 </app-modal-proceso-proyecto>
+
+<!-- Confirmación de eliminación masiva -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionEliminar"
+  [loading]="cargandoEliminacion"
+  [config]="configEliminarModal"
+  (confirmar)="confirmarEliminarSeleccionados()"
+  (cancelar)="cancelarEliminarSeleccionados()">
+</app-confirm-delete-modal>
