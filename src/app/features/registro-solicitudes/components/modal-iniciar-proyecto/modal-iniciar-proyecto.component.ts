@@ -4,12 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, DeleteCheckboxComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent],
   templateUrl: './modal-iniciar-proyecto.component.html',
   styleUrls: ['./modal-iniciar-proyecto.component.css']
 })
@@ -33,7 +33,11 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
-  mostrarCheckboxCancelar = false;
+  
+  // Modal de confirmación de cancelación
+  mostrarConfirmacionCancelar = false;
+  cargandoCancelacion = false;
+  configCancelarModal: ConfirmDeleteConfig = {};
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -134,16 +138,34 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   onCerrar(): void {
     this.intentoGuardar = false;
     this.errores = {};
-    this.mostrarCheckboxCancelar = false;
+    this.mostrarConfirmacionCancelar = false;
     this.cerrar.emit();
   }
 
-  onMostrarCheckboxCancelar(): void {
-    this.mostrarCheckboxCancelar = true;
+  onIniciarCancelar(): void {
+    this.configCancelarModal = {
+      titulo: 'Cancelar proyecto',
+      mensaje: '¿Estás seguro de que deseas cancelar este proyecto?',
+      cantidadElementos: 1,
+      tipoElemento: 'proyecto',
+      textoConfirmar: 'Cancelar Proyecto'
+    };
+    this.mostrarConfirmacionCancelar = true;
   }
 
-  onConfirmarCancelar(): void {
-    this.cancelarProy.emit();
+  async onConfirmarCancelar(): Promise<void> {
+    this.cargandoCancelacion = true;
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      this.cancelarProy.emit();
+      this.mostrarConfirmacionCancelar = false;
+    } finally {
+      this.cargandoCancelacion = false;
+    }
+  }
+
+  onCancelarCancelar(): void {
+    this.mostrarConfirmacionCancelar = false;
   }
 
   onIniciar(): void {

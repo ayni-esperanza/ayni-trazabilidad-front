@@ -117,22 +117,12 @@
       </div>
     </div>
 
-    <!-- Checkbox de Cancelación -->
-    <div class="px-4 py-0">
-      <app-delete-checkbox
-        [visible]="mostrarCheckboxCancelar"
-        [textoConfirmacion]="'Confirmo que deseo cancelar este proyecto'"
-        [textoBoton]="'Cancelar Proyecto'"
-        (confirmar)="onConfirmarCancelar()">
-      </app-delete-checkbox>
-    </div>
-
     <!-- Footer -->
     <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-      <button *ngIf="!mostrarCheckboxCancelar" (click)="onMostrarCheckboxCancelar()" class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
+      <button (click)="onIniciarCancelar()" class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
         Cancelar Proyecto
       </button>
-      <div class="flex gap-2" [class.ml-auto]="mostrarCheckboxCancelar">
+      <div class="flex gap-2">
         <button (click)="onCerrar()" class="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700">
           Cancelar
         </button>
@@ -143,3 +133,12 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmación de cancelación (sobremodal) -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionCancelar"
+  [loading]="cargandoCancelacion"
+  [config]="configCancelarModal"
+  (confirmar)="onConfirmarCancelar()"
+  (cancelar)="onCancelarCancelar()">
+</app-confirm-delete-modal>

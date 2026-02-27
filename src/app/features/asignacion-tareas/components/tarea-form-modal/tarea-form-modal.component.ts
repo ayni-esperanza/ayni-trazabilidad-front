@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 export interface Tarea {
   id?: number;
@@ -18,7 +18,7 @@ export interface Tarea {
 @Component({
   selector: 'app-tarea-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, DeleteCheckboxComponent],
+  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
 export class TareaFormModalComponent implements OnChanges {
@@ -44,7 +44,11 @@ export class TareaFormModalComponent implements OnChanges {
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
-  mostrarCheckboxEliminar = false;
+  
+  // Modal de confirmación de eliminación
+  mostrarConfirmacionEliminar = false;
+  cargandoEliminacion = false;
+  configEliminarModal: ConfirmDeleteConfig = {};
 
   // Opciones para los dropdowns
   proyectos = [
@@ -90,7 +94,7 @@ export class TareaFormModalComponent implements OnChanges {
     };
     this.intentoGuardar = false;
     this.errores = {};
-    this.mostrarCheckboxEliminar = false;
+    this.mostrarConfirmacionEliminar = false;
   }
 
   onCerrar(): void {
@@ -110,15 +114,34 @@ export class TareaFormModalComponent implements OnChanges {
     }
   }
 
-  onMostrarCheckboxEliminar(): void {
-    this.mostrarCheckboxEliminar = true;
+  onIniciarEliminar(): void {
+    if (!this.tarea?.id) return;
+    this.configEliminarModal = {
+      titulo: 'Eliminar tarea',
+      mensaje: '¿Estás seguro de que deseas eliminar esta tarea?',
+      cantidadElementos: 1,
+      tipoElemento: 'tarea',
+      textoConfirmar: 'Eliminar'
+    };
+    this.mostrarConfirmacionEliminar = true;
   }
 
-  onConfirmarEliminar(): void {
-    if (this.tarea?.id) {
+  async onConfirmarEliminar(): Promise<void> {
+    if (!this.tarea?.id) return;
+    
+    this.cargandoEliminacion = true;
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
       this.eliminar.emit(this.tarea.id);
+      this.mostrarConfirmacionEliminar = false;
       this.onCerrar();
+    } finally {
+      this.cargandoEliminacion = false;
     }
+  }
+
+  onCancelarEliminar(): void {
+    this.mostrarConfirmacionEliminar = false;
   }
 
   validarFormulario(): boolean {

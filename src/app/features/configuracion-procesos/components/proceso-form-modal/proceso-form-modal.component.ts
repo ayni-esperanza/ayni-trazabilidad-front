@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
-import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 export interface ProcesoFormData {
   id?: number;
@@ -14,7 +14,7 @@ export interface ProcesoFormData {
 @Component({
   selector: 'app-proceso-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, DeleteCheckboxComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent],
   templateUrl: './proceso-form-modal.component.html',
   styleUrls: ['./proceso-form-modal.component.css'],
 })
@@ -36,7 +36,11 @@ export class ProcesoFormModalComponent implements OnChanges {
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
   Object = Object;  // Para usar en el template
-  mostrarCheckboxEliminar = false;
+  
+  // Modal de confirmación de eliminación
+  mostrarConfirmacionEliminar = false;
+  cargandoEliminacion = false;
+  configEliminarModal: ConfirmDeleteConfig = {};
 
   flujoTexto = 'Inicio';
   flujoPreview: string[] = ['Inicio'];
@@ -46,7 +50,7 @@ export class ProcesoFormModalComponent implements OnChanges {
       this.hidratarFormulario();
       this.intentoGuardar = false;
       this.errores = {};
-      this.mostrarCheckboxEliminar = false;
+      this.mostrarConfirmacionEliminar = false;
     }
   }
 
@@ -76,7 +80,7 @@ export class ProcesoFormModalComponent implements OnChanges {
   onCloseClick(): void {
     this.intentoGuardar = false;
     this.errores = {};
-    this.mostrarCheckboxEliminar = false;
+    this.mostrarConfirmacionEliminar = false;
     this.cerrar.emit();
   }
 
@@ -117,13 +121,33 @@ export class ProcesoFormModalComponent implements OnChanges {
     return this.intentoGuardar && !!this.errores[campo];
   }
 
-  onMostrarCheckboxEliminar(): void {
-    this.mostrarCheckboxEliminar = true;
+  onIniciarEliminar(): void {
+    if (!this.form.id) return;
+    this.configEliminarModal = {
+      titulo: 'Eliminar proceso',
+      mensaje: '¿Estás seguro de que deseas eliminar este proceso?',
+      cantidadElementos: 1,
+      tipoElemento: 'proceso',
+      textoConfirmar: 'Eliminar'
+    };
+    this.mostrarConfirmacionEliminar = true;
   }
 
-  onConfirmarEliminar(): void {
+  async onConfirmarEliminar(): Promise<void> {
     if (!this.form.id) return;
-    this.eliminar.emit(this.form.id);
+    
+    this.cargandoEliminacion = true;
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      this.eliminar.emit(this.form.id);
+      this.mostrarConfirmacionEliminar = false;
+    } finally {
+      this.cargandoEliminacion = false;
+    }
+  }
+
+  onCancelarEliminar(): void {
+    this.mostrarConfirmacionEliminar = false;
   }
 
   private parseFlujo(value: string): string[] {

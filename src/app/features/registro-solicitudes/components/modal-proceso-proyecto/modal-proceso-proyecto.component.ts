@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
-import { DeleteCheckboxComponent } from '../../../../shared/components/delete-checkbox/delete-checkbox.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -46,7 +46,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, DeleteCheckboxComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -74,7 +74,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   // Modal de cancelación
   mostrarModalCancelacion = false;
   motivoCancelacion = '';
-  mostrarCheckboxCancelar = false;
+  
+  // Modal de confirmación de cancelación
+  mostrarConfirmacionCancelar = false;
+  cargandoCancelacion = false;
+  configCancelarModal: ConfirmDeleteConfig = {};
 
   // Sección de Costos
   seccionCostosExpandida = true;
@@ -190,28 +194,45 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onCancelarProyecto(): void {
     this.mostrarModalCancelacion = true;
     this.motivoCancelacion = '';
-    this.mostrarCheckboxCancelar = false;
+    this.mostrarConfirmacionCancelar = false;
   }
 
   cerrarModalCancelacion(): void {
     this.mostrarModalCancelacion = false;
     this.motivoCancelacion = '';
-    this.mostrarCheckboxCancelar = false;
+    this.mostrarConfirmacionCancelar = false;
   }
 
-  onMostrarCheckboxCancelar(): void {
+  onSolicitarConfirmacionCancelar(): void {
     if (this.motivoCancelacion.trim()) {
-      this.mostrarCheckboxCancelar = true;
+      this.configCancelarModal = {
+        titulo: 'Cancelar proyecto',
+        mensaje: `¿Está seguro de cancelar el proyecto "${this.proyecto?.nombreProyecto}"? Motivo: ${this.motivoCancelacion}`,
+        cantidadElementos: 1,
+        tipoElemento: 'proyecto',
+        textoConfirmar: 'Sí, cancelar proyecto'
+      };
+      this.mostrarConfirmacionCancelar = true;
     }
   }
 
-  confirmarCancelacion(): void {
-    if (this.motivoCancelacion.trim()) {
+  async confirmarCancelacion(): Promise<void> {
+    if (!this.motivoCancelacion.trim()) return;
+    
+    this.cargandoCancelacion = true;
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
       this.cancelarProy.emit({ motivo: this.motivoCancelacion });
+      this.mostrarConfirmacionCancelar = false;
       this.mostrarModalCancelacion = false;
       this.motivoCancelacion = '';
-      this.mostrarCheckboxCancelar = false;
+    } finally {
+      this.cargandoCancelacion = false;
     }
+  }
+
+  onCancelarConfirmacionCancelar(): void {
+    this.mostrarConfirmacionCancelar = false;
   }
 
   onFinalizarEtapa(): void {
