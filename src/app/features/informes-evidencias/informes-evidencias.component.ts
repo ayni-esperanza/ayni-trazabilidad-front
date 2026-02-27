@@ -58,7 +58,7 @@ export class InformesEvidenciasComponent implements OnInit {
 
   protected paginacion: PaginacionConfig = {
     paginaActual: 0,
-    porPagina: 10,
+    porPagina: 100,
     totalElementos: 0,
     totalPaginas: 0
   };

@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { ConfiguracionProcesosService } from './services/configuracion-procesos.service';
 import { ProcesoFormData, ProcesoFormModalComponent } from './components/proceso-form-modal/proceso-form-modal.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 
 type ProcesoConfigurado = ProcesoFormData & { id: number };
 
 @Component({
   selector: 'app-configuracion-procesos',
   standalone: true,
-  imports: [CommonModule, ProcesoFormModalComponent, ConfirmDeleteModalComponent],
+  imports: [CommonModule, ProcesoFormModalComponent, ConfirmDeleteModalComponent, PaginacionComponent],
   templateUrl: './configuracion-procesos.component.html',
   styleUrls: ['./configuracion-procesos.component.css']
 })
@@ -22,6 +23,14 @@ export class ConfiguracionProcesosComponent implements OnInit {
     { id: 4, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio'] },
     { id: 5, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio'] },
   ];
+
+  // Paginación
+  paginacionConfig: PaginacionConfig = {
+    paginaActual: 0,
+    porPagina: 100,
+    totalElementos: 0,
+    totalPaginas: 0
+  };
 
   // Selección de procesos
   procesosSeleccionados: Set<number> = new Set();
@@ -38,7 +47,28 @@ export class ConfiguracionProcesosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Inicialización del componente
+    this.recalcularPaginacion();
+  }
+
+  get procesosPaginados(): ProcesoConfigurado[] {
+    const inicio = this.paginacionConfig.paginaActual * this.paginacionConfig.porPagina;
+    const fin = inicio + this.paginacionConfig.porPagina;
+    return this.procesos.slice(inicio, fin);
+  }
+
+  recalcularPaginacion(): void {
+    this.paginacionConfig.totalElementos = this.procesos.length;
+    this.paginacionConfig.totalPaginas = Math.ceil(this.procesos.length / this.paginacionConfig.porPagina);
+    
+    if (this.paginacionConfig.paginaActual >= this.paginacionConfig.totalPaginas && this.paginacionConfig.totalPaginas > 0) {
+      this.paginacionConfig.paginaActual = this.paginacionConfig.totalPaginas - 1;
+    }
+  }
+
+  onCambioPagina(evento: CambioPaginaEvent): void {
+    this.paginacionConfig.paginaActual = evento.pagina;
+    this.paginacionConfig.porPagina = evento.porPagina;
+    this.recalcularPaginacion();
   }
 
   abrirModalNuevoProceso(): void {
@@ -68,11 +98,13 @@ export class ConfiguracionProcesosComponent implements OnInit {
       this.procesos = [nuevo, ...this.procesos];
     }
 
+    this.recalcularPaginacion();
     this.cerrarModal();
   }
 
   onEliminarProceso(id: number): void {
     this.procesos = this.procesos.filter((p) => p.id !== id);
+    this.recalcularPaginacion();
     this.cerrarModal();
   }
 
@@ -86,27 +118,29 @@ export class ConfiguracionProcesosComponent implements OnInit {
   }
 
   toggleSeleccionTodos(): void {
-    if (this.todosSeleccionados) {
-      this.procesosSeleccionados.clear();
+    if (this.todosPaginadosSeleccionados) {
+      this.procesosPaginados.forEach(proceso => {
+        this.procesosSeleccionados.delete(proceso.id);
+      });
     } else {
-      this.procesos.forEach(proceso => {
+      this.procesosPaginados.forEach(proceso => {
         this.procesosSeleccionados.add(proceso.id);
       });
     }
   }
 
+  get todosPaginadosSeleccionados(): boolean {
+    return this.procesosPaginados.length > 0 && 
+           this.procesosPaginados.every(proceso => this.procesosSeleccionados.has(proceso.id));
+  }
+
+  get algunosPaginadosSeleccionados(): boolean {
+    return this.procesosPaginados.some(proceso => this.procesosSeleccionados.has(proceso.id)) &&
+           !this.todosPaginadosSeleccionados;
+  }
+
   estaSeleccionado(id: number): boolean {
     return this.procesosSeleccionados.has(id);
-  }
-
-  get todosSeleccionados(): boolean {
-    return this.procesos.length > 0 && 
-           this.procesos.every(proceso => this.procesosSeleccionados.has(proceso.id));
-  }
-
-  get algunosSeleccionados(): boolean {
-    return this.procesos.some(proceso => this.procesosSeleccionados.has(proceso.id)) &&
-           !this.todosSeleccionados;
   }
 
   iniciarEliminarSeleccionados(): void {
@@ -136,6 +170,7 @@ export class ConfiguracionProcesosComponent implements OnInit {
       // Eliminar localmente (esto se reemplazará con actualización desde backend)
       this.procesos = this.procesos.filter(p => !this.procesosSeleccionados.has(p.id));
       this.procesosSeleccionados.clear();
+      this.recalcularPaginacion();
       this.mostrarConfirmacionEliminar = false;
       
       console.log('Procesos eliminados exitosamente:', idsAEliminar);

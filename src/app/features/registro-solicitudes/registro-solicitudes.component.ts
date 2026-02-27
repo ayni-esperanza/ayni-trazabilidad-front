@@ -38,7 +38,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Paginación
   paginacionConfig: PaginacionConfig = {
     paginaActual: 0,
-    porPagina: 10,
+    porPagina: 100,
     totalElementos: 0,
     totalPaginas: 0
   };

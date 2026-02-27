@@ -29,7 +29,7 @@ export class PaginacionComponent {
     totalPaginas: 0
   };
   
-  @Input() opcionesPorPagina: number[] = [100, 200, 500, 1000];
+  @Input() opcionesPorPagina: number[] = [100, 500, 1000];
   @Input() mostrarInfo = true;
   @Input() mostrarSelector = true;
   @Input() mostrarNavegacion = true;
