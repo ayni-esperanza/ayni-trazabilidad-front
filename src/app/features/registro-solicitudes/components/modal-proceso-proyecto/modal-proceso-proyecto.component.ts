@@ -111,6 +111,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.proyectoSeleccionadoId = this.proyecto.id;
       this.proyectoFinalizado = this.proyecto.estado === 'Completado';
       this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
+      // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
+      this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
       this.generarEtapas();
     }
   }

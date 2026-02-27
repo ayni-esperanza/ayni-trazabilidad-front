@@ -98,9 +98,9 @@
               }">{{ proyecto?.estado }}</span>
             </p>
             <p><span class="font-medium">Duración:</span> {{ proyecto ? formatDisplayDate(proyecto.fechaInicio) : '' }} - {{ proyecto ? formatDisplayDate(proyecto.fechaFinalizacion) : '' }}</p>
-            <div class="pt-1">
-              <p class="font-medium">Descripción:</p>
-              <div class="text-gray-500 dark:text-gray-400 prose prose-sm dark:prose-invert max-w-none" [innerHTML]="proyecto?.descripcion"></div>
+            <div class="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
+              <p class="font-medium mb-2">Descripción:</p>
+              <div class="text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg" [innerHTML]="proyecto?.descripcion"></div>
             </div>
             <!-- Motivo de Cancelación -->
             <div *ngIf="proyecto?.motivoCancelacion" class="pt-3 mt-3 border-t border-red-200 dark:border-red-800">
