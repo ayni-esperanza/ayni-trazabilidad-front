@@ -13,13 +13,26 @@ import {
   EstadoProyecto
 } from './models/tablero.model';
 
+// Importar componentes hijos
+import { MetricasCardComponent } from './components/metricas-card/metricas-card.component';
+import { GraficosCardComponent } from './components/graficos-card/graficos-card.component';
+import { ProyectosTablaCardComponent } from './components/proyectos-tabla-card/proyectos-tabla-card.component';
+import { EncargadosTablaCardComponent } from './components/encargados-tabla-card/encargados-tabla-card.component';
+
 // Registrar locale español
 registerLocaleData(localeEs);
 
 @Component({
   selector: 'app-tablero-control',
   standalone: true,
-  imports: [CommonModule, NgxChartsModule],
+  imports: [
+    CommonModule, 
+    NgxChartsModule,
+    MetricasCardComponent,
+    GraficosCardComponent,
+    ProyectosTablaCardComponent,
+    EncargadosTablaCardComponent
+  ],
   templateUrl: './tablero-control.component.html',
   styleUrls: ['./tablero-control.component.css']
 })

@@ -1,0 +1,80 @@
+<!-- Tabla Proyectos en Curso -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden"
+  [ngClass]="{
+    'flex flex-col flex-1 min-h-0': tablaVisible,
+    'h-12 flex-shrink-0': !tablaVisible
+  }">
+  <div class="flex justify-between items-center flex-shrink-0" [class.mb-2]="tablaVisible">
+    <div class="flex items-center gap-2 min-w-0 flex-1">
+      <button (click)="onToggleTabla()" 
+        class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0"
+        [class.rotate-180]="!tablaVisible"
+        title="{{ tablaVisible ? 'Ocultar tabla' : 'Mostrar tabla' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <h3 class="text-sm font-semibold text-gray-800 dark:text-white truncate">
+        {{ tituloTabla }}
+      </h3>
+      @if (mesSeleccionado && tablaVisible) {
+        <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
+          {{ mesSeleccionado }}
+        </span>
+      }
+    </div>
+    <div class="flex items-center gap-2">
+      @if ((mesSeleccionado || proyectoSeleccionado) && tablaVisible) {
+        <button (click)="onLimpiarFiltros()" class="text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
+          Limpiar filtros
+        </button>
+      }
+    </div>
+  </div>
+  @if (tablaVisible) {
+    <div class="flex-1 overflow-auto">
+    <table class="w-full text-xs">
+      <thead class="sticky top-0 bg-white dark:bg-gray-800">
+        <tr class="border-b border-gray-200 dark:border-gray-700">
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
+          @if (metricaSeleccionada === 'gastos') {
+            <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Gasto Total</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (proyecto of proyectosFiltrados; track proyecto.id) {
+          <tr (click)="onSelectProyecto(proyecto)" 
+              class="border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors"
+              [ngClass]="{'bg-green-50 dark:bg-green-900/20': proyectoSeleccionado?.id === proyecto.id, 'hover:bg-gray-50 dark:hover:bg-gray-700/50': proyectoSeleccionado?.id !== proyecto.id}">
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.etapa }}</td>
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
+            <td class="py-1.5 px-1">
+              <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoClass(proyecto.estado)">
+                {{ proyecto.estado }}
+              </span>
+            </td>
+            @if (metricaSeleccionada === 'gastos') {
+              <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300 font-medium">
+                S/. {{ proyecto.gastoTotal?.toLocaleString('es-PE') || '0.00' }}
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 6 : 5" class="py-4 text-center text-gray-500 dark:text-gray-400">
+              No hay proyectos para el mes seleccionado
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+  }
+</div>

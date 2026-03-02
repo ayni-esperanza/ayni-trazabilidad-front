@@ -1,0 +1,41 @@
+/* Estilos específicos para la tabla de encargados - Tailwind maneja la mayoría */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Animación suave para el indicador del timeline */
+.timeline-indicator {
+  transition: all 0.3s ease-in-out;
+}
+
+.timeline-indicator:hover {
+  transform: scale(1.2);
+}
+
+/* Animación de aparición para los items del timeline */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timeline-item {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+/* Mejora visual para la línea del timeline en dark mode */
+.timeline-line {
+  background: linear-gradient(to bottom, #d1d5db, #9ca3af);
+}
+
+.dark .timeline-line {
+  background: linear-gradient(to bottom, #4b5563, #374151);
+}

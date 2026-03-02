@@ -1,0 +1,52 @@
+<!-- Métricas -->
+<div class="grid grid-cols-2 gap-3 flex-shrink-0">
+  
+  <!-- Proyectos Finalizados -->
+  <div 
+    (click)="seleccionarMetrica('finalizados')"
+    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 cursor-pointer transition-all hover:shadow-md"
+    [class.border-red-500]="metricaSeleccionada === 'finalizados'"
+    [class.border-red-200]="metricaSeleccionada !== 'finalizados'"
+    [class.ring-2]="metricaSeleccionada === 'finalizados'"
+    [class.ring-red-200]="metricaSeleccionada === 'finalizados'">
+    <span class="text-[10px] text-gray-400 uppercase tracking-wide">Histórico</span>
+    <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Proyectos Finalizados</h3>
+    <p class="text-4xl font-bold text-gray-800 dark:text-white mt-1">{{ proyectosFinalizados }}</p>
+  </div>
+  
+  <!-- Gastos -->
+  <div 
+    (click)="seleccionarMetrica('gastos')"
+    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 row-span-2 cursor-pointer transition-all hover:shadow-md"
+    [class.border-l-4]="metricaSeleccionada === 'gastos'"
+    [class.border-blue-500]="metricaSeleccionada === 'gastos'"
+    [class.ring-2]="metricaSeleccionada === 'gastos'"
+    [class.ring-blue-200]="metricaSeleccionada === 'gastos'">
+    <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Gastos</h3>
+    <p class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatearMoneda(gastosMes) }}</p>
+    <span class="text-[10px] text-gray-400">Este mes</span>
+    <div class="mt-2 space-y-1">
+      <div>
+        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosHoy) }}</p>
+        <span class="text-[10px] text-gray-400">Hoy</span>
+      </div>
+      <div>
+        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosAyer) }}</p>
+        <span class="text-[10px] text-gray-400">Ayer</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Proyectos Activos -->
+  <div 
+    (click)="seleccionarMetrica('activos')"
+    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 cursor-pointer transition-all hover:shadow-md"
+    [class.border-green-500]="metricaSeleccionada === 'activos'"
+    [class.border-green-200]="metricaSeleccionada !== 'activos'"
+    [class.ring-2]="metricaSeleccionada === 'activos'"
+    [class.ring-green-200]="metricaSeleccionada === 'activos'">
+    <span class="text-[10px] text-gray-400 uppercase tracking-wide">Este Mes</span>
+    <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Proyectos Activos</h3>
+    <p class="text-4xl font-bold text-gray-800 dark:text-white mt-1">{{ proyectosActivos }}</p>
+  </div>
+</div>

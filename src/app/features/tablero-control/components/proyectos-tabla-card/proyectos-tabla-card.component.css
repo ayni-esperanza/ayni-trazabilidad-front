@@ -1,0 +1,7 @@
+/* Estilos específicos para la tabla de proyectos - Tailwind maneja la mayoría */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
