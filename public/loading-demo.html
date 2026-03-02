@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AYNI - Loading Animation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #333;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+    }
+
+    .demo-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3rem;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .demo-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .demo-item label {
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ============================================ */
+    /* LOADING COMPONENT STYLES */
+    /* ============================================ */
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    /* Tamaños */
+    .size-sm .logo-wrapper { width: 100px; }
+    .size-md .logo-wrapper { width: 180px; }
+    .size-lg .logo-wrapper { width: 280px; }
+
+    /* Logo wrapper */
+    .logo-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-svg {
+      width: 100%;
+      height: auto;
+    }
+
+    /* Animación secuencial de letras */
+    .logo-a {
+      animation: fadeInScale 0.8s ease-out 0s both;
+    }
+
+    .logo-y {
+      animation: fadeInScale 0.8s ease-out 0.8s both;
+    }
+
+    .logo-n {
+      animation: fadeInScale 0.8s ease-out 1.6s both;
+    }
+
+    .logo-i {
+      animation: fadeInScale 0.8s ease-out 2.4s both;
+    }
+
+    .logo-frame {
+      animation: fadeInScale 0.8s ease-out 3.2s both;
+    }
+
+    @keyframes fadeInScale {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Repetir animación infinitamente */
+    .loading-container .logo-svg path {
+      animation-iteration-count: infinite;
+      animation-duration: 4s;
+    }
+
+    .loading-container .logo-a {
+      animation: sequentialAppear 4s ease-in-out infinite;
+      animation-delay: 0s;
+    }
+
+    .loading-container .logo-y {
+      animation: sequentialAppear 4s ease-in-out infinite;
+      animation-delay: 0.6s;
+    }
+
+    .loading-container .logo-n {
+      animation: sequentialAppear 4s ease-in-out infinite;
+      animation-delay: 1.2s;
+    }
+
+    .loading-container .logo-i {
+      animation: sequentialAppear 4s ease-in-out infinite;
+      animation-delay: 1.8s;
+    }
+
+    .loading-container .logo-frame {
+      animation: sequentialAppear 4s ease-in-out infinite;
+      animation-delay: 2.4s;
+    }
+
+    @keyframes sequentialAppear {
+      0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(20px);
+      }
+      7.5% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      80% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.3) translateY(20px);
+      }
+    }
+
+    /* Efecto de brillo que pasa por encima */
+    .shine-effect {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 100%
+      );
+      animation: shine 2s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0% { left: -100%; }
+      50%, 100% { left: 100%; }
+    }
+
+    /* Texto de carga */
+    .loading-text {
+      color: #009D45;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      animation: textPulse 1.5s ease-in-out infinite;
+      margin: 0;
+    }
+
+    @keyframes textPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Puntos animados */
+    .loading-text::after {
+      content: '';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+      100% { content: ''; }
+    }
+
+    /* Tamaños de texto */
+    .size-sm .loading-text { font-size: 0.75rem; }
+    .size-md .loading-text { font-size: 0.875rem; }
+    .size-lg .loading-text { font-size: 1rem; }
+
+    /* ============================================ */
+    /* VARIANTE OSCURA */
+    /* ============================================ */
+
+    .dark-bg {
+      background: #1a1a2e;
+      padding: 2rem 3rem;
+      border-radius: 1rem;
+    }
+
+    .dark-bg .loading-text {
+      color: #00d65b;
+    }
+
+    /* ============================================ */
+    /* VARIANTE SPINNER 3D */
+    /* ============================================ */
+
+    .spinner-variant .logo-svg {
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    .spinner-variant .shine-effect {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>AYNI Loading Animation</h1>
+
+  <div class="demo-section">
+    <!-- Tamaño pequeño -->
+    <div class="demo-item">
+      <label>Pequeño</label>
+      <div class="loading-container size-sm">
+        <div class="logo-wrapper">
+          <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 169">
+            <path class="logo-path" d="M 1.994 0.750 C 1.991 0.887, 1.986 38.579, 1.983 84.508 L 1.977 168.016 125.238 168.017 L 248.500 168.017 248.772 149.009 L 249.043 130 241.522 130 L 234 130 234 142 L 234 154 125 154 L 16 154 16 84.500 L 16 15 125 15 L 234 15 234 27 L 234 39 241.522 39 L 249.043 39 248.772 19.991 L 248.500 0.983 125.250 0.741 C 57.462 0.609, 1.997 0.613, 1.994 0.750 M 51.458 56.447 C 49.655 60.762, 30 114.885, 30 115.535 C 30 115.791, 33.518 116, 37.817 116 L 45.635 116 47.430 110.250 C 48.417 107.088, 49.679 103.938, 50.235 103.250 L 51.245 102 61 102 L 70.755 102 71.757 103.250 C 72.308 103.938, 73.500 107.088, 74.407 110.250 L 76.056 116 84.028 116 C 88.413 116, 91.987 115.662, 91.970 115.250 C 91.954 114.838, 87.041 100.775, 81.053 84 L 70.165 53.500 61.548 53.211 L 52.931 52.921 51.458 56.447 M 92 53.619 C 92 54.005, 96.275 62.606, 101.500 72.732 L 111 91.142 111 103.571 L 111 116 118 116 L 125 116 125 103.895 L 125 91.791 134.500 72.949 C 139.725 62.585, 144 53.857, 144 53.553 C 144 53.249, 140.618 53, 136.484 53 L 128.968 53 127.518 56.250 C 126.720 58.038, 124.291 63.769, 122.121 68.987 L 118.174 78.475 116.562 74.487 C 115.676 72.294, 113.260 66.675, 111.193 62 L 107.435 53.500 99.718 53.208 C 95.473 53.047, 92 53.232, 92 53.619 M 158 84.500 L 158 116 165 116 L 172 116 172.052 94.750 L 172.105 73.500 173.802 75.860 C 174.736 77.158, 180.973 86.608, 187.661 96.860 L 199.822 115.500 207.411 115.792 L 215 116.084 215 84.496 L 215 52.909 208.250 53.204 L 201.500 53.500 201.500 73.751 C 201.500 84.889, 201.275 93.983, 201 93.959 C 200.725 93.936, 197.976 89.998, 194.892 85.208 C 191.807 80.419, 185.857 71.213, 181.669 64.750 L 174.055 53 166.027 53 L 158 53 158 84.500 M 229.200 58.750 L 229.500 64.500 231.500 64.500 L 233.500 64.500 233.771 84.750 L 234.041 105 231.521 105 L 229 105 229 110.500 L 229 116 241.500 116 L 254 116 254 110.500 L 254 105 251.479 105 L 248.959 105 249.229 84.750 L 249.500 64.500 251.500 64.500 L 253.500 64.500 253.800 58.750 L 254.100 53 241.500 53 L 228.900 53 229.200 58.750 M 56.778 78.750 L 53.253 90.500 60.247 90.796 C 64.094 90.959, 67.447 90.887, 67.698 90.635 C 68.300 90.033, 61.678 67.010, 60.901 67.004 C 60.572 67.002, 58.717 72.287, 56.778 78.750" stroke="none" fill="#009D45" fill-rule="evenodd"/>
+          </svg>
+          <div class="shine-effect"></div>
+        </div>
+        <p class="loading-text">Cargando</p>
+      </div>
+    </div>
+
+    <!-- Tamaño mediano -->
+    <div class="demo-item">
+      <label>Mediano</label>
+      <div class="loading-container size-md">
+        <div class="logo-wrapper">
+          <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 169">
+            <path class="logo-a" d="M 52 53.246 C 52 53.422, 46.882 67.614, 40.627 84.783 L 29.253 116 37.590 116 L 45.927 116 47.844 109.750 L 49.761 103.500 60.843 103.218 L 71.925 102.935 73.478 108.218 C 74.332 111.123, 75.399 114.082, 75.851 114.793 L 76.671 116.086 84.630 115.793 L 92.588 115.500 87.762 102 C 85.107 94.575, 81.868 85.575, 80.562 82 C 79.257 78.425, 76.451 70.550, 74.327 64.500 L 70.465 53.500 61.232 53.212 C 56.155 53.054, 52 53.069, 52 53.246 M 59.467 70.178 C 59.069 72.005, 57.959 75.975, 57 79 C 56.041 82.025, 54.938 85.963, 54.549 87.750 L 53.841 91 60.921 91 C 64.814 91, 67.989 90.662, 67.976 90.250 C 67.929 88.793, 61.402 68.068, 60.800 67.467 C 60.465 67.132, 59.865 68.352, 59.467 70.178" fill="#009D45" fill-rule="evenodd"/>
+            <path class="logo-y" d="M 92 53.661 C 92 54.024, 96.275 62.606, 101.500 72.732 L 111 91.142 111 103.571 L 111 116 118 116 L 125 116 125.043 103.750 L 125.086 91.500 134.865 72.212 L 144.643 52.925 136.677 53.212 L 128.711 53.500 127.876 55 C 127.417 55.825, 125.141 61.112, 122.818 66.750 C 120.495 72.388, 118.236 77, 117.797 77 C 117.359 77, 117 76.525, 117 75.945 C 117 75.365, 116.067 72.777, 114.928 70.195 C 112.037 63.645, 110.505 60.025, 109.029 56.250 L 107.757 53 99.879 53 C 95.545 53, 92 53.297, 92 53.661" fill="#009D45"/>
+            <path class="logo-n" d="M 158 84.500 L 158 116 164.980 116 L 171.960 116 172.230 94.969 L 172.500 73.939 186.030 94.719 L 199.560 115.500 207.280 115.792 L 215 116.084 215 84.542 L 215 53 208 53 L 201 53 201 73.610 L 201 94.219 189.351 76.360 C 182.944 66.537, 176.982 57.265, 176.101 55.756 L 174.500 53.013 166.250 53.006 L 158 53 158 84.500" fill="#009D45"/>
+            <path class="logo-i" d="M 229 59 L 229 65 231.500 65 L 234 65 234 85 L 234 105 231.500 105 L 229 105 229 110.500 L 229 116 241.500 116 L 254 116 254 110.500 L 254 105 251.500 105 L 249 105 249 85 L 249 65 251.500 65 L 254 65 254 59 L 254 53 241.500 53 L 229 53 229 59" fill="#009D45"/>
+            <g class="logo-frame">
+              <rect x="0" y="0" width="9" height="169" fill="#009D45"/>
+              <rect x="0" y="0" width="249" height="8" fill="#009D45"/>
+              <rect x="0" y="161" width="249" height="8" fill="#009D45"/>
+              <rect x="9" y="8" width="7" height="153" fill="#009D45"/>
+              <rect x="9" y="8" width="225" height="7" fill="#009D45"/>
+              <rect x="9" y="154" width="225" height="7" fill="#009D45"/>
+              <rect x="234" y="8" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="154" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="39" width="7" height="91" fill="#009D45"/>
+              <rect x="241" y="39" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="123" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="46" width="7" height="77" fill="#009D45"/>
+              <rect x="249" y="0" width="10" height="39" fill="#009D45"/>
+              <rect x="249" y="130" width="10" height="39" fill="#009D45"/>
+            </g>
+          </svg>
+          <div class="shine-effect"></div>
+        </div>
+        <p class="loading-text">Cargando</p>
+      </div>
+    </div>
+
+    <!-- Tamaño grande -->
+    <div class="demo-item">
+      <label>Grande</label>
+      <div class="loading-container size-lg">
+        <div class="logo-wrapper">
+          <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 169">
+            <path class="logo-a" d="M 52 53.246 C 52 53.422, 46.882 67.614, 40.627 84.783 L 29.253 116 37.590 116 L 45.927 116 47.844 109.750 L 49.761 103.500 60.843 103.218 L 71.925 102.935 73.478 108.218 C 74.332 111.123, 75.399 114.082, 75.851 114.793 L 76.671 116.086 84.630 115.793 L 92.588 115.500 87.762 102 C 85.107 94.575, 81.868 85.575, 80.562 82 C 79.257 78.425, 76.451 70.550, 74.327 64.500 L 70.465 53.500 61.232 53.212 C 56.155 53.054, 52 53.069, 52 53.246 M 59.467 70.178 C 59.069 72.005, 57.959 75.975, 57 79 C 56.041 82.025, 54.938 85.963, 54.549 87.750 L 53.841 91 60.921 91 C 64.814 91, 67.989 90.662, 67.976 90.250 C 67.929 88.793, 61.402 68.068, 60.800 67.467 C 60.465 67.132, 59.865 68.352, 59.467 70.178" fill="#009D45" fill-rule="evenodd"/>
+            <path class="logo-y" d="M 92 53.661 C 92 54.024, 96.275 62.606, 101.500 72.732 L 111 91.142 111 103.571 L 111 116 118 116 L 125 116 125.043 103.750 L 125.086 91.500 134.865 72.212 L 144.643 52.925 136.677 53.212 L 128.711 53.500 127.876 55 C 127.417 55.825, 125.141 61.112, 122.818 66.750 C 120.495 72.388, 118.236 77, 117.797 77 C 117.359 77, 117 76.525, 117 75.945 C 117 75.365, 116.067 72.777, 114.928 70.195 C 112.037 63.645, 110.505 60.025, 109.029 56.250 L 107.757 53 99.879 53 C 95.545 53, 92 53.297, 92 53.661" fill="#009D45"/>
+            <path class="logo-n" d="M 158 84.500 L 158 116 164.980 116 L 171.960 116 172.230 94.969 L 172.500 73.939 186.030 94.719 L 199.560 115.500 207.280 115.792 L 215 116.084 215 84.542 L 215 53 208 53 L 201 53 201 73.610 L 201 94.219 189.351 76.360 C 182.944 66.537, 176.982 57.265, 176.101 55.756 L 174.500 53.013 166.250 53.006 L 158 53 158 84.500" fill="#009D45"/>
+            <path class="logo-i" d="M 229 59 L 229 65 231.500 65 L 234 65 234 85 L 234 105 231.500 105 L 229 105 229 110.500 L 229 116 241.500 116 L 254 116 254 110.500 L 254 105 251.500 105 L 249 105 249 85 L 249 65 251.500 65 L 254 65 254 59 L 254 53 241.500 53 L 229 53 229 59" fill="#009D45"/>
+            <g class="logo-frame">
+              <rect x="0" y="0" width="9" height="169" fill="#009D45"/>
+              <rect x="0" y="0" width="249" height="8" fill="#009D45"/>
+              <rect x="0" y="161" width="249" height="8" fill="#009D45"/>
+              <rect x="9" y="8" width="7" height="153" fill="#009D45"/>
+              <rect x="9" y="8" width="225" height="7" fill="#009D45"/>
+              <rect x="9" y="154" width="225" height="7" fill="#009D45"/>
+              <rect x="234" y="8" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="154" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="39" width="7" height="91" fill="#009D45"/>
+              <rect x="241" y="39" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="123" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="46" width="7" height="77" fill="#009D45"/>
+              <rect x="249" y="0" width="10" height="39" fill="#009D45"/>
+              <rect x="249" y="130" width="10" height="39" fill="#009D45"/>
+            </g>
+          </svg>
+          <div class="shine-effect"></div>
+        </div>
+        <p class="loading-text">Cargando</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variante oscura -->
+  <div class="demo-item">
+    <label>Tema Oscuro</label>
+    <div class="dark-bg">
+      <div class="loading-container size-md">
+        <div class="logo-wrapper">
+          <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 169">
+            <path class="logo-a" d="M 52 53.246 C 52 53.422, 46.882 67.614, 40.627 84.783 L 29.253 116 37.590 116 L 45.927 116 47.844 109.750 L 49.761 103.500 60.843 103.218 L 71.925 102.935 73.478 108.218 C 74.332 111.123, 75.399 114.082, 75.851 114.793 L 76.671 116.086 84.630 115.793 L 92.588 115.500 87.762 102 C 85.107 94.575, 81.868 85.575, 80.562 82 C 79.257 78.425, 76.451 70.550, 74.327 64.500 L 70.465 53.500 61.232 53.212 C 56.155 53.054, 52 53.069, 52 53.246 M 59.467 70.178 C 59.069 72.005, 57.959 75.975, 57 79 C 56.041 82.025, 54.938 85.963, 54.549 87.750 L 53.841 91 60.921 91 C 64.814 91, 67.989 90.662, 67.976 90.250 C 67.929 88.793, 61.402 68.068, 60.800 67.467 C 60.465 67.132, 59.865 68.352, 59.467 70.178" fill="#009D45" fill-rule="evenodd"/>
+            <path class="logo-y" d="M 92 53.661 C 92 54.024, 96.275 62.606, 101.500 72.732 L 111 91.142 111 103.571 L 111 116 118 116 L 125 116 125.043 103.750 L 125.086 91.500 134.865 72.212 L 144.643 52.925 136.677 53.212 L 128.711 53.500 127.876 55 C 127.417 55.825, 125.141 61.112, 122.818 66.750 C 120.495 72.388, 118.236 77, 117.797 77 C 117.359 77, 117 76.525, 117 75.945 C 117 75.365, 116.067 72.777, 114.928 70.195 C 112.037 63.645, 110.505 60.025, 109.029 56.250 L 107.757 53 99.879 53 C 95.545 53, 92 53.297, 92 53.661" fill="#009D45"/>
+            <path class="logo-n" d="M 158 84.500 L 158 116 164.980 116 L 171.960 116 172.230 94.969 L 172.500 73.939 186.030 94.719 L 199.560 115.500 207.280 115.792 L 215 116.084 215 84.542 L 215 53 208 53 L 201 53 201 73.610 L 201 94.219 189.351 76.360 C 182.944 66.537, 176.982 57.265, 176.101 55.756 L 174.500 53.013 166.250 53.006 L 158 53 158 84.500" fill="#009D45"/>
+            <path class="logo-i" d="M 229 59 L 229 65 231.500 65 L 234 65 234 85 L 234 105 231.500 105 L 229 105 229 110.500 L 229 116 241.500 116 L 254 116 254 110.500 L 254 105 251.500 105 L 249 105 249 85 L 249 65 251.500 65 L 254 65 254 59 L 254 53 241.500 53 L 229 53 229 59" fill="#009D45"/>
+            <g class="logo-frame">
+              <rect x="0" y="0" width="9" height="169" fill="#009D45"/>
+              <rect x="0" y="0" width="249" height="8" fill="#009D45"/>
+              <rect x="0" y="161" width="249" height="8" fill="#009D45"/>
+              <rect x="9" y="8" width="7" height="153" fill="#009D45"/>
+              <rect x="9" y="8" width="225" height="7" fill="#009D45"/>
+              <rect x="9" y="154" width="225" height="7" fill="#009D45"/>
+              <rect x="234" y="8" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="154" width="7" height="7" fill="#009D45"/>
+              <rect x="234" y="39" width="7" height="91" fill="#009D45"/>
+              <rect x="241" y="39" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="123" width="8" height="7" fill="#009D45"/>
+              <rect x="241" y="46" width="7" height="77" fill="#009D45"/>
+              <rect x="249" y="0" width="10" height="39" fill="#009D45"/>
+              <rect x="249" y="130" width="10" height="39" fill="#009D45"/>
+            </g>
+          </svg>
+          <div class="shine-effect"></div>
+        </div>
+        <p class="loading-text">Cargando</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Variante spinner 3D -->
+  <div class="demo-item">
+    <label>Variante 3D</label>
+    <div class="loading-container size-md spinner-variant">
+      <div class="logo-wrapper">
+        <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 259 169">
+          <path class="logo-a" d="M 52 53.246 C 52 53.422, 46.882 67.614, 40.627 84.783 L 29.253 116 37.590 116 L 45.927 116 47.844 109.750 L 49.761 103.500 60.843 103.218 L 71.925 102.935 73.478 108.218 C 74.332 111.123, 75.399 114.082, 75.851 114.793 L 76.671 116.086 84.630 115.793 L 92.588 115.500 87.762 102 C 85.107 94.575, 81.868 85.575, 80.562 82 C 79.257 78.425, 76.451 70.550, 74.327 64.500 L 70.465 53.500 61.232 53.212 C 56.155 53.054, 52 53.069, 52 53.246 M 59.467 70.178 C 59.069 72.005, 57.959 75.975, 57 79 C 56.041 82.025, 54.938 85.963, 54.549 87.750 L 53.841 91 60.921 91 C 64.814 91, 67.989 90.662, 67.976 90.250 C 67.929 88.793, 61.402 68.068, 60.800 67.467 C 60.465 67.132, 59.865 68.352, 59.467 70.178" fill="#009D45" fill-rule="evenodd"/>
+          <path class="logo-y" d="M 92 53.661 C 92 54.024, 96.275 62.606, 101.500 72.732 L 111 91.142 111 103.571 L 111 116 118 116 L 125 116 125.043 103.750 L 125.086 91.500 134.865 72.212 L 144.643 52.925 136.677 53.212 L 128.711 53.500 127.876 55 C 127.417 55.825, 125.141 61.112, 122.818 66.750 C 120.495 72.388, 118.236 77, 117.797 77 C 117.359 77, 117 76.525, 117 75.945 C 117 75.365, 116.067 72.777, 114.928 70.195 C 112.037 63.645, 110.505 60.025, 109.029 56.250 L 107.757 53 99.879 53 C 95.545 53, 92 53.297, 92 53.661" fill="#009D45"/>
+          <path class="logo-n" d="M 158 84.500 L 158 116 164.980 116 L 171.960 116 172.230 94.969 L 172.500 73.939 186.030 94.719 L 199.560 115.500 207.280 115.792 L 215 116.084 215 84.542 L 215 53 208 53 L 201 53 201 73.610 L 201 94.219 189.351 76.360 C 182.944 66.537, 176.982 57.265, 176.101 55.756 L 174.500 53.013 166.250 53.006 L 158 53 158 84.500" fill="#009D45"/>
+          <path class="logo-i" d="M 229 59 L 229 65 231.500 65 L 234 65 234 85 L 234 105 231.500 105 L 229 105 229 110.500 L 229 116 241.500 116 L 254 116 254 110.500 L 254 105 251.500 105 L 249 105 249 85 L 249 65 251.500 65 L 254 65 254 59 L 254 53 241.500 53 L 229 53 229 59" fill="#009D45"/>
+          <g class="logo-frame">
+            <rect x="0" y="0" width="9" height="169" fill="#009D45"/>
+            <rect x="0" y="0" width="249" height="8" fill="#009D45"/>
+            <rect x="0" y="161" width="249" height="8" fill="#009D45"/>
+            <rect x="9" y="8" width="7" height="153" fill="#009D45"/>
+            <rect x="9" y="8" width="225" height="7" fill="#009D45"/>
+            <rect x="9" y="154" width="225" height="7" fill="#009D45"/>
+            <rect x="234" y="8" width="7" height="7" fill="#009D45"/>
+            <rect x="234" y="154" width="7" height="7" fill="#009D45"/>
+            <rect x="234" y="39" width="7" height="91" fill="#009D45"/>
+            <rect x="241" y="39" width="8" height="7" fill="#009D45"/>
+            <rect x="241" y="123" width="8" height="7" fill="#009D45"/>
+            <rect x="241" y="46" width="7" height="77" fill="#009D45"/>
+            <rect x="249" y="0" width="10" height="39" fill="#009D45"/>
+            <rect x="249" y="130" width="10" height="39" fill="#009D45"/>
+          </g>
+        </svg>
+        <div class="shine-effect"></div>
+      </div>
+      <p class="loading-text">Procesando</p>
+    </div>
+  </div>
+</body>
+</html>

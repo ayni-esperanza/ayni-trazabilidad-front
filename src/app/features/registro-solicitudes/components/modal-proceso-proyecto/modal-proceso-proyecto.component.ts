@@ -11,8 +11,8 @@ export interface MaterialCosto {
   fecha: string;
   nroComprobante: string;
   producto: string;
-  cantidad: number;
-  costoUnitario: number;
+  cantidad: number | null;
+  costoUnitario: number | null;
   costoTotal: number;
   encargado: string;
 }
@@ -21,8 +21,8 @@ export interface ManoObraCosto {
   id: number;
   trabajador: string;
   cargo: string;
-  diasTrabajando: number;
-  costoPorDia: number;
+  diasTrabajando: number | null;
+  costoPorDia: number | null;
   costoTotal: number;
 }
 
@@ -30,8 +30,8 @@ export interface OtroCosto {
   id: number;
   fecha: string;
   descripcion: string;
-  cantidad: number;
-  costoUnitario: number;
+  cantidad: number | null;
+  costoUnitario: number | null;
   costoTotal: number;
   encargado: string;
 }
@@ -341,8 +341,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       fecha: this.formatDate(new Date()),
       nroComprobante: '',
       producto: '',
-      cantidad: 0,
-      costoUnitario: 0,
+      cantidad: null,
+      costoUnitario: null,
       costoTotal: 0,
       encargado: ''
     });
@@ -353,7 +353,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   calcularCostoTotalMaterial(material: MaterialCosto): void {
-    material.costoTotal = material.cantidad * material.costoUnitario;
+    material.costoTotal = (material.cantidad || 0) * (material.costoUnitario || 0);
   }
 
   get totalMateriales(): number {
@@ -367,8 +367,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       id: nuevoId,
       trabajador: '',
       cargo: '',
-      diasTrabajando: 0,
-      costoPorDia: 0,
+      diasTrabajando: null,
+      costoPorDia: null,
       costoTotal: 0
     });
   }
@@ -378,7 +378,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   calcularCostoTotalManoObra(item: ManoObraCosto): void {
-    item.costoTotal = item.diasTrabajando * item.costoPorDia;
+    item.costoTotal = (item.diasTrabajando || 0) * (item.costoPorDia || 0);
   }
 
   get totalManoObra(): number {
@@ -408,8 +408,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       id: nuevoId,
       fecha: this.formatDate(new Date()),
       descripcion: '',
-      cantidad: 0,
-      costoUnitario: 0,
+      cantidad: null,
+      costoUnitario: null,
       costoTotal: 0,
       encargado: ''
     });
@@ -420,7 +420,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   calcularCostoTotalOtro(item: OtroCosto): void {
-    item.costoTotal = item.cantidad * item.costoUnitario;
+    item.costoTotal = (item.cantidad || 0) * (item.costoUnitario || 0);
   }
 
   getTotalTablaExtra(tabla: TablaCostoExtra): number {
