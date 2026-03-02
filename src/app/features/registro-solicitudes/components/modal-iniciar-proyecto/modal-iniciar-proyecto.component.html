@@ -23,7 +23,7 @@
           <span *ngIf="tieneError('nombreProyecto')" class="text-xs text-red-500 mt-0.5 block">{{ errores['nombreProyecto'] }}</span>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente *</label>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa *</label>
           <input type="text" [(ngModel)]="proyecto.cliente"
             [class.border-red-500]="tieneError('cliente')"
             [class.ring-red-500]="tieneError('cliente')"
@@ -31,9 +31,22 @@
           <span *ngIf="tieneError('cliente')" class="text-xs text-red-500 mt-0.5 block">{{ errores['cliente'] }}</span>
         </div>
         <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Representante</label>
+          <input type="text" [(ngModel)]="proyecto.representante"
+            [class.border-red-500]="tieneError('representante')"
+            [class.ring-red-500]="tieneError('representante')"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <span *ngIf="tieneError('representante')" class="text-xs text-red-500 mt-0.5 block">{{ errores['representante'] }}</span>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Orden de Compra</label>
+          <input type="text" [(ngModel)]="proyecto.ordenCompra"
+            placeholder="Ej: OC-2026-001"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+        </div>
+        <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Costo *</label>
           <input type="number" [(ngModel)]="proyecto.costo"
-            placeholder="0"
             (focus)="proyecto.costo === 0 ? proyecto.costo = undefined : undefined"
             [class.border-red-500]="tieneError('costo')"
             [class.ring-red-500]="tieneError('costo')"
@@ -41,10 +54,15 @@
           <span *ngIf="tieneError('costo')" class="text-xs text-red-500 mt-0.5 block">{{ errores['costo'] }}</span>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Orden de Compra</label>
-          <input type="text" [(ngModel)]="proyecto.ordenCompra"
-            placeholder="Ej: OC-2026-001"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso *</label>
+          <select [(ngModel)]="proyecto.procesoId"
+            [class.border-red-500]="tieneError('procesoId')"
+            [class.ring-red-500]="tieneError('procesoId')"
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
+            <option value="0">Seleccionar Proceso</option>
+            <option *ngFor="let proc of procesos" [value]="proc.id">{{ proc.nombre }}</option>
+          </select>
+          <span *ngIf="tieneError('procesoId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['procesoId'] }}</span>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable *</label>
@@ -73,17 +91,6 @@
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
           <span *ngIf="tieneError('fechaFinalizacion')" class="text-xs text-red-500 mt-0.5 block">{{ errores['fechaFinalizacion'] }}</span>
         </div>
-      </div>
-      <div class="mb-3">
-        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso *</label>
-        <select [(ngModel)]="proyecto.procesoId"
-          [class.border-red-500]="tieneError('procesoId')"
-          [class.ring-red-500]="tieneError('procesoId')"
-          class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-          <option value="0">Seleccionar Proceso</option>
-          <option *ngFor="let proc of procesos" [value]="proc.id">{{ proc.nombre }}</option>
-        </select>
-        <span *ngIf="tieneError('procesoId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['procesoId'] }}</span>
       </div>
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción *</label>

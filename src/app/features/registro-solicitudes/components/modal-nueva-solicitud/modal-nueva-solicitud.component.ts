@@ -21,7 +21,7 @@ export class ModalNuevaSolicitudComponent implements OnInit {
   solicitud: Partial<Solicitud> = {
     nombreProyecto: '',
     cliente: '',
-    costo: 0,
+    representante: '',
     responsableId: 0,
     descripcion: ''
   };
@@ -136,9 +136,6 @@ export class ModalNuevaSolicitudComponent implements OnInit {
     if (!this.solicitud.cliente?.trim()) {
       this.errores['cliente'] = 'El cliente es requerido';
     }
-    if (!this.solicitud.costo || this.solicitud.costo <= 0) {
-      this.errores['costo'] = 'El costo debe ser mayor a 0';
-    }
     if (!this.solicitud.responsableId || this.solicitud.responsableId === 0) {
       this.errores['responsableId'] = 'Debe seleccionar un responsable';
     }
@@ -157,7 +154,7 @@ export class ModalNuevaSolicitudComponent implements OnInit {
     this.solicitud = {
       nombreProyecto: '',
       cliente: '',
-      costo: 0,
+      representante: '',
       responsableId: 0,
       descripcion: ''
     };

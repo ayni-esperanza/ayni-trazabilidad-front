@@ -5,6 +5,7 @@ export interface Solicitud {
   id: number;
   nombreProyecto: string;
   cliente: string;
+  representante?: string;
   costo: number;
   responsableId: number;
   responsableNombre?: string;
@@ -20,6 +21,7 @@ export interface Proyecto {
   solicitudId: number;
   nombreProyecto: string;
   cliente: string;
+  representante?: string;
   costo: number;
   ordenCompra?: string;
   responsableId: number;
