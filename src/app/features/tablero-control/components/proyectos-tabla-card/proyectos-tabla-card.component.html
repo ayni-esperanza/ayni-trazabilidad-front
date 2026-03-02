@@ -29,7 +29,7 @@
         <select 
           [ngModel]="empresaSeleccionada" 
           (ngModelChange)="onEmpresaChange($event)"
-          class="text-[10px] px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 max-w-[160px] truncate">
+          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 max-w-[160px] truncate">
           <option [ngValue]="null">Todas las empresas</option>
           @for (empresa of empresas; track empresa) {
             <option [ngValue]="empresa">{{ empresa }}</option>
@@ -37,7 +37,7 @@
         </select>
       }
       @if ((mesSeleccionado || proyectoSeleccionado || empresaSeleccionada) && tablaVisible) {
-        <button (click)="onLimpiarFiltros()" class="text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
+        <button (click)="onLimpiarFiltros()" class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
           Limpiar filtros
         </button>
       }
