@@ -126,10 +126,28 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   gastosProyectos: GastoProyecto[] = [];
   gastosFiltrados: GastoProyecto[] = [];
   
+  /**
+   * Obtiene la lista de empresas únicas de los proyectos (filtrados por métrica actual)
+   */
+  get empresasDisponibles(): string[] {
+    let proyectos = [...this.proyectosEnCurso];
+    
+    // Filtrar por estado según la métrica seleccionada
+    if (this.metricaSeleccionada === 'finalizados') {
+      proyectos = proyectos.filter(p => p.estado === 'Completado');
+    } else if (this.metricaSeleccionada === 'activos') {
+      proyectos = proyectos.filter(p => p.estado === 'En Proceso' || p.estado === 'Pendiente');
+    }
+    
+    const empresasSet = new Set(proyectos.map(p => p.empresa).filter(Boolean));
+    return Array.from(empresasSet).sort();
+  }
+
   // Filtros de selección
   mesSeleccionado: string | null = null;
   proyectoSeleccionado: ProyectoEnCurso | null = null;
   categoriaSeleccionada: string | null = null;
+  empresaSeleccionada: string | null = null;
   
   // Control de visibilidad de tablas (compactables)
   tablaProyectosVisible = true;
@@ -171,6 +189,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Resetear filtros
     this.mesSeleccionado = null;
     this.proyectoSeleccionado = null;
+    this.empresaSeleccionada = null;
     
     // Cargar todos los datos en paralelo usando el resumen
     this.tableroService.obtenerResumenTablero()
@@ -263,9 +282,19 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.mesSeleccionado = null;
     this.proyectoSeleccionado = null;
     this.categoriaSeleccionada = null;
+    this.empresaSeleccionada = null;
     this.aplicarFiltros();
   }
   
+  /**
+   * Filtra los proyectos por empresa seleccionada
+   */
+  onEmpresaChange(empresa: string | null): void {
+    this.empresaSeleccionada = empresa;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
   /**
    * Toggle visibilidad de tabla de proyectos
    */
@@ -352,6 +381,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.mesSeleccionado = null;
     this.proyectoSeleccionado = null;
     this.categoriaSeleccionada = null;
+    this.empresaSeleccionada = null;
     this.aplicarFiltros();
   }
   
@@ -376,6 +406,11 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtrar por mes si está seleccionado
     if (this.mesSeleccionado) {
       proyectosFiltrados = proyectosFiltrados.filter(p => p.mes === this.mesSeleccionado);
+    }
+    
+    // Filtrar por empresa si está seleccionada
+    if (this.empresaSeleccionada) {
+      proyectosFiltrados = proyectosFiltrados.filter(p => p.empresa === this.empresaSeleccionada);
     }
     
     // Ordenar del más nuevo al más viejo

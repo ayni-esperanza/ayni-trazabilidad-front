@@ -5,6 +5,7 @@ export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado
 export interface ProyectoEnCurso {
   id: number;
   proyecto: string;
+  empresa: string;
   responsable: string;
   etapa: string;
   fechas: string;

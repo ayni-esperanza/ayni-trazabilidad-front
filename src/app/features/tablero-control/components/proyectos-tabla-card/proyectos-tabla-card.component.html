@@ -24,7 +24,19 @@
       }
     </div>
     <div class="flex items-center gap-2">
-      @if ((mesSeleccionado || proyectoSeleccionado) && tablaVisible) {
+      <!-- Filtro de empresa -->
+      @if (tablaVisible) {
+        <select 
+          [ngModel]="empresaSeleccionada" 
+          (ngModelChange)="onEmpresaChange($event)"
+          class="text-[10px] px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 max-w-[160px] truncate">
+          <option [ngValue]="null">Todas las empresas</option>
+          @for (empresa of empresas; track empresa) {
+            <option [ngValue]="empresa">{{ empresa }}</option>
+          }
+        </select>
+      }
+      @if ((mesSeleccionado || proyectoSeleccionado || empresaSeleccionada) && tablaVisible) {
         <button (click)="onLimpiarFiltros()" class="text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
           Limpiar filtros
         </button>
@@ -37,6 +49,7 @@
       <thead class="sticky top-0 bg-white dark:bg-gray-800">
         <tr class="border-b border-gray-200 dark:border-gray-700">
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Empresa</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
@@ -52,6 +65,7 @@
               class="border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors"
               [ngClass]="{'bg-green-50 dark:bg-green-900/20': proyectoSeleccionado?.id === proyecto.id, 'hover:bg-gray-50 dark:hover:bg-gray-700/50': proyectoSeleccionado?.id !== proyecto.id}">
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.empresa }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.etapa }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
@@ -68,7 +82,7 @@
           </tr>
         } @empty {
           <tr>
-            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 6 : 5" class="py-4 text-center text-gray-500 dark:text-gray-400">
+            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 7 : 6" class="py-4 text-center text-gray-500 dark:text-gray-400">
               No hay proyectos para el mes seleccionado
             </td>
           </tr>

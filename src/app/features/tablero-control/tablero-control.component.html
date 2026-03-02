@@ -43,13 +43,16 @@
     <!-- Componente Tabla de Proyectos -->
     <app-proyectos-tabla-card
       [proyectosFiltrados]="proyectosEnCursoFiltrados"
+      [empresas]="empresasDisponibles"
+      [empresaSeleccionada]="empresaSeleccionada"
       [metricaSeleccionada]="metricaSeleccionada"
       [mesSeleccionado]="mesSeleccionado"
       [proyectoSeleccionado]="proyectoSeleccionado"
       [tablaVisible]="tablaProyectosVisible"
       (toggleTabla)="toggleTablaProyectos()"
       (limpiarFiltros)="limpiarFiltros()"
-      (selectProyecto)="onSelectProyecto($event)">
+      (selectProyecto)="onSelectProyecto($event)"
+      (empresaSeleccionadaChange)="onEmpresaChange($event)">
     </app-proyectos-tabla-card>
     
     <!-- Componente Tabla de Encargados/Gastos -->

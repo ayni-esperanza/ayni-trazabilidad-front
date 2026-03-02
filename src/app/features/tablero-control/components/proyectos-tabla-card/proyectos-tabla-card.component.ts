@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ProyectoEnCurso, EstadoProyecto } from '../../models/tablero.model';
 
 @Component({
   selector: 'app-proyectos-tabla-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './proyectos-tabla-card.component.html',
   styleUrls: ['./proyectos-tabla-card.component.css']
 })
@@ -15,6 +16,8 @@ export class ProyectosTablaCardComponent {
   }
 
   @Input() proyectosFiltrados: ProyectoEnCurso[] = [];
+  @Input() empresas: string[] = [];
+  @Input() empresaSeleccionada: string | null = null;
   @Input() metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'finalizados';
   @Input() mesSeleccionado: string | null = null;
   @Input() proyectoSeleccionado: ProyectoEnCurso | null = null;
@@ -23,6 +26,7 @@ export class ProyectosTablaCardComponent {
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() limpiarFiltros = new EventEmitter<void>();
   @Output() selectProyecto = new EventEmitter<ProyectoEnCurso>();
+  @Output() empresaSeleccionadaChange = new EventEmitter<string | null>();
   
   onToggleTabla(): void {
     this.toggleTabla.emit();
@@ -30,6 +34,10 @@ export class ProyectosTablaCardComponent {
   
   onLimpiarFiltros(): void {
     this.limpiarFiltros.emit();
+  }
+  
+  onEmpresaChange(empresa: string | null): void {
+    this.empresaSeleccionadaChange.emit(empresa);
   }
   
   onSelectProyecto(proyecto: ProyectoEnCurso): void {
