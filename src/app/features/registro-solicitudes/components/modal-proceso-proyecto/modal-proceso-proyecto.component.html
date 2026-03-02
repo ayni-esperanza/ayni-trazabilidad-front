@@ -38,7 +38,7 @@
 
     <!-- Navegación Tabs -->
     <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-      <button (click)="tabActiva = 'proceso'" 
+      <button (click)="cambiarTab('proceso')" 
         class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'proceso',
@@ -49,7 +49,7 @@
         </svg>
         Proceso
       </button>
-      <button (click)="tabActiva = 'costos'" 
+      <button (click)="cambiarTab('costos')" 
         class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'costos',
@@ -98,6 +98,46 @@
               }">{{ proyecto?.estado }}</span>
             </p>
             <p><span class="font-medium">Duración:</span> {{ proyecto ? formatDisplayDate(proyecto.fechaInicio) : '' }} - {{ proyecto ? formatDisplayDate(proyecto.fechaFinalizacion) : '' }}</p>
+            
+            <!-- Información de Costos -->
+            <div class="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                  <p class="font-medium text-blue-800 dark:text-blue-200 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Presupuesto del Proyecto:
+                  </p>
+                  <p class="text-lg font-bold text-blue-600 dark:text-blue-300">
+                    <ng-container *ngIf="proyecto && proyecto.costo; else noDefinido">
+                      {{ proyecto.costo | currency:'S/ ' }}
+                    </ng-container>
+                    <ng-template #noDefinido>No definido</ng-template>
+                  </p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                  <p class="font-medium text-green-800 dark:text-green-200 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Presupuesto por Etapas:
+                  </p>
+                  <p class="text-lg font-bold text-green-600 dark:text-green-300">{{ getTotalPresupuestoEtapas() | currency:'S/ ' }}</p>
+                </div>
+              </div>
+              
+              <!-- Detalle por etapas -->
+              <div *ngIf="etapas.length > 0" class="mt-3">
+                <p class="font-medium text-gray-700 dark:text-gray-300 mb-2 text-xs">Distribución por Etapas:</p>
+                <div class="space-y-1">
+                  <div *ngFor="let etapa of etapas" class="flex justify-between items-center text-xs bg-gray-50 dark:bg-gray-700/30 px-2 py-1 rounded">
+                    <span class="truncate max-w-[200px]" [title]="etapa.nombre">{{ etapa.nombre }}</span>
+                    <span class="font-medium text-gray-600 dark:text-gray-300">{{ etapa.presupuesto | currency:'S/ ' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700">
               <p class="font-medium mb-2">Descripción:</p>
               <div class="text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg" [innerHTML]="proyecto?.descripcion"></div>
@@ -171,6 +211,8 @@
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Inicio *</label>
           <ng-container *ngIf="!modoSoloLectura; else fechaInicioReadonly">
             <input type="date" [(ngModel)]="etapaForm.fechaInicio"
+              [min]="getMinFechaInicio()"
+              [max]="getMaxFechaFin()"
               [class.border-red-500]="tieneErrorEtapa('fechaInicio')"
               class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
             <span *ngIf="tieneErrorEtapa('fechaInicio')" class="text-xs text-red-500">{{ erroresEtapa['fechaInicio'] }}</span>
@@ -183,6 +225,8 @@
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Finalización *</label>
           <ng-container *ngIf="!modoSoloLectura; else fechaFinReadonly">
             <input type="date" [(ngModel)]="etapaForm.fechaFinalizacion"
+              [min]="etapaForm.fechaInicio || getMinFechaInicio()"
+              [max]="getMaxFechaFin()"
               [class.border-red-500]="tieneErrorEtapa('fechaFinalizacion')"
               class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
             <span *ngIf="tieneErrorEtapa('fechaFinalizacion')" class="text-xs text-red-500">{{ erroresEtapa['fechaFinalizacion'] }}</span>
@@ -215,10 +259,10 @@
               <tr *ngFor="let tarea of etapaSeleccionada.tareas" [ngClass]="{'bg-red-50 dark:bg-red-900/10': isRetrasado(tarea)}">
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.tarea }}</td>
-                <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
+                <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ formatDisplayDate(tarea.fechaInicio) }} - {{ formatDisplayDate(tarea.fechaFin) }}</td>
                 <td class="py-1.5 px-2">
                   <span class="flex items-center gap-1" [ngClass]="{'text-red-500': isRetrasado(tarea), 'text-green-500': tarea.estado === 'Completado'}">
-                    {{ tarea.responsableNombre }}
+                    {{ tarea.estado }}
                     <svg *ngIf="isRetrasado(tarea)" class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>

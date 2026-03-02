@@ -140,10 +140,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombre: etapa.nombre,
       orden: etapa.orden,
       presupuesto: 0,
-      responsableId: this.proyecto!.responsableId,
-      responsableNombre: this.proyecto!.responsableNombre,
-      fechaInicio: this.proyecto!.fechaInicio,
-      fechaFinalizacion: this.proyecto!.fechaFinalizacion,
+      responsableId: 0, // Cada etapa tendrá su propio responsable
+      responsableNombre: '',
+      fechaInicio: '', // Cada etapa tendrá sus propias fechas
+      fechaFinalizacion: '',
       estado: index === 0 ? 'En Proceso' : 'Pendiente',
       tareas: this.generarTareasEjemplo(index + 1)
     })) || [];
@@ -164,15 +164,72 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   seleccionarEtapa(etapa: EtapaProyecto): void {
+    // Guardar los cambios de la etapa actual antes de cambiar
+    if (this.etapaSeleccionada && !this.modoSoloLectura) {
+      this.guardarCambiosEtapaActual();
+    }
+
     this.etapaSeleccionada = etapa;
     this.intentoFinalizarEtapa = false;
     this.erroresEtapa = {};
     this.etapaForm = {
       presupuesto: etapa.presupuesto,
       responsableId: etapa.responsableId,
-      fechaInicio: this.formatDate(etapa.fechaInicio),
-      fechaFinalizacion: this.formatDate(etapa.fechaFinalizacion)
+      fechaInicio: etapa.fechaInicio ? this.formatDate(etapa.fechaInicio) : '',
+      fechaFinalizacion: etapa.fechaFinalizacion ? this.formatDate(etapa.fechaFinalizacion) : ''
     };
+  }
+
+  private guardarCambiosEtapaActual(): void {
+    if (this.etapaSeleccionada) {
+      // Actualizar los valores de la etapa con los del formulario
+      this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
+      this.etapaSeleccionada.responsableId = this.etapaForm.responsableId;
+      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(this.etapaForm.responsableId);
+      this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
+      this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
+    }
+  }
+
+  cambiarTab(nuevoTab: 'proceso' | 'costos'): void {
+    // Guardar cambios de la etapa actual antes de cambiar tab
+    if (this.tabActiva === 'proceso' && this.etapaSeleccionada && !this.modoSoloLectura) {
+      this.guardarCambiosEtapaActual();
+    }
+    this.tabActiva = nuevoTab;
+  }
+
+  getMinFechaInicio(): string {
+    if (!this.proyecto) return '';
+    
+    // La fecha mínima es la mayor entre:
+    // 1. La fecha de inicio del proyecto
+    // 2. La fecha de finalización de la etapa anterior (si existe)
+    const fechaInicioProyecto = this.formatDate(this.proyecto.fechaInicio);
+    const etapaAnterior = this.getEtapaAnterior();
+    
+    if (etapaAnterior && etapaAnterior.fechaFinalizacion) {
+      const fechaFinAnterior = this.formatDate(etapaAnterior.fechaFinalizacion);
+      return fechaFinAnterior > fechaInicioProyecto ? fechaFinAnterior : fechaInicioProyecto;
+    }
+    
+    return fechaInicioProyecto;
+  }
+
+  getMaxFechaFin(): string {
+    if (!this.proyecto) return '';
+    return this.formatDate(this.proyecto.fechaFinalizacion);
+  }
+
+  private getEtapaAnterior(): EtapaProyecto | null {
+    if (!this.etapaSeleccionada) return null;
+    
+    const index = this.etapas.findIndex(e => e.id === this.etapaSeleccionada!.id);
+    return index > 0 ? this.etapas[index - 1] : null;
+  }
+
+  getTotalPresupuestoEtapas(): number {
+    return this.etapas.reduce((total, etapa) => total + (etapa.presupuesto || 0), 0);
   }
 
   formatDate(date: Date | string | undefined): string {
@@ -188,6 +245,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onCerrar(): void {
+    // Guardar cambios de la etapa actual antes de cerrar
+    if (this.etapaSeleccionada && !this.modoSoloLectura) {
+      this.guardarCambiosEtapaActual();
+    }
     this.cerrar.emit();
   }
 
@@ -241,8 +302,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (!this.validarEtapa()) return;
 
     if (this.etapaSeleccionada) {
+      // Actualizar todos los campos de la etapa con valores independientes
       this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
       this.etapaSeleccionada.responsableId = this.etapaForm.responsableId;
+      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(this.etapaForm.responsableId);
+      this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
+      this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
       this.etapaSeleccionada.estado = 'Completado';
       this.finalizarEtapa.emit(this.etapaSeleccionada);
 
@@ -263,13 +328,38 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
     if (!this.etapaForm.fechaInicio) {
       this.erroresEtapa['fechaInicio'] = 'La fecha de inicio es requerida';
+    } else {
+      const fechaInicioEtapa = new Date(this.etapaForm.fechaInicio);
+      const fechaInicioProyecto = new Date(this.proyecto!.fechaInicio);
+      
+      if (fechaInicioEtapa < fechaInicioProyecto) {
+        this.erroresEtapa['fechaInicio'] = 'La fecha de inicio no puede ser anterior al inicio del proyecto';
+      }
+
+      // Validar que no sea anterior a la fecha de fin de la etapa anterior
+      const etapaAnterior = this.getEtapaAnterior();
+      if (etapaAnterior && etapaAnterior.fechaFinalizacion) {
+        const fechaFinAnterior = new Date(etapaAnterior.fechaFinalizacion);
+        if (fechaInicioEtapa < fechaFinAnterior) {
+          this.erroresEtapa['fechaInicio'] = 'La fecha de inicio no puede ser anterior al fin de la etapa anterior';
+        }
+      }
     }
+    
     if (!this.etapaForm.fechaFinalizacion) {
       this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización es requerida';
-    }
-    if (this.etapaForm.fechaInicio && this.etapaForm.fechaFinalizacion &&
-        new Date(this.etapaForm.fechaFinalizacion) < new Date(this.etapaForm.fechaInicio)) {
-      this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización debe ser posterior a la de inicio';
+    } else {
+      const fechaFinEtapa = new Date(this.etapaForm.fechaFinalizacion);
+      const fechaFinProyecto = new Date(this.proyecto!.fechaFinalizacion);
+      
+      if (fechaFinEtapa > fechaFinProyecto) {
+        this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización no puede ser posterior al fin del proyecto';
+      }
+      
+      if (this.etapaForm.fechaInicio && 
+          new Date(this.etapaForm.fechaFinalizacion) < new Date(this.etapaForm.fechaInicio)) {
+        this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización debe ser posterior a la de inicio';
+      }
     }
 
     return Object.keys(this.erroresEtapa).length === 0;
