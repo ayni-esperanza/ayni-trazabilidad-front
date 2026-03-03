@@ -1,71 +1,87 @@
 import { Routes } from '@angular/router';
-import { TableroControlComponent } from './features/tablero-control/tablero-control.component';
-import { RegistroSolicitudesComponent } from './features/registro-solicitudes/registro-solicitudes.component';
-import { AsignacionTareasComponent } from './features/asignacion-tareas/asignacion-tareas.component';
-import { InformesEvidenciasComponent } from './features/informes-evidencias/informes-evidencias.component';
-import { EstadisticasIndicadoresComponent } from './features/estadisticas-indicadores/estadisticas-indicadores.component';
-import { GestionUsuariosComponent } from './features/gestion-usuarios/gestion-usuarios.component';
-import { ConfiguracionProcesosComponent } from './features/configuracion-procesos/configuracion-procesos.component';
-import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    redirectTo: '/tablero-control', 
-    pathMatch: 'full' 
+  {
+    path: '',
+    redirectTo: '/tablero-control',
+    pathMatch: 'full',
   },
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
     title: 'Iniciar Sesión - AYNI Trazabilidad',
-    canActivate: [noAuthGuard]
+    canActivate: [noAuthGuard],
   },
   {
     path: 'tablero-control',
-    component: TableroControlComponent,
+    loadComponent: () =>
+      import('./features/tablero-control/tablero-control.component').then(
+        (m) => m.TableroControlComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'registro-solicitudes',
-    component: RegistroSolicitudesComponent,
+    loadComponent: () =>
+      import('./features/registro-solicitudes/registro-solicitudes.component').then(
+        (m) => m.RegistroSolicitudesComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'asignacion-tareas',
-    component: AsignacionTareasComponent,
+    loadComponent: () =>
+      import('./features/asignacion-tareas/asignacion-tareas.component').then(
+        (m) => m.AsignacionTareasComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'informes-evidencias',
-    component: InformesEvidenciasComponent,
+    loadComponent: () =>
+      import('./features/informes-evidencias/informes-evidencias.component').then(
+        (m) => m.InformesEvidenciasComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'estadisticas-indicadores',
-    component: EstadisticasIndicadoresComponent,
+    loadComponent: () =>
+      import('./features/estadisticas-indicadores/estadisticas-indicadores.component').then(
+        (m) => m.EstadisticasIndicadoresComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'gestion-usuarios',
-    component: GestionUsuariosComponent,
+    loadComponent: () =>
+      import('./features/gestion-usuarios/gestion-usuarios.component').then(
+        (m) => m.GestionUsuariosComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'configuracion-procesos',
-    component: ConfiguracionProcesosComponent,
+    loadComponent: () =>
+      import('./features/configuracion-procesos/configuracion-procesos.component').then(
+        (m) => m.ConfiguracionProcesosComponent,
+      ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: '**',
-    redirectTo: '/login'
-  }
+    redirectTo: '/login',
+  },
 ];
