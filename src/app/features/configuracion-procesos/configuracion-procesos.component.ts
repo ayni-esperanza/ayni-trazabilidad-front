@@ -16,13 +16,8 @@ type ProcesoConfigurado = ProcesoFormData & { id: number };
 })
 export class ConfiguracionProcesosComponent implements OnInit {
 
-  procesos: ProcesoConfigurado[] = [
-    { id: 1, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio', 'Inicio'] },
-    { id: 2, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio'] },
-    { id: 3, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio'] },
-    { id: 4, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio'] },
-    { id: 5, proceso: 'Ejemplo1', area: 'Ejemplo1', flujo: ['Inicio', 'Inicio', 'Inicio', 'Inicio'] },
-  ];
+  // Datos de procesos
+  procesos: ProcesoConfigurado[] = [];
 
   // Paginación
   paginacionConfig: PaginacionConfig = {
@@ -47,22 +42,31 @@ export class ConfiguracionProcesosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.recalcularPaginacion();
+    this.cargarProcesos();
+  }
+
+  cargarProcesos(): void {
+    this.procesosService.obtenerProcesos({
+      page: this.paginacionConfig.paginaActual,
+      size: this.paginacionConfig.porPagina
+    }).subscribe({
+      next: (response) => {
+        this.procesos = response.content as ProcesoConfigurado[];
+        this.paginacionConfig.totalElementos = response.totalElements;
+        this.paginacionConfig.totalPaginas = response.totalPages;
+      },
+      error: (error) => {
+        console.error('Error al cargar procesos:', error);
+      }
+    });
   }
 
   get procesosPaginados(): ProcesoConfigurado[] {
-    const inicio = this.paginacionConfig.paginaActual * this.paginacionConfig.porPagina;
-    const fin = inicio + this.paginacionConfig.porPagina;
-    return this.procesos.slice(inicio, fin);
+    return this.procesos;
   }
 
   recalcularPaginacion(): void {
-    this.paginacionConfig.totalElementos = this.procesos.length;
-    this.paginacionConfig.totalPaginas = Math.ceil(this.procesos.length / this.paginacionConfig.porPagina);
-    
-    if (this.paginacionConfig.paginaActual >= this.paginacionConfig.totalPaginas && this.paginacionConfig.totalPaginas > 0) {
-      this.paginacionConfig.paginaActual = this.paginacionConfig.totalPaginas - 1;
-    }
+    this.cargarProcesos();
   }
 
   onCambioPagina(evento: CambioPaginaEvent): void {
@@ -91,21 +95,32 @@ export class ConfiguracionProcesosComponent implements OnInit {
 
   onGuardarProceso(data: ProcesoFormData): void {
     if (data.id) {
-      this.procesos = this.procesos.map((p) => (p.id === data.id ? ({ ...p, ...data } as ProcesoConfigurado) : p));
+      this.procesosService.actualizarProceso(data.id, data).subscribe({
+        next: () => {
+          this.cargarProcesos();
+          this.cerrarModal();
+        },
+        error: (error) => console.error('Error al actualizar:', error)
+      });
     } else {
-      const maxId = this.procesos.reduce((acc, p) => Math.max(acc, p.id), 0);
-      const nuevo: ProcesoConfigurado = { id: maxId + 1, ...data };
-      this.procesos = [nuevo, ...this.procesos];
+      this.procesosService.crearProceso(data).subscribe({
+        next: () => {
+          this.cargarProcesos();
+          this.cerrarModal();
+        },
+        error: (error) => console.error('Error al crear:', error)
+      });
     }
-
-    this.recalcularPaginacion();
-    this.cerrarModal();
   }
 
   onEliminarProceso(id: number): void {
-    this.procesos = this.procesos.filter((p) => p.id !== id);
-    this.recalcularPaginacion();
-    this.cerrarModal();
+    this.procesosService.eliminarProceso(id).subscribe({
+      next: () => {
+        this.cargarProcesos();
+        this.cerrarModal();
+      },
+      error: (error) => console.error('Error al eliminar:', error)
+    });
   }
 
   // Métodos de selección

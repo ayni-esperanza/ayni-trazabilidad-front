@@ -1,11 +1,18 @@
 export interface Proceso {
   id: number;
-  nombre: string;
-  descripcion: string;
-  categoria: string;
-  activo: boolean;
-  etapas: Etapa[];
-  flujoTrabajo?: FlujoTrabajo;
+  proceso: string;
+  descripcion?: string;
+  area: string;
+  activo?: boolean;
+  flujo: string[];
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 export interface FlujoTrabajo {
