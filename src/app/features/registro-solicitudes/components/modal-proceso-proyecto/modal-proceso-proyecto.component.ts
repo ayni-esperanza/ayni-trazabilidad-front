@@ -5,6 +5,7 @@ import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, Ord
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -47,7 +48,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -121,6 +122,11 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
 
   // Navegación de tabs
   tabActiva: 'proceso' | 'informacion' | 'costos' = 'proceso';
+
+  // Modal de actividades
+  mostrarModalActividad = false;
+  actividadParaEditar: Tarea | null = null;
+  modoVistaTareas: 'tabla' | 'timeline' = 'tabla';
   subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
 
   // Formulario de información del proyecto (tab Información)
@@ -542,6 +548,19 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
 
   eliminarOrdenCompra(index: number): void {
     this.proyectoInfoForm.ordenesCompra.splice(index, 1);
+  }
+
+  abrirModalActividad(): void {
+    this.actividadParaEditar = null;
+    this.mostrarModalActividad = true;
+  }
+
+  onGuardarActividad(_actividad: Tarea): void {
+    this.mostrarModalActividad = false;
+  }
+
+  onCerrarModalActividad(): void {
+    this.mostrarModalActividad = false;
   }
 
   guardarInfoProyecto(): void {

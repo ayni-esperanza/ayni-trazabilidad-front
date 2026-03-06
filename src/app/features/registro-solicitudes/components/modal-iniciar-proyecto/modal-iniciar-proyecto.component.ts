@@ -6,11 +6,12 @@ import { ModalDismissDirective } from '../../../../shared/directives/modal-dismi
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
+import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent, UbicacionSelectComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent, UbicacionSelectComponent, TareaFormModalComponent],
   templateUrl: './modal-iniciar-proyecto.component.html',
   styleUrls: ['./modal-iniciar-proyecto.component.css']
 })
@@ -32,6 +33,12 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
 
   // Órdenes de Compra
   ordenesCompra: OrdenCompra[] = [];
+
+  // Actividades del proyecto
+  actividadesProyecto: Tarea[] = [];
+  mostrarModalActividad = false;
+  actividadParaEditar: Tarea | null = null;
+  modoVistaActividades: 'tabla' | 'timeline' = 'tabla';
 
   // Control de validación
   intentoGuardar = false;
@@ -135,6 +142,7 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
         procesoId: 0
       };
       this.ordenesCompra = [];
+      this.actividadesProyecto = [];
       this.intentoGuardar = false;
       this.errores = {};
     }
@@ -146,6 +154,29 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
 
   eliminarOrdenCompra(index: number): void {
     this.ordenesCompra.splice(index, 1);
+  }
+
+  abrirModalActividad(): void {
+    this.actividadParaEditar = null;
+    this.mostrarModalActividad = true;
+  }
+
+  onGuardarActividad(actividad: Tarea): void {
+    if (this.actividadParaEditar) {
+      const idx = this.actividadesProyecto.indexOf(this.actividadParaEditar);
+      if (idx >= 0) this.actividadesProyecto[idx] = actividad;
+    } else {
+      this.actividadesProyecto.push({ ...actividad, id: Date.now() });
+    }
+    this.mostrarModalActividad = false;
+  }
+
+  onCerrarModalActividad(): void {
+    this.mostrarModalActividad = false;
+  }
+
+  eliminarActividad(index: number): void {
+    this.actividadesProyecto.splice(index, 1);
   }
 
   onCerrar(): void {
