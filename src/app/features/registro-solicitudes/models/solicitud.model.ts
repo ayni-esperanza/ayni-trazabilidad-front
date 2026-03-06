@@ -10,6 +10,7 @@ export interface Solicitud {
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;
+  ubicacion?: string;
   fechaSolicitud?: Date;
   fechaInicio?: Date | string;
   fechaFin?: Date | string;
@@ -27,6 +28,7 @@ export interface Proyecto {
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;
+  ubicacion?: string;
   fechaInicio: Date | string;
   fechaFinalizacion: Date | string;
   procesoId: number;

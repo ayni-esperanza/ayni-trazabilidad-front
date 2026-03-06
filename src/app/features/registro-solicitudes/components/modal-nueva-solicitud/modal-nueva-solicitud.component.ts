@@ -23,8 +23,17 @@ export class ModalNuevaSolicitudComponent implements OnInit {
     cliente: '',
     representante: '',
     responsableId: 0,
-    descripcion: ''
+    descripcion: '',
+    ubicacion: ''
   };
+
+  readonly regionesPeru = [
+    'Amazonas', 'Áncash', 'Apurímac', 'Arequipa', 'Ayacucho', 'Cajamarca',
+    'Callao', 'Cusco', 'Huancavelica', 'Huánuco', 'Ica', 'Junín',
+    'La Libertad', 'Lambayeque', 'Lima', 'Loreto', 'Madre de Dios',
+    'Moquegua', 'Pasco', 'Piura', 'Puno', 'San Martín', 'Tacna',
+    'Tumbes', 'Ucayali'
+  ];
 
   // CKEditor
   protected Editor: any;

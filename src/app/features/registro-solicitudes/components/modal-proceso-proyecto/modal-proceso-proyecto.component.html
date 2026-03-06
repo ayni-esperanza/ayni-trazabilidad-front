@@ -97,6 +97,16 @@
             <p *ngIf="proyecto?.ordenCompra"><span class="font-medium">Orden de Compra:</span> {{ proyecto?.ordenCompra }}</p>
             <p><span class="font-medium">Empresa:</span> {{ proyecto?.cliente }}</p>
             <p *ngIf="proyecto?.representante"><span class="font-medium">Representante:</span> {{ proyecto?.representante }}</p>
+            <p *ngIf="proyecto?.ubicacion">
+              <span class="font-medium">Ubicación:</span>
+              <span class="inline-flex items-center gap-1 ml-1">
+                <svg class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {{ proyecto?.ubicacion }}, Perú
+              </span>
+            </p>
             <p><span class="font-medium">Duración:</span> {{ proyecto ? formatDisplayDate(proyecto.fechaInicio) : '' }} - {{ proyecto ? formatDisplayDate(proyecto.fechaFinalizacion) : '' }}</p>
             <p><span class="font-medium">Estado: </span> 
               <span [ngClass]="{
