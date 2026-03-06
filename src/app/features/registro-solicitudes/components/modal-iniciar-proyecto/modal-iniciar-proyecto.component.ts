@@ -5,11 +5,12 @@ import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/so
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent, UbicacionSelectComponent],
   templateUrl: './modal-iniciar-proyecto.component.html',
   styleUrls: ['./modal-iniciar-proyecto.component.css']
 })
@@ -23,14 +24,6 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   @Output() iniciar = new EventEmitter<Partial<Proyecto>>();
 
   proyecto: Partial<Proyecto> = {};
-
-  readonly regionesPeru = [
-    'Amazonas', 'Áncash', 'Apurímac', 'Arequipa', 'Ayacucho', 'Cajamarca',
-    'Callao', 'Cusco', 'Huancavelica', 'Huánuco', 'Ica', 'Junín',
-    'La Libertad', 'Lambayeque', 'Lima', 'Loreto', 'Madre de Dios',
-    'Moquegua', 'Pasco', 'Piura', 'Puno', 'San Martín', 'Tacna',
-    'Tumbes', 'Ucayali'
-  ];
 
   // CKEditor
   protected Editor: any;

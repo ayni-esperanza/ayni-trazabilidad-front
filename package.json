@@ -41,6 +41,7 @@
     "sharp": "^0.34.5",
     "svg2png-wasm": "^1.4.1",
     "tslib": "^2.3.0",
+    "ubigeo-peru": "^2.0.2",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

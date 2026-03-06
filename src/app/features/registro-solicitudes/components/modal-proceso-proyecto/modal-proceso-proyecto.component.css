@@ -1,3 +1,30 @@
+/* CKEditor 5 Styles */
+:host ::ng-deep .ckeditor-host {
+  display: block;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ck-editor__editable {
+  min-height: 120px;
+  max-height: 280px;
+  font-size: 0.875rem;
+}
+
+.dark :host ::ng-deep .ck.ck-editor__main>.ck-editor__editable,
+:host ::ng-deep .dark .ck.ck-editor__main>.ck-editor__editable {
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+:host ::ng-deep .dark .ck.ck-toolbar,
+.dark :host ::ng-deep .ck.ck-toolbar {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
 /* Contenedor del confeti */
 .confetti-container {
   position: fixed;

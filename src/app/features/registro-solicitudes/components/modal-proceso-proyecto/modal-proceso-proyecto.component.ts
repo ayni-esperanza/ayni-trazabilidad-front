@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -46,11 +47,11 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
-export class ModalProcesoProyectoComponent implements OnChanges {
+export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
   @Input() visible = false;
   @Input() proyecto: Proyecto | null = null;
   @Input() proyectos: Proyecto[] = [];
@@ -61,6 +62,38 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   @Output() finalizarEtapa = new EventEmitter<EtapaProyecto>();
   @Output() finalizarProy = new EventEmitter<Proyecto>();
   @Output() cambiarProyecto = new EventEmitter<number>();
+
+  // CKEditor
+  protected Editor: any;
+  protected ckeditorConfig: any = {};
+  protected isBrowser = false;
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  ngOnInit(): void {
+    if (this.isBrowser) {
+      import('ckeditor5').then(({
+        ClassicEditor, Bold, Essentials, FontBackgroundColor, FontColor, FontSize,
+        Heading, Highlight, Indent, IndentBlock, Italic, Link, List, Paragraph, Table, Undo,
+      }) => {
+        this.Editor = ClassicEditor;
+        this.ckeditorConfig = {
+          licenseKey: 'GPL',
+          toolbar: {
+            items: ['undo','redo','|','heading','|','fontSize','fontColor','fontBackgroundColor','|','bold','italic','highlight','|','link','insertTable','|','bulletedList','numberedList','indent','outdent'],
+            shouldNotGroupWhenFull: true
+          },
+          plugins: [Bold, Essentials, FontBackgroundColor, FontColor, FontSize, Heading, Highlight, Indent, IndentBlock, Italic, Link, List, Paragraph, Table, Undo],
+        };
+        this.cdr.detectChanges();
+      });
+    }
+  }
 
   etapas: EtapaProyecto[] = [];
   proyectoFinalizado = false;
@@ -87,8 +120,23 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   otrosCostosExpandida = true;
 
   // Navegación de tabs
-  tabActiva: 'proceso' | 'costos' = 'proceso';
+  tabActiva: 'proceso' | 'informacion' | 'costos' = 'proceso';
   subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
+
+  // Formulario de información del proyecto (tab Información)
+  proyectoInfoForm = {
+    nombreProyecto: '',
+    cliente: '',
+    representante: '',
+    ordenCompra: '',
+    costo: 0,
+    procesoId: 0,
+    responsableId: 0,
+    fechaInicio: '',
+    fechaFinalizacion: '',
+    ubicacion: '',
+    descripcion: ''
+  };
 
   // TODO: Backend - Cargar costos desde el servicio
   // Estos arrays se llenarán con datos del backend
@@ -121,6 +169,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
       this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
       this.generarEtapas();
+      this.cargarProyectoInfoForm();
     }
   }
 
@@ -216,7 +265,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
   }
 
-  cambiarTab(nuevoTab: 'proceso' | 'costos'): void {
+  cambiarTab(nuevoTab: 'proceso' | 'informacion' | 'costos'): void {
     // Guardar cambios de la etapa actual antes de cambiar tab
     if (this.tabActiva === 'proceso' && this.etapaSeleccionada && !this.modoSoloLectura) {
       this.guardarCambiosEtapaActual();
@@ -463,6 +512,44 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   getResponsableNombre(responsableId: number): string {
     const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
+  }
+
+  getProcesoNombre(procesoId: number): string {
+    const proc = this.procesos.find(p => p.id === procesoId);
+    return proc?.nombre || 'Sin proceso';
+  }
+
+  cargarProyectoInfoForm(): void {
+    if (!this.proyecto) return;
+    this.proyectoInfoForm = {
+      nombreProyecto: this.proyecto.nombreProyecto,
+      cliente: this.proyecto.cliente,
+      representante: this.proyecto.representante || '',
+      ordenCompra: this.proyecto.ordenCompra || '',
+      costo: this.proyecto.costo,
+      procesoId: this.proyecto.procesoId,
+      responsableId: this.proyecto.responsableId,
+      fechaInicio: this.formatDate(this.proyecto.fechaInicio),
+      fechaFinalizacion: this.formatDate(this.proyecto.fechaFinalizacion),
+      ubicacion: this.proyecto.ubicacion || '',
+      descripcion: this.proyecto.descripcion
+    };
+  }
+
+  guardarInfoProyecto(): void {
+    if (!this.proyecto || this.modoSoloLectura) return;
+    this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
+    this.proyecto.cliente = this.proyectoInfoForm.cliente;
+    this.proyecto.representante = this.proyectoInfoForm.representante;
+    this.proyecto.ordenCompra = this.proyectoInfoForm.ordenCompra;
+    this.proyecto.costo = Number(this.proyectoInfoForm.costo);
+    this.proyecto.procesoId = Number(this.proyectoInfoForm.procesoId);
+    this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
+    this.proyecto.responsableNombre = this.getResponsableNombre(Number(this.proyectoInfoForm.responsableId));
+    this.proyecto.fechaInicio = this.proyectoInfoForm.fechaInicio;
+    this.proyecto.fechaFinalizacion = this.proyectoInfoForm.fechaFinalizacion;
+    this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
+    this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
   }
 
   // ========== Métodos para Costos ==========

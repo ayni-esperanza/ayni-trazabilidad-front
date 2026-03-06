@@ -24,11 +24,10 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación (Región)</label>
-          <select [(ngModel)]="proyecto.ubicacion"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-            <option value="">Seleccionar región</option>
-            <option *ngFor="let region of regionesPeru" [value]="region">{{ region }}</option>
-          </select>
+          <app-ubicacion-select
+            [value]="proyecto.ubicacion ?? ''"
+            (valueChange)="proyecto.ubicacion = $event">
+          </app-ubicacion-select>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa *</label>

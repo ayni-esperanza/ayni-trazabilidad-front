@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Solicitud, Responsable } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
 
 @Component({
   selector: 'app-modal-nueva-solicitud',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, UbicacionSelectComponent],
   templateUrl: './modal-nueva-solicitud.component.html',
   styleUrls: ['./modal-nueva-solicitud.component.css']
 })
@@ -26,14 +27,6 @@ export class ModalNuevaSolicitudComponent implements OnInit {
     descripcion: '',
     ubicacion: ''
   };
-
-  readonly regionesPeru = [
-    'Amazonas', 'Áncash', 'Apurímac', 'Arequipa', 'Ayacucho', 'Cajamarca',
-    'Callao', 'Cusco', 'Huancavelica', 'Huánuco', 'Ica', 'Junín',
-    'La Libertad', 'Lambayeque', 'Lima', 'Loreto', 'Madre de Dios',
-    'Moquegua', 'Pasco', 'Piura', 'Puno', 'San Martín', 'Tacna',
-    'Tumbes', 'Ucayali'
-  ];
 
   // CKEditor
   protected Editor: any;

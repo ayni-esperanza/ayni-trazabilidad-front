@@ -1,0 +1,65 @@
+<div class="relative">
+  <!-- Input de búsqueda -->
+  <div class="relative">
+    <svg class="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+    <input
+      #inputEl
+      type="text"
+      [value]="searchText"
+      (input)="searchText = $any($event.target).value; filtrar(searchText)"
+      (focus)="abrir()"
+      (blur)="cerrar()"
+      placeholder="Buscar departamento o provincia..."
+      autocomplete="off"
+      class="w-full pl-7 pr-6 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+    <!-- Botón limpiar -->
+    @if (value) {
+      <button type="button" (mousedown)="limpiar($event)"
+        class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- Dropdown con posición fija (no se corta dentro del modal) -->
+  @if (isOpen) {
+    <div
+      class="fixed z-[300] bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg overflow-y-auto max-h-52"
+      [style.top.px]="dropdownTop"
+      [style.left.px]="dropdownLeft"
+      [style.width.px]="dropdownWidth">
+
+      @for (grupo of opcionesFiltradas; track grupo.departamento) {
+        <!-- Cabecera de departamento -->
+        <div class="px-2 pt-1.5 pb-0.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide bg-gray-50 dark:bg-gray-800/60 sticky top-0">
+          {{ grupo.departamento }}
+        </div>
+        <!-- Provincias -->
+        @for (prov of grupo.provincias; track prov) {
+          <div
+            (mousedown)="seleccionar(prov)"
+            class="px-3 py-1.5 text-sm cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/30"
+            [class.bg-green-50]="prov === value"
+            [class.font-medium]="prov === value"
+            [class.text-green-700]="prov === value">
+            {{ prov.split(', ')[1] }}
+          </div>
+        }
+      }
+
+      @if (!opcionesFiltradas.length) {
+        <div class="px-3 py-3 text-sm text-center text-gray-400 dark:text-gray-500">
+          Sin resultados
+        </div>
+      }
+    </div>
+  }
+</div>
