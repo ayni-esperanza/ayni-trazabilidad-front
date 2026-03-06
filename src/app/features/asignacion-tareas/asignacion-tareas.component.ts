@@ -43,6 +43,14 @@ export class AsignacionTareasComponent implements OnInit {
 
   tareasFiltradas: Tarea[] = [];
   
+  // Estadísticas dinámicas
+  estadisticas = {
+    total: 0,
+    pendientes: 0,
+    enProgreso: 0,
+    completadas: 0
+  };
+  
   // Selección de tareas
   tareasSeleccionadas: Set<number> = new Set();
   mostrarConfirmacionEliminar = false;
@@ -92,6 +100,7 @@ export class AsignacionTareasComponent implements OnInit {
 
     this.tareasFiltradas = resultado;
     this.actualizarPaginacion();
+    this.calcularEstadisticas();
   }
 
   actualizarPaginacion(): void {
@@ -99,6 +108,19 @@ export class AsignacionTareasComponent implements OnInit {
     this.paginacionConfig.totalPaginas = Math.ceil(
       this.tareasFiltradas.length / this.paginacionConfig.porPagina
     );
+  }
+
+  calcularEstadisticas(): void {
+    this.estadisticas = {
+      total: this.tareasFiltradas.length,
+      pendientes: this.tareasFiltradas.filter(t => t.estado === 'pendiente').length,
+      enProgreso: this.tareasFiltradas.filter(t => t.estado === 'en-progreso').length,
+      completadas: this.tareasFiltradas.filter(t => t.estado === 'completada').length
+    };
+  }
+
+  tieneFiltrosActivos(): boolean {
+    return !!(this.busqueda.trim() || this.estadoFiltro);
   }
 
   get tareasPaginadas(): Tarea[] {

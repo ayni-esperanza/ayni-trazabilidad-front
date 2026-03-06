@@ -249,6 +249,7 @@
   <app-firmar-documento-modal
     [visible]="mostrarModalFirmarDocumento"
     [firmasDisponibles]="firmasDisponibles"
+    [archivoInicial]="archivoInicialFirma"
     (cerrar)="cerrarModalFirmarDocumento()"
     (firmarDocumento)="onDocumentoFirmado($event)">
   </app-firmar-documento-modal>

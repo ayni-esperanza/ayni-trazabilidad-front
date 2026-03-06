@@ -34,6 +34,7 @@ export interface Proyecto {
   estado: EstadoSolicitud;
   etapaActual?: number;
   motivoCancelacion?: string;
+  etapas?: EtapaProyecto[];
 }
 
 export interface EtapaProyecto {

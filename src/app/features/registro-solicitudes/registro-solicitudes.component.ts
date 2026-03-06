@@ -47,6 +47,14 @@ export class RegistroSolicitudesComponent implements OnInit {
   solicitudActual: Solicitud | null = null;
   proyectoActual: Proyecto | null = null;
 
+  // Estadísticas dinámicas
+  estadisticas = {
+    total: 0,
+    pendientes: 0,
+    enProceso: 0,
+    completadas: 0
+  };
+
   // Selección múltiple
   solicitudesSeleccionadas: Set<number> = new Set();
   mostrarConfirmacionEliminar = false;
@@ -172,6 +180,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
     this.solicitudesFiltradas = resultado;
     this.actualizarPaginacion();
+    this.calcularEstadisticas();
   }
 
   actualizarPaginacion(): void {
@@ -179,6 +188,19 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.paginacionConfig.totalPaginas = Math.ceil(
       this.solicitudesFiltradas.length / this.paginacionConfig.porPagina
     );
+  }
+
+  calcularEstadisticas(): void {
+    this.estadisticas = {
+      total: this.solicitudesFiltradas.length,
+      pendientes: this.solicitudesFiltradas.filter(s => s.estado === 'Pendiente').length,
+      enProceso: this.solicitudesFiltradas.filter(s => s.estado === 'En Proceso').length,
+      completadas: this.solicitudesFiltradas.filter(s => s.estado === 'Completado').length
+    };
+  }
+
+  tieneFiltrosActivos(): boolean {
+    return !!(this.busqueda.trim() || this.estadoFiltro || this.responsableFiltro);
   }
 
   get solicitudesPaginadas(): Solicitud[] {
@@ -237,13 +259,13 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'Pendiente' },
-      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
-      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
+      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'Pendiente' },
+      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
+      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
     ];
 
     this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalación de sistema de ventilación para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
+      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalación de sistema de ventilación para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
     ];
 
     this.aplicarFiltros();
@@ -257,7 +279,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     const responsable = this.responsables.find(r => r.id === Number(data.responsableId));
     const solicitud: Solicitud = {
       id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
-      costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
+      representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaSolicitud: new Date(), 
       fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, estado: 'Pendiente'
     };
@@ -282,7 +304,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     const proceso = this.procesos.find(p => p.id === Number(data.procesoId));
     const proyecto: Proyecto = {
       id: this.proyectos.length + 1, solicitudId: this.solicitudActual?.id || 0, nombreProyecto: data.nombreProyecto!,
-      cliente: data.cliente!, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
+      cliente: data.cliente!, representante: data.representante, costo: data.costo!, ordenCompra: data.ordenCompra,
+      responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaInicio: new Date(data.fechaInicio!), fechaFinalizacion: new Date(data.fechaFinalizacion!),
       procesoId: Number(data.procesoId), procesoNombre: proceso?.nombre, estado: 'En Proceso', etapaActual: 1
     };

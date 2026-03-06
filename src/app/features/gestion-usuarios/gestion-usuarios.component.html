@@ -18,7 +18,8 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Total Usuarios</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.totalUsuarios }}</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ tieneFiltrosActivos() ? estadisticasFiltradas.totalUsuarios : estadisticas.totalUsuarios }}</h3>
+          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">de {{ estadisticas.totalUsuarios }} totales</p>
         </div>
         <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +35,8 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Administradores</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.administradores }}</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ tieneFiltrosActivos() ? estadisticasFiltradas.administradores : estadisticas.administradores }}</h3>
+          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
         </div>
         <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +52,8 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Ingenieros</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.ingenieros }}</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ tieneFiltrosActivos() ? estadisticasFiltradas.ingenieros : estadisticas.ingenieros }}</h3>
+          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
         </div>
         <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor"
@@ -69,7 +72,8 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Usuarios Activos</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.usuariosActivos }}</h3>
+          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ tieneFiltrosActivos() ? estadisticasFiltradas.usuariosActivos : estadisticas.usuariosActivos }}</h3>
+          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
         </div>
         <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
           <svg class="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -26,6 +26,8 @@ interface InformeItem {
   usarMembrete: boolean;
   firmasAgregadas: string[];
   previewHtml: SafeHtml;
+  pdfBytes?: Uint8Array; // Bytes del PDF firmado
+  esPDFfirmado?: boolean; // Flag para distinguir PDFs firmados de informes creados
 }
 
 type ModoVisualizacion = 'lista' | 'iconos-medianos' | 'iconos-grandes';
@@ -51,6 +53,7 @@ export class InformesEvidenciasComponent implements OnInit {
   // Modal de firmar documento
   protected mostrarModalFirmarDocumento = false;
   protected firmasDisponibles: Firma[] = [];
+  protected archivoInicialFirma: File | null = null;
 
   // Modo de visualización
   protected modoVisualizacion: ModoVisualizacion = 'iconos-medianos';
@@ -107,16 +110,40 @@ export class InformesEvidenciasComponent implements OnInit {
   }
 
   protected verInforme(informe: InformeItem): void {
-    this.informeSeleccionado = {
-      id: informe.id,
-      titulo: informe.titulo,
-      fecha: informe.fecha,
-      cuerpoHtml: informe.cuerpoHtml,
-      firma: informe.firma,
-      usarMembrete: informe.usarMembrete,
-      firmasAgregadas: informe.firmasAgregadas,
-    };
-    this.mostrarModal = true;
+    // Si es un PDF firmado, reabrir el modal de firmar documento con el PDF pre-cargado
+    if (informe.esPDFfirmado && informe.pdfBytes) {
+      const blob = new Blob([informe.pdfBytes], { type: 'application/pdf' });
+      this.archivoInicialFirma = new File([blob], `${informe.titulo}.pdf`, { type: 'application/pdf' });
+      this.mostrarModalFirmarDocumento = true;
+    } else {
+      // Para informes normales, abrir el modal de edición
+      this.informeSeleccionado = {
+        id: informe.id,
+        titulo: informe.titulo,
+        fecha: informe.fecha,
+        cuerpoHtml: informe.cuerpoHtml,
+        firma: informe.firma,
+        usarMembrete: informe.usarMembrete,
+        firmasAgregadas: informe.firmasAgregadas,
+      };
+      this.mostrarModal = true;
+    }
+  }
+
+  protected descargarPDFfirmado(informe: InformeItem): void {
+    if (!informe.pdfBytes) {
+      return;
+    }
+
+    const blob = new Blob([informe.pdfBytes], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${informe.titulo}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   }
 
   protected cerrarModal(): void {
@@ -149,11 +176,13 @@ export class InformesEvidenciasComponent implements OnInit {
   }
 
   protected abrirModalFirmarDocumento(): void {
+    this.archivoInicialFirma = null;
     this.mostrarModalFirmarDocumento = true;
   }
 
   protected cerrarModalFirmarDocumento(): void {
     this.mostrarModalFirmarDocumento = false;
+    this.archivoInicialFirma = null;
   }
 
   protected onDocumentoFirmado(data: DocumentoFirmadoData): void {
@@ -162,19 +191,109 @@ export class InformesEvidenciasComponent implements OnInit {
       firma: data.firmaNombre,
       posicion: `X: ${data.posicionX}, Y: ${data.posicionY}`,
       pagina: data.pagina,
-      tamano: data.tamano
+      tamano: data.tamano,
+      soloGuardar: data.soloGuardar
     });
     
-    // El documento ya fue descargado por el modal
-    // Aquí podrías:
-    // 1. Guardar un registro en la BD de que el documento fue firmado
-    // 2. Enviar notificaciones
-    // 3. Actualizar estados
+    // Si es solo guardar (sin descargar), crear un nuevo informe con el PDF firmado
+    if (data.soloGuardar && data.pdfBytes) {
+      const nombreArchivoOriginal = data.archivo.name.replace(/\.[^/.]+$/, '');
+      const nombreArchivoFirmado = `${nombreArchivoOriginal}_firmado`;
+      
+      // Crear un nuevo informe con el documento firmado
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const fecha = `${yyyy}-${mm}-${dd}`;
+      
+      const nuevoId = String(this.nextId());
+      
+      // Generar preview desde el PDF usando PDF.js
+      this.generarPreviewDesdePDF(data.pdfBytes).then(previewDataUrl => {
+        const preview = this.sanitizer.bypassSecurityTrustHtml(`
+          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img src="${previewDataUrl}" alt="Preview" style="width: 100%; height: auto; object-fit: contain;" />
+          </div>
+        `);
+        
+        this.informes.unshift({
+          id: nuevoId,
+          titulo: nombreArchivoFirmado,
+          fecha: fecha,
+          cuerpoHtml: '<p>Documento PDF firmado digitalmente</p>',
+          firma: data.firmaNombre,
+          usarMembrete: false,
+          firmasAgregadas: [data.firmaNombre],
+          previewHtml: preview,
+          pdfBytes: data.pdfBytes,
+          esPDFfirmado: true
+        });
+        
+        this.recalcularPaginacion();
+      }).catch(error => {
+        console.error('Error al generar preview del PDF:', error);
+        // Fallback: usar preview genérico
+        const previewData = {
+          titulo: nombreArchivoFirmado,
+          fecha: fecha,
+          cuerpoHtml: '<p>Documento PDF firmado digitalmente</p>',
+          usarMembrete: false,
+          firmasAgregadas: [data.firmaNombre]
+        };
+        const preview = this.sanitizer.bypassSecurityTrustHtml(this.buildPreviewHtml(previewData));
+        
+        this.informes.unshift({
+          id: nuevoId,
+          titulo: nombreArchivoFirmado,
+          fecha: fecha,
+          cuerpoHtml: previewData.cuerpoHtml,
+          firma: data.firmaNombre,
+          usarMembrete: false,
+          firmasAgregadas: [data.firmaNombre],
+          previewHtml: preview,
+          pdfBytes: data.pdfBytes,
+          esPDFfirmado: true
+        });
+        
+        this.recalcularPaginacion();
+      });
+      
+      return;
+    }
     
-    // Mostrar mensaje de éxito
-    alert(`✓ Documento "${data.archivo.name}" firmado exitosamente por ${data.firmaNombre} en la página ${data.pagina}.\n\nEl documento firmado se ha descargado automáticamente.`);
+    // Comportamiento anterior: buscar informe relacionado cuando se descarga
+    const nombreArchivo = data.archivo.name.replace(/\.(pdf|PDF)$/, '').trim();
+    const informeRelacionado = this.informes.find(inf => {
+      const tituloNormalizado = inf.titulo.trim();
+      return tituloNormalizado === nombreArchivo || 
+             nombreArchivo.includes(tituloNormalizado) ||
+             tituloNormalizado.includes(nombreArchivo);
+    });
+
+    // Si se encuentra un informe relacionado, actualizar con la firma
+    if (informeRelacionado) {
+      // Agregar la firma si no existe ya
+      if (!informeRelacionado.firmasAgregadas.includes(data.firmaNombre)) {
+        informeRelacionado.firmasAgregadas.push(data.firmaNombre);
+        
+        // Regenerar el preview con la nueva firma
+        const updatedPreview = this.sanitizer.bypassSecurityTrustHtml(
+          this.buildPreviewHtml({
+            titulo: informeRelacionado.titulo,
+            fecha: informeRelacionado.fecha,
+            cuerpoHtml: informeRelacionado.cuerpoHtml,
+            usarMembrete: informeRelacionado.usarMembrete,
+            firmasAgregadas: informeRelacionado.firmasAgregadas
+          })
+        );
+        
+        informeRelacionado.previewHtml = updatedPreview;
+        
+        console.log(`Preview actualizado para informe "${informeRelacionado.titulo}" con firma de ${data.firmaNombre}`);
+      }
+    }
     
-    this.cerrarModalFirmarDocumento();
   }
 
   // ==================== Fin modal de firmar documento ====================
@@ -283,8 +402,8 @@ export class InformesEvidenciasComponent implements OnInit {
   private buildPreviewHtml(data: Pick<InformeFormData, 'titulo' | 'fecha' | 'cuerpoHtml' | 'usarMembrete' | 'firmasAgregadas'>): string {
     const titulo = this.escapeHtml((data.titulo || 'Informe').trim() || 'Informe');
     const fecha = this.escapeHtml(data.fecha || '');
-    // Extraer solo texto plano del cuerpo HTML para la miniatura
-    const cuerpoTexto = this.stripHtml(data.cuerpoHtml || '').substring(0, 100);
+    // Extraer solo texto plano del cuerpo HTML para la miniatura - aumentado a 350 caracteres
+    const cuerpoTexto = this.stripHtml(data.cuerpoHtml || '').substring(0, 350);
     const usarMembrete = data.usarMembrete ?? false;
     const firmas = data.firmasAgregadas ?? [];
 
@@ -294,9 +413,9 @@ export class InformesEvidenciasComponent implements OnInit {
     // Si tiene membrete, mostrar con fondo de imagen
     if (usarMembrete) {
       return `
-        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.3; color: #111827; position: relative; min-height: 120px; background-image: url('/HojaMembretada.png'); background-size: cover; background-position: top center;">
+        <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.4; color: #111827; position: relative; min-height: 200px; background-image: url('/HojaMembretada.png'); background-size: cover; background-position: top center;">
           <div style="padding: 35px 8px 8px 8px;">
-            <div style="font-size: 8px; color: #374151; overflow: hidden; text-overflow: ellipsis;">${cuerpoTexto}</div>
+            <div style="font-size: 8px; color: #374151; overflow-wrap: break-word; max-height: 140px; overflow: hidden;">${cuerpoTexto}</div>
             ${firmasHtml}
           </div>
         </div>
@@ -305,14 +424,14 @@ export class InformesEvidenciasComponent implements OnInit {
 
     // Sin membrete - formato normal
     return `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.3; color: #111827;">
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; font-size: 9px; line-height: 1.4; color: #111827;">
         <div style="display:flex; justify-content: space-between; align-items:flex-start; gap: 4px;">
           <div style="font-weight: 700; font-size: 10px; letter-spacing: .02em; color:#10b981;">AYNI</div>
           <div style="text-align:right; font-size: 7px; color:#6b7280;">${fecha}</div>
         </div>
         <div style="margin-top: 4px; font-size: 9px; font-weight: 600; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${titulo}</div>
         <hr style="margin: 4px 0; border: 0; border-top: 1px solid #e5e7eb;"/>
-        <div style="font-size: 8px; color: #374151; overflow: hidden;">${cuerpoTexto}</div>
+        <div style="font-size: 8px; color: #374151; overflow-wrap: break-word; max-height: 140px; overflow: hidden;">${cuerpoTexto}</div>
         ${firmasHtml}
       </div>
     `;
@@ -358,6 +477,50 @@ export class InformesEvidenciasComponent implements OnInit {
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
+  }
+
+  private async generarPreviewDesdePDF(pdfBytes: Uint8Array): Promise<string> {
+    try {
+      // Importar PDF.js dinámicamente
+      const pdfjs = await import('pdfjs-dist');
+      
+      // Configurar worker
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/build/pdf.worker.mjs',
+        import.meta.url
+      ).toString();
+
+      // Cargar el PDF
+      const loadingTask = pdfjs.getDocument({ data: pdfBytes });
+      const pdf = await loadingTask.promise;
+      
+      // Obtener la primera página
+      const page = await pdf.getPage(1);
+      
+      // Configurar el viewport para el preview (escala reducida)
+      const viewport = page.getViewport({ scale: 0.5 });
+      
+      // Crear canvas para renderizar
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('No se pudo obtener contexto del canvas');
+      
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      // Renderizar la página en el canvas
+      await page.render({
+        canvas: canvas,
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      // Convertir canvas a data URL
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error('Error al generar preview desde PDF:', error);
+      throw error;
+    }
   }
 
   private nextId(): number {

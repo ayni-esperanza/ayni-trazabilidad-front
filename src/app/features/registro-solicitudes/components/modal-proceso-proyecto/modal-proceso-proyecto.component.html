@@ -121,13 +121,26 @@
                 </div>
               </div>
               
-              <!-- Detalle por etapas -->
+              <!-- Detalle por etapas - Cards horizontales -->
               <div *ngIf="etapas.length > 0" class="mt-3">
                 <p class="font-medium text-gray-700 dark:text-gray-300 mb-2 text-xs">Distribución por Etapas:</p>
-                <div class="space-y-1">
-                  <div *ngFor="let etapa of etapas" class="flex justify-between items-center text-xs bg-gray-50 dark:bg-gray-700/30 px-2 py-1 rounded">
-                    <span class="truncate max-w-[200px]" [title]="etapa.nombre">{{ etapa.nombre }}</span>
-                    <span class="font-medium text-gray-600 dark:text-gray-300">{{ etapa.presupuesto | currency:'S/ ' }}</span>
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                  <div *ngFor="let etapa of etapas" class="flex-shrink-0 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 min-w-[120px] shadow-sm">
+                    <div class="text-[10px] font-medium text-gray-800 dark:text-gray-200 truncate mb-1" [title]="etapa.nombre">
+                      {{ etapa.nombre }}
+                    </div>
+                    <div class="text-xs font-bold text-green-600 dark:text-green-400">
+                      {{ etapa.presupuesto | currency:'S/ ' }}
+                    </div>
+                    <div class="text-[9px] text-gray-500 dark:text-gray-400 mt-1">
+                      <span class="inline-block w-2 h-2 rounded-full mr-1"
+                        [ngClass]="{
+                          'bg-green-500': etapa.estado === 'Completado',
+                          'bg-blue-500': etapa.estado === 'En Proceso',
+                          'bg-gray-400': etapa.estado === 'Pendiente'
+                        }"></span>
+                      {{ etapa.estado }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -191,13 +204,15 @@
             <select [(ngModel)]="etapaForm.responsableId"
               [class.border-red-500]="tieneErrorEtapa('responsableId')"
               class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-              <option value="0">Seleccionar Responsable</option>
-              <option *ngFor="let resp of responsables" [value]="resp.id">{{ resp.nombre }}</option>
+              <option [ngValue]="0">Seleccionar Responsable</option>
+              <option *ngFor="let resp of responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
             </select>
             <span *ngIf="tieneErrorEtapa('responsableId')" class="text-xs text-red-500">{{ erroresEtapa['responsableId'] }}</span>
           </ng-container>
           <ng-template #responsableReadonly>
-            <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ getResponsableNombre(etapaForm.responsableId) }}</p>
+            <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">
+              {{ etapaSeleccionada.responsableNombre || getResponsableNombre(etapaSeleccionada.responsableId || 0) }}
+            </p>
           </ng-template>
         </div>
         <div>
@@ -235,12 +250,33 @@
         <p class="text-xs text-red-600 dark:text-red-400">Por favor, complete todos los campos requeridos para finalizar la etapa.</p>
       </div>
 
-      <!-- Tabla de Tareas -->
-      <div *ngIf="etapaSeleccionada">
-        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Tareas Asignadas *</label>
-        <div class="border border-gray-200 dark:border-gray-700 rounded overflow-hidden">
+      <!-- Card de Tareas Asignadas (expandible/compactable) -->
+      <div *ngIf="etapaSeleccionada" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all overflow-hidden"
+        [ngClass]="{
+          'flex flex-col': tareasCardVisible,
+          'flex-shrink-0': !tareasCardVisible
+        }">
+        <!-- Header de la card -->
+        <div class="flex justify-between items-center px-3 py-2 flex-shrink-0" [class.border-b]="tareasCardVisible" [class.border-gray-200]="tareasCardVisible" [class.dark:border-gray-700]="tareasCardVisible">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <button (click)="tareasCardVisible = !tareasCardVisible" 
+              class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0"
+              [class.rotate-180]="!tareasCardVisible"
+              [title]="tareasCardVisible ? 'Ocultar tareas' : 'Mostrar tareas'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <h3 class="text-xs font-semibold text-gray-800 dark:text-white truncate">Tareas Asignadas</h3>
+            <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400">
+              {{ etapaSeleccionada.tareas.length }}
+            </span>
+          </div>
+        </div>
+        <!-- Contenido expandible -->
+        <div *ngIf="tareasCardVisible" class="overflow-auto max-h-[200px]">
           <table class="w-full text-xs">
-            <thead class="bg-gray-50 dark:bg-gray-800/60">
+            <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800/60">
               <tr>
                 <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
                 <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
@@ -249,7 +285,9 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr *ngFor="let tarea of etapaSeleccionada.tareas" [ngClass]="{'bg-red-50 dark:bg-red-900/10': isRetrasado(tarea)}">
+              <tr *ngFor="let tarea of etapaSeleccionada.tareas" 
+                class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                [ngClass]="{'bg-red-50 dark:bg-red-900/10': isRetrasado(tarea)}">
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.responsableNombre }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ tarea.tarea }}</td>
                 <td class="py-1.5 px-2 text-gray-700 dark:text-gray-200">{{ formatDisplayDate(tarea.fechaInicio) }} - {{ formatDisplayDate(tarea.fechaFin) }}</td>
@@ -263,6 +301,11 @@
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
                   </span>
+                </td>
+              </tr>
+              <tr *ngIf="etapaSeleccionada.tareas.length === 0">
+                <td colspan="4" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                  No hay tareas asignadas para esta etapa
                 </td>
               </tr>
             </tbody>

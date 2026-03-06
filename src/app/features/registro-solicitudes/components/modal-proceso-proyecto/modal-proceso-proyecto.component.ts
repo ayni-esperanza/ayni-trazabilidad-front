@@ -105,6 +105,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     fechaFinalizacion: ''
   };
 
+  // Control de visibilidad de la card de tareas
+  tareasCardVisible = true;
+
   // Control de validación para etapa
   intentoFinalizarEtapa = false;
   erroresEtapa: { [key: string]: string } = {};
@@ -131,6 +134,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   generarEtapas(): void {
     if (!this.proyecto) return;
+
+    // Si el proyecto ya tiene etapas guardadas, restaurarlas
+    if (this.proyecto.etapas && this.proyecto.etapas.length > 0) {
+      this.etapas = this.proyecto.etapas.map(e => ({ ...e }));
+      if (this.etapas.length > 0) {
+        this.seleccionarEtapa(this.etapas[0]);
+      }
+      return;
+    }
+
     const proceso = this.procesos.find(p => p.id === this.proyecto!.procesoId);
     
     this.etapas = proceso?.etapas.map((etapa, index) => ({
@@ -172,6 +185,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.etapaSeleccionada = etapa;
     this.intentoFinalizarEtapa = false;
     this.erroresEtapa = {};
+    
+    // Asegurar que el responsableNombre esté actualizado si hay un responsableId
+    if (etapa.responsableId && etapa.responsableId > 0 && !etapa.responsableNombre) {
+      etapa.responsableNombre = this.getResponsableNombre(etapa.responsableId);
+    }
+    
     this.etapaForm = {
       presupuesto: etapa.presupuesto,
       responsableId: etapa.responsableId,
@@ -184,10 +203,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.etapaSeleccionada) {
       // Actualizar los valores de la etapa con los del formulario
       this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
-      this.etapaSeleccionada.responsableId = this.etapaForm.responsableId;
-      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(this.etapaForm.responsableId);
+      this.etapaSeleccionada.responsableId = Number(this.etapaForm.responsableId);
+      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(Number(this.etapaForm.responsableId));
       this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
       this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
+      
+      // Actualizar también en el array de etapas para mantener sincronización
+      const index = this.etapas.findIndex(e => e.id === this.etapaSeleccionada!.id);
+      if (index >= 0) {
+        this.etapas[index] = { ...this.etapaSeleccionada };
+      }
     }
   }
 
@@ -249,6 +274,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.etapaSeleccionada && !this.modoSoloLectura) {
       this.guardarCambiosEtapaActual();
     }
+    // Persistir etapas en el proyecto al cerrar
+    this.guardarEtapasEnProyecto();
     this.cerrar.emit();
   }
 
@@ -283,6 +310,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.cargandoCancelacion = true;
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
+      // Guardar etapas antes de cancelar para preservar datos ingresados
+      if (this.etapaSeleccionada) {
+        this.guardarCambiosEtapaActual();
+      }
+      this.guardarEtapasEnProyecto();
       this.cancelarProy.emit({ motivo: this.motivoCancelacion });
       this.mostrarConfirmacionCancelar = false;
       this.mostrarModalCancelacion = false;
@@ -304,11 +336,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.etapaSeleccionada) {
       // Actualizar todos los campos de la etapa con valores independientes
       this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
-      this.etapaSeleccionada.responsableId = this.etapaForm.responsableId;
-      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(this.etapaForm.responsableId);
+      this.etapaSeleccionada.responsableId = Number(this.etapaForm.responsableId);
+      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(Number(this.etapaForm.responsableId));
       this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
       this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
       this.etapaSeleccionada.estado = 'Completado';
+
+      // Guardar etapas en el proyecto para persistir los datos
+      this.guardarEtapasEnProyecto();
+
       this.finalizarEtapa.emit(this.etapaSeleccionada);
 
       // Avanzar a siguiente etapa
@@ -323,7 +359,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   validarEtapa(): boolean {
     this.erroresEtapa = {};
 
-    if (!this.etapaForm.responsableId || this.etapaForm.responsableId === 0) {
+    if (!this.etapaForm.responsableId || Number(this.etapaForm.responsableId) === 0) {
       this.erroresEtapa['responsableId'] = 'Debe seleccionar un responsable';
     }
     if (!this.etapaForm.fechaInicio) {
@@ -385,8 +421,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.proyecto && this.todasEtapasCompletadas) {
       this.proyecto.estado = 'Completado';
       this.proyectoFinalizado = true;
+      // Guardar etapas en el proyecto antes de emitir
+      this.guardarEtapasEnProyecto();
       this.lanzarConfeti();
       this.finalizarProy.emit(this.proyecto);
+    }
+  }
+
+  private guardarEtapasEnProyecto(): void {
+    if (this.proyecto) {
+      this.proyecto.etapas = this.etapas.map(e => ({ ...e }));
     }
   }
 

@@ -22,6 +22,8 @@ export interface DocumentoFirmadoData {
   firmaImagen: string;
   canvasWidth: number;  // Ancho del canvas para calcular proporciones
   canvasHeight: number; // Alto del canvas para calcular proporciones
+  pdfBytes?: Uint8Array; // Bytes del PDF firmado (opcional, solo para guardar)
+  soloGuardar?: boolean; // Si es true, solo guarda sin descargar
 }
 
 interface PosicionConfig {
@@ -40,6 +42,7 @@ interface PosicionConfig {
 export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() visible = false;
   @Input() firmasDisponibles: Firma[] = [];
+  @Input() archivoInicial: File | null = null;
 
   @Output() cerrar = new EventEmitter<void>();
   @Output() firmarDocumento = new EventEmitter<DocumentoFirmadoData>();
@@ -141,9 +144,22 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
   protected intentoGuardar = false;
   protected errores: { [key: string]: string } = {};
 
+  // Toast notification
+  protected toastVisible = false;
+  protected toastMensaje = '';
+  protected toastTipo: 'success' | 'error' = 'success';
+  private toastTimeout: any;
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible'] && this.visible) {
       this.resetearFormulario();
+
+      // Si hay un archivo inicial (PDF firmado pre-cargado), cargarlo automáticamente
+      if (this.archivoInicial) {
+        setTimeout(() => {
+          this.procesarArchivo(this.archivoInicial!);
+        }, 100);
+      }
     }
   }
 
@@ -275,6 +291,7 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
     this.pdfArrayBuffer = null;
     this.zoomLevel = 1.0;
     this.paginasRenderizadas = [];
+    this.toastVisible = false;
   }
 
   // ==================== Manejo de archivo ====================
@@ -656,10 +673,50 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
       firmaImagen: this.firmaSeleccionada.imagenBase64,
       canvasWidth: this.canvasWidth,
       canvasHeight: this.canvasHeight,
+      soloGuardar: false,
     };
 
     // Procesar y descargar el documento firmado
     this.procesarYDescargarDocumentoFirmado(payload);
+  }
+
+  protected async onGuardarDocumento(): Promise<void> {
+    this.intentoGuardar = true;
+
+    if (!this.validarFormulario() || !this.archivoSubido || !this.firmaSeleccionada || !this.firmaPosicionada) {
+      return;
+    }
+
+    try {
+      // Procesar el PDF y obtener los bytes
+      const pdfBytes = await this.generarPDFfirmado();
+
+      const payload: DocumentoFirmadoData = {
+        archivo: this.archivoSubido,
+        firmaId: this.firmaSeleccionada.id,
+        posicionX: this.firmaPosX,
+        posicionY: this.firmaPosY,
+        pagina: this.paginaFirmaPosicionada,
+        tamano: this.tamanoFirma,
+        firmaNombre: this.firmaSeleccionada.nombre,
+        firmaCargo: this.firmaSeleccionada.cargo,
+        firmaImagen: this.firmaSeleccionada.imagenBase64,
+        canvasWidth: this.canvasWidth,
+        canvasHeight: this.canvasHeight,
+        pdfBytes: pdfBytes,
+        soloGuardar: true,
+      };
+
+      // Emitir evento con el documento guardado
+      this.firmarDocumento.emit(payload);
+
+      // Cerrar modal tras guardar exitosamente
+      this.resetearFormulario();
+      this.cerrar.emit();
+    } catch (error) {
+      console.error('Error al guardar documento:', error);
+      this.mostrarToast('Error al guardar el documento. Por favor, inténtelo de nuevo.', 'error');
+    }
   }
 
   private async procesarYDescargarDocumentoFirmado(data: DocumentoFirmadoData): Promise<void> {
@@ -668,98 +725,95 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
       if (data.archivo.type === 'application/pdf') {
         await this.firmarPDF(data);
       } else {
-        // Para DOC/DOCX, mostrar mensaje que solo se soporta PDF
-        alert('Por el momento, solo se pueden firmar archivos PDF directamente. Por favor, convierta su documento a PDF primero.');
+        this.mostrarToast('Solo se pueden firmar archivos PDF. Convierta su documento a PDF primero.', 'error');
         return;
       }
 
-      // Cerrar modal después de descargar
-      this.cerrar.emit();
-      this.resetearFormulario();
+      this.mostrarToast('Documento firmado y descargado exitosamente');
     } catch (error) {
       console.error('Error al firmar documento:', error);
-      alert('Error al firmar el documento. Por favor, inténtelo de nuevo.');
+      this.mostrarToast('Error al firmar el documento. Por favor, inténtelo de nuevo.', 'error');
     }
+  }
+
+  private async generarPDFfirmado(): Promise<Uint8Array> {
+    if (!this.archivoSubido || !this.firmaSeleccionada) {
+      throw new Error('Falta archivo o firma');
+    }
+
+    const arrayBuffer = await this.archivoSubido.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    
+    // Convertir la firma base64 a imagen
+    let firmaImagen;
+    if (this.firmaSeleccionada.imagenBase64.startsWith('data:image/png')) {
+      firmaImagen = await pdfDoc.embedPng(this.firmaSeleccionada.imagenBase64);
+    } else if (this.firmaSeleccionada.imagenBase64.startsWith('data:image/jpeg') || this.firmaSeleccionada.imagenBase64.startsWith('data:image/jpg')) {
+      firmaImagen = await pdfDoc.embedJpg(this.firmaSeleccionada.imagenBase64);
+    } else {
+      firmaImagen = await pdfDoc.embedPng(this.firmaSeleccionada.imagenBase64);
+    }
+
+    const pages = pdfDoc.getPages();
+    const page = pages[this.paginaFirmaPosicionada - 1];
+    const { width: pageWidth, height: pageHeight } = page.getSize();
+    
+    // Calcular dimensiones de la firma en el PDF
+    const firmaWidth = 120 * (this.tamanoFirma / 100);
+    const firmaHeight = 50 * (this.tamanoFirma / 100);
+    
+    // Convertir coordenadas del canvas a coordenadas del PDF
+    const scaleX = pageWidth / this.canvasWidth;
+    const scaleY = pageHeight / this.canvasHeight;
+    
+    const pdfX = this.firmaPosX * scaleX;
+    const canvasY = this.firmaPosY;
+    const pdfY = pageHeight - (canvasY * scaleY) - firmaHeight;
+
+    // Dibujar la imagen de la firma
+    page.drawImage(firmaImagen, {
+      x: pdfX,
+      y: pdfY,
+      width: firmaWidth,
+      height: firmaHeight,
+    });
+
+    // Agregar texto del nombre y cargo debajo de la firma (CENTRADO)
+    const fontSize = 8 * (this.tamanoFirma / 100);
+    const nombreWidth = this.firmaSeleccionada.nombre.length * fontSize * 0.5;
+    const nombreX = pdfX + (firmaWidth - nombreWidth) / 2;
+    
+    page.drawText(this.firmaSeleccionada.nombre, {
+      x: nombreX,
+      y: pdfY - 12,
+      size: fontSize,
+      color: rgb(0, 0, 0),
+    });
+
+    if (this.firmaSeleccionada.cargo) {
+      const cargoWidth = this.firmaSeleccionada.cargo.length * (fontSize - 1) * 0.5;
+      const cargoX = pdfX + (firmaWidth - cargoWidth) / 2;
+      
+      page.drawText(this.firmaSeleccionada.cargo, {
+        x: cargoX,
+        y: pdfY - 22,
+        size: fontSize - 1,
+        color: rgb(0.4, 0.4, 0.4),
+      });
+    }
+
+    // Guardar y retornar los bytes del PDF
+    const pdfBytes = await pdfDoc.save();
+    return new Uint8Array(pdfBytes);
   }
 
   private async firmarPDF(data: DocumentoFirmadoData): Promise<void> {
     try {
-      // Leer el archivo PDF original
-      const arrayBuffer = await data.archivo.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      
-      // Convertir la firma base64 a imagen
-      let firmaImagen;
-      if (data.firmaImagen.startsWith('data:image/png')) {
-        firmaImagen = await pdfDoc.embedPng(data.firmaImagen);
-      } else if (data.firmaImagen.startsWith('data:image/jpeg') || data.firmaImagen.startsWith('data:image/jpg')) {
-        firmaImagen = await pdfDoc.embedJpg(data.firmaImagen);
-      } else {
-        // Intentar PNG por defecto
-        firmaImagen = await pdfDoc.embedPng(data.firmaImagen);
-      }
-
-      const pages = pdfDoc.getPages();
-      const page = pages[data.pagina - 1]; // Convertir a índice base 0
-      const { width: pageWidth, height: pageHeight } = page.getSize();
-      
-      // Calcular dimensiones de la firma en el PDF
-      const firmaWidth = 120 * (data.tamano / 100);
-      const firmaHeight = 50 * (data.tamano / 100);
-      
-      // Convertir coordenadas del canvas a coordenadas del PDF
-      // El canvas muestra el PDF escalado, así que necesitamos convertir
-      const scaleX = pageWidth / data.canvasWidth;
-      const scaleY = pageHeight / data.canvasHeight;
-      
-      // Calcular posición X (igual en ambos sistemas)
-      const pdfX = data.posicionX * scaleX;
-      
-      // Calcular posición Y (PDF usa coordenadas desde abajo, canvas desde arriba)
-      // Convertir Y del canvas a Y del PDF
-      const canvasY = data.posicionY;
-      const pdfY = pageHeight - (canvasY * scaleY) - firmaHeight;
-
-      // Dibujar la imagen de la firma
-      page.drawImage(firmaImagen, {
-        x: pdfX,
-        y: pdfY,
-        width: firmaWidth,
-        height: firmaHeight,
-      });
-
-      // Agregar texto del nombre y cargo debajo de la firma (CENTRADO)
-      const fontSize = 8 * (data.tamano / 100);
-      
-      // Calcular posición X centrada para el nombre
-      const nombreWidth = data.firmaNombre.length * fontSize * 0.5; // Aproximación del ancho del texto
-      const nombreX = pdfX + (firmaWidth - nombreWidth) / 2;
-      
-      page.drawText(data.firmaNombre, {
-        x: nombreX,
-        y: pdfY - 12,
-        size: fontSize,
-        color: rgb(0, 0, 0),
-      });
-
-      if (data.firmaCargo) {
-        // Calcular posición X centrada para el cargo
-        const cargoWidth = data.firmaCargo.length * (fontSize - 1) * 0.5;
-        const cargoX = pdfX + (firmaWidth - cargoWidth) / 2;
-        
-        page.drawText(data.firmaCargo, {
-          x: cargoX,
-          y: pdfY - 22,
-          size: fontSize - 1,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-      }
-
-      // Guardar el PDF modificado
-      const pdfBytes = await pdfDoc.save();
+      // Generar el PDF firmado
+      const pdfBytes = await this.generarPDFfirmado();
       
       // Crear blob y descargar
-      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -778,7 +832,27 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
     }
   }
 
+  protected mostrarToast(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
+    this.toastMensaje = mensaje;
+    this.toastTipo = tipo;
+    this.toastVisible = true;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toastVisible = false;
+    }, 4000);
+  }
+
+  protected ocultarToast(): void {
+    this.toastVisible = false;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+  }
+
   protected onCloseClick(): void {
+    this.ocultarToast();
     this.resetearFormulario();
     this.cerrar.emit();
   }

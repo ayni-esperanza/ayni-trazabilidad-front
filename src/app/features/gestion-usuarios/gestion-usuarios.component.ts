@@ -72,6 +72,14 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     usuariosActivos: 0,
   };
 
+  // Estadísticas filtradas (calculadas en el cliente)
+  estadisticasFiltradas: EstadisticasUsuarios = {
+    totalUsuarios: 0,
+    administradores: 0,
+    ingenieros: 0,
+    usuariosActivos: 0,
+  };
+
   // Filtros
   filtros: Filtros = {
     busqueda: '',
@@ -175,6 +183,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
           this.usuarios = response.content;
           this.paginacion.totalElementos = response.totalElements;
           this.paginacion.totalPaginas = response.totalPages;
+          this.calcularEstadisticasFiltradas();
         },
         error: (err) => {
           this.error =
@@ -196,11 +205,35 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (stats) => {
           this.estadisticas = stats;
+          this.estadisticasFiltradas = { ...stats };
         },
         error: (err) => {
           console.error('Error al cargar estadísticas:', err);
         },
       });
+  }
+
+  calcularEstadisticasFiltradas(): void {
+    if (!this.tieneFiltrosActivos()) {
+      this.estadisticasFiltradas = { ...this.estadisticas };
+      return;
+    }
+
+    // Calcular estadísticas basadas en los usuarios filtrados actuales
+    this.estadisticasFiltradas = {
+      totalUsuarios: this.usuarios.length,
+      administradores: this.usuarios.filter(u => 
+        u.roles.some(r => r.nombre.toUpperCase() === 'ADMINISTRADOR')
+      ).length,
+      ingenieros: this.usuarios.filter(u => 
+        u.roles.some(r => r.nombre.toUpperCase() === 'INGENIERO')
+      ).length,
+      usuariosActivos: this.usuarios.filter(u => u.activo).length,
+    };
+  }
+
+  tieneFiltrosActivos(): boolean {
+    return !!(this.filtros.busqueda.trim() || this.filtros.rol);
   }
 
   // ==================== FILTROS ====================
