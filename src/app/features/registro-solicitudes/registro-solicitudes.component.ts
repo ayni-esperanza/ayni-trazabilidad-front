@@ -304,7 +304,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     const proceso = this.procesos.find(p => p.id === Number(data.procesoId));
     const proyecto: Proyecto = {
       id: this.proyectos.length + 1, solicitudId: this.solicitudActual?.id || 0, nombreProyecto: data.nombreProyecto!,
-      cliente: data.cliente!, representante: data.representante, costo: data.costo!, ordenCompra: data.ordenCompra,
+      cliente: data.cliente!, representante: data.representante, costo: data.costo!, ordenesCompra: data.ordenesCompra,
       responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaInicio: new Date(data.fechaInicio!), fechaFinalizacion: new Date(data.fechaFinalizacion!),
       procesoId: Number(data.procesoId), procesoNombre: proceso?.nombre, estado: 'En Proceso', etapaActual: 1

@@ -1,6 +1,11 @@
 export type EstadoSolicitud = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
 
+export interface OrdenCompra {
+  numero: string;
+  fecha: string;
+}
+
 export interface Solicitud {
   id: number;
   nombreProyecto: string;
@@ -24,7 +29,7 @@ export interface Proyecto {
   cliente: string;
   representante?: string;
   costo: number;
-  ordenCompra?: string;
+  ordenesCompra?: OrdenCompra[];
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;

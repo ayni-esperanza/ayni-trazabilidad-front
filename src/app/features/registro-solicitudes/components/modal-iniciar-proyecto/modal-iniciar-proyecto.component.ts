@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Solicitud, Proyecto, Responsable, ProcesoSimple } from '../../models/solicitud.model';
+import { Solicitud, Proyecto, Responsable, ProcesoSimple, OrdenCompra } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
@@ -29,6 +29,9 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   protected Editor: any;
   protected ckeditorConfig: any = {};
   protected isBrowser = false;
+
+  // Órdenes de Compra
+  ordenesCompra: OrdenCompra[] = [];
 
   // Control de validación
   intentoGuardar = false;
@@ -125,16 +128,24 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
         cliente: this.solicitud.cliente,
         representante: this.solicitud.representante,
         costo: this.solicitud.costo,
-        ordenCompra: '',
         responsableId: this.solicitud.responsableId,
         descripcion: this.solicitud.descripcion,
         fechaInicio: '',
         fechaFinalizacion: '',
         procesoId: 0
       };
+      this.ordenesCompra = [];
       this.intentoGuardar = false;
       this.errores = {};
     }
+  }
+
+  agregarOrdenCompra(): void {
+    this.ordenesCompra.push({ numero: '', fecha: '' });
+  }
+
+  eliminarOrdenCompra(index: number): void {
+    this.ordenesCompra.splice(index, 1);
   }
 
   onCerrar(): void {
@@ -173,7 +184,7 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   onIniciar(): void {
     this.intentoGuardar = true;
     if (this.validar()) {
-      this.iniciar.emit({ ...this.proyecto });
+      this.iniciar.emit({ ...this.proyecto, ordenesCompra: this.ordenesCompra.filter(o => o.numero.trim()) });
     }
   }
 

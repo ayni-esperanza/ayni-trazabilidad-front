@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
@@ -128,7 +128,7 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     nombreProyecto: '',
     cliente: '',
     representante: '',
-    ordenCompra: '',
+    ordenesCompra: [] as OrdenCompra[],
     costo: 0,
     procesoId: 0,
     responsableId: 0,
@@ -525,7 +525,7 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
       nombreProyecto: this.proyecto.nombreProyecto,
       cliente: this.proyecto.cliente,
       representante: this.proyecto.representante || '',
-      ordenCompra: this.proyecto.ordenCompra || '',
+      ordenesCompra: (this.proyecto.ordenesCompra || []).map(o => ({ ...o })),
       costo: this.proyecto.costo,
       procesoId: this.proyecto.procesoId,
       responsableId: this.proyecto.responsableId,
@@ -536,12 +536,20 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     };
   }
 
+  agregarOrdenCompra(): void {
+    this.proyectoInfoForm.ordenesCompra.push({ numero: '', fecha: '' });
+  }
+
+  eliminarOrdenCompra(index: number): void {
+    this.proyectoInfoForm.ordenesCompra.splice(index, 1);
+  }
+
   guardarInfoProyecto(): void {
     if (!this.proyecto || this.modoSoloLectura) return;
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
     this.proyecto.representante = this.proyectoInfoForm.representante;
-    this.proyecto.ordenCompra = this.proyectoInfoForm.ordenCompra;
+    this.proyecto.ordenesCompra = this.proyectoInfoForm.ordenesCompra.filter(o => o.numero.trim()).map(o => ({ ...o }));
     this.proyecto.costo = Number(this.proyectoInfoForm.costo);
     this.proyecto.procesoId = Number(this.proyectoInfoForm.procesoId);
     this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
