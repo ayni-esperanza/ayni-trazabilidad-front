@@ -22,11 +22,23 @@ export class ProyectosTablaCardComponent {
   @Input() mesSeleccionado: string | null = null;
   @Input() proyectoSeleccionado: ProyectoEnCurso | null = null;
   @Input() tablaVisible: boolean = true;
+
+  // Filtros adicionales para la vista de finalizados
+  @Input() lugares: string[] = [];
+  @Input() estadosDisponibles: string[] = [];
+  @Input() lugarSeleccionado: string | null = null;
+  @Input() estadoProyecto: string | null = null;
+  @Input() fechaDesde: string | null = null;
+  @Input() fechaHasta: string | null = null;
   
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() limpiarFiltros = new EventEmitter<void>();
   @Output() selectProyecto = new EventEmitter<ProyectoEnCurso>();
   @Output() empresaSeleccionadaChange = new EventEmitter<string | null>();
+  @Output() lugarSeleccionadoChange = new EventEmitter<string | null>();
+  @Output() estadoProyectoChange = new EventEmitter<string | null>();
+  @Output() fechaDesdeChange = new EventEmitter<string | null>();
+  @Output() fechaHastaChange = new EventEmitter<string | null>();
   
   onToggleTabla(): void {
     this.toggleTabla.emit();
@@ -39,9 +51,30 @@ export class ProyectosTablaCardComponent {
   onEmpresaChange(empresa: string | null): void {
     this.empresaSeleccionadaChange.emit(empresa);
   }
+
+  onLugarChange(lugar: string | null): void {
+    this.lugarSeleccionadoChange.emit(lugar);
+  }
+
+  onEstadoProyectoChange(estado: string | null): void {
+    this.estadoProyectoChange.emit(estado);
+  }
+
+  onFechaDesdeChange(fecha: string): void {
+    this.fechaDesdeChange.emit(fecha || null);
+  }
+
+  onFechaHastaChange(fecha: string): void {
+    this.fechaHastaChange.emit(fecha || null);
+  }
   
   onSelectProyecto(proyecto: ProyectoEnCurso): void {
     this.selectProyecto.emit(proyecto);
+  }
+
+  get hayFiltrosActivos(): boolean {
+    return !!(this.mesSeleccionado || this.proyectoSeleccionado || this.empresaSeleccionada ||
+              this.lugarSeleccionado || this.estadoProyecto || this.fechaDesde || this.fechaHasta);
   }
   
   get tituloTabla(): string {

@@ -49,10 +49,20 @@
       [mesSeleccionado]="mesSeleccionado"
       [proyectoSeleccionado]="proyectoSeleccionado"
       [tablaVisible]="tablaProyectosVisible"
+      [lugares]="lugaresDisponibles"
+      [estadosDisponibles]="estadosFinalizadosDisponibles"
+      [lugarSeleccionado]="lugarSeleccionado"
+      [estadoProyecto]="estadoProyecto"
+      [fechaDesde]="fechaDesde"
+      [fechaHasta]="fechaHasta"
       (toggleTabla)="toggleTablaProyectos()"
       (limpiarFiltros)="limpiarFiltros()"
       (selectProyecto)="onSelectProyecto($event)"
-      (empresaSeleccionadaChange)="onEmpresaChange($event)">
+      (empresaSeleccionadaChange)="onEmpresaChange($event)"
+      (lugarSeleccionadoChange)="onLugarChange($event)"
+      (estadoProyectoChange)="onEstadoProyectoChange($event)"
+      (fechaDesdeChange)="onFechaDesdeChange($event)"
+      (fechaHastaChange)="onFechaHastaChange($event)">
     </app-proyectos-tabla-card>
     
     <!-- Componente Tabla de Encargados/Gastos -->

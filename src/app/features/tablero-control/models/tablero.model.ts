@@ -13,6 +13,7 @@ export interface ProyectoEnCurso {
   mes: string; // Ene, Feb, Mar, etc.
   fechaCreacion: Date;
   gastoTotal?: number; // Para vista de gastos
+  lugar?: string;      // Ubicación/ciudad del proyecto
 }
 
 export interface TareaEncargado {

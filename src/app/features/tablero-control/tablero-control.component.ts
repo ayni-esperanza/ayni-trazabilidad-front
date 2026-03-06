@@ -134,7 +134,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     
     // Filtrar por estado según la métrica seleccionada
     if (this.metricaSeleccionada === 'finalizados') {
-      proyectos = proyectos.filter(p => p.estado === 'Completado');
+      proyectos = proyectos.filter(p => p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado');
     } else if (this.metricaSeleccionada === 'activos') {
       proyectos = proyectos.filter(p => p.estado === 'En Proceso' || p.estado === 'Pendiente');
     }
@@ -143,11 +143,43 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     return Array.from(empresasSet).sort();
   }
 
+  /**
+   * Obtiene los lugares únicos según la métrica actual
+   */
+  get lugaresDisponibles(): string[] {
+    const proyectosBase = this.proyectosEnCurso.filter(p => this.matchMetrica(p));
+    const lugaresSet = new Set(proyectosBase.map(p => p.lugar).filter((l): l is string => !!l));
+    return Array.from(lugaresSet).sort();
+  }
+
+  /**
+   * Obtiene los estados disponibles según la métrica actual
+   */
+  get estadosFinalizadosDisponibles(): string[] {
+    const proyectosBase = this.proyectosEnCurso.filter(p => this.matchMetrica(p));
+    const estadosSet = new Set(proyectosBase.map(p => p.estado));
+    return Array.from(estadosSet).sort();
+  }
+
+  /** Auxiliar: comprueba si un proyecto corresponde a la métrica seleccionada */
+  private matchMetrica(p: ProyectoEnCurso): boolean {
+    if (this.metricaSeleccionada === 'finalizados')
+      return p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado';
+    if (this.metricaSeleccionada === 'activos')
+      return p.estado === 'En Proceso' || p.estado === 'Pendiente';
+    return true; // gastos: todos
+  }
+
   // Filtros de selección
   mesSeleccionado: string | null = null;
   proyectoSeleccionado: ProyectoEnCurso | null = null;
   categoriaSeleccionada: string | null = null;
   empresaSeleccionada: string | null = null;
+  // Filtros adicionales para proyectos finalizados
+  lugarSeleccionado: string | null = null;
+  estadoProyecto: string | null = null;
+  fechaDesde: string | null = null;
+  fechaHasta: string | null = null;
   
   // Control de visibilidad de tablas (compactables)
   tablaProyectosVisible = true;
@@ -190,6 +222,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.mesSeleccionado = null;
     this.proyectoSeleccionado = null;
     this.empresaSeleccionada = null;
+    this.lugarSeleccionado = null;
+    this.estadoProyecto = null;
+    this.fechaDesde = null;
+    this.fechaHasta = null;
     
     // Cargar todos los datos en paralelo usando el resumen
     this.tableroService.obtenerResumenTablero()
@@ -283,6 +319,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.proyectoSeleccionado = null;
     this.categoriaSeleccionada = null;
     this.empresaSeleccionada = null;
+    this.lugarSeleccionado = null;
+    this.estadoProyecto = null;
+    this.fechaDesde = null;
+    this.fechaHasta = null;
     this.aplicarFiltros();
   }
   
@@ -291,6 +331,30 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    */
   onEmpresaChange(empresa: string | null): void {
     this.empresaSeleccionada = empresa;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
+  onLugarChange(lugar: string | null): void {
+    this.lugarSeleccionado = lugar;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
+  onEstadoProyectoChange(estado: string | null): void {
+    this.estadoProyecto = estado;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
+  onFechaDesdeChange(fecha: string | null): void {
+    this.fechaDesde = fecha;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
+  onFechaHastaChange(fecha: string | null): void {
+    this.fechaHasta = fecha;
     this.proyectoSeleccionado = null;
     this.aplicarFiltros();
   }
@@ -382,6 +446,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.proyectoSeleccionado = null;
     this.categoriaSeleccionada = null;
     this.empresaSeleccionada = null;
+    this.lugarSeleccionado = null;
+    this.estadoProyecto = null;
+    this.fechaDesde = null;
+    this.fechaHasta = null;
     this.aplicarFiltros();
   }
   
@@ -394,7 +462,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtrar por estado según la métrica seleccionada
     if (this.metricaSeleccionada === 'finalizados') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
-        p.estado === 'Completado'
+        p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado'
       );
     } else if (this.metricaSeleccionada === 'activos') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
@@ -411,6 +479,23 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtrar por empresa si está seleccionada
     if (this.empresaSeleccionada) {
       proyectosFiltrados = proyectosFiltrados.filter(p => p.empresa === this.empresaSeleccionada);
+    }
+
+    // Filtros adicionales (aplican a las 3 métricas)
+    if (this.lugarSeleccionado) {
+      proyectosFiltrados = proyectosFiltrados.filter(p => p.lugar === this.lugarSeleccionado);
+    }
+    if (this.estadoProyecto) {
+      proyectosFiltrados = proyectosFiltrados.filter(p => p.estado === this.estadoProyecto);
+    }
+    if (this.fechaDesde) {
+      const desde = new Date(this.fechaDesde);
+      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(p.fechaCreacion) >= desde);
+    }
+    if (this.fechaHasta) {
+      const hasta = new Date(this.fechaHasta);
+      hasta.setHours(23, 59, 59, 999);
+      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(p.fechaCreacion) <= hasta);
     }
     
     // Ordenar del más nuevo al más viejo

@@ -23,26 +23,78 @@
         </span>
       }
     </div>
-    <div class="flex items-center gap-2">
-      <!-- Filtro de empresa -->
-      @if (tablaVisible) {
-        <select 
-          [ngModel]="empresaSeleccionada" 
-          (ngModelChange)="onEmpresaChange($event)"
-          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 max-w-[160px] truncate">
-          <option [ngValue]="null">Todas las empresas</option>
-          @for (empresa of empresas; track empresa) {
-            <option [ngValue]="empresa">{{ empresa }}</option>
-          }
-        </select>
-      }
-      @if ((mesSeleccionado || proyectoSeleccionado || empresaSeleccionada) && tablaVisible) {
-        <button (click)="onLimpiarFiltros()" class="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
-          Limpiar filtros
+  </div>
+
+  <!-- Fila única de filtros (aplica a las 3 métricas) -->
+  @if (tablaVisible) {
+    <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+
+      <!-- Filtro Empresa -->
+      <select
+        [ngModel]="empresaSeleccionada"
+        (ngModelChange)="onEmpresaChange($event)"
+        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[140px] max-w-[180px]">
+        <option [ngValue]="null">Todas las empresas</option>
+        @for (empresa of empresas; track empresa) {
+          <option [ngValue]="empresa">{{ empresa }}</option>
+        }
+      </select>
+
+      <!-- Filtro Estado -->
+      <select
+        [ngModel]="estadoProyecto"
+        (ngModelChange)="onEstadoProyectoChange($event)"
+        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[130px] max-w-[170px]">
+        <option [ngValue]="null">Todos los estados</option>
+        @for (estado of estadosDisponibles; track estado) {
+          <option [ngValue]="estado">{{ estado }}</option>
+        }
+      </select>
+
+      <!-- Filtro Lugar -->
+      <select
+        [ngModel]="lugarSeleccionado"
+        (ngModelChange)="onLugarChange($event)"
+        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[120px] max-w-[160px]">
+        <option [ngValue]="null">Todos los lugares</option>
+        @for (lugar of lugares; track lugar) {
+          <option [ngValue]="lugar">{{ lugar }}</option>
+        }
+      </select>
+
+      <!-- Filtro Fecha Desde -->
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Desde:</span>
+        <input
+          type="date"
+          [ngModel]="fechaDesde ?? ''"
+          (ngModelChange)="onFechaDesdeChange($event)"
+          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500">
+      </div>
+
+      <!-- Filtro Fecha Hasta -->
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Hasta:</span>
+        <input
+          type="date"
+          [ngModel]="fechaHasta ?? ''"
+          (ngModelChange)="onFechaHastaChange($event)"
+          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500">
+      </div>
+
+      <!-- Botón limpiar -->
+      @if (hayFiltrosActivos) {
+        <button (click)="onLimpiarFiltros()"
+          title="Limpiar filtros"
+          class="p-1.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
         </button>
       }
+
     </div>
-  </div>
+  }
   @if (tablaVisible) {
     <div class="flex-1 overflow-auto">
     <table class="w-full text-xs">
@@ -52,6 +104,7 @@
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Empresa</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Lugar</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
           @if (metricaSeleccionada === 'gastos') {
@@ -68,6 +121,7 @@
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.empresa }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.etapa }}</td>
+            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.lugar || '—' }}</td>
             <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
             <td class="py-1.5 px-1">
               <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoClass(proyecto.estado)">
@@ -82,7 +136,7 @@
           </tr>
         } @empty {
           <tr>
-            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 7 : 6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 8 : 7" class="py-4 text-center text-gray-500 dark:text-gray-400">
               No hay proyectos para el mes seleccionado
             </td>
           </tr>
