@@ -56,7 +56,7 @@
         [ngModel]="lugarSeleccionado"
         (ngModelChange)="onLugarChange($event)"
         class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[120px] max-w-[160px]">
-        <option [ngValue]="null">Todos los lugares</option>
+        <option [ngValue]="null">Todas las ubicaciones</option>
         @for (lugar of lugares; track lugar) {
           <option [ngValue]="lugar">{{ lugar }}</option>
         }
@@ -104,7 +104,7 @@
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Empresa</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Lugar</th>
+          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Ubicación</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
           <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
           @if (metricaSeleccionada === 'gastos') {
