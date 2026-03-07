@@ -25,7 +25,11 @@ export class TareaFormModalComponent implements OnChanges {
   @Input() visible = false;
   @Input() tarea: Tarea | null = null;
   @Input() modoEdicion = false;
-  
+  @Input() proyectoPreseleccionado: { id: string; nombre: string } | null = null;
+  @Input() etapaPreseleccionada: { id: string; nombre: string } | null = null;
+  @Input() proyectoFijo = false;
+  @Input() etapaFija = false;
+
   @Output() cerrar = new EventEmitter<void>();
   @Output() guardar = new EventEmitter<Tarea>();
   @Output() eliminar = new EventEmitter<number>();
@@ -79,6 +83,22 @@ export class TareaFormModalComponent implements OnChanges {
       } else {
         this.resetForm();
       }
+      this.aplicarPreselecciones();
+    }
+  }
+
+  private aplicarPreselecciones(): void {
+    if (this.proyectoPreseleccionado) {
+      if (!this.proyectos.find(p => p.id === this.proyectoPreseleccionado!.id)) {
+        this.proyectos = [this.proyectoPreseleccionado, ...this.proyectos];
+      }
+      this.formData.proyectoId = this.proyectoPreseleccionado.id;
+    }
+    if (this.etapaPreseleccionada) {
+      if (!this.etapas.find(e => e.id === this.etapaPreseleccionada!.id)) {
+        this.etapas = [this.etapaPreseleccionada, ...this.etapas];
+      }
+      this.formData.etapa = this.etapaPreseleccionada.id;
     }
   }
 
@@ -153,7 +173,7 @@ export class TareaFormModalComponent implements OnChanges {
     if (!this.formData.proyectoId) {
       this.errores['proyectoId'] = 'Debe seleccionar un proyecto';
     }
-    if (!this.formData.etapa) {
+    if (!this.formData.etapa && !this.etapaFija) {
       this.errores['etapa'] = 'Debe seleccionar una etapa';
     }
     if (!this.formData.fechaInicio) {

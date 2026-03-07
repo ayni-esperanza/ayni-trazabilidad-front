@@ -21,7 +21,7 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   @Input() responsables: Responsable[] = [];
   @Input() procesos: ProcesoSimple[] = [];
   @Output() cerrar = new EventEmitter<void>();
-  @Output() cancelarProy = new EventEmitter<void>();
+  @Output() cancelarProy = new EventEmitter<{ proyecto: Record<string, any>; actividades: Tarea[]; ordenesCompra: any[]; motivo: string; responsableNombre: string; procesoNombre: string }>();
   @Output() iniciar = new EventEmitter<Partial<Proyecto>>();
 
   proyecto: Partial<Proyecto> = {};
@@ -47,6 +47,9 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
   
   // Modal de confirmación de cancelación
   mostrarConfirmacionCancelar = false;
+  mostrarModalCancelacion = false;
+  mostrarResumenCancelacion = false;
+  motivoCancelacion = '';
   cargandoCancelacion = false;
   configCancelarModal: ConfirmDeleteConfig = {};
 
@@ -183,13 +186,26 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
     this.intentoGuardar = false;
     this.errores = {};
     this.mostrarConfirmacionCancelar = false;
+    this.mostrarResumenCancelacion = false;
     this.cerrar.emit();
   }
 
   onIniciarCancelar(): void {
+    this.motivoCancelacion = '';
+    this.mostrarModalCancelacion = true;
+  }
+
+  cerrarModalCancelacion(): void {
+    this.mostrarModalCancelacion = false;
+    this.motivoCancelacion = '';
+  }
+
+  onSolicitarConfirmacionCancelarIniciar(): void {
+    if (!this.motivoCancelacion.trim()) return;
+    this.mostrarModalCancelacion = false;
     this.configCancelarModal = {
       titulo: 'Cancelar proyecto',
-      mensaje: '¿Estás seguro de que deseas cancelar este proyecto?',
+      mensaje: `¿Estás seguro de que deseas cancelar este proyecto? Motivo: ${this.motivoCancelacion}`,
       cantidadElementos: 1,
       tipoElemento: 'proyecto',
       textoConfirmar: 'Cancelar Proyecto'
@@ -201,11 +217,33 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
     this.cargandoCancelacion = true;
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
-      this.cancelarProy.emit();
       this.mostrarConfirmacionCancelar = false;
+      this.mostrarResumenCancelacion = true;
     } finally {
       this.cargandoCancelacion = false;
     }
+  }
+
+  getNombreResponsable(): string {
+    const r = this.responsables.find(r => +r.id === +this.proyecto.responsableId!);
+    return r?.nombre || '—';
+  }
+
+  getNombreProceso(): string {
+    const p = this.procesos.find(p => +p.id === +this.proyecto.procesoId!);
+    return p?.nombre || '—';
+  }
+
+  cerrarResumenCancelacion(): void {
+    this.mostrarResumenCancelacion = false;
+    this.cancelarProy.emit({
+      proyecto: { ...this.proyecto },
+      actividades: [...this.actividadesProyecto],
+      ordenesCompra: [...this.ordenesCompra],
+      motivo: this.motivoCancelacion,
+      responsableNombre: this.getNombreResponsable(),
+      procesoNombre: this.getNombreProceso()
+    });
   }
 
   onCancelarCancelar(): void {

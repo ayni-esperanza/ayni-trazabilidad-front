@@ -64,8 +64,9 @@
             </label>
             <select 
               [(ngModel)]="formData.proyectoId"
+              [disabled]="proyectoFijo"
               [class.border-red-500]="tieneError('proyectoId')"
-              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-70"
               required>
               <option value="">Seleccionar Proyecto</option>
               @for (proyecto of proyectos; track proyecto.id) {
@@ -96,14 +97,17 @@
           <!-- Etapa -->
           <div>
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Etapa <span class="text-red-500">*</span>
+              Etapa
+              @if (!etapaFija) { <span class="text-red-500">*</span> }
+              @if (etapaFija && !etapaPreseleccionada) { <span class="text-xs text-gray-400">(sin proceso definido)</span> }
             </label>
             <select 
               [(ngModel)]="formData.etapa"
+              [disabled]="etapaFija"
               [class.border-red-500]="tieneError('etapa')"
-              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
-              required>
-              <option value="">Seleccionar Etapa</option>
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-70"
+              [required]="!etapaFija">
+              <option value="">{{ etapaFija && !etapaPreseleccionada ? 'Sin etapa definida' : 'Seleccionar Etapa' }}</option>
               @for (etapa of etapas; track etapa.id) {
                 <option [value]="etapa.id">{{ etapa.nombre }}</option>
               }

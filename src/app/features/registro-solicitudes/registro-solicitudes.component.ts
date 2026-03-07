@@ -22,6 +22,8 @@ export class RegistroSolicitudesComponent implements OnInit {
   showNuevaSolicitudModal = false;
   showIniciarProyectoModal = false;
   showProcesoProyectoModal = false;
+  showResumenCancelacionInicioModal = false;
+  resumenCancelacionActual: import('./models/solicitud.model').DatosCancelacionInicio | null = null;
 
   // Listas de datos
   solicitudes: Solicitud[] = [];
@@ -293,8 +295,13 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Modal Iniciar Proyecto
   cerrarIniciarProyecto(): void { this.showIniciarProyectoModal = false; }
 
-  onCancelarProyecto(): void {
-    if (this.solicitudActual) this.solicitudActual.estado = 'Cancelado';
+  onCancelarProyecto(data: { proyecto: Record<string, any>; actividades: any[]; ordenesCompra: any[]; motivo: string; responsableNombre: string; procesoNombre: string }): void {
+    if (this.solicitudActual) {
+      this.solicitudActual.estado = 'Cancelado';
+      this.solicitudActual.datosCancelacionInicio = data;
+      const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
+      if (i !== -1) this.solicitudes[i] = { ...this.solicitudActual };
+    }
     this.aplicarFiltros();
     this.showIniciarProyectoModal = false;
   }
@@ -365,6 +372,10 @@ export class RegistroSolicitudesComponent implements OnInit {
   abrirProcesoDesdeTabla(solicitud: Solicitud): void {
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (proyecto) { this.proyectoActual = proyecto; this.showProcesoProyectoModal = true; }
+    else if (solicitud.estado === 'Cancelado' && solicitud.datosCancelacionInicio) {
+      this.resumenCancelacionActual = solicitud.datosCancelacionInicio;
+      this.showResumenCancelacionInicioModal = true;
+    }
     else if (solicitud.estado === 'Pendiente') { this.solicitudActual = solicitud; this.showIniciarProyectoModal = true; }
   }
 

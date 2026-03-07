@@ -6,6 +6,15 @@ export interface OrdenCompra {
   fecha: string;
 }
 
+export interface DatosCancelacionInicio {
+  proyecto: Record<string, any>;
+  actividades: any[];
+  ordenesCompra: OrdenCompra[];
+  motivo: string;
+  responsableNombre: string;
+  procesoNombre: string;
+}
+
 export interface Solicitud {
   id: number;
   nombreProyecto: string;
@@ -20,6 +29,7 @@ export interface Solicitud {
   fechaInicio?: Date | string;
   fechaFin?: Date | string;
   estado: EstadoSolicitud;
+  datosCancelacionInicio?: DatosCancelacionInicio;
 }
 
 export interface Proyecto {
