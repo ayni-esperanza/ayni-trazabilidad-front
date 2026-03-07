@@ -319,6 +319,9 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.proyectos.push(proyecto);
     if (this.solicitudActual) {
       this.solicitudActual.estado = 'En Proceso';
+      this.solicitudActual.fechaInicio = data.fechaInicio;
+      this.solicitudActual.fechaFin = data.fechaFinalizacion;
+      this.solicitudActual.costo = data.costo!;
       const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
       if (i !== -1) this.solicitudes[i] = this.solicitudActual;
     }
@@ -361,6 +364,17 @@ export class RegistroSolicitudesComponent implements OnInit {
       solicitud.estado = 'Completado';
     }
     this.aplicarFiltros();
+  }
+
+  onInfoProyectoActualizada(info: { costo: number; fechaInicio: string; fechaFin: string }): void {
+    if (this.solicitudActual) {
+      this.solicitudActual.costo = info.costo;
+      this.solicitudActual.fechaInicio = info.fechaInicio;
+      this.solicitudActual.fechaFin = info.fechaFin;
+      const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
+      if (i !== -1) this.solicitudes[i] = { ...this.solicitudActual };
+      this.aplicarFiltros();
+    }
   }
 
   onCambiarProyecto(proyectoId: number): void {

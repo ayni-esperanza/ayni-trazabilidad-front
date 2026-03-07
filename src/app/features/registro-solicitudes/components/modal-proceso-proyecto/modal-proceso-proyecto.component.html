@@ -444,8 +444,10 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación</label>
               <ng-container *ngIf="!modoSoloLectura; else infoUbicacionReadonly">
-                <input type="text" [(ngModel)]="proyectoInfoForm.ubicacion" placeholder="Ciudad / Región, Perú"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <app-ubicacion-select
+                  [value]="proyectoInfoForm.ubicacion"
+                  (valueChange)="proyectoInfoForm.ubicacion = $event">
+                </app-ubicacion-select>
               </ng-container>
               <ng-template #infoUbicacionReadonly>
                 <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded flex items-center gap-1">

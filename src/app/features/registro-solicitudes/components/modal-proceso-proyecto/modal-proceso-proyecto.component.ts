@@ -6,6 +6,7 @@ import { ModalDismissDirective } from '../../../../shared/directives/modal-dismi
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
+import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -48,7 +49,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent, UbicacionSelectComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -63,6 +64,7 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
   @Output() finalizarEtapa = new EventEmitter<EtapaProyecto>();
   @Output() finalizarProy = new EventEmitter<Proyecto>();
   @Output() cambiarProyecto = new EventEmitter<number>();
+  @Output() infoActualizada = new EventEmitter<{ costo: number; fechaInicio: string; fechaFin: string }>();
 
   // CKEditor
   protected Editor: any;
@@ -577,6 +579,12 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     this.proyecto.fechaFinalizacion = this.proyectoInfoForm.fechaFinalizacion;
     this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
+    this.infoActualizada.emit({
+      costo: this.proyecto.costo,
+      fechaInicio: this.proyectoInfoForm.fechaInicio,
+      fechaFin: this.proyectoInfoForm.fechaFinalizacion
+    });
+    this.cerrar.emit();
   }
 
   // ========== Métodos para Costos ==========

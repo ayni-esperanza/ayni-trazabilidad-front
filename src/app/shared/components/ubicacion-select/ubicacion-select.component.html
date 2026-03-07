@@ -43,7 +43,7 @@
           {{ grupo.departamento }}
         </div>
         <!-- Provincias -->
-        @for (prov of grupo.provincias; track prov) {
+        @for (prov of grupo.provincias; track $index) {
           <div
             (mousedown)="seleccionar(prov)"
             class="px-3 py-1.5 text-sm cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/30"

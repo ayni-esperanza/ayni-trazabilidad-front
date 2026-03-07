@@ -16,20 +16,13 @@
       <!-- Columna izquierda: campos del formulario -->
       <div class="w-1/2 min-w-0 flex flex-col">
       <div class="grid grid-cols-2 gap-3 mb-3">
-        <div>
+        <div class="col-span-2">
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Proyecto *</label>
           <input type="text" [(ngModel)]="proyecto.nombreProyecto"
             [class.border-red-500]="tieneError('nombreProyecto')"
             [class.ring-red-500]="tieneError('nombreProyecto')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
           <span *ngIf="tieneError('nombreProyecto')" class="text-xs text-red-500 mt-0.5 block">{{ errores['nombreProyecto'] }}</span>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación (Región)</label>
-          <app-ubicacion-select
-            [value]="proyecto.ubicacion ?? ''"
-            (valueChange)="proyecto.ubicacion = $event">
-          </app-ubicacion-select>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa *</label>
@@ -83,6 +76,13 @@
             [class.ring-red-500]="tieneError('costo')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
           <span *ngIf="tieneError('costo')" class="text-xs text-red-500 mt-0.5 block">{{ errores['costo'] }}</span>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación (Región)</label>
+          <app-ubicacion-select
+            [value]="proyecto.ubicacion ?? ''"
+            (valueChange)="proyecto.ubicacion = $event">
+          </app-ubicacion-select>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Proceso *</label>
