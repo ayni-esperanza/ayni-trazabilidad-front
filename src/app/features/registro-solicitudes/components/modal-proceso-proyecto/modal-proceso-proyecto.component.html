@@ -151,11 +151,13 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Inicio *</label>
           <ng-container *ngIf="!modoSoloLectura; else fechaInicioReadonly">
-            <input type="date" [(ngModel)]="etapaForm.fechaInicio"
-              [min]="getMinFechaInicio()"
-              [max]="getMaxFechaFin()"
-              [class.border-red-500]="tieneErrorEtapa('fechaInicio')"
-              class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            <app-date-picker
+              [value]="etapaForm.fechaInicio"
+              (valueChange)="etapaForm.fechaInicio = $event"
+              [minDate]="getMinFechaInicio()"
+              [maxDate]="getMaxFechaFin()"
+              [hasError]="tieneErrorEtapa('fechaInicio')">
+            </app-date-picker>
             <span *ngIf="tieneErrorEtapa('fechaInicio')" class="text-xs text-red-500">{{ erroresEtapa['fechaInicio'] }}</span>
           </ng-container>
           <ng-template #fechaInicioReadonly>
@@ -165,11 +167,13 @@
         <div>
           <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Finalización *</label>
           <ng-container *ngIf="!modoSoloLectura; else fechaFinReadonly">
-            <input type="date" [(ngModel)]="etapaForm.fechaFinalizacion"
-              [min]="etapaForm.fechaInicio || getMinFechaInicio()"
-              [max]="getMaxFechaFin()"
-              [class.border-red-500]="tieneErrorEtapa('fechaFinalizacion')"
-              class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            <app-date-picker
+              [value]="etapaForm.fechaFinalizacion"
+              (valueChange)="etapaForm.fechaFinalizacion = $event"
+              [minDate]="etapaForm.fechaInicio || getMinFechaInicio()"
+              [maxDate]="getMaxFechaFin()"
+              [hasError]="tieneErrorEtapa('fechaFinalizacion')">
+            </app-date-picker>
             <span *ngIf="tieneErrorEtapa('fechaFinalizacion')" class="text-xs text-red-500">{{ erroresEtapa['fechaFinalizacion'] }}</span>
           </ng-container>
           <ng-template #fechaFinReadonly>
@@ -416,8 +420,11 @@
                   <div *ngFor="let oc of proyectoInfoForm.ordenesCompra; let i = index" class="flex items-center gap-2">
                     <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
                       class="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
-                    <input type="date" [(ngModel)]="oc.fecha"
-                      class="w-36 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                    <app-date-picker
+                      class="w-36 shrink-0"
+                      [value]="oc.fecha"
+                      (valueChange)="oc.fecha = $event">
+                    </app-date-picker>
                     <button type="button" (click)="eliminarOrdenCompra(i)"
                       class="flex-shrink-0 text-red-400 hover:text-red-600 p-0.5">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -517,8 +524,10 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Inicio</label>
               <ng-container *ngIf="!modoSoloLectura; else infoFechaInicioReadonly">
-                <input type="date" [(ngModel)]="proyectoInfoForm.fechaInicio"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <app-date-picker
+                  [value]="proyectoInfoForm.fechaInicio"
+                  (valueChange)="proyectoInfoForm.fechaInicio = $event">
+                </app-date-picker>
               </ng-container>
               <ng-template #infoFechaInicioReadonly>
                 <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ formatDisplayDate(proyectoInfoForm.fechaInicio) || '—' }}</p>
@@ -528,9 +537,11 @@
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Finalización</label>
               <ng-container *ngIf="!modoSoloLectura; else infoFechaFinReadonly">
-                <input type="date" [(ngModel)]="proyectoInfoForm.fechaFinalizacion"
-                  [min]="proyectoInfoForm.fechaInicio"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <app-date-picker
+                  [value]="proyectoInfoForm.fechaFinalizacion"
+                  (valueChange)="proyectoInfoForm.fechaFinalizacion = $event"
+                  [minDate]="proyectoInfoForm.fechaInicio">
+                </app-date-picker>
               </ng-container>
               <ng-template #infoFechaFinReadonly>
                 <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ formatDisplayDate(proyectoInfoForm.fechaFinalizacion) || '—' }}</p>
@@ -701,8 +712,11 @@
                   <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                     <tr *ngFor="let mat of materiales" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
                       <td class="py-1 px-1">
-                        <input type="date" [(ngModel)]="mat.fecha" 
-                          class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                        <app-date-picker
+                          [value]="mat.fecha"
+                          (valueChange)="mat.fecha = $event"
+                          [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                        </app-date-picker>
                       </td>
                       <td class="py-1 px-1">
                         <input type="text" [(ngModel)]="mat.nroComprobante" placeholder="000-000"
@@ -868,8 +882,11 @@
                       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         <tr *ngFor="let item of tabla.items" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
                           <td class="py-1 px-1">
-                            <input type="date" [(ngModel)]="item.fecha" 
-                              class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                            <app-date-picker
+                              [value]="item.fecha"
+                              (valueChange)="item.fecha = $event"
+                              [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                            </app-date-picker>
                           </td>
                           <td class="py-1 px-1">
                             <input type="text" [(ngModel)]="item.descripcion" placeholder="Descripción"

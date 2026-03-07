@@ -7,11 +7,12 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-modal-iniciar-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent, UbicacionSelectComponent, TareaFormModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, ConfirmDeleteModalComponent, UbicacionSelectComponent, TareaFormModalComponent, DatePickerComponent],
   templateUrl: './modal-iniciar-proyecto.component.html',
   styleUrls: ['./modal-iniciar-proyecto.component.css']
 })

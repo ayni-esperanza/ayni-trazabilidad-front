@@ -7,6 +7,7 @@ import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../sh
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
 import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -49,7 +50,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent, UbicacionSelectComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent, UbicacionSelectComponent, DatePickerComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })

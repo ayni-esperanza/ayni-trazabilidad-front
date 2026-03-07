@@ -6,6 +6,7 @@
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
 @import "flowbite/src/themes/default";
+@import "flatpickr/dist/flatpickr.min.css";
 
 /* Configuración de dark mode con selector de clase para Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -125,3 +126,69 @@
 .dark .ck.ck-color-selector__remove-color:hover {
   background-color: rgb(75 85 99) !important;
 }
+
+/* ====== Flatpickr dark mode ====== */
+.dark .flatpickr-calendar {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  color: #e5e7eb;
+}
+.dark .flatpickr-months,
+.dark .flatpickr-month {
+  background: #111827;
+  color: #e5e7eb;
+  fill: #e5e7eb;
+}
+.dark .flatpickr-current-month .flatpickr-monthDropdown-months,
+.dark .flatpickr-current-month input.cur-year {
+  background: #111827;
+  color: #e5e7eb;
+}
+.dark .flatpickr-weekday {
+  background: #111827;
+  color: #9ca3af;
+}
+.dark .flatpickr-day {
+  color: #d1d5db;
+}
+.dark .flatpickr-day:hover,
+.dark .flatpickr-day:focus {
+  background: #374151;
+  border-color: #374151;
+}
+.dark .flatpickr-day.selected,
+.dark .flatpickr-day.selected:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+}
+.dark .flatpickr-day.today {
+  border-color: #22c55e;
+}
+.dark .flatpickr-day.today:hover {
+  background: #374151;
+}
+.dark .flatpickr-day.flatpickr-disabled,
+.dark .flatpickr-day.flatpickr-disabled:hover {
+  color: #4b5563;
+}
+.dark .flatpickr-prev-month,
+.dark .flatpickr-next-month {
+  fill: #9ca3af;
+}
+.dark .flatpickr-prev-month:hover svg,
+.dark .flatpickr-next-month:hover svg {
+  fill: #22c55e;
+}
+.dark .numInputWrapper:hover {
+  background: #374151;
+}
+.dark .numInputWrapper span {
+  border-color: #4b5563;
+}
+.dark .numInputWrapper span:after {
+  border-right-color: #9ca3af;
+  border-left-color: #9ca3af;
+}
+

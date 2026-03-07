@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostL
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 export interface Tarea {
   id?: number;
@@ -18,7 +19,7 @@ export interface Tarea {
 @Component({
   selector: 'app-tarea-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, DatePickerComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
 export class TareaFormModalComponent implements OnChanges {
