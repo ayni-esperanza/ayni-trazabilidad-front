@@ -216,9 +216,9 @@ export class AsignacionTareasComponent implements OnInit {
   iniciarEliminarSeleccionados(): void {
     if (this.tareasSeleccionadas.size > 0) {
       this.configEliminarModal = {
-        titulo: 'Eliminar tareas',
+        titulo: 'Eliminar actividades',
         cantidadElementos: this.tareasSeleccionadas.size,
-        tipoElemento: this.tareasSeleccionadas.size === 1 ? 'tarea' : 'tareas',
+        tipoElemento: this.tareasSeleccionadas.size === 1 ? 'actividad' : 'actividades',
         textoConfirmar: 'Eliminar'
       };
       this.mostrarConfirmacionEliminar = true;

@@ -1,14 +1,14 @@
 <div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Asignación y Seguimiento de Tareas</h1>
+    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Asignación y Seguimiento de Actividades</h1>
     <button 
       (click)="abrirModalNueva()"
       class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
       </svg>
-      Nueva Tarea
+      Nueva Actividad
     </button>
   </div>
 
@@ -17,7 +17,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Tareas Totales</p>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Actividades Totales</p>
           <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.total }}</h3>
           <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">de {{ tareas.length }} totales</p>
         </div>
@@ -103,7 +103,7 @@
     @if (tareasSeleccionadas.size > 0) {
       <div class="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex items-center justify-between">
         <span class="text-sm text-blue-700 dark:text-blue-300 font-medium">
-          {{ tareasSeleccionadas.size }} tarea(s) seleccionada(s)
+          {{ tareasSeleccionadas.size }} actividad(es) seleccionada(s)
         </span>
         <button
           (click)="iniciarEliminarSeleccionados()"
@@ -130,7 +130,7 @@
                 title="Seleccionar todos"
               />
             </th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Tarea</th>
+            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Actividad</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
             <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>

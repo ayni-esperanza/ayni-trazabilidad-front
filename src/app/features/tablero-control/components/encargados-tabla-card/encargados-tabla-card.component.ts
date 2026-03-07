@@ -43,7 +43,7 @@ export class EncargadosTablaCardComponent {
   }
   
   get tituloTabla(): string {
-    return this.metricaSeleccionada === 'gastos' ? 'Gastos del Proyecto' : 'Tareas de los Encargados';
+    return this.metricaSeleccionada === 'gastos' ? 'Gastos del Proyecto' : 'Actividades de los Encargados';
   }
   
   getEstadoTareaClass(estado: string): string {

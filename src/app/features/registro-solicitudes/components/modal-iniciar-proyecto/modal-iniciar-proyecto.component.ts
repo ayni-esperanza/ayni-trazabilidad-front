@@ -140,6 +140,7 @@ export class ModalIniciarProyectoComponent implements OnChanges, OnInit {
         costo: this.solicitud.costo,
         responsableId: this.solicitud.responsableId,
         descripcion: this.solicitud.descripcion,
+        ubicacion: this.solicitud.ubicacion,
         fechaInicio: '',
         fechaFinalizacion: '',
         procesoId: 0

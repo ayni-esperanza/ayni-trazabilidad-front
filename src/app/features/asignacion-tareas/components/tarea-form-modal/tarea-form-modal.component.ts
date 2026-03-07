@@ -137,10 +137,10 @@ export class TareaFormModalComponent implements OnChanges {
   onIniciarEliminar(): void {
     if (!this.tarea?.id) return;
     this.configEliminarModal = {
-      titulo: 'Eliminar tarea',
-      mensaje: '¿Estás seguro de que deseas eliminar esta tarea?',
+      titulo: 'Eliminar actividad',
+      mensaje: '¿Estás seguro de que deseas eliminar esta actividad?',
       cantidadElementos: 1,
-      tipoElemento: 'tarea',
+      tipoElemento: 'actividad',
       textoConfirmar: 'Eliminar'
     };
     this.mostrarConfirmacionEliminar = true;
@@ -198,11 +198,11 @@ export class TareaFormModalComponent implements OnChanges {
   }
 
   get tituloModal(): string {
-    return this.modoEdicion ? 'Editar Tarea' : 'Nueva Tarea';
+    return this.modoEdicion ? 'Editar Actividad' : 'Nueva Actividad';
   }
 
   get textoBoton(): string {
-    return this.modoEdicion ? 'Guardar Tarea' : 'Agregar Tarea';
+    return this.modoEdicion ? 'Guardar Actividad' : 'Agregar Actividad';
   }
 
   @HostListener('document:keydown.escape')

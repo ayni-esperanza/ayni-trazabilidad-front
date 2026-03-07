@@ -282,8 +282,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     const solicitud: Solicitud = {
       id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
       representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
-      descripcion: data.descripcion!, fechaSolicitud: new Date(), 
-      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, estado: 'Pendiente'
+      descripcion: data.descripcion!, fechaSolicitud: new Date(),
+      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, ubicacion: data.ubicacion, estado: 'Pendiente'
     };
     this.solicitudes.push(solicitud);
     this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
@@ -314,7 +314,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       cliente: data.cliente!, representante: data.representante, costo: data.costo!, ordenesCompra: data.ordenesCompra,
       responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaInicio: new Date(data.fechaInicio!), fechaFinalizacion: new Date(data.fechaFinalizacion!),
-      procesoId: Number(data.procesoId), procesoNombre: proceso?.nombre, estado: 'En Proceso', etapaActual: 1
+      procesoId: Number(data.procesoId), procesoNombre: proceso?.nombre, ubicacion: data.ubicacion, estado: 'En Proceso', etapaActual: 1
     };
     this.proyectos.push(proyecto);
     if (this.solicitudActual) {

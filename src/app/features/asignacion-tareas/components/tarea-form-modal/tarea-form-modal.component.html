@@ -25,7 +25,7 @@
         @if (modoEdicion) {
           <div class="mb-3">
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nombre de la Tarea <span class="text-red-500">*</span>
+              Nombre de la Actividad <span class="text-red-500">*</span>
             </label>
             <input 
               type="text"
@@ -40,11 +40,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           
-          <!-- Nombre de la Tarea - En modo creación ocupa col normal -->
+          <!-- Nombre de la Actividad - En modo creación ocupa col normal -->
           @if (!modoEdicion) {
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nombre de la Tarea <span class="text-red-500">*</span>
+                Nombre de la Actividad <span class="text-red-500">*</span>
               </label>
               <input 
                 type="text"
@@ -179,7 +179,7 @@
             <button
               (click)="onIniciarEliminar()"
               class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
-              Eliminar Tarea
+              Eliminar Actividad
             </button>
           }
         </div>
