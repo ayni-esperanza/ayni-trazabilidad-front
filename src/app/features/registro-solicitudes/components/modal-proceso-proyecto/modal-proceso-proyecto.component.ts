@@ -1,13 +1,13 @@
-import { Component, EventEmitter, Input, Output, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
-import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
-import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
-import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
+import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
+import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -50,11 +50,11 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, CKEditorModule, TareaFormModalComponent, UbicacionSelectComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, TareaFormModalComponent, TabProcesoComponent, TabInformacionComponent, TabCostosComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
-export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
+export class ModalProcesoProyectoComponent implements OnChanges {
   @Input() visible = false;
   @Input() proyecto: Proyecto | null = null;
   @Input() proyectos: Proyecto[] = [];
@@ -67,37 +67,7 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
   @Output() cambiarProyecto = new EventEmitter<number>();
   @Output() infoActualizada = new EventEmitter<{ costo: number; fechaInicio: string; fechaFin: string }>();
 
-  // CKEditor
-  protected Editor: any;
-  protected ckeditorConfig: any = {};
-  protected isBrowser = false;
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    @Inject(PLATFORM_ID) platformId: object
-  ) {
-    this.isBrowser = isPlatformBrowser(platformId);
-  }
-
-  ngOnInit(): void {
-    if (this.isBrowser) {
-      import('ckeditor5').then(({
-        ClassicEditor, Bold, Essentials, FontBackgroundColor, FontColor, FontSize,
-        Heading, Highlight, Indent, IndentBlock, Italic, Link, List, Paragraph, Table, Undo,
-      }) => {
-        this.Editor = ClassicEditor;
-        this.ckeditorConfig = {
-          licenseKey: 'GPL',
-          toolbar: {
-            items: ['undo','redo','|','heading','|','fontSize','fontColor','fontBackgroundColor','|','bold','italic','highlight','|','link','insertTable','|','bulletedList','numberedList','indent','outdent'],
-            shouldNotGroupWhenFull: true
-          },
-          plugins: [Bold, Essentials, FontBackgroundColor, FontColor, FontSize, Heading, Highlight, Indent, IndentBlock, Italic, Link, List, Paragraph, Table, Undo],
-        };
-        this.cdr.detectChanges();
-      });
-    }
-  }
 
   etapas: EtapaProyecto[] = [];
   proyectoFinalizado = false;
@@ -117,20 +87,12 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
   cargandoCancelacion = false;
   configCancelarModal: ConfirmDeleteConfig = {};
 
-  // Sección de Costos
-  seccionCostosExpandida = true;
-  materialesExpandida = true;
-  manoObraExpandida = true;
-  otrosCostosExpandida = true;
-
   // Navegación de tabs
   tabActiva: 'proceso' | 'informacion' | 'costos' = 'proceso';
 
   // Modal de actividades
   mostrarModalActividad = false;
   actividadParaEditar: Tarea | null = null;
-  modoVistaTareas: 'tabla' | 'timeline' = 'tabla';
-  subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -152,8 +114,6 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
   materiales: MaterialCosto[] = [];
   manoObra: ManoObraCosto[] = [];
   tablasCostosExtras: TablaCostoExtra[] = [];
-  
-  nuevoNombreTablaExtra = '';
 
   etapaForm = {
     presupuesto: 0,
@@ -162,13 +122,9 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     fechaFinalizacion: ''
   };
 
-  // Control de visibilidad de la card de tareas
-  tareasCardVisible = true;
-
   // Control de validación para etapa
   intentoFinalizarEtapa = false;
   erroresEtapa: { [key: string]: string } = {};
-  Object = Object;  // Para usar en el template
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
@@ -282,28 +238,6 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     this.tabActiva = nuevoTab;
   }
 
-  getMinFechaInicio(): string {
-    if (!this.proyecto) return '';
-    
-    // La fecha mínima es la mayor entre:
-    // 1. La fecha de inicio del proyecto
-    // 2. La fecha de finalización de la etapa anterior (si existe)
-    const fechaInicioProyecto = this.formatDate(this.proyecto.fechaInicio);
-    const etapaAnterior = this.getEtapaAnterior();
-    
-    if (etapaAnterior && etapaAnterior.fechaFinalizacion) {
-      const fechaFinAnterior = this.formatDate(etapaAnterior.fechaFinalizacion);
-      return fechaFinAnterior > fechaInicioProyecto ? fechaFinAnterior : fechaInicioProyecto;
-    }
-    
-    return fechaInicioProyecto;
-  }
-
-  getMaxFechaFin(): string {
-    if (!this.proyecto) return '';
-    return this.formatDate(this.proyecto.fechaFinalizacion);
-  }
-
   private getEtapaAnterior(): EtapaProyecto | null {
     if (!this.etapaSeleccionada) return null;
     
@@ -311,20 +245,10 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     return index > 0 ? this.etapas[index - 1] : null;
   }
 
-  getTotalPresupuestoEtapas(): number {
-    return this.etapas.reduce((total, etapa) => total + (etapa.presupuesto || 0), 0);
-  }
-
   formatDate(date: Date | string | undefined): string {
     if (!date) return '';
     const d = new Date(date);
     return d.toISOString().split('T')[0];
-  }
-
-  formatDisplayDate(date: Date | string | undefined): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   onCerrar(): void {
@@ -467,14 +391,6 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     this.cambiarProyecto.emit(Number(this.proyectoSeleccionadoId));
   }
 
-  getEstadoIcon(tarea: TareaAsignada): string {
-    return tarea.estado === 'Retrasado' ? 'warning' : tarea.estado === 'Completado' ? 'check' : '';
-  }
-
-  isRetrasado(tarea: TareaAsignada): boolean {
-    return tarea.estado === 'Retrasado';
-  }
-
   onFinalizarProyecto(): void {
     if (this.proyecto && this.todasEtapasCompletadas) {
       this.proyecto.estado = 'Completado';
@@ -523,11 +439,6 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     return resp?.nombre || 'Sin asignar';
   }
 
-  getProcesoNombre(procesoId: number): string {
-    const proc = this.procesos.find(p => p.id === procesoId);
-    return proc?.nombre || 'Sin proceso';
-  }
-
   cargarProyectoInfoForm(): void {
     if (!this.proyecto) return;
     this.proyectoInfoForm = {
@@ -543,14 +454,6 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
       ubicacion: this.proyecto.ubicacion || '',
       descripcion: this.proyecto.descripcion
     };
-  }
-
-  agregarOrdenCompra(): void {
-    this.proyectoInfoForm.ordenesCompra.push({ numero: '', fecha: '' });
-  }
-
-  eliminarOrdenCompra(index: number): void {
-    this.proyectoInfoForm.ordenesCompra.splice(index, 1);
   }
 
   abrirModalActividad(): void {
@@ -588,130 +491,22 @@ export class ModalProcesoProyectoComponent implements OnChanges, OnInit {
     this.cerrar.emit();
   }
 
-  // ========== Métodos para Costos ==========
-  
-  // Materiales
-  agregarMaterial(): void {
-    const nuevoId = this.materiales.length > 0 ? Math.max(...this.materiales.map(m => m.id)) + 1 : 1;
-    this.materiales.push({
-      id: nuevoId,
-      fecha: this.formatDate(new Date()),
-      nroComprobante: '',
-      producto: '',
-      cantidad: null,
-      costoUnitario: null,
-      costoTotal: 0,
-      encargado: ''
-    });
-  }
+  // ========== Métodos para Costos (delegados a TabCostosComponent) ==========
 
-  eliminarMaterial(id: number): void {
-    this.materiales = this.materiales.filter(m => m.id !== id);
-  }
-
-  calcularCostoTotalMaterial(material: MaterialCosto): void {
-    material.costoTotal = (material.cantidad || 0) * (material.costoUnitario || 0);
-  }
 
   get totalMateriales(): number {
     return this.materiales.reduce((sum, m) => sum + m.costoTotal, 0);
-  }
-
-  // Mano de Obra
-  agregarManoObra(): void {
-    const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map(m => m.id)) + 1 : 1;
-    this.manoObra.push({
-      id: nuevoId,
-      trabajador: '',
-      cargo: '',
-      diasTrabajando: null,
-      costoPorDia: null,
-      costoTotal: 0
-    });
-  }
-
-  eliminarManoObra(id: number): void {
-    this.manoObra = this.manoObra.filter(m => m.id !== id);
-  }
-
-  calcularCostoTotalManoObra(item: ManoObraCosto): void {
-    item.costoTotal = (item.diasTrabajando || 0) * (item.costoPorDia || 0);
   }
 
   get totalManoObra(): number {
     return this.manoObra.reduce((sum, m) => sum + m.costoTotal, 0);
   }
 
-  // Otros Costos (Tablas dinámicas)
-  agregarTablaExtra(): void {
-    if (!this.nuevoNombreTablaExtra.trim()) return;
-    const nuevoId = this.tablasCostosExtras.length > 0 ? Math.max(...this.tablasCostosExtras.map(t => t.id)) + 1 : 1;
-    this.tablasCostosExtras.push({
-      id: nuevoId,
-      nombre: this.nuevoNombreTablaExtra.trim(),
-      items: [],
-      expandida: true
-    });
-    this.nuevoNombreTablaExtra = '';
-  }
-
-  eliminarTablaExtra(id: number): void {
-    this.tablasCostosExtras = this.tablasCostosExtras.filter(t => t.id !== id);
-  }
-
-  agregarItemOtroCosto(tabla: TablaCostoExtra): void {
-    const nuevoId = tabla.items.length > 0 ? Math.max(...tabla.items.map(i => i.id)) + 1 : 1;
-    tabla.items.push({
-      id: nuevoId,
-      fecha: this.formatDate(new Date()),
-      descripcion: '',
-      cantidad: null,
-      costoUnitario: null,
-      costoTotal: 0,
-      encargado: ''
-    });
-  }
-
-  eliminarItemOtroCosto(tabla: TablaCostoExtra, itemId: number): void {
-    tabla.items = tabla.items.filter(i => i.id !== itemId);
-  }
-
-  calcularCostoTotalOtro(item: OtroCosto): void {
-    item.costoTotal = (item.cantidad || 0) * (item.costoUnitario || 0);
-  }
-
-  getTotalTablaExtra(tabla: TablaCostoExtra): number {
-    return tabla.items.reduce((sum, i) => sum + i.costoTotal, 0);
-  }
-
   get totalOtrosCostos(): number {
-    return this.tablasCostosExtras.reduce((sum, t) => sum + this.getTotalTablaExtra(t), 0);
+    return this.tablasCostosExtras.reduce((sum, t) => sum + t.items.reduce((s, i) => s + i.costoTotal, 0), 0);
   }
 
   get totalCostosGeneral(): number {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
-  }
-
-  // ========== Métodos para Backend Integration ==========
-  
-  // TODO: Llamar este método cuando se abra la modal para cargar costos existentes
-  cargarCostosDesdeBackend(): void {
-    // TODO: Implementar llamada al servicio
-    // this.costosService.getMateriales(this.proyecto.id).subscribe(data => this.materiales = data);
-    // this.costosService.getManoObra(this.proyecto.id).subscribe(data => this.manoObra = data);
-    // this.costosService.getOtrosCostos(this.proyecto.id).subscribe(data => this.tablasCostosExtras = data);
-  }
-
-  // TODO: Llamar este método para guardar todos los costos
-  guardarCostos(): void {
-    const costosData = {
-      proyectoId: this.proyecto?.id,
-      materiales: this.materiales,
-      manoObra: this.manoObra,
-      otrosCostos: this.tablasCostosExtras
-    };
-    console.log('Datos a enviar al backend:', costosData);
-    // TODO: Implementar llamada al servicio
-    // this.costosService.guardarCostos(costosData).subscribe(...);
   }
 }
