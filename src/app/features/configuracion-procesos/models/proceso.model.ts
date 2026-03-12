@@ -15,33 +15,7 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-export interface FlujoTrabajo {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  pasos: PasoFlujo[];
-  activo: boolean;
-}
 
-export interface PasoFlujo {
-  id: number;
-  orden: number;
-  nombre: string;
-  descripcion: string;
-  responsable: string;
-  tiempoEstimado: number;
-  siguiente?: number;
-}
-
-export interface Plantilla {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  tipo: 'Proyecto' | 'Tarea';
-  contenido: any;
-  etapas: Etapa[];
-  activo: boolean;
-}
 
 export interface Etapa {
   id: number;
