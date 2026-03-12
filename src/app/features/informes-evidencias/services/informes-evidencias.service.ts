@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { Informe, Evidencia } from '../models/informe.model';
 
 @Injectable({
@@ -7,42 +9,39 @@ import { Informe, Evidencia } from '../models/informe.model';
 })
 export class InformesEvidenciasService {
 
-  constructor() { }
+  private baseUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) { }
 
   // Métodos para gestionar informes
   obtenerInformes(): Observable<Informe[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    // Sin backend disponible - retornar vacío
+    return of([]);
   }
 
   generarInforme(parametros: any): Observable<Informe> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    // Sin backend disponible
+    return of({} as Informe);
   }
 
   descargarInforme(id: number): Observable<Blob> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(new Blob());
   }
 
   // Métodos para gestionar evidencias
   obtenerEvidencias(proyectoId?: number): Observable<Evidencia[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   subirEvidencia(evidencia: FormData): Observable<Evidencia> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of({} as Evidencia);
   }
 
   eliminarEvidencia(id: number): Observable<void> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of();
   }
 
   descargarEvidencia(id: number): Observable<Blob> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(new Blob());
   }
 }

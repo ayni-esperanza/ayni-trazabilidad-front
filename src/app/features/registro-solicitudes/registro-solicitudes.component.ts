@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalIniciarProyectoComponent } from './components/modal-iniciar-proyecto/modal-iniciar-proyecto.component';
@@ -126,26 +127,21 @@ export class RegistroSolicitudesComponent implements OnInit {
     try {
       const idsAEliminar = Array.from(this.solicitudesSeleccionadas);
       
-      // TODO: Implementar llamada al backend
-      // await this.solicitudesService.eliminarMasivo(idsAEliminar);
+      // Eliminar cada solicitud vía API
+      const eliminaciones = idsAEliminar.map(id => 
+        this.solicitudesService.eliminarSolicitud(id).toPromise()
+      );
+      await Promise.all(eliminaciones);
       
-      // Simulación de llamada al backend (remover cuando se integre)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Eliminar localmente (esto se reemplazará con actualización desde backend)
-      this.solicitudes = this.solicitudes.filter(s => !this.solicitudesSeleccionadas.has(s.id!));
-      this.aplicarFiltros();
+      // Recargar datos desde el backend
+      this.cargarSolicitudes();
       
       // Limpiar selección
       this.solicitudesSeleccionadas.clear();
       this.mostrarConfirmacionEliminar = false;
       
-      console.log('Solicitudes eliminadas exitosamente:', idsAEliminar);
-      // TODO: Mostrar notificación de éxito
-      
     } catch (error) {
       console.error('Error al eliminar solicitudes:', error);
-      // TODO: Mostrar notificación de error
     } finally {
       this.cargandoEliminacion = false;
     }
@@ -239,38 +235,40 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   cargarDatosIniciales(): void {
-    this.responsables = [
-      { id: 1, nombre: 'Juan Pérez', cargo: 'Gerente de Proyecto' },
-      { id: 2, nombre: 'María García', cargo: 'Desarrollador Senior' },
-      { id: 3, nombre: 'Carlos López', cargo: 'Analista' },
-      { id: 4, nombre: 'Ana Martínez', cargo: 'QA Lead' }
-    ];
+    // Cargar datos de referencia en paralelo
+    forkJoin({
+      responsables: this.solicitudesService.obtenerResponsables(),
+      procesos: this.solicitudesService.obtenerProcesos(),
+    }).subscribe({
+      next: (data) => {
+        this.responsables = data.responsables;
+        this.procesos = data.procesos;
+      },
+      error: (err) => console.error('Error cargando datos de referencia:', err)
+    });
 
-    this.procesos = [
-      { id: 1, nombre: 'Proceso de Desarrollo', etapas: [
-        { id: 1, nombre: 'Análisis', orden: 1 }, { id: 2, nombre: 'Diseño', orden: 2 },
-        { id: 3, nombre: 'Desarrollo', orden: 3 }, { id: 4, nombre: 'Pruebas', orden: 4 }
-      ]},
-      { id: 2, nombre: 'Proceso de Consultoría', etapas: [
-        { id: 5, nombre: 'Diagnóstico', orden: 1 }, { id: 6, nombre: 'Propuesta', orden: 2 }, { id: 7, nombre: 'Implementación', orden: 3 }
-      ]},
-      { id: 3, nombre: 'Proceso de Auditoría', etapas: [
-        { id: 8, nombre: 'Planificación', orden: 1 }, { id: 9, nombre: 'Ejecución', orden: 2 },
-        { id: 10, nombre: 'Informe', orden: 3 }, { id: 11, nombre: 'Seguimiento', orden: 4 }
-      ]}
-    ];
+    // Cargar solicitudes y proyectos
+    this.cargarSolicitudes();
+    this.cargarProyectos();
+  }
 
-    this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'Pendiente' },
-      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
-      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
-    ];
+  cargarSolicitudes(): void {
+    this.solicitudesService.obtenerSolicitudes({ page: 0, size: 100 }).subscribe({
+      next: (response) => {
+        this.solicitudes = response.content;
+        this.aplicarFiltros();
+      },
+      error: (err) => console.error('Error cargando solicitudes:', err)
+    });
+  }
 
-    this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalación de sistema de ventilación para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
-    ];
-
-    this.aplicarFiltros();
+  cargarProyectos(): void {
+    this.solicitudesService.obtenerProyectos({ page: 0, size: 100 }).subscribe({
+      next: (response) => {
+        this.proyectos = response.content;
+      },
+      error: (err) => console.error('Error cargando proyectos:', err)
+    });
   }
 
   // Modal Nueva Solicitud
@@ -278,18 +276,16 @@ export class RegistroSolicitudesComponent implements OnInit {
   cerrarNuevaSolicitud(): void { this.showNuevaSolicitudModal = false; }
 
   onGuardarSolicitud(data: Partial<Solicitud>): void {
-    const responsable = this.responsables.find(r => r.id === Number(data.responsableId));
-    const solicitud: Solicitud = {
-      id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
-      representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
-      descripcion: data.descripcion!, fechaSolicitud: new Date(),
-      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, ubicacion: data.ubicacion, estado: 'Pendiente'
-    };
-    this.solicitudes.push(solicitud);
-    this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
-    this.solicitudActual = solicitud;
-    this.showNuevaSolicitudModal = false;
-    this.showIniciarProyectoModal = true;
+    this.solicitudesService.crearSolicitud(data).subscribe({
+      next: (solicitud: any) => {
+        // Recargar solicitudes desde el backend
+        this.cargarSolicitudes();
+        this.solicitudActual = solicitud;
+        this.showNuevaSolicitudModal = false;
+        this.showIniciarProyectoModal = true;
+      },
+      error: (err) => console.error('Error creando solicitud:', err)
+    });
   }
 
   // Modal Iniciar Proyecto

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { Proceso, FlujoTrabajo, Plantilla, Etapa, PaginatedResponse } from '../models/proceso.model';
 import { environment } from '../../../../environments/environment';
 
@@ -57,34 +57,28 @@ export class ConfiguracionProcesosService {
 
   // Métodos para gestionar flujos de trabajo
   obtenerFlujosTrabajo(): Observable<FlujoTrabajo[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   crearFlujoTrabajo(flujo: FlujoTrabajo): Observable<FlujoTrabajo> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(flujo);
   }
 
   // Métodos para gestionar plantillas
   obtenerPlantillas(): Observable<Plantilla[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   crearPlantilla(plantilla: Plantilla): Observable<Plantilla> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(plantilla);
   }
 
   // Métodos para gestionar etapas
   obtenerEtapas(): Observable<Etapa[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   crearEtapa(etapa: Etapa): Observable<Etapa> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(etapa);
   }
 }

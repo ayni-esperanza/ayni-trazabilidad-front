@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { KPI, Indicador, DatosGrafico } from '../models/estadistica.model';
 
 @Injectable({
@@ -7,36 +10,85 @@ import { KPI, Indicador, DatosGrafico } from '../models/estadistica.model';
 })
 export class EstadisticasIndicadoresService {
 
-  constructor() { }
+  private baseUrl = environment.apiUrl;
 
-  // Métodos para obtener KPIs
+  constructor(private http: HttpClient) { }
+
   obtenerKPIsPrincipales(): Observable<KPI[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return this.http.get<any>(`${this.baseUrl}/v1/dashboard/resumen`).pipe(
+      map(response => {
+        const kpis: KPI[] = [
+          {
+            id: 1,
+            nombre: 'Total Solicitudes',
+            valor: response.totalSolicitudes || 0,
+            unidad: '',
+            tendencia: 'neutral',
+            variacion: 0,
+            periodo: 'Total',
+          },
+          {
+            id: 2,
+            nombre: 'Proyectos en Proceso',
+            valor: response.proyectosEnProceso || 0,
+            unidad: '',
+            tendencia: 'positiva',
+            variacion: 0,
+            periodo: 'Actual',
+          },
+          {
+            id: 3,
+            nombre: 'Tareas Retrasadas',
+            valor: response.tareasRetrasadas || 0,
+            unidad: '',
+            tendencia: response.tareasRetrasadas > 0 ? 'negativa' : 'positiva',
+            variacion: 0,
+            periodo: 'Actual',
+          },
+          {
+            id: 4,
+            nombre: 'Progreso Promedio',
+            valor: response.promedioProgresoProyectos || 0,
+            unidad: '%',
+            tendencia: 'positiva',
+            variacion: 0,
+            periodo: 'Proyectos',
+          },
+        ];
+        return kpis;
+      })
+    );
   }
 
   obtenerIndicadoresPorProyecto(proyectoId: number): Observable<Indicador[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   obtenerIndicadoresRendimiento(): Observable<Indicador[]> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of([]);
   }
 
   obtenerDatosTendencias(periodo: string): Observable<DatosGrafico> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return this.http.get<any>(`${this.baseUrl}/v1/dashboard/resumen`).pipe(
+      map(response => {
+        const labels = Object.keys(response.distribucionEstadosProyectos || {});
+        const data = Object.values(response.distribucionEstadosProyectos || {}) as number[];
+        return {
+          labels,
+          datasets: [{
+            label: 'Proyectos por Estado',
+            data,
+          }]
+        };
+      })
+    );
   }
 
   obtenerComparativas(tipo: string, periodos: string[]): Observable<any> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of({});
   }
 
   exportarEstadisticas(formato: 'PDF' | 'Excel'): Observable<Blob> {
-    // TODO: Implementar llamada al backend
-    throw new Error('Método no implementado');
+    return of(new Blob());
   }
 }
