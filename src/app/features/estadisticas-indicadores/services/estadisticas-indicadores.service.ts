@@ -60,6 +60,20 @@ export class EstadisticasIndicadoresService {
     );
   }
 
+  obtenerIndicadoresResponsables(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/v1/dashboard/responsables-indicadores`);
+  }
+
+  obtenerIndicadoresProyectos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/v1/dashboard/proyectos-indicadores`);
+  }
+
+  obtenerTodasLasTareas(): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}/v1/tareas?size=1000`).pipe(
+      map(response => response.content || [])
+    );
+  }
+
   obtenerIndicadoresPorProyecto(proyectoId: number): Observable<Indicador[]> {
     return of([]);
   }
