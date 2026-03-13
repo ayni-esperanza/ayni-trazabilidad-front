@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable } from '../../../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, FlujoNodo } from '../../../../models/solicitud.model';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
@@ -22,12 +22,11 @@ export class TabProcesoComponent {
   @Input() todasEtapasCompletadas = false;
   @Input() intentoFinalizarEtapa = false;
   @Input() erroresEtapa: { [key: string]: string } = {};
+  @Input() flujoNodos: FlujoNodo[] = [];
 
   @Output() seleccionarEtapaEvt = new EventEmitter<EtapaProyecto>();
   @Output() abrirActividadEvt = new EventEmitter<void>();
 
-  tareasCardVisible = true;
-  modoVistaTareas: 'tabla' | 'timeline' = 'tabla';
   Object = Object;
 
   formatDate(date: Date | string | undefined): string {
@@ -53,6 +52,14 @@ export class TabProcesoComponent {
   getResponsableNombre(responsableId: number): string {
     const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
+  }
+
+  getSiguientesNombres(nodo: FlujoNodo): string {
+    if (!nodo.siguientesIds.length) return 'Sin conexiones';
+    const nombres = nodo.siguientesIds
+      .map(id => this.flujoNodos.find(n => n.id === id)?.nombre)
+      .filter((nombre): nombre is string => !!nombre);
+    return nombres.length ? nombres.join(', ') : 'Sin conexiones';
   }
 
   private getEtapaAnteriorLocal(): EtapaProyecto | null {

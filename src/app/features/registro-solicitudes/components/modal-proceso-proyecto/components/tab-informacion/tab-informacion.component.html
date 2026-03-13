@@ -271,7 +271,7 @@
             'bg-blue-500': etapa.estado === 'En Proceso',
             'bg-gray-400': etapa.estado === 'Pendiente'
           }"></span>
-        {{ etapa.estado }}
+        {{ etapa.estado === 'Pendiente' ? 'Por iniciar' : etapa.estado }}
       </div>
     </div>
   </div>

@@ -1,4 +1,4 @@
-export type EstadoSolicitud = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado';
+export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
 
 export interface OrdenCompra {
@@ -6,13 +6,19 @@ export interface OrdenCompra {
   fecha: string;
 }
 
-export interface DatosCancelacionInicio {
-  proyecto: Record<string, any>;
-  actividades: any[];
-  ordenesCompra: OrdenCompra[];
-  motivo: string;
-  responsableNombre: string;
-  procesoNombre: string;
+
+export interface FlujoNodo {
+  id: number;
+  nombre: string;
+  tipo: 'inicio' | 'tarea';
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  siguientesIds: number[];
+}
+
+export interface FlujoProyecto {
+  nodos: FlujoNodo[];
 }
 
 export interface Solicitud {
@@ -29,7 +35,6 @@ export interface Solicitud {
   fechaInicio?: Date | string;
   fechaFin?: Date | string;
   estado: EstadoSolicitud;
-  datosCancelacionInicio?: DatosCancelacionInicio;
 }
 
 export interface Proyecto {
@@ -52,6 +57,7 @@ export interface Proyecto {
   etapaActual?: number;
   motivoCancelacion?: string;
   etapas?: EtapaProyecto[];
+  flujo?: FlujoProyecto;
 }
 
 export interface EtapaProyecto {

@@ -36,15 +36,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'asignacion-tareas',
-    loadComponent: () =>
-      import('./features/asignacion-tareas/asignacion-tareas.component').then(
-        (m) => m.AsignacionTareasComponent,
-      ),
-    title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard],
-  },
-  {
     path: 'informes-evidencias',
     loadComponent: () =>
       import('./features/informes-evidencias/informes-evidencias.component').then(
@@ -67,15 +58,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/gestion-usuarios/gestion-usuarios.component').then(
         (m) => m.GestionUsuariosComponent,
-      ),
-    title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard],
-  },
-  {
-    path: 'configuracion-procesos',
-    loadComponent: () =>
-      import('./features/configuracion-procesos/configuracion-procesos.component').then(
-        (m) => m.ConfiguracionProcesosComponent,
       ),
     title: 'Módulo de Trazabilidad',
     canActivate: [authGuard],

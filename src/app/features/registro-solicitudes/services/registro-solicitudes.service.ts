@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple } from '../models/solicitud.model';
+import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoProyecto } from '../models/solicitud.model';
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +54,16 @@ export class RegistroSolicitudesService {
   obtenerProyectoPorId(id: number): Observable<Proyecto | null> {
     // TODO: Implementar llamada al backend
     return of(null);
+  }
+
+  obtenerFlujoProyecto(proyectoId: number): Observable<FlujoProyecto | null> {
+    // TODO: Implementar llamada al backend
+    return of(null);
+  }
+
+  guardarFlujoProyecto(proyectoId: number, flujo: FlujoProyecto): Observable<FlujoProyecto> {
+    // TODO: Implementar llamada al backend
+    return of(flujo);
   }
 
   // Métodos para gestionar etapas de proyectos

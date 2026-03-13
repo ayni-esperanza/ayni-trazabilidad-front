@@ -21,7 +21,7 @@
 
       <!-- Body -->
       <div class="p-5">
-        <!-- Nombre de la Tarea - Ocupa toda la fila solo en modo edición -->
+        <!-- Nombre de la Tarea - Ocupa toda la fila solo en modo edicion -->
         @if (modoEdicion) {
           <div class="mb-3">
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -40,7 +40,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           
-          <!-- Nombre de la Actividad - En modo creación ocupa col normal -->
+          <!-- Nombre de la Actividad - En modo creacion ocupa col normal -->
           @if (!modoEdicion) {
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -130,10 +130,10 @@
             <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-1">{{ errores['fechaInicio'] }}</span>
           </div>
 
-          <!-- Fecha y Hora de Finalización -->
+          <!-- Fecha y Hora de Finalizacion -->
           <div>
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de Finalización <span class="text-red-500">*</span>
+              Fecha de Finalizacion <span class="text-red-500">*</span>
             </label>
             <app-date-picker
               [value]="formData.fechaFin"
@@ -146,7 +146,7 @@
             <span *ngIf="tieneError('fechaFin')" class="text-xs text-red-500 mt-1">{{ errores['fechaFin'] }}</span>
           </div>
 
-          <!-- Estado (solo en modo edición) -->
+          <!-- Estado (solo en modo edicion) -->
           @if (modoEdicion) {
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -176,7 +176,7 @@
       <!-- Footer -->
       <div class="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3 rounded-b-xl">
         
-        <!-- Botón Eliminar (solo en modo edición) -->
+        <!-- Boton Eliminar (solo en modo edicion) -->
         <div>
           @if (modoEdicion && tarea?.id) {
             <button
@@ -187,7 +187,7 @@
           }
         </div>
 
-        <!-- Botones de acción -->
+        <!-- Botones de accion -->
         <div class="flex items-center gap-2">
           <button
             (click)="onCerrar()"
@@ -207,7 +207,7 @@
   </div>
 }
 
-<!-- Modal de confirmación de eliminación (sobremodal) -->
+<!-- Modal de confirmacion de eliminacion (sobremodal) -->
 <app-confirm-delete-modal
   [visible]="mostrarConfirmacionEliminar"
   [loading]="cargandoEliminacion"

@@ -87,9 +87,7 @@ export class SidebarComponent {
     { icon: '📊', label: 'Tablero de control', route: '/tablero-control' },
     { icon: '📝', label: 'Registro de solicitudes', route: '/registro-solicitudes' },
     { icon: '📈', label: 'Estadísticas e indicadores', route: '/estadisticas-indicadores' },
-    { icon: '✅', label: 'Asignación de actividades', route: '/asignacion-tareas' },
     { icon: '📄', label: 'Informes y evidencias', route: '/informes-evidencias' },
-    { icon: '⚙️', label: 'Configuración de procesos', route: '/configuracion-procesos' },
     { icon: '👥', label: 'Gestión de usuarios', route: '/gestion-usuarios' }
   ];
 

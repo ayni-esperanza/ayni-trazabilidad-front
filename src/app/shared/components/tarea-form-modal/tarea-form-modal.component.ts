@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
-import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
+import { DatePickerComponent } from '../date-picker/date-picker.component';
 
 export interface Tarea {
   id?: number;
@@ -45,12 +45,12 @@ export class TareaFormModalComponent implements OnChanges {
     estado: 'pendiente'
   };
 
-  // Control de validación
+  // Control de validacion
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
-  Object = Object;  // Para usar en el template
-  
-  // Modal de confirmación de eliminación
+  Object = Object;
+
+  // Modal de confirmacion de eliminacion
   mostrarConfirmacionEliminar = false;
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
@@ -63,15 +63,15 @@ export class TareaFormModalComponent implements OnChanges {
   ];
 
   responsables = [
-    { id: '1', nombre: 'Juan Pérez' },
-    { id: '2', nombre: 'María García' },
-    { id: '3', nombre: 'Carlos López' },
+    { id: '1', nombre: 'Juan Perez' },
+    { id: '2', nombre: 'Maria Garcia' },
+    { id: '3', nombre: 'Carlos Lopez' },
     { id: '4', nombre: 'Ana Ruiz' }
   ];
 
   etapas = [
-    { id: 'planificacion', nombre: 'Planificación' },
-    { id: 'diseno', nombre: 'Diseño' },
+    { id: 'planificacion', nombre: 'Planificacion' },
+    { id: 'diseno', nombre: 'Diseno' },
     { id: 'desarrollo', nombre: 'Desarrollo' },
     { id: 'testing', nombre: 'Testing' },
     { id: 'despliegue', nombre: 'Despliegue' }
@@ -139,7 +139,7 @@ export class TareaFormModalComponent implements OnChanges {
     if (!this.tarea?.id) return;
     this.configEliminarModal = {
       titulo: 'Eliminar actividad',
-      mensaje: '¿Estás seguro de que deseas eliminar esta actividad?',
+      mensaje: '¿Estas seguro de que deseas eliminar esta actividad?',
       cantidadElementos: 1,
       tipoElemento: 'actividad',
       textoConfirmar: 'Eliminar'
@@ -149,7 +149,7 @@ export class TareaFormModalComponent implements OnChanges {
 
   async onConfirmarEliminar(): Promise<void> {
     if (!this.tarea?.id) return;
-    
+
     this.cargandoEliminacion = true;
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -181,11 +181,11 @@ export class TareaFormModalComponent implements OnChanges {
       this.errores['fechaInicio'] = 'La fecha de inicio es requerida';
     }
     if (!this.formData.fechaFin) {
-      this.errores['fechaFin'] = 'La fecha de finalización es requerida';
+      this.errores['fechaFin'] = 'La fecha de finalizacion es requerida';
     }
-    if (this.formData.fechaInicio && this.formData.fechaFin && 
+    if (this.formData.fechaInicio && this.formData.fechaFin &&
         new Date(this.formData.fechaFin) < new Date(this.formData.fechaInicio)) {
-      this.errores['fechaFin'] = 'La fecha de finalización debe ser posterior a la de inicio';
+      this.errores['fechaFin'] = 'La fecha de finalizacion debe ser posterior a la de inicio';
     }
     if (this.modoEdicion && !this.formData.responsableId) {
       this.errores['responsableId'] = 'Debe seleccionar un responsable';

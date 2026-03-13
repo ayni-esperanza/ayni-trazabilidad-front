@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
-import { TareaFormModalComponent, Tarea } from '../../../asignacion-tareas/components/tarea-form-modal/tarea-form-modal.component';
+import { TareaFormModalComponent, Tarea } from '../../../../shared/components/tarea-form-modal/tarea-form-modal.component';
 import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
 import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
@@ -94,6 +94,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarModalActividad = false;
   actividadParaEditar: Tarea | null = null;
 
+  flujoNodos: FlujoNodo[] = [];
+
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
     nombreProyecto: '',
@@ -135,6 +137,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
       this.generarEtapas();
       this.cargarProyectoInfoForm();
+      this.prepararFlujo();
     }
   }
 
@@ -461,12 +464,50 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = true;
   }
 
-  onGuardarActividad(_actividad: Tarea): void {
+  onGuardarActividad(actividad: Tarea): void {
+    if (!this.proyecto) return;
+    const nuevoNodo: FlujoNodo = {
+      id: this.obtenerSiguienteNodoId(),
+      nombre: actividad.nombre,
+      tipo: 'tarea',
+      responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
+      fechaInicio: actividad.fechaInicio || undefined,
+      fechaFin: actividad.fechaFin || undefined,
+      siguientesIds: []
+    };
+    if (this.flujoNodos.length > 0) {
+      const ultimo = this.flujoNodos[this.flujoNodos.length - 1];
+      ultimo.siguientesIds = [...ultimo.siguientesIds, nuevoNodo.id];
+    }
+    this.flujoNodos = [...this.flujoNodos, nuevoNodo];
+    this.proyecto.flujo = { nodos: this.flujoNodos };
     this.mostrarModalActividad = false;
   }
 
   onCerrarModalActividad(): void {
     this.mostrarModalActividad = false;
+  }
+
+  private prepararFlujo(): void {
+    if (!this.proyecto) return;
+    if (!this.proyecto.flujo || this.proyecto.flujo.nodos.length === 0) {
+      this.proyecto.flujo = {
+        nodos: [
+          {
+            id: 1,
+            nombre: 'Inicio',
+            tipo: 'inicio',
+            siguientesIds: []
+          }
+        ]
+      };
+    }
+    this.flujoNodos = [...this.proyecto.flujo.nodos];
+  }
+
+  private obtenerSiguienteNodoId(): number {
+    if (this.flujoNodos.length === 0) return 1;
+    return Math.max(...this.flujoNodos.map(n => n.id)) + 1;
   }
 
   guardarInfoProyecto(): void {

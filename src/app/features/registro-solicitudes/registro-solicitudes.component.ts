@@ -3,16 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
-import { ModalIniciarProyectoComponent } from './components/modal-iniciar-proyecto/modal-iniciar-proyecto.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
-import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple } from './models/solicitud.model';
+import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalIniciarProyectoComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })
@@ -20,10 +19,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   
   // Estados de las modales
   showNuevaSolicitudModal = false;
-  showIniciarProyectoModal = false;
   showProcesoProyectoModal = false;
-  showResumenCancelacionInicioModal = false;
-  resumenCancelacionActual: import('./models/solicitud.model').DatosCancelacionInicio | null = null;
 
   // Listas de datos
   solicitudes: Solicitud[] = [];
@@ -52,9 +48,9 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Estadísticas dinámicas
   estadisticas = {
     total: 0,
-    pendientes: 0,
     enProceso: 0,
-    completadas: 0
+    completadas: 0,
+    canceladas: 0
   };
 
   // Selección múltiple
@@ -195,9 +191,9 @@ export class RegistroSolicitudesComponent implements OnInit {
   calcularEstadisticas(): void {
     this.estadisticas = {
       total: this.solicitudesFiltradas.length,
-      pendientes: this.solicitudesFiltradas.filter(s => s.estado === 'Pendiente').length,
       enProceso: this.solicitudesFiltradas.filter(s => s.estado === 'En Proceso').length,
-      completadas: this.solicitudesFiltradas.filter(s => s.estado === 'Completado').length
+      completadas: this.solicitudesFiltradas.filter(s => s.estado === 'Completado').length,
+      canceladas: this.solicitudesFiltradas.filter(s => s.estado === 'Cancelado').length
     };
   }
 
@@ -261,13 +257,16 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'Pendiente' },
+      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
       { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
       { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
     ];
 
     this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalación de sistema de ventilación para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2 }
+      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalacion de sistema de ventilacion para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2, flujo: { nodos: [
+        { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
+        { id: 2, nombre: 'Relevamiento tecnico', tipo: 'tarea', responsableId: 2, fechaInicio: '2026-01-20', fechaFin: '2026-01-28', siguientesIds: [] }
+      ] } }
     ];
 
     this.aplicarFiltros();
@@ -283,51 +282,13 @@ export class RegistroSolicitudesComponent implements OnInit {
       id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
       representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaSolicitud: new Date(),
-      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, ubicacion: data.ubicacion, estado: 'Pendiente'
+      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, ubicacion: data.ubicacion, estado: 'En Proceso'
     };
     this.solicitudes.push(solicitud);
     this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
     this.solicitudActual = solicitud;
     this.showNuevaSolicitudModal = false;
-    this.showIniciarProyectoModal = true;
-  }
-
-  // Modal Iniciar Proyecto
-  cerrarIniciarProyecto(): void { this.showIniciarProyectoModal = false; }
-
-  onCancelarProyecto(data: { proyecto: Record<string, any>; actividades: any[]; ordenesCompra: any[]; motivo: string; responsableNombre: string; procesoNombre: string }): void {
-    if (this.solicitudActual) {
-      this.solicitudActual.estado = 'Cancelado';
-      this.solicitudActual.datosCancelacionInicio = data;
-      const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
-      if (i !== -1) this.solicitudes[i] = { ...this.solicitudActual };
-    }
-    this.aplicarFiltros();
-    this.showIniciarProyectoModal = false;
-  }
-
-  onIniciarProyecto(data: Partial<Proyecto>): void {
-    const responsable = this.responsables.find(r => r.id === Number(data.responsableId));
-    const proceso = this.procesos.find(p => p.id === Number(data.procesoId));
-    const proyecto: Proyecto = {
-      id: this.proyectos.length + 1, solicitudId: this.solicitudActual?.id || 0, nombreProyecto: data.nombreProyecto!,
-      cliente: data.cliente!, representante: data.representante, costo: data.costo!, ordenesCompra: data.ordenesCompra,
-      responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
-      descripcion: data.descripcion!, fechaInicio: new Date(data.fechaInicio!), fechaFinalizacion: new Date(data.fechaFinalizacion!),
-      procesoId: Number(data.procesoId), procesoNombre: proceso?.nombre, ubicacion: data.ubicacion, estado: 'En Proceso', etapaActual: 1
-    };
-    this.proyectos.push(proyecto);
-    if (this.solicitudActual) {
-      this.solicitudActual.estado = 'En Proceso';
-      this.solicitudActual.fechaInicio = data.fechaInicio;
-      this.solicitudActual.fechaFin = data.fechaFinalizacion;
-      this.solicitudActual.costo = data.costo!;
-      const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
-      if (i !== -1) this.solicitudes[i] = this.solicitudActual;
-    }
-    this.aplicarFiltros();
-    this.proyectoActual = proyecto;
-    this.showIniciarProyectoModal = false;
+    this.proyectoActual = this.crearProyectoDesdeSolicitud(solicitud);
     this.showProcesoProyectoModal = true;
   }
 
@@ -385,17 +346,14 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Acciones desde tabla
   abrirProcesoDesdeTabla(solicitud: Solicitud): void {
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
-    if (proyecto) { this.proyectoActual = proyecto; this.showProcesoProyectoModal = true; }
-    else if (solicitud.estado === 'Cancelado' && solicitud.datosCancelacionInicio) {
-      this.resumenCancelacionActual = solicitud.datosCancelacionInicio;
-      this.showResumenCancelacionInicioModal = true;
+    if (proyecto) {
+      this.proyectoActual = proyecto;
+      this.showProcesoProyectoModal = true;
+      return;
     }
-    else if (solicitud.estado === 'Pendiente') { this.solicitudActual = solicitud; this.showIniciarProyectoModal = true; }
-  }
-
-  abrirIniciarProyecto(solicitud: Solicitud): void {
     this.solicitudActual = solicitud;
-    this.showIniciarProyectoModal = true;
+    this.proyectoActual = this.crearProyectoDesdeSolicitud(solicitud);
+    this.showProcesoProyectoModal = true;
   }
 
   // Helpers
@@ -408,5 +366,53 @@ export class RegistroSolicitudesComponent implements OnInit {
       'Cancelado': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
     };
     return classes[estado] || 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+  }
+
+  getFlujoNodos(solicitudId: number | undefined): FlujoNodo[] {
+    if (!solicitudId) return [];
+    const proyecto = this.proyectos.find(p => p.solicitudId === solicitudId);
+    return proyecto?.flujo?.nodos || [];
+  }
+
+  getSiguientesNombres(nodos: FlujoNodo[], nodo: FlujoNodo): string {
+    if (!nodo.siguientesIds.length) return 'Sin conexiones';
+    const nombres = nodo.siguientesIds
+      .map(id => nodos.find(n => n.id === id)?.nombre)
+      .filter((nombre): nombre is string => !!nombre);
+    return nombres.length ? nombres.join(', ') : 'Sin conexiones';
+  }
+
+  getResponsableNombre(responsableId: number): string {
+    const responsable = this.responsables.find(r => r.id === responsableId);
+    return responsable?.nombre || 'Sin asignar';
+  }
+
+  private crearProyectoDesdeSolicitud(solicitud: Solicitud): Proyecto {
+    const existente = this.proyectos.find(p => p.solicitudId === solicitud.id);
+    if (existente) return existente;
+    const proyecto: Proyecto = {
+      id: this.proyectos.length + 1,
+      solicitudId: solicitud.id,
+      nombreProyecto: solicitud.nombreProyecto,
+      cliente: solicitud.cliente,
+      representante: solicitud.representante,
+      costo: solicitud.costo,
+      ordenesCompra: [],
+      responsableId: solicitud.responsableId,
+      responsableNombre: solicitud.responsableNombre,
+      descripcion: solicitud.descripcion,
+      fechaInicio: solicitud.fechaInicio || '',
+      fechaFinalizacion: solicitud.fechaFin || '',
+      procesoId: 0,
+      procesoNombre: '',
+      ubicacion: solicitud.ubicacion,
+      estado: 'En Proceso',
+      etapaActual: 1,
+      flujo: { nodos: [{ id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [] }] }
+    };
+    this.proyectos.push(proyecto);
+    solicitud.estado = 'En Proceso';
+    this.aplicarFiltros();
+    return proyecto;
   }
 }
