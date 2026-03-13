@@ -80,18 +80,10 @@
       <!-- ========== TAB PROCESO ========== -->
       <app-tab-proceso *ngIf="tabActiva === 'proceso'"
         [proyecto]="proyecto"
-        [etapas]="etapas"
-        [etapaSeleccionada]="etapaSeleccionada"
-        [etapaForm]="etapaForm"
         [responsables]="responsables"
-        [modoSoloLectura]="modoSoloLectura"
         [proyectoFinalizado]="proyectoFinalizado"
         [proyectoCancelado]="proyectoCancelado"
-        [todasEtapasCompletadas]="todasEtapasCompletadas"
-        [intentoFinalizarEtapa]="intentoFinalizarEtapa"
-        [erroresEtapa]="erroresEtapa"
         [flujoNodos]="flujoNodos"
-        (seleccionarEtapaEvt)="seleccionarEtapa($event)"
         (abrirActividadEvt)="abrirModalActividad()">
       </app-tab-proceso>
 

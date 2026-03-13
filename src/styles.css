@@ -5,6 +5,8 @@
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
+@import "../node_modules/bpmn-js/dist/assets/diagram-js.css";
+@import "../node_modules/bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 @import "flowbite/src/themes/default";
 @import "flatpickr/dist/flatpickr.min.css";
 
@@ -106,6 +108,15 @@
 
 .ck.ck-color-selector__remove-color:hover {
   background-color: #f3f4f6 !important;
+}
+
+/* BPMN canvas tweaks */
+.bpmn-canvas {
+  position: relative;
+}
+
+.bpmn-canvas .djs-container {
+  background: transparent;
 }
 
 .dark .ck.ck-color-picker,
