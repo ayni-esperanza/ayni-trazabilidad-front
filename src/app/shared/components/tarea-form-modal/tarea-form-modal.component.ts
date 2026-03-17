@@ -1,17 +1,26 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PLATFORM_ID } from '@angular/core';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
+
+export interface ArchivoAdjuntoActividad {
+  nombre: string;
+  tipo: string;
+  tamano: number;
+  archivo?: File;
+}
 
 export interface Tarea {
   id?: number;
   nombre: string;
-  proyectoId: string;
   responsableId: string;
-  etapa: string;
   fechaInicio: string;
-  fechaFin: string;
+  fechaFin?: string;
+  descripcion: string;
+  archivosAdjuntos: ArchivoAdjuntoActividad[];
   estado: string;
   progreso?: number;
 }
@@ -19,17 +28,14 @@ export interface Tarea {
 @Component({
   selector: 'app-tarea-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDeleteModalComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, CKEditorModule, ConfirmDeleteModalComponent, DatePickerComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
-export class TareaFormModalComponent implements OnChanges {
+export class TareaFormModalComponent implements OnChanges, OnInit {
   @Input() visible = false;
   @Input() tarea: Tarea | null = null;
   @Input() modoEdicion = false;
-  @Input() proyectoPreseleccionado: { id: string; nombre: string } | null = null;
-  @Input() etapaPreseleccionada: { id: string; nombre: string } | null = null;
-  @Input() proyectoFijo = false;
-  @Input() etapaFija = false;
+  @Input() embedded = false;
 
   @Output() cerrar = new EventEmitter<void>();
   @Output() guardar = new EventEmitter<Tarea>();
@@ -37,13 +43,18 @@ export class TareaFormModalComponent implements OnChanges {
 
   formData: Tarea = {
     nombre: '',
-    proyectoId: '',
     responsableId: '',
-    etapa: '',
     fechaInicio: '',
-    fechaFin: '',
+    fechaFin: undefined,
+    descripcion: '',
+    archivosAdjuntos: [],
     estado: 'pendiente'
   };
+
+  acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
+  protected Editor: any;
+  protected ckeditorConfig: any = {};
+  protected isBrowser = false;
 
   // Control de validacion
   intentoGuardar = false;
@@ -55,62 +66,82 @@ export class TareaFormModalComponent implements OnChanges {
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
 
-  // Opciones para los dropdowns
-  proyectos = [
-    { id: '1', nombre: 'Proyecto Alpha' },
-    { id: '2', nombre: 'Proyecto Beta' },
-    { id: '3', nombre: 'Proyecto Gamma' }
-  ];
-
   responsables = [
-    { id: '1', nombre: 'Juan Perez' },
-    { id: '2', nombre: 'Maria Garcia' },
-    { id: '3', nombre: 'Carlos Lopez' },
-    { id: '4', nombre: 'Ana Ruiz' }
+    { id: '1', nombre: 'Rolando Rodriguez Mercedes' },
+    { id: '2', nombre: 'Alex Marquina Perez' },
+    { id: '3', nombre: 'Darling Vigo Cotos' },
+    { id: '4', nombre: 'Rodolfo Razuri Arevalo' },
+    { id: '5', nombre: 'Gian Juarez Rondo' }
   ];
 
-  etapas = [
-    { id: 'planificacion', nombre: 'Planificacion' },
-    { id: 'diseno', nombre: 'Diseno' },
-    { id: 'desarrollo', nombre: 'Desarrollo' },
-    { id: 'testing', nombre: 'Testing' },
-    { id: 'despliegue', nombre: 'Despliegue' }
-  ];
+  constructor(
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  ngOnInit(): void {
+    if (!this.isBrowser) return;
+
+    import('ckeditor5').then(({
+      Bold,
+      ClassicEditor,
+      Essentials,
+      Italic,
+      Link,
+      List,
+      Paragraph,
+      Underline,
+      Undo,
+    }) => {
+      this.Editor = ClassicEditor;
+      this.ckeditorConfig = {
+        licenseKey: 'GPL',
+        toolbar: {
+          items: ['undo', 'redo', '|', 'bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList', '|', 'link'],
+          shouldNotGroupWhenFull: true
+        },
+        plugins: [Bold, Essentials, Italic, Link, List, Paragraph, Underline, Undo],
+      };
+      this.cdr.detectChanges();
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['visible'] && this.visible) {
-      if (this.tarea) {
-        this.formData = { ...this.tarea };
-      } else {
-        this.resetForm();
-      }
-      this.aplicarPreselecciones();
+    // Si la modal está visible y cambia la tarea seleccionada (o el modo),
+    // se debe resincornizar el formulario para mantener datos independientes por nodo.
+    const cambioConModalAbierta = this.visible && (changes['tarea'] || changes['modoEdicion']);
+    const aperturaModal = changes['visible'] && this.visible;
+
+    if (aperturaModal || cambioConModalAbierta) {
+      this.cargarFormularioDesdeInput();
     }
   }
 
-  private aplicarPreselecciones(): void {
-    if (this.proyectoPreseleccionado) {
-      if (!this.proyectos.find(p => p.id === this.proyectoPreseleccionado!.id)) {
-        this.proyectos = [this.proyectoPreseleccionado, ...this.proyectos];
-      }
-      this.formData.proyectoId = this.proyectoPreseleccionado.id;
+  private cargarFormularioDesdeInput(): void {
+    if (this.tarea) {
+      this.formData = {
+        ...this.tarea,
+        descripcion: this.tarea.descripcion || '',
+        archivosAdjuntos: this.tarea.archivosAdjuntos ? [...this.tarea.archivosAdjuntos] : []
+      };
+      this.intentoGuardar = false;
+      this.errores = {};
+      return;
     }
-    if (this.etapaPreseleccionada) {
-      if (!this.etapas.find(e => e.id === this.etapaPreseleccionada!.id)) {
-        this.etapas = [this.etapaPreseleccionada, ...this.etapas];
-      }
-      this.formData.etapa = this.etapaPreseleccionada.id;
-    }
+
+    this.resetForm();
   }
 
   resetForm(): void {
     this.formData = {
       nombre: '',
-      proyectoId: '',
       responsableId: '',
-      etapa: '',
       fechaInicio: '',
-      fechaFin: '',
+      fechaFin: undefined,
+      descripcion: '',
+      archivosAdjuntos: [],
       estado: 'pendiente'
     };
     this.intentoGuardar = false;
@@ -121,6 +152,18 @@ export class TareaFormModalComponent implements OnChanges {
   onCerrar(): void {
     this.cerrar.emit();
     this.resetForm();
+  }
+
+  onBackdropClick(): void {
+    if (!this.embedded) {
+      this.onCerrar();
+    }
+  }
+
+  onContentClick(event: MouseEvent): void {
+    if (!this.embedded) {
+      event.stopPropagation();
+    }
   }
 
   onGuardar(): void {
@@ -171,17 +214,8 @@ export class TareaFormModalComponent implements OnChanges {
     if (!this.formData.nombre.trim()) {
       this.errores['nombre'] = 'El nombre de la tarea es requerido';
     }
-    if (!this.formData.proyectoId) {
-      this.errores['proyectoId'] = 'Debe seleccionar un proyecto';
-    }
-    if (!this.formData.etapa && !this.etapaFija) {
-      this.errores['etapa'] = 'Debe seleccionar una etapa';
-    }
     if (!this.formData.fechaInicio) {
       this.errores['fechaInicio'] = 'La fecha de inicio es requerida';
-    }
-    if (!this.formData.fechaFin) {
-      this.errores['fechaFin'] = 'La fecha de finalizacion es requerida';
     }
     if (this.formData.fechaInicio && this.formData.fechaFin &&
         new Date(this.formData.fechaFin) < new Date(this.formData.fechaInicio)) {
@@ -204,6 +238,47 @@ export class TareaFormModalComponent implements OnChanges {
 
   get textoBoton(): string {
     return this.modoEdicion ? 'Guardar Actividad' : 'Agregar Actividad';
+  }
+
+  onSeleccionarArchivos(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files?.length) return;
+
+    const nuevosAdjuntos: ArchivoAdjuntoActividad[] = Array.from(files).map((file) => ({
+      nombre: file.name,
+      tipo: file.type,
+      tamano: file.size,
+      archivo: file
+    }));
+
+    this.formData.archivosAdjuntos = [...this.formData.archivosAdjuntos, ...nuevosAdjuntos];
+    input.value = '';
+  }
+
+  eliminarAdjunto(index: number): void {
+    this.formData.archivosAdjuntos = this.formData.archivosAdjuntos.filter((_, i) => i !== index);
+  }
+
+  formatoTamano(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  puedeDescargarAdjunto(adjunto: ArchivoAdjuntoActividad): boolean {
+    return !!adjunto.archivo;
+  }
+
+  descargarAdjunto(adjunto: ArchivoAdjuntoActividad): void {
+    if (!adjunto.archivo) return;
+
+    const blobUrl = URL.createObjectURL(adjunto.archivo);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = adjunto.nombre;
+    link.click();
+    URL.revokeObjectURL(blobUrl);
   }
 
   @HostListener('document:keydown.escape')

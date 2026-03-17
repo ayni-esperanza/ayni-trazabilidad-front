@@ -37,7 +37,7 @@ export class ModalDismissDirective {
    * Selectores adicionales que deben ignorarse (ej: dropdowns de editores).
    * El click en estos elementos NO cerrará el modal.
    */
-  @Input() ignoreSelectors = '.ck, .ck-body-wrapper, .ck-balloon-panel, .tox, .tox-tinymce-aux';
+  @Input() ignoreSelectors = '.ck, .ck-body-wrapper, .ck-balloon-panel, .tox, .tox-tinymce-aux, .djs-context-pad, .djs-popup, .djs-palette, .djs-overlay-container, .bjs-powered-by';
 
   @Output() dismissed = new EventEmitter<'escape' | 'backdrop'>();
 

@@ -36,6 +36,14 @@ export class TabInformacionComponent implements OnInit {
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
 
+  readonly responsablesFijos: Responsable[] = [
+    { id: 1, nombre: 'Rolando Rodriguez Mercedes' },
+    { id: 2, nombre: 'Alex Marquina Perez' },
+    { id: 3, nombre: 'Darling Vigo Cotos' },
+    { id: 4, nombre: 'Rodolfo Razuri Arevalo' },
+    { id: 5, nombre: 'Gian Juarez Rondo' }
+  ];
+
   protected Editor: any;
   protected ckeditorConfig: any = {};
   protected isBrowser = false;
@@ -75,13 +83,9 @@ export class TabInformacionComponent implements OnInit {
     this.proyectoInfoForm.ordenesCompra.splice(index, 1);
   }
 
-  getProcesoNombre(procesoId: number): string {
-    const proc = this.procesos.find(p => p.id === procesoId);
-    return proc?.nombre || 'Sin proceso';
-  }
-
   getResponsableNombre(responsableId: number): string {
-    const resp = this.responsables.find(r => r.id === responsableId);
+    const resp = this.responsablesFijos.find(r => r.id === responsableId)
+      ?? this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
   }
 
@@ -91,7 +95,4 @@ export class TabInformacionComponent implements OnInit {
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
-  getTotalPresupuestoEtapas(): number {
-    return this.etapas.reduce((total, etapa) => total + (etapa.presupuesto || 0), 0);
-  }
 }

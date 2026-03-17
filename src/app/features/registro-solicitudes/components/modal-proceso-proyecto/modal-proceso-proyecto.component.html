@@ -25,7 +25,7 @@
 
 <div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
   [appModalDismiss]="visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar" (dismissed)="onCerrar()">
-  <div data-modal-content class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+  <div data-modal-content class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl mx-4 h-[95vh] max-h-[95vh] flex flex-col">
     <!-- Header -->
     <div class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
       <h2 class="text-lg font-semibold text-white">Flujo del Proyecto</h2>
@@ -78,14 +78,35 @@
     <div class="p-4 overflow-y-auto flex-1">
 
       <!-- ========== TAB PROCESO ========== -->
-      <app-tab-proceso *ngIf="tabActiva === 'proceso'"
-        [proyecto]="proyecto"
-        [responsables]="responsables"
-        [proyectoFinalizado]="proyectoFinalizado"
-        [proyectoCancelado]="proyectoCancelado"
-        [flujoNodos]="flujoNodos"
-        (abrirActividadEvt)="abrirModalActividad()">
-      </app-tab-proceso>
+      <div *ngIf="tabActiva === 'proceso'"
+        [ngClass]="mostrarModalActividad
+          ? 'grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_26rem] gap-4 items-start'
+          : 'block'">
+        <div class="min-w-0">
+          <app-tab-proceso
+            [proyecto]="proyecto"
+            [responsables]="responsables"
+            [proyectoFinalizado]="proyectoFinalizado"
+            [proyectoCancelado]="proyectoCancelado"
+            [flujoNodos]="flujoNodos"
+            (crearActividadDesdeBpmnEvt)="abrirNuevaActividadDesdeBpmn($event)"
+            (flujoActualizadoEvt)="onFlujoActualizado($event)"
+            (abrirNodoEvt)="abrirModalActividad($event)">
+          </app-tab-proceso>
+        </div>
+
+        <div *ngIf="mostrarModalActividad" class="min-w-0 lg:sticky lg:top-0">
+          <app-tarea-form-modal
+            [visible]="mostrarModalActividad"
+            [embedded]="true"
+            [tarea]="actividadParaEditar"
+            [modoEdicion]="actividadParaEditar?.id != null"
+            (cerrar)="onCerrarModalActividad()"
+            (guardar)="onGuardarActividad($event)"
+            (eliminar)="onEliminarActividad($event)">
+          </app-tarea-form-modal>
+        </div>
+      </div>
 
       <!-- ========== TAB INFORMACIÓN ========== -->
       <app-tab-informacion *ngIf="tabActiva === 'informacion'"
@@ -137,11 +158,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
           Guardar Cambios
-        </button>
-        <!-- Botón Finalizar Etapa (cuando hay etapas pendientes) -->
-        <button *ngIf="!todasEtapasCompletadas && !proyectoFinalizado && !proyectoCancelado && tabActiva === 'proceso'" (click)="onFinalizarEtapa()" 
-          class="px-3 py-1.5 text-sm text-white bg-green-500 rounded hover:bg-green-600">
-          Finalizar Etapa
         </button>
         <!-- Botón Finalizar Proyecto (cuando todas las etapas están completadas) -->
         <button *ngIf="todasEtapasCompletadas && !proyectoFinalizado && !proyectoCancelado && tabActiva === 'proceso'" (click)="onFinalizarProyecto()" 
@@ -198,16 +214,3 @@
   (confirmar)="confirmarCancelacion()"
   (cancelar)="onCancelarConfirmacionCancelar()">
 </app-confirm-delete-modal>
-
-<!-- Modal de agregar actividad -->
-<app-tarea-form-modal
-  [visible]="mostrarModalActividad"
-  [tarea]="actividadParaEditar"
-  [modoEdicion]="actividadParaEditar !== null"
-  [proyectoPreseleccionado]="proyecto ? { id: proyecto.id.toString(), nombre: proyecto.nombreProyecto } : null"
-  [proyectoFijo]="true"
-  [etapaPreseleccionada]="etapaSeleccionada ? { id: etapaSeleccionada.nombre, nombre: etapaSeleccionada.nombre } : null"
-  [etapaFija]="true"
-  (cerrar)="onCerrarModalActividad()"
-  (guardar)="onGuardarActividad($event)">
-</app-tarea-form-modal>

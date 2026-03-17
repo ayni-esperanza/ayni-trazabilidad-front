@@ -236,10 +236,11 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   cargarDatosIniciales(): void {
     this.responsables = [
-      { id: 1, nombre: 'Juan Pérez', cargo: 'Gerente de Proyecto' },
-      { id: 2, nombre: 'María García', cargo: 'Desarrollador Senior' },
-      { id: 3, nombre: 'Carlos López', cargo: 'Analista' },
-      { id: 4, nombre: 'Ana Martínez', cargo: 'QA Lead' }
+      { id: 1, nombre: 'Rolando Rodriguez Mercedes', cargo: 'Responsable de Proyecto' },
+      { id: 2, nombre: 'Alex Marquina Perez', cargo: 'Responsable de Proyecto' },
+      { id: 3, nombre: 'Darling Vigo Cotos', cargo: 'Responsable de Proyecto' },
+      { id: 4, nombre: 'Rodolfo Razuri Arevalo', cargo: 'Responsable de Proyecto' },
+      { id: 5, nombre: 'Gian Juarez Rondo', cargo: 'Responsable de Proyecto' }
     ];
 
     this.procesos = [
@@ -257,13 +258,13 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Juan Pérez', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
-      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
-      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Carlos López', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
+      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Rolando Rodriguez Mercedes', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
+      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
+      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Darling Vigo Cotos', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
     ];
 
     this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'María García', descripcion: '<p>Instalacion de sistema de ventilacion para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2, flujo: { nodos: [
+      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: '<p>Instalacion de sistema de ventilacion para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2, flujo: { nodos: [
         { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
         { id: 2, nombre: 'Relevamiento tecnico', tipo: 'tarea', responsableId: 2, fechaInicio: '2026-01-20', fechaFin: '2026-01-28', siguientesIds: [] }
       ] } }

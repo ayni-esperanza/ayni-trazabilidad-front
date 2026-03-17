@@ -6,14 +6,25 @@ export interface OrdenCompra {
   fecha: string;
 }
 
+export interface FlujoAdjunto {
+  nombre: string;
+  tipo: string;
+  tamano: number;
+  archivo?: File;
+}
+
 
 export interface FlujoNodo {
   id: number;
   nombre: string;
   tipo: 'inicio' | 'tarea';
+  posicionX?: number;
+  posicionY?: number;
   responsableId?: number;
   fechaInicio?: string;
   fechaFin?: string;
+  descripcion?: string;
+  adjuntos?: FlujoAdjunto[];
   siguientesIds: number[];
 }
 

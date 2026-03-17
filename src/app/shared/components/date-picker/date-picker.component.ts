@@ -27,6 +27,7 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   private fp: any;
   private readonly isBrowser: boolean;
+  private readonly calendarIconDataUri = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='1.8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z'/%3E%3C/svg%3E\")";
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
@@ -43,7 +44,7 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
         dateFormat: this.enableTime ? 'Y-m-d H:i' : 'Y-m-d',
         altInput: true,
         altFormat: this.enableTime ? 'd/m/Y H:i' : 'd/m/Y',
-        altInputClass: this.inputClass + (this.hasError ? ' !border-red-500' : ''),
+        altInputClass: this.inputClass + ' pr-9' + (this.hasError ? ' !border-red-500' : ''),
         enableTime: this.enableTime,
         time_24hr: true,
         defaultDate: this.value || undefined,
@@ -53,6 +54,8 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
           this.zone.run(() => this.valueChange.emit(dateStr));
         }
       });
+
+      this.actualizarAparienciaInput();
     });
   }
 
@@ -75,6 +78,20 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
         alt.classList.remove('!border-red-500');
       }
     }
+    if (changes['placeholder'] && this.fp?.altInput) {
+      this.actualizarAparienciaInput();
+    }
+  }
+
+  private actualizarAparienciaInput(): void {
+    if (!this.fp?.altInput) return;
+
+    const alt = this.fp.altInput as HTMLInputElement;
+    alt.placeholder = this.placeholder;
+    alt.style.backgroundImage = this.calendarIconDataUri;
+    alt.style.backgroundRepeat = 'no-repeat';
+    alt.style.backgroundPosition = 'right 0.75rem center';
+    alt.style.backgroundSize = '1rem 1rem';
   }
 
   ngOnDestroy(): void {

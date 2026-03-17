@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TareaFormModalComponent, Tarea } from '../../../../shared/components/tarea-form-modal/tarea-form-modal.component';
@@ -93,8 +93,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   // Modal de actividades
   mostrarModalActividad = false;
   actividadParaEditar: Tarea | null = null;
+  nodoPadreParaNuevoId: number | null = null;
 
   flujoNodos: FlujoNodo[] = [];
+  private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -438,7 +440,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   getResponsableNombre(responsableId: number): string {
-    const resp = this.responsables.find(r => r.id === responsableId);
+    const responsablesFijos: Responsable[] = [
+      { id: 1, nombre: 'Rolando Rodriguez Mercedes' },
+      { id: 2, nombre: 'Alex Marquina Perez' },
+      { id: 3, nombre: 'Darling Vigo Cotos' },
+      { id: 4, nombre: 'Rodolfo Razuri Arevalo' },
+      { id: 5, nombre: 'Gian Juarez Rondo' }
+    ];
+    const resp = responsablesFijos.find(r => r.id === responsableId)
+      ?? this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
   }
 
@@ -459,37 +469,168 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     };
   }
 
-  abrirModalActividad(): void {
+  abrirModalActividad(nodo?: FlujoNodo): void {
+    this.nodoPadreParaNuevoId = null;
+    this.actividadParaEditar = nodo ? this.mapearNodoATarea(nodo) : null;
+    this.mostrarModalActividad = true;
+  }
+
+  abrirNuevaActividadDesdeNodo(nodoBase: FlujoNodo): void {
+    this.nodoPadreParaNuevoId = nodoBase.id;
     this.actividadParaEditar = null;
+    this.mostrarModalActividad = true;
+  }
+
+  abrirNuevaActividadDesdeBpmn(payload: { nombre: string; nodoOrigenId?: number }): void {
+    if (!this.proyecto) return;
+
+    const posicionInicial = this.calcularPosicionNuevoNodo(payload.nodoOrigenId);
+
+    // Crear primero el nodo en memoria para que no se pierda al renderizar el flujo.
+    const nuevoNodo: FlujoNodo = {
+      id: this.obtenerSiguienteNodoId(),
+      nombre: payload.nombre || 'Nueva actividad',
+      tipo: 'tarea',
+      posicionX: posicionInicial.x,
+      posicionY: posicionInicial.y,
+      responsableId: undefined,
+      fechaInicio: undefined,
+      fechaFin: undefined,
+      descripcion: '',
+      adjuntos: [],
+      siguientesIds: []
+    };
+
+    if (typeof payload.nodoOrigenId === 'number') {
+      const indexOrigen = this.flujoNodos.findIndex(n => n.id === payload.nodoOrigenId);
+      if (indexOrigen >= 0) {
+        const origen = this.flujoNodos[indexOrigen];
+        this.flujoNodos[indexOrigen] = {
+          ...origen,
+          siguientesIds: origen.siguientesIds.includes(nuevoNodo.id)
+            ? origen.siguientesIds
+            : [...origen.siguientesIds, nuevoNodo.id]
+        };
+      }
+    }
+
+    this.flujoNodos = [...this.flujoNodos, nuevoNodo];
+    this.persistirFlujoProyecto();
+
+    this.nodoPadreParaNuevoId = null;
+    this.actividadParaEditar = this.mapearNodoATarea(nuevoNodo);
     this.mostrarModalActividad = true;
   }
 
   onGuardarActividad(actividad: Tarea): void {
     if (!this.proyecto) return;
-    const nuevoNodo: FlujoNodo = {
-      id: this.obtenerSiguienteNodoId(),
-      nombre: actividad.nombre,
-      tipo: 'tarea',
-      responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
-      fechaInicio: actividad.fechaInicio || undefined,
-      fechaFin: actividad.fechaFin || undefined,
-      siguientesIds: []
-    };
-    if (this.flujoNodos.length > 0) {
-      const ultimo = this.flujoNodos[this.flujoNodos.length - 1];
-      ultimo.siguientesIds = [...ultimo.siguientesIds, nuevoNodo.id];
+
+    const indexNodoExistente = typeof actividad.id === 'number'
+      ? this.flujoNodos.findIndex(n => n.id === actividad.id)
+      : -1;
+
+    if (indexNodoExistente >= 0) {
+      const nodoActual = this.flujoNodos[indexNodoExistente];
+      const nodoActualizado: FlujoNodo = {
+        ...nodoActual,
+        nombre: actividad.nombre,
+        tipo: 'tarea',
+        responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
+        fechaInicio: actividad.fechaInicio || undefined,
+        fechaFin: actividad.fechaFin || undefined,
+        descripcion: actividad.descripcion || '',
+        adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos)
+      };
+
+      this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? nodoActualizado : nodo);
+    } else {
+      const posicionInicial = this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
+      const nuevoNodo: FlujoNodo = {
+        id: this.obtenerSiguienteNodoId(),
+        nombre: actividad.nombre,
+        tipo: 'tarea',
+        posicionX: posicionInicial.x,
+        posicionY: posicionInicial.y,
+        responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
+        fechaInicio: actividad.fechaInicio || undefined,
+        fechaFin: actividad.fechaFin || undefined,
+        descripcion: actividad.descripcion || '',
+        adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos),
+        siguientesIds: []
+      };
+
+      if (this.nodoPadreParaNuevoId !== null) {
+        const indexPadre = this.flujoNodos.findIndex(n => n.id === this.nodoPadreParaNuevoId);
+        if (indexPadre >= 0) {
+          const padre = this.flujoNodos[indexPadre];
+          const nuevosSiguientes = padre.siguientesIds.includes(nuevoNodo.id)
+            ? padre.siguientesIds
+            : [...padre.siguientesIds, nuevoNodo.id];
+          this.flujoNodos[indexPadre] = { ...padre, siguientesIds: nuevosSiguientes };
+        }
+      } else if (this.flujoNodos.length > 0) {
+        const ultimo = this.flujoNodos[this.flujoNodos.length - 1];
+        const siguientes = ultimo.siguientesIds.includes(nuevoNodo.id)
+          ? ultimo.siguientesIds
+          : [...ultimo.siguientesIds, nuevoNodo.id];
+        this.flujoNodos[this.flujoNodos.length - 1] = {
+          ...ultimo,
+          siguientesIds: siguientes
+        };
+      }
+
+      this.flujoNodos = [...this.flujoNodos, nuevoNodo];
     }
-    this.flujoNodos = [...this.flujoNodos, nuevoNodo];
-    this.proyecto.flujo = { nodos: this.flujoNodos };
+
+    this.persistirFlujoProyecto();
     this.mostrarModalActividad = false;
+    this.actividadParaEditar = null;
+    this.nodoPadreParaNuevoId = null;
+  }
+
+  onEliminarActividad(nodoId: number): void {
+    if (!this.proyecto) return;
+
+    this.flujoNodos = this.flujoNodos
+      .filter(nodo => nodo.id !== nodoId)
+      .map(nodo => ({
+        ...nodo,
+        siguientesIds: nodo.siguientesIds.filter(id => id !== nodoId)
+      }));
+
+    this.persistirFlujoProyecto();
+    this.mostrarModalActividad = false;
+    this.actividadParaEditar = null;
+    this.nodoPadreParaNuevoId = null;
+  }
+
+  onFlujoActualizado(nodosActualizados: FlujoNodo[]): void {
+    this.flujoNodos = nodosActualizados.map(nodo => ({
+      ...nodo,
+      siguientesIds: [...nodo.siguientesIds]
+    }));
+    this.persistirFlujoProyecto();
   }
 
   onCerrarModalActividad(): void {
     this.mostrarModalActividad = false;
+    this.actividadParaEditar = null;
+    this.nodoPadreParaNuevoId = null;
   }
 
   private prepararFlujo(): void {
     if (!this.proyecto) return;
+
+    const flujoGuardado = this.cargarFlujoDesdeLocalStorage();
+    if (flujoGuardado && flujoGuardado.nodos.length > 0) {
+      this.proyecto.flujo = {
+        nodos: flujoGuardado.nodos.map(nodo => ({
+          ...nodo,
+          siguientesIds: [...(nodo.siguientesIds || [])]
+        }))
+      };
+    }
+
     if (!this.proyecto.flujo || this.proyecto.flujo.nodos.length === 0) {
       this.proyecto.flujo = {
         nodos: [
@@ -503,6 +644,127 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       };
     }
     this.flujoNodos = [...this.proyecto.flujo.nodos];
+  }
+
+  private persistirFlujoProyecto(): void {
+    if (!this.proyecto) return;
+    this.proyecto.flujo = {
+      nodos: this.flujoNodos.map(nodo => ({
+        ...nodo,
+        siguientesIds: [...nodo.siguientesIds]
+      }))
+    };
+    this.guardarFlujoEnLocalStorage(this.proyecto.flujo.nodos);
+  }
+
+  private obtenerClaveFlujoStorage(): string | null {
+    if (!this.proyecto || typeof window === 'undefined') return null;
+    return `${this.flujoStoragePrefix}${this.proyecto.id}`;
+  }
+
+  private guardarFlujoEnLocalStorage(nodos: FlujoNodo[]): void {
+    const storageKey = this.obtenerClaveFlujoStorage();
+    if (!storageKey) return;
+
+    const serializable = nodos.map(nodo => ({
+      ...nodo,
+      adjuntos: (nodo.adjuntos || []).map(adjunto => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: adjunto.tamano
+      })),
+      siguientesIds: [...(nodo.siguientesIds || [])]
+    }));
+
+    window.localStorage.setItem(storageKey, JSON.stringify({ nodos: serializable }));
+  }
+
+  private cargarFlujoDesdeLocalStorage(): { nodos: FlujoNodo[] } | null {
+    const storageKey = this.obtenerClaveFlujoStorage();
+    if (!storageKey) return null;
+
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw) as { nodos?: FlujoNodo[] };
+      if (!parsed?.nodos || !Array.isArray(parsed.nodos)) return null;
+      return {
+        nodos: parsed.nodos
+          .filter(nodo => typeof nodo.id === 'number' && Array.isArray(nodo.siguientesIds))
+          .map(nodo => ({
+            ...nodo,
+            siguientesIds: [...nodo.siguientesIds]
+          }))
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private calcularPosicionNuevoNodo(nodoPadreId?: number): { x: number; y: number } {
+    const fallback = { x: 240, y: 102 };
+    if (this.flujoNodos.length === 0) return fallback;
+
+    const separacionHorizontal = 220;
+    const separacionVertical = 120;
+
+    if (typeof nodoPadreId === 'number') {
+      const padre = this.flujoNodos.find(n => n.id === nodoPadreId);
+      if (padre) {
+        const baseX = typeof padre.posicionX === 'number' ? padre.posicionX : fallback.x;
+        const baseY = typeof padre.posicionY === 'number' ? padre.posicionY : fallback.y;
+        const hijosExistentes = this.flujoNodos.filter(n => padre.siguientesIds.includes(n.id));
+        const offset = hijosExistentes.length;
+
+        return {
+          x: baseX + separacionHorizontal,
+          y: baseY + offset * separacionVertical
+        };
+      }
+    }
+
+    const tareas = this.flujoNodos.filter(n => n.tipo !== 'inicio');
+    if (tareas.length === 0) {
+      const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
+      return {
+        x: (inicio?.posicionX ?? 105) + 135,
+        y: inicio?.posicionY ?? 102
+      };
+    }
+
+    const ultimo = tareas[tareas.length - 1];
+    return {
+      x: (ultimo.posicionX ?? fallback.x) + separacionHorizontal,
+      y: ultimo.posicionY ?? fallback.y
+    };
+  }
+
+  private mapearNodoATarea(nodo: FlujoNodo): Tarea {
+    return {
+      id: nodo.id,
+      nombre: nodo.nombre,
+      responsableId: nodo.responsableId ? String(nodo.responsableId) : '',
+      fechaInicio: nodo.fechaInicio || '',
+      fechaFin: nodo.fechaFin || undefined,
+      descripcion: nodo.descripcion || '',
+      archivosAdjuntos: (nodo.adjuntos || []).map(a => ({
+        nombre: a.nombre,
+        tipo: a.tipo,
+        tamano: a.tamano,
+        archivo: (a as any).archivo
+      })),
+      estado: 'pendiente'
+    };
+  }
+
+  private mapearAdjuntosActividadANodo(adjuntos: Tarea['archivosAdjuntos']): FlujoAdjunto[] {
+    return (adjuntos || []).map(adjunto => ({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      tamano: adjunto.tamano,
+      archivo: adjunto.archivo
+    }));
   }
 
   private obtenerSiguienteNodoId(): number {

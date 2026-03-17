@@ -113,10 +113,85 @@
 /* BPMN canvas tweaks */
 .bpmn-canvas {
   position: relative;
+  background-color: #f8fafc;
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .bpmn-canvas .djs-container {
   background: transparent;
+}
+
+.dark .bpmn-canvas {
+  background-color: #111827;
+  background-image:
+    linear-gradient(to right, rgba(75, 85, 99, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(75, 85, 99, 0.35) 1px, transparent 1px);
+}
+
+.bpmn-canvas .bjs-powered-by {
+  display: none !important;
+}
+
+.bpmn-canvas .djs-palette {
+  top: 8px !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%);
+  margin: 0 !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15) !important;
+  max-width: calc(100% - 16px) !important;
+  width: max-content !important;
+  min-height: 40px !important;
+}
+
+.bpmn-canvas .djs-palette .djs-palette-entries {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: min(100%, 860px) !important;
+  padding: 0 2px !important;
+}
+
+.bpmn-canvas .djs-palette .group {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.bpmn-canvas .djs-palette .entry {
+  float: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+.bpmn-canvas .djs-palette .separator {
+  float: none !important;
+  width: 1px !important;
+  height: 20px !important;
+  margin: 0 4px !important;
+}
+
+.dark .bpmn-canvas .djs-palette {
+  background: rgba(17, 24, 39, 0.92) !important;
+  border-color: #374151 !important;
 }
 
 .dark .ck.ck-color-picker,
@@ -136,6 +211,78 @@
 
 .dark .ck.ck-color-selector__remove-color:hover {
   background-color: rgb(75 85 99) !important;
+}
+
+/* ====== CKEditor dark mode (toolbar + editable + paneles) ====== */
+.dark .ck.ck-editor {
+  --ck-color-base-background: #1f2937;
+  --ck-color-base-foreground: #111827;
+  --ck-color-toolbar-background: #111827;
+  --ck-color-toolbar-border: #374151;
+  --ck-color-base-border: #374151;
+  --ck-color-text: #e5e7eb;
+  --ck-color-button-default-hover-background: #374151;
+  --ck-color-button-default-active-background: #374151;
+  --ck-color-button-on-background: #374151;
+  --ck-color-list-background: #1f2937;
+  --ck-color-panel-background: #1f2937;
+  --ck-color-panel-border: #374151;
+  --ck-color-input-background: #111827;
+  --ck-color-input-border: #4b5563;
+  --ck-color-input-text: #e5e7eb;
+  --ck-color-focus-border: #22c55e;
+}
+
+.dark .ck.ck-toolbar,
+.dark .ck.ck-editor__top .ck-sticky-panel .ck-toolbar {
+  background: #111827 !important;
+  border-color: #374151 !important;
+}
+
+.dark .ck.ck-editor__main > .ck-editor__editable,
+.dark .ck.ck-content {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
+}
+
+.dark .ck.ck-content p,
+.dark .ck.ck-content li,
+.dark .ck.ck-content h1,
+.dark .ck.ck-content h2,
+.dark .ck.ck-content h3,
+.dark .ck.ck-content h4,
+.dark .ck.ck-content h5,
+.dark .ck.ck-content h6,
+.dark .ck.ck-content blockquote,
+.dark .ck.ck-content td,
+.dark .ck.ck-content th {
+  color: #e5e7eb !important;
+}
+
+.dark .ck.ck-content a {
+  color: #93c5fd !important;
+}
+
+.dark .ck.ck-dropdown__panel,
+.dark .ck.ck-list,
+.dark .ck.ck-labeled-field-view,
+.dark .ck.ck-input,
+.dark .ck.ck-button.ck-on,
+.dark .ck.ck-button:hover {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
+}
+
+.dark .ck.ck-button,
+.dark .ck.ck-button .ck-icon {
+  color: #d1d5db !important;
+}
+
+.dark .ck.ck-tooltip .ck-tooltip__text {
+  background: #111827 !important;
+  color: #f3f4f6 !important;
 }
 
 /* ====== Flatpickr dark mode ====== */
@@ -201,5 +348,37 @@
 .dark .numInputWrapper span:after {
   border-right-color: #9ca3af;
   border-left-color: #9ca3af;
+}
+
+/* Flatpickr - modo tiempo (hora/minutos) en dark */
+.dark .flatpickr-time {
+  background: #111827;
+  border-top-color: #374151;
+}
+
+.dark .flatpickr-time .flatpickr-time-separator,
+.dark .flatpickr-time .flatpickr-am-pm {
+  color: #d1d5db;
+}
+
+.dark .flatpickr-time input,
+.dark .flatpickr-time .numInput,
+.dark .flatpickr-time .numInputWrapper {
+  background: #111827;
+  color: #e5e7eb;
+  border-color: #374151;
+}
+
+.dark .flatpickr-time input:hover,
+.dark .flatpickr-time .numInput:hover,
+.dark .flatpickr-time .flatpickr-am-pm:hover {
+  background: #374151;
+}
+
+.dark .flatpickr-time input:focus,
+.dark .flatpickr-time .numInput:focus,
+.dark .flatpickr-time .flatpickr-am-pm:focus {
+  background: #374151;
+  outline: none;
 }
 

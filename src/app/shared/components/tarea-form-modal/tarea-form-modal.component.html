@@ -1,11 +1,15 @@
 <!-- Modal Overlay -->
 @if (visible) {
   <div 
-    (click)="onCerrar()"
-    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    (click)="onBackdropClick()"
+    [ngClass]="embedded
+      ? 'w-full'
+      : 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'">
     <div 
-      (click)="$event.stopPropagation()"
-      class="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full">
+      (click)="onContentClick($event)"
+      [ngClass]="embedded
+        ? 'bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-h-[78vh] flex flex-col overflow-hidden'
+        : 'bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden'">
       
       <!-- Header -->
       <div class="bg-green-500 text-white px-5 py-3 flex items-center justify-between rounded-t-xl">
@@ -20,7 +24,7 @@
       </div>
 
       <!-- Body -->
-      <div class="p-5">
+      <div class="p-5 overflow-y-auto flex-1">
         <!-- Nombre de la Tarea - Ocupa toda la fila solo en modo edicion -->
         @if (modoEdicion) {
           <div class="mb-3">
@@ -57,25 +61,6 @@
             </div>
           }
 
-          <!-- Proyecto -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Proyecto <span class="text-red-500">*</span>
-            </label>
-            <select 
-              [(ngModel)]="formData.proyectoId"
-              [disabled]="proyectoFijo"
-              [class.border-red-500]="tieneError('proyectoId')"
-              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-70"
-              required>
-              <option value="">Seleccionar Proyecto</option>
-              @for (proyecto of proyectos; track proyecto.id) {
-                <option [value]="proyecto.id">{{ proyecto.nombre }}</option>
-              }
-            </select>
-            <span *ngIf="tieneError('proyectoId')" class="text-xs text-red-500 mt-1">{{ errores['proyectoId'] }}</span>
-          </div>
-
           <!-- Responsable -->
           <div>
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -92,27 +77,6 @@
               }
             </select>
             <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-1">{{ errores['responsableId'] }}</span>
-          </div>
-
-          <!-- Etapa -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Etapa
-              @if (!etapaFija) { <span class="text-red-500">*</span> }
-              @if (etapaFija && !etapaPreseleccionada) { <span class="text-xs text-gray-400">(sin proceso definido)</span> }
-            </label>
-            <select 
-              [(ngModel)]="formData.etapa"
-              [disabled]="etapaFija"
-              [class.border-red-500]="tieneError('etapa')"
-              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-70"
-              [required]="!etapaFija">
-              <option value="">{{ etapaFija && !etapaPreseleccionada ? 'Sin etapa definida' : 'Seleccionar Etapa' }}</option>
-              @for (etapa of etapas; track etapa.id) {
-                <option [value]="etapa.id">{{ etapa.nombre }}</option>
-              }
-            </select>
-            <span *ngIf="tieneError('etapa')" class="text-xs text-red-500 mt-1">{{ errores['etapa'] }}</span>
           </div>
 
           <!-- Fecha y Hora de Inicio -->
@@ -133,10 +97,10 @@
           <!-- Fecha y Hora de Finalizacion -->
           <div>
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de Finalizacion <span class="text-red-500">*</span>
+              Fecha de Finalizacion <span class="text-gray-400">(opcional)</span>
             </label>
             <app-date-picker
-              [value]="formData.fechaFin"
+              [value]="formData.fechaFin || ''"
               (valueChange)="formData.fechaFin = $event"
               [hasError]="tieneError('fechaFin')"
               [enableTime]="true"
@@ -165,6 +129,99 @@
             </div>
           }
 
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Descripcion
+          </label>
+          @if (isBrowser && Editor) {
+            <ckeditor
+              [(ngModel)]="formData.descripcion"
+              [editor]="Editor"
+              [config]="ckeditorConfig"
+              class="ckeditor-host">
+            </ckeditor>
+          } @else {
+            <textarea
+              [(ngModel)]="formData.descripcion"
+              rows="4"
+              placeholder="Describe los detalles de la actividad..."
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white resize-none">
+            </textarea>
+          }
+        </div>
+
+        <div class="mt-4">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+              Adjuntos
+            </label>
+            <label for="actividad-adjuntos" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg cursor-pointer transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828a4 4 0 10-5.656-5.656L5.757 10.757a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              Subir archivo
+            </label>
+          </div>
+
+          <input
+            id="actividad-adjuntos"
+            type="file"
+            multiple
+            [accept]="acceptTiposArchivo"
+            (change)="onSeleccionarArchivos($event)"
+            class="hidden">
+
+          <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2">
+            Puedes adjuntar xlsx, pdf, docx, imágenes y otros archivos.
+          </p>
+
+          @if (formData.archivosAdjuntos.length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-auto pr-1">
+              @for (archivo of formData.archivosAdjuntos; track $index) {
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-2.5 min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="text-xs font-medium text-gray-700 dark:text-gray-200 truncate" [title]="archivo.nombre">{{ archivo.nombre }}</p>
+                      <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{{ formatoTamano(archivo.tamano) }}</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7V3h10v4m-1 4l-4-4m0 0l-4 4m4-4v12"/>
+                    </svg>
+                  </div>
+                  <div class="mt-2 flex items-center justify-between gap-2">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase">
+                      {{ (archivo.nombre.split('.').pop() || 'file') }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="descargarAdjunto(archivo)"
+                        [disabled]="!puedeDescargarAdjunto(archivo)"
+                        title="Descargar adjunto"
+                        aria-label="Descargar adjunto"
+                        class="inline-flex items-center justify-center text-blue-500 hover:text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14"/>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="eliminarAdjunto($index)"
+                        title="Eliminar adjunto"
+                        aria-label="Eliminar adjunto"
+                        class="inline-flex items-center justify-center text-red-500 hover:text-red-600">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-7 0v12m4-12v12m5-12l-1 13a1 1 0 01-1 .92H8a1 1 0 01-1-.92L6 7"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
         </div>
 
         <!-- Mensaje de error general -->
