@@ -264,10 +264,152 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.proyectos = [
-      { id: 1, solicitudId: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: '<p>Instalacion de sistema de ventilacion para planta industrial con extractores de aire de alta capacidad.</p>', fechaInicio: new Date('2026-01-15'), fechaFinalizacion: new Date('2026-06-15'), procesoId: 1, procesoNombre: 'Proceso de Desarrollo', estado: 'En Proceso', etapaActual: 2, flujo: { nodos: [
-        { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
-        { id: 2, nombre: 'Relevamiento tecnico', tipo: 'tarea', responsableId: 2, fechaInicio: '2026-01-20', fechaFin: '2026-01-28', siguientesIds: [] }
-      ] } }
+      {
+        id: 1,
+        solicitudId: 1,
+        nombreProyecto: 'Línea de Producción Textil',
+        cliente: 'Textiles del Norte SAC',
+        representante: 'Roberto Sánchez',
+        costo: 85000,
+        ordenesCompra: [
+          { numero: 'OC-TEX-001', fecha: '2026-02-06' },
+          { numero: 'OC-TEX-002', fecha: '2026-02-18' }
+        ],
+        responsableId: 1,
+        responsableNombre: 'Rolando Rodriguez Mercedes',
+        descripcion: '<p>Diseño e implementación de línea automatizada de producción textil para aumentar capacidad y reducir tiempos operativos.</p>',
+        ubicacion: 'Lima, Ate',
+        fechaInicio: new Date('2026-02-01'),
+        fechaFinalizacion: new Date('2026-07-30'),
+        procesoId: 1,
+        procesoNombre: 'Proceso de Desarrollo',
+        estado: 'En Proceso',
+        etapaActual: 2,
+        flujo: {
+          nodos: [
+            { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
+            {
+              id: 2,
+              nombre: 'Levantamiento de requerimientos',
+              tipo: 'tarea',
+              responsableId: 1,
+              fechaInicio: '2026-02-03',
+              fechaFin: '2026-02-12',
+              descripcion: 'Reuniones con cliente y validación de alcance técnico.',
+              adjuntos: [
+                { nombre: 'Acta-levantamiento.pdf', tipo: 'pdf', tamano: 542130 },
+                { nombre: 'Plano-inicial.dwg', tipo: 'dwg', tamano: 1830240 }
+              ],
+              siguientesIds: [3]
+            },
+            {
+              id: 3,
+              nombre: 'Diseño de solución',
+              tipo: 'tarea',
+              responsableId: 4,
+              fechaInicio: '2026-02-13',
+              fechaFin: '2026-03-01',
+              descripcion: 'Definición de layout y componentes críticos.',
+              adjuntos: [
+                { nombre: 'Diseno-general.pdf', tipo: 'pdf', tamano: 722410 }
+              ],
+              siguientesIds: [4]
+            },
+            {
+              id: 4,
+              nombre: 'Instalación y pruebas iniciales',
+              tipo: 'tarea',
+              responsableId: 5,
+              fechaInicio: '2026-03-05',
+              fechaFin: '2026-03-20',
+              descripcion: 'Montaje en planta y pruebas funcionales base.',
+              siguientesIds: []
+            }
+          ]
+        }
+      },
+      {
+        id: 2,
+        solicitudId: 2,
+        nombreProyecto: 'Sistema de Ventilación Industrial',
+        cliente: 'Minera Las Rocas SA',
+        representante: 'Laura Mendoza',
+        costo: 62000,
+        ordenesCompra: [
+          { numero: 'OC-MIN-015', fecha: '2026-01-17' }
+        ],
+        responsableId: 2,
+        responsableNombre: 'Alex Marquina Perez',
+        descripcion: '<p>Instalación de sistema de ventilación industrial con extractores de aire de alta capacidad para zonas de operación crítica.</p>',
+        ubicacion: 'Cajamarca, Hualgayoc',
+        fechaInicio: new Date('2026-01-15'),
+        fechaFinalizacion: new Date('2026-06-15'),
+        procesoId: 2,
+        procesoNombre: 'Proceso de Consultoría',
+        estado: 'En Proceso',
+        etapaActual: 1,
+        flujo: {
+          nodos: [
+            { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
+            {
+              id: 2,
+              nombre: 'Relevamiento técnico',
+              tipo: 'tarea',
+              responsableId: 2,
+              fechaInicio: '2026-01-20',
+              fechaFin: '2026-01-28',
+              descripcion: 'Inspección de ductos y medición de caudales existentes.',
+              adjuntos: [
+                { nombre: 'Informe-campo.docx', tipo: 'docx', tamano: 268410 }
+              ],
+              siguientesIds: [3]
+            },
+            {
+              id: 3,
+              nombre: 'Propuesta técnica y presupuesto',
+              tipo: 'tarea',
+              responsableId: 3,
+              fechaInicio: '2026-01-30',
+              fechaFin: '2026-02-08',
+              descripcion: 'Definición de equipos, costos y cronograma de implementación.',
+              siguientesIds: [4]
+            },
+            {
+              id: 4,
+              nombre: 'Ejecución de instalación',
+              tipo: 'tarea',
+              responsableId: 2,
+              fechaInicio: '2026-02-10',
+              fechaFin: '2026-03-15',
+              descripcion: 'Instalación y validación operativa por etapas.',
+              adjuntos: [
+                { nombre: 'Checklist-instalacion.xlsx', tipo: 'xlsx', tamano: 143800 }
+              ],
+              siguientesIds: []
+            }
+          ]
+        }
+      },
+      {
+        id: 3,
+        solicitudId: 3,
+        nombreProyecto: 'Mantenimiento Predictivo Maquinaria',
+        cliente: 'Industrias Metal SAC',
+        representante: 'Pedro Torres',
+        costo: 0,
+        ordenesCompra: [],
+        responsableId: 3,
+        responsableNombre: 'Darling Vigo Cotos',
+        descripcion: '',
+        ubicacion: '',
+        fechaInicio: '',
+        fechaFinalizacion: '',
+        procesoId: 0,
+        procesoNombre: '',
+        estado: 'Completado',
+        etapaActual: 0,
+        flujo: { nodos: [] }
+      }
     ];
 
     this.aplicarFiltros();

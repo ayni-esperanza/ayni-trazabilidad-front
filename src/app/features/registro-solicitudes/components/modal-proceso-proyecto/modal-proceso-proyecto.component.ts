@@ -89,7 +89,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   configCancelarModal: ConfirmDeleteConfig = {};
 
   // Navegación de tabs
-  tabActiva: 'proceso' | 'informacion' | 'costos' = 'proceso';
+  tabActiva: 'tablero' | 'proceso' | 'informacion' | 'costos' = 'tablero';
 
   // Modal de actividades
   mostrarModalActividad = false;
@@ -236,7 +236,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
   }
 
-  cambiarTab(nuevoTab: 'proceso' | 'informacion' | 'costos'): void {
+  cambiarTab(nuevoTab: 'tablero' | 'proceso' | 'informacion' | 'costos'): void {
     // Guardar cambios de la etapa actual antes de cambiar tab
     if (this.tabActiva === 'proceso' && this.etapaSeleccionada && !this.modoSoloLectura) {
       this.guardarCambiosEtapaActual();
@@ -812,5 +812,99 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   get totalCostosGeneral(): number {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
+  }
+
+  get flujoTimelineResumen(): FlujoNodo[] {
+    if (this.flujoNodos.length <= 1) return this.flujoNodos;
+
+    const porId = new Map(this.flujoNodos.map(n => [n.id, n]));
+    const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
+    const visitados = new Set<number>();
+    const ordenados: FlujoNodo[] = [];
+
+    const visitar = (nodo: FlujoNodo): void => {
+      if (visitados.has(nodo.id)) return;
+      visitados.add(nodo.id);
+      ordenados.push(nodo);
+      for (const siguienteId of nodo.siguientesIds) {
+        const siguiente = porId.get(siguienteId);
+        if (siguiente) visitar(siguiente);
+      }
+    };
+
+    if (inicio) visitar(inicio);
+    for (const nodo of this.flujoNodos) {
+      if (!visitados.has(nodo.id)) visitar(nodo);
+    }
+
+    return ordenados;
+  }
+
+  get totalAdjuntosResumen(): number {
+    return this.flujoNodos.reduce((acc, nodo) => acc + (nodo.adjuntos?.length || 0), 0);
+  }
+
+  get documentosActividadResumen(): Array<{ actividad: string; nombre: string; tipo: string }> {
+    const docs: Array<{ actividad: string; nombre: string; tipo: string }> = [];
+    for (const nodo of this.flujoNodos) {
+      for (const adjunto of nodo.adjuntos || []) {
+        docs.push({ actividad: nodo.nombre, nombre: adjunto.nombre, tipo: adjunto.tipo });
+      }
+    }
+    return docs;
+  }
+
+  descargarTodosDocumentosResumen(): void {
+    if (typeof window === 'undefined') return;
+
+    const sinContenido: string[] = [];
+    let descargados = 0;
+
+    for (const nodo of this.flujoNodos) {
+      for (const adjunto of nodo.adjuntos || []) {
+        const posibleArchivo = (adjunto as any).archivo;
+        if (posibleArchivo instanceof Blob) {
+          const enlace = document.createElement('a');
+          const url = window.URL.createObjectURL(posibleArchivo);
+          enlace.href = url;
+          enlace.download = adjunto.nombre || 'documento';
+          document.body.appendChild(enlace);
+          enlace.click();
+          document.body.removeChild(enlace);
+          window.URL.revokeObjectURL(url);
+          descargados += 1;
+        } else {
+          sinContenido.push(`${adjunto.nombre || 'documento'} | Actividad: ${nodo.nombre}`);
+        }
+      }
+    }
+
+    if (sinContenido.length > 0) {
+      const reporte = [
+        'Documentos sin contenido descargable en esta sesion',
+        '',
+        ...sinContenido,
+      ].join('\n');
+      const blob = new Blob([reporte], { type: 'text/plain;charset=utf-8' });
+      const enlace = document.createElement('a');
+      const url = window.URL.createObjectURL(blob);
+      enlace.href = url;
+      enlace.download = 'documentos_no_disponibles.txt';
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      window.URL.revokeObjectURL(url);
+    }
+
+    if (descargados === 0 && sinContenido.length === 0) {
+      return;
+    }
+  }
+
+  formatDateResumen(value?: string | Date): string {
+    if (!value) return '-';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('es-PE');
   }
 }
