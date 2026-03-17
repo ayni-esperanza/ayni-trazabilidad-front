@@ -1,12 +1,43 @@
-<!-- Pizarra de flujo -->
-<div class="flex items-center gap-2 mb-3">
-  <h3 class="text-xs font-semibold text-gray-800 dark:text-white">Flujo de tareas</h3>
-  <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-    {{ flujoNodos.length }}
-  </span>
+<div class="flex items-center justify-between gap-2 mb-3">
+  <div class="flex items-center gap-2">
+    <h3 class="text-xs font-semibold text-gray-800 dark:text-white">Flujo graph timeline</h3>
+    <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+      {{ flujoNodos.length }}
+    </span>
+  </div>
+  <button
+    type="button"
+    (click)="crearNuevaActividad()"
+    [disabled]="proyectoFinalizado || proyectoCancelado"
+    class="px-2.5 py-1 text-[10px] font-semibold rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+    Nueva actividad
+  </button>
 </div>
 
-<div #bpmnCanvas class="bpmn-canvas h-[340px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"></div>
+<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+  <div class="relative pl-7">
+    <div class="absolute left-3 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
+    <div class="space-y-3">
+      <article *ngFor="let nodo of flujoTimeline"
+        class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60"
+        [ngClass]="{ 'cursor-default': !puedeAbrirNodo(nodo) }"
+        (click)="abrirNodo(nodo)">
+        <div class="absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white dark:border-gray-900"
+          [ngClass]="nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500'"></div>
+        <div class="text-[11px] font-semibold text-gray-700 dark:text-gray-200 truncate">{{ nodo.nombre }}</div>
+        <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
+          {{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}
+        </div>
+        <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+          {{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}
+        </div>
+      </article>
+      <div *ngIf="flujoTimeline.length === 0" class="text-center py-6 text-xs text-gray-500 dark:text-gray-400">
+        No hay actividades en el flujo
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="border border-gray-200 dark:border-gray-700 rounded-lg mt-3 overflow-hidden">
   <button

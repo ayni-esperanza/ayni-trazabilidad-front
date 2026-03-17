@@ -23,12 +23,19 @@
   </div>
 </div>
 
-<div *ngIf="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-  [appModalDismiss]="visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar" (dismissed)="onCerrar()">
-  <div data-modal-content class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl mx-4 h-[95vh] max-h-[95vh] flex flex-col">
+<div *ngIf="visible"
+  [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50'"
+  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar"
+  (dismissed)="onCerrar()">
+  <div [attr.data-modal-content]="embedded ? null : ''"
+    [ngClass]="embedded
+      ? 'bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full h-full min-h-[70vh] flex flex-col'
+      : 'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl mx-4 h-[95vh] max-h-[95vh] flex flex-col'">
     <!-- Header -->
     <div class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
-      <h2 class="text-lg font-semibold text-white">Flujo del Proyecto</h2>
+      <div>
+        <h2 class="text-lg font-semibold text-white">{{ proyecto?.nombreProyecto || 'Proyecto sin nombre' }}</h2>
+      </div>
       <button (click)="onCerrar()" class="text-white hover:text-gray-200">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

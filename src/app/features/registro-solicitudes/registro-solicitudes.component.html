@@ -2,13 +2,35 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Registro de Solicitudes</h1>
-    <button (click)="abrirNuevaSolicitud()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-      Nueva Solicitud
-    </button>
+
+    <div class="w-[170px] flex justify-end">
+      @if (!showProcesoProyectoModal) {
+        <button (click)="abrirNuevaSolicitud()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg flex items-center gap-2 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Nueva Solicitud
+        </button>
+      }
+    </div>
   </div>
+
+  @if (showProcesoProyectoModal) {
+    <app-modal-proceso-proyecto
+      [visible]="showProcesoProyectoModal"
+      [embedded]="true"
+      [proyecto]="proyectoActual"
+      [proyectos]="proyectos"
+      [responsables]="responsables"
+      [procesos]="procesos"
+      (cerrar)="cerrarProcesoProyecto()"
+      (cancelarProy)="onCancelarProyectoDesdeModal($event)"
+      (finalizarEtapa)="onFinalizarEtapa($event)"
+      (finalizarProy)="onFinalizarProyecto($event)"
+      (infoActualizada)="onInfoProyectoActualizada($event)"
+      (cambiarProyecto)="onCambiarProyecto($event)">
+    </app-modal-proceso-proyecto>
+  } @else {
 
   <!-- Tarjetas de estadísticas -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -174,40 +196,31 @@
             <tr class="bg-gray-50 dark:bg-gray-800/30">
               <td colspan="8" class="px-3 py-2">
                 <details class="text-[10px]">
-                  <summary class="cursor-pointer text-gray-600 dark:text-gray-300 font-semibold">Flujo del proyecto</summary>
-                  <div class="mt-2 overflow-auto max-h-40 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <table class="w-full text-[10px]">
-                      <thead class="sticky top-0 bg-gray-100 dark:bg-gray-800/60">
-                        <tr>
-                          <th class="py-1 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Nodo</th>
-                          <th class="py-1 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Siguientes</th>
-                          <th class="py-1 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-                          <th class="py-1 px-2 text-left font-semibold text-gray-500 dark:text-gray-400">Fechas</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @for (nodo of getFlujoNodos(solicitud.id); track nodo.id) {
-                          <tr>
-                            <td class="py-1 px-2 text-gray-700 dark:text-gray-200">
+                  <summary class="cursor-pointer text-gray-600 dark:text-gray-300 font-semibold">Flujo timeline del proyecto</summary>
+                  <div class="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900">
+                    <div class="relative pl-5">
+                      <div class="absolute left-2.5 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
+                      <div class="space-y-2">
+                        @for (nodo of getFlujoTimeline(solicitud.id); track nodo.id) {
+                          <article class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2 ml-2">
+                            <div class="absolute -left-[14px] top-3 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900"
+                              [ngClass]="nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500'"></div>
+                            <div class="text-[10px] font-semibold text-gray-700 dark:text-gray-200 truncate">
                               {{ nodo.nombre }}
-                              <span *ngIf="nodo.tipo === 'inicio'" class="ml-1 px-1.5 py-0.5 text-[9px] rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                                Inicio
-                              </span>
-                            </td>
-                            <td class="py-1 px-2 text-gray-600 dark:text-gray-300">{{ getSiguientesNombres(getFlujoNodos(solicitud.id), nodo) }}</td>
-                            <td class="py-1 px-2 text-gray-600 dark:text-gray-300">
+                            </div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
                               {{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}
-                            </td>
-                            <td class="py-1 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}</td>
-                          </tr>
+                            </div>
+                            <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                              {{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}
+                            </div>
+                          </article>
                         }
-                        @if (getFlujoNodos(solicitud.id).length === 0) {
-                          <tr>
-                            <td colspan="4" class="py-3 text-center text-gray-400 dark:text-gray-500">Sin flujo</td>
-                          </tr>
+                        @if (getFlujoTimeline(solicitud.id).length === 0) {
+                          <div class="text-center text-gray-400 dark:text-gray-500 py-4">Sin flujo</div>
                         }
-                      </tbody>
-                    </table>
+                      </div>
+                    </div>
                   </div>
                 </details>
               </td>
@@ -231,6 +244,7 @@
       (cambioTamano)="onCambioTamano($event)">
     </app-paginacion>
   </div>
+  }
 </div>
 
 <!-- Modales como componentes separados -->
@@ -240,20 +254,6 @@
   (cerrar)="cerrarNuevaSolicitud()"
   (guardar)="onGuardarSolicitud($event)">
 </app-modal-nueva-solicitud>
-
-<app-modal-proceso-proyecto
-  [visible]="showProcesoProyectoModal"
-  [proyecto]="proyectoActual"
-  [proyectos]="proyectos"
-  [responsables]="responsables"
-  [procesos]="procesos"
-  (cerrar)="cerrarProcesoProyecto()"
-  (cancelarProy)="onCancelarProyectoDesdeModal($event)"
-  (finalizarEtapa)="onFinalizarEtapa($event)"
-  (finalizarProy)="onFinalizarProyecto($event)"
-  (infoActualizada)="onInfoProyectoActualizada($event)"
-  (cambiarProyecto)="onCambiarProyecto($event)">
-</app-modal-proceso-proyecto>
 
 <!-- Confirmación de eliminación masiva -->
 <app-confirm-delete-modal

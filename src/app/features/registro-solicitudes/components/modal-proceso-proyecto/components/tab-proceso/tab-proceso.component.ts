@@ -88,6 +88,36 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.tablaNodosExpandida = !this.tablaNodosExpandida;
   }
 
+  crearNuevaActividad(): void {
+    this.crearActividadDesdeBpmnEvt.emit({ nombre: 'Nueva actividad' });
+  }
+
+  get flujoTimeline(): FlujoNodo[] {
+    if (this.flujoNodos.length <= 1) return this.flujoNodos;
+
+    const porId = new Map(this.flujoNodos.map(n => [n.id, n]));
+    const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
+    const visitados = new Set<number>();
+    const ordenados: FlujoNodo[] = [];
+
+    const visitar = (nodo: FlujoNodo): void => {
+      if (visitados.has(nodo.id)) return;
+      visitados.add(nodo.id);
+      ordenados.push(nodo);
+      for (const siguienteId of nodo.siguientesIds) {
+        const siguiente = porId.get(siguienteId);
+        if (siguiente) visitar(siguiente);
+      }
+    };
+
+    if (inicio) visitar(inicio);
+    for (const nodo of this.flujoNodos) {
+      if (!visitados.has(nodo.id)) visitar(nodo);
+    }
+
+    return ordenados;
+  }
+
   private async renderBpmn(): Promise<void> {
     if (!this.bpmnModeler) return;
     const xml = this.buildBpmnXml();

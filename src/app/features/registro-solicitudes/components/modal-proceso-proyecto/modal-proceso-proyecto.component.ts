@@ -56,6 +56,7 @@ export interface TablaCostoExtra {
 })
 export class ModalProcesoProyectoComponent implements OnChanges {
   @Input() visible = false;
+  @Input() embedded = false;
   @Input() proyecto: Proyecto | null = null;
   @Input() proyectos: Proyecto[] = [];
   @Input() responsables: Responsable[] = [];

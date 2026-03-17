@@ -375,6 +375,33 @@ export class RegistroSolicitudesComponent implements OnInit {
     return proyecto?.flujo?.nodos || [];
   }
 
+  getFlujoTimeline(solicitudId: number | undefined): FlujoNodo[] {
+    const nodos = this.getFlujoNodos(solicitudId);
+    if (nodos.length <= 1) return nodos;
+
+    const porId = new Map(nodos.map(n => [n.id, n]));
+    const inicio = nodos.find(n => n.tipo === 'inicio');
+    const visitados = new Set<number>();
+    const ordenados: FlujoNodo[] = [];
+
+    const visitar = (nodo: FlujoNodo): void => {
+      if (visitados.has(nodo.id)) return;
+      visitados.add(nodo.id);
+      ordenados.push(nodo);
+      for (const siguienteId of nodo.siguientesIds) {
+        const siguiente = porId.get(siguienteId);
+        if (siguiente) visitar(siguiente);
+      }
+    };
+
+    if (inicio) visitar(inicio);
+    for (const nodo of nodos) {
+      if (!visitados.has(nodo.id)) visitar(nodo);
+    }
+
+    return ordenados;
+  }
+
   getSiguientesNombres(nodos: FlujoNodo[], nodo: FlujoNodo): string {
     if (!nodo.siguientesIds.length) return 'Sin conexiones';
     const nombres = nodo.siguientesIds
