@@ -24,13 +24,13 @@
 </div>
 
 <div *ngIf="visible"
-  [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50'"
+  [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
   [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
     [ngClass]="embedded
       ? 'w-full h-full min-h-[70vh] flex flex-col'
-      : 'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl mx-4 h-[95vh] max-h-[95vh] flex flex-col'">
+      : 'bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-6xl mx-4 h-[95vh] max-h-[95vh] flex flex-col animate-modal-in'">
     <!-- Header modal -->
     <div *ngIf="!embedded" class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
       <div>
@@ -62,9 +62,9 @@
     <!-- Navegación Tabs -->
     <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
       <button (click)="cambiarTab('tablero')"
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
-          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'tablero',
+          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'tablero',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'tablero'
         }">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,9 +73,9 @@
         Tablero General
       </button>
       <button (click)="cambiarTab('proceso')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
-          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'proceso',
+          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'proceso',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'proceso'
         }">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,9 +84,9 @@
         Flujo de proyecto
       </button>
       <button (click)="cambiarTab('informacion')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
-          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'informacion',
+          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'informacion',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'informacion'
         }">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,9 +96,9 @@
       </button>
 
       <button *ngIf="costosHabilitados" (click)="cambiarTab('costos')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
-          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800': tabActiva === 'costos',
+          'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'costos',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'costos'
         }">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@
     <div [ngClass]="embedded ? 'pt-4 overflow-y-auto flex-1' : 'p-4 overflow-y-auto flex-1'">
 
       <!-- ========== TAB TABLERO GENERAL ========== -->
-      <div *ngIf="tabActiva === 'tablero'" class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      <div *ngIf="tabActiva === 'tablero'" class="grid grid-cols-1 xl:grid-cols-12 gap-4 animate-ui-in">
         <section class="xl:col-span-7 space-y-4">
           <div class="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
             <div class="bg-sky-100 dark:bg-sky-900/40 text-gray-700 dark:text-sky-100 text-xs font-semibold px-3 py-2 border-b border-sky-200 dark:border-sky-800">Informacion general del proyecto</div>
@@ -252,6 +252,7 @@
 
       <!-- ========== TAB PROCESO ========== -->
       <div *ngIf="tabActiva === 'proceso'"
+        class="animate-ui-in"
         [ngClass]="mostrarModalActividad
           ? 'grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_26rem] gap-4 items-start'
           : 'block'">
@@ -283,6 +284,7 @@
 
       <!-- ========== TAB INFORMACIÓN ========== -->
       <app-tab-informacion *ngIf="tabActiva === 'informacion'"
+        class="animate-ui-in"
         [proyecto]="proyecto"
         [proyectoInfoForm]="proyectoInfoForm"
         [responsables]="responsables"
@@ -295,6 +297,7 @@
 
       <!-- ========== TAB COSTOS ========== -->
       <app-tab-costos *ngIf="tabActiva === 'costos'"
+        class="animate-ui-in"
         [materiales]="materiales"
         [manoObra]="manoObra"
         [tablasCostosExtras]="tablasCostosExtras"
@@ -347,8 +350,8 @@
 
 <!-- Modal de Cancelación -->
 @if (mostrarModalCancelacion) {
-  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 animate-overlay-in">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 animate-modal-in">
       <div class="bg-red-500 px-4 py-3 flex items-center justify-between rounded-t-lg">
         <h2 class="text-lg font-semibold text-white">Cancelar Proyecto</h2>
         <button (click)="cerrarModalCancelacion()" class="text-white hover:text-gray-200">

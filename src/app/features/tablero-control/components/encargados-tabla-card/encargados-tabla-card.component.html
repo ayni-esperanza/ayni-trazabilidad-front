@@ -1,5 +1,5 @@
 <!-- Tareas de los Encargados / Gastos del Proyecto -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden"
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all duration-300 ease-out overflow-hidden"
   [ngClass]="{
     'flex flex-col flex-1 min-h-0': tablaVisible,
     'h-12 flex-shrink-0': !tablaVisible
@@ -72,7 +72,7 @@
   
   @if (metricaSeleccionada === 'gastos') {
     <!-- Cards resumen por categorías - clickeables para filtrar -->
-    <div class="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
+    <div class="grid grid-cols-3 gap-2 mb-3 flex-shrink-0 animate-ui-in">
       <div (click)="onSeleccionarCategoria('Materiales')" 
         class="p-2 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
         [ngClass]="{
@@ -116,7 +116,7 @@
   }
   
   @if (tablaVisible) {
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1 overflow-auto animate-ui-in">
       @if (metricaSeleccionada === 'gastos') {
         <!-- Tabla de gastos -->
         <table class="w-full text-xs">

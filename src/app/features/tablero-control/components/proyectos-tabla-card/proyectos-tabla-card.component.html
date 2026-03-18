@@ -1,5 +1,5 @@
 <!-- Tabla Proyectos en Curso -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all overflow-hidden"
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all duration-300 ease-out overflow-hidden"
   [ngClass]="{
     'flex flex-col flex-1 min-h-0': tablaVisible,
     'h-12 flex-shrink-0': !tablaVisible
@@ -27,7 +27,7 @@
 
   <!-- Fila única de filtros (aplica a las 3 métricas) -->
   @if (tablaVisible) {
-    <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+    <div class="flex items-center gap-1.5 mb-2 flex-wrap animate-ui-in">
 
       <!-- Filtro Empresa -->
       <select
@@ -96,7 +96,7 @@
     </div>
   }
   @if (tablaVisible) {
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1 overflow-auto animate-ui-in">
     <table class="w-full text-xs">
       <thead class="sticky top-0 bg-white dark:bg-gray-800">
         <tr class="border-b border-gray-200 dark:border-gray-700">

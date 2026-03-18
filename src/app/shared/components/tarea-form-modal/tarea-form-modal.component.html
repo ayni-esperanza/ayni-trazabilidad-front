@@ -4,12 +4,12 @@
     (click)="onBackdropClick()"
     [ngClass]="embedded
       ? 'w-full'
-      : 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'">
+      : 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-overlay-in'">
     <div 
       (click)="onContentClick($event)"
       [ngClass]="embedded
-        ? 'bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-h-[78vh] flex flex-col overflow-hidden'
-        : 'bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden'">
+        ? 'bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-h-[78vh] flex flex-col overflow-hidden animate-modal-in'
+        : 'bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-modal-in'">
       
       <!-- Header -->
       <div class="bg-green-500 text-white px-5 py-3 flex items-center justify-between rounded-t-xl">

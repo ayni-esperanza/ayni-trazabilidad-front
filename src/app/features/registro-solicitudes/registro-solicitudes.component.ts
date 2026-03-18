@@ -32,6 +32,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   busqueda = '';
   estadoFiltro = '';
   responsableFiltro = '';
+  empresaFiltro = '';
 
   // Paginación
   paginacionConfig: PaginacionConfig = {
@@ -171,6 +172,11 @@ export class RegistroSolicitudesComponent implements OnInit {
       resultado = resultado.filter(s => s.estado === this.estadoFiltro);
     }
 
+    // Filtro de empresa
+    if (this.empresaFiltro) {
+      resultado = resultado.filter(s => s.cliente === this.empresaFiltro);
+    }
+
     // Filtro de responsable
     if (this.responsableFiltro) {
       resultado = resultado.filter(s => s.responsableId?.toString() === this.responsableFiltro);
@@ -198,7 +204,11 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   tieneFiltrosActivos(): boolean {
-    return !!(this.busqueda.trim() || this.estadoFiltro || this.responsableFiltro);
+    return !!(this.busqueda.trim() || this.estadoFiltro || this.empresaFiltro || this.responsableFiltro);
+  }
+
+  get empresasDisponibles(): string[] {
+    return [...new Set(this.solicitudes.map(s => s.cliente).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }
 
   get solicitudesPaginadas(): Solicitud[] {
@@ -219,6 +229,11 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   onFiltrarEstado(): void {
+    this.paginacionConfig.paginaActual = 0;
+    this.aplicarFiltros();
+  }
+
+  onFiltrarEmpresa(): void {
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
   }
