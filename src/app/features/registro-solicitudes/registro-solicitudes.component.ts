@@ -16,6 +16,8 @@ import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/c
   styleUrls: ['./registro-solicitudes.component.css']
 })
 export class RegistroSolicitudesComponent implements OnInit {
+  private readonly solicitudCounterKey = 'ayni:registro-solicitudes:next-solicitud-id';
+  private readonly proyectoCounterKey = 'ayni:registro-solicitudes:next-proyecto-id';
   
   // Estados de las modales
   showNuevaSolicitudModal = false;
@@ -273,9 +275,9 @@ export class RegistroSolicitudesComponent implements OnInit {
     ];
 
     this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Rolando Rodriguez Mercedes', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
-      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
-      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Darling Vigo Cotos', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
+      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Rolando Rodriguez Mercedes', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaSolicitud: new Date('2026-01-27'), fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
+      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaSolicitud: new Date('2026-01-10'), fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
+      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Darling Vigo Cotos', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaSolicitud: new Date('2025-10-25'), fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
     ];
 
     this.proyectos = [
@@ -286,6 +288,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         cliente: 'Textiles del Norte SAC',
         representante: 'Roberto Sánchez',
         costo: 85000,
+        fechaRegistro: new Date('2026-01-27'),
         ordenesCompra: [
           { numero: 'OC-TEX-001', tipo: 'Materiales', fecha: '2026-02-06', total: 18500 },
           { numero: 'OC-TEX-002', tipo: 'Servicios', fecha: '2026-02-18', total: 22300 }
@@ -350,6 +353,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         cliente: 'Minera Las Rocas SA',
         representante: 'Laura Mendoza',
         costo: 62000,
+        fechaRegistro: new Date('2026-01-10'),
         ordenesCompra: [
           { numero: 'OC-MIN-015', tipo: 'Equipos', fecha: '2026-01-17', total: 31800 }
         ],
@@ -412,6 +416,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         cliente: 'Industrias Metal SAC',
         representante: 'Pedro Torres',
         costo: 0,
+        fechaRegistro: new Date('2025-10-25'),
         ordenesCompra: [],
         responsableId: 3,
         responsableNombre: 'Darling Vigo Cotos',
@@ -436,11 +441,12 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   onGuardarSolicitud(data: Partial<Solicitud>): void {
     const responsable = this.responsables.find(r => r.id === Number(data.responsableId));
+    const solicitudId = this.obtenerSiguienteId(this.solicitudCounterKey, this.solicitudes.map(s => s.id ?? 0));
     const solicitud: Solicitud = {
-      id: this.solicitudes.length + 1, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
+      id: solicitudId, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
       representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
       descripcion: data.descripcion!, fechaSolicitud: new Date(),
-      fechaInicio: data.fechaInicio, fechaFin: data.fechaFin, ubicacion: data.ubicacion, estado: 'En Proceso'
+      fechaInicio: new Date(), fechaFin: new Date(), ubicacion: data.ubicacion, estado: 'En Proceso'
     };
     this.solicitudes.push(solicitud);
     this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
@@ -459,11 +465,15 @@ export class RegistroSolicitudesComponent implements OnInit {
       if (pi !== -1) {
         this.proyectos[pi].estado = 'Cancelado';
         this.proyectos[pi].motivoCancelacion = evento.motivo;
+        this.proyectos[pi].fechaFinalizacion = new Date();
       }
       const si = this.solicitudes.findIndex(s => s.id === this.proyectoActual!.solicitudId);
-      if (si !== -1) this.solicitudes[si].estado = 'Cancelado';
+      if (si !== -1) {
+        this.solicitudes[si].estado = 'Cancelado';
+        this.solicitudes[si].fechaFin = new Date();
+      }
       // Actualizar el proyecto actual para que se refleje en el modal
-      this.proyectoActual = { ...this.proyectoActual, estado: 'Cancelado', motivoCancelacion: evento.motivo };
+      this.proyectoActual = { ...this.proyectoActual, estado: 'Cancelado', motivoCancelacion: evento.motivo, fechaFinalizacion: new Date() };
     }
     this.aplicarFiltros();
   }
@@ -475,41 +485,78 @@ export class RegistroSolicitudesComponent implements OnInit {
     // Actualizar el proyecto en la lista
     const index = this.proyectos.findIndex(p => p.id === proyecto.id);
     if (index >= 0) {
-      this.proyectos[index] = { ...proyecto, estado: 'Completado' };
+      this.proyectos[index] = { ...proyecto, estado: 'Completado', fechaFinalizacion: new Date() };
     }
     // Actualizar estado de la solicitud asociada
     const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
     if (solicitud) {
       solicitud.estado = 'Completado';
+      solicitud.fechaFin = new Date();
     }
     this.aplicarFiltros();
   }
 
   onInfoProyectoActualizada(info: { costo: number; fechaInicio: string; fechaFin: string }): void {
-    if (this.solicitudActual) {
-      this.solicitudActual.costo = info.costo;
-      this.solicitudActual.fechaInicio = info.fechaInicio;
-      this.solicitudActual.fechaFin = info.fechaFin;
-      const i = this.solicitudes.findIndex(s => s.id === this.solicitudActual!.id);
-      if (i !== -1) this.solicitudes[i] = { ...this.solicitudActual };
-      this.aplicarFiltros();
+    if (!this.proyectoActual) return;
+
+    this.proyectoActual.costo = info.costo;
+    this.proyectoActual.fechaInicio = info.fechaInicio;
+    this.proyectoActual.fechaFinalizacion = info.fechaFin || new Date();
+    this.onProyectoActualizado(this.proyectoActual);
+  }
+
+  onProyectoActualizado(proyectoActualizado: Proyecto): void {
+    const indexProyecto = this.proyectos.findIndex(p => p.id === proyectoActualizado.id);
+    if (indexProyecto !== -1) {
+      this.proyectos[indexProyecto] = { ...proyectoActualizado };
     }
+
+    const indexSolicitud = this.solicitudes.findIndex(s => s.id === proyectoActualizado.solicitudId);
+    if (indexSolicitud !== -1) {
+      const solicitud = this.solicitudes[indexSolicitud];
+      this.solicitudes[indexSolicitud] = {
+        ...solicitud,
+        nombreProyecto: proyectoActualizado.nombreProyecto,
+        cliente: proyectoActualizado.cliente,
+        representante: proyectoActualizado.representante,
+        responsableId: proyectoActualizado.responsableId,
+        responsableNombre: proyectoActualizado.responsableNombre,
+        costo: proyectoActualizado.costo,
+        ubicacion: proyectoActualizado.ubicacion,
+        descripcion: proyectoActualizado.descripcion,
+        fechaInicio: solicitud.fechaSolicitud || solicitud.fechaInicio,
+        fechaFin: proyectoActualizado.fechaFinalizacion || new Date()
+      };
+      this.solicitudActual = this.solicitudes[indexSolicitud];
+    }
+
+    if (this.proyectoActual?.id === proyectoActualizado.id) {
+      this.proyectoActual = { ...proyectoActualizado };
+    }
+
+    this.aplicarFiltros();
   }
 
   onCambiarProyecto(proyectoId: number): void {
     const proyecto = this.proyectos.find(p => p.id === proyectoId);
-    if (proyecto) this.proyectoActual = proyecto;
+    if (proyecto) {
+      this.proyectoActual = proyecto;
+      const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
+      if (solicitud) {
+        this.solicitudActual = solicitud;
+      }
+    }
   }
 
   // Acciones desde tabla
   abrirProcesoDesdeTabla(solicitud: Solicitud): void {
+    this.solicitudActual = solicitud;
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (proyecto) {
       this.proyectoActual = proyecto;
       this.showProcesoProyectoModal = true;
       return;
     }
-    this.solicitudActual = solicitud;
     this.proyectoActual = this.crearProyectoDesdeSolicitud(solicitud);
     this.showProcesoProyectoModal = true;
   }
@@ -534,7 +581,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   getFlujoTimeline(solicitudId: number | undefined): FlujoNodo[] {
     const nodos = this.getFlujoNodos(solicitudId);
-    if (nodos.length <= 1) return nodos;
+    if (nodos.length <= 1) return nodos.filter(n => n.tipo !== 'inicio');
 
     const porId = new Map(nodos.map(n => [n.id, n]));
     const inicio = nodos.find(n => n.tipo === 'inicio');
@@ -556,7 +603,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       if (!visitados.has(nodo.id)) visitar(nodo);
     }
 
-    return ordenados;
+    return ordenados.filter(n => n.tipo !== 'inicio');
   }
 
   getSiguientesNombres(nodos: FlujoNodo[], nodo: FlujoNodo): string {
@@ -575,13 +622,15 @@ export class RegistroSolicitudesComponent implements OnInit {
   private crearProyectoDesdeSolicitud(solicitud: Solicitud): Proyecto {
     const existente = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (existente) return existente;
+    const proyectoId = this.obtenerSiguienteId(this.proyectoCounterKey, this.proyectos.map(p => p.id));
     const proyecto: Proyecto = {
-      id: this.proyectos.length + 1,
+      id: proyectoId,
       solicitudId: solicitud.id,
       nombreProyecto: solicitud.nombreProyecto,
       cliente: solicitud.cliente,
       representante: solicitud.representante,
       costo: solicitud.costo,
+      fechaRegistro: solicitud.fechaSolicitud || new Date(),
       ordenesCompra: [],
       responsableId: solicitud.responsableId,
       responsableNombre: solicitud.responsableNombre,
@@ -593,11 +642,25 @@ export class RegistroSolicitudesComponent implements OnInit {
       ubicacion: solicitud.ubicacion,
       estado: 'En Proceso',
       etapaActual: 1,
-      flujo: { nodos: [{ id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [] }] }
+      flujo: { nodos: [] }
     };
     this.proyectos.push(proyecto);
     solicitud.estado = 'En Proceso';
     this.aplicarFiltros();
     return proyecto;
+  }
+
+  private obtenerSiguienteId(storageKey: string, idsExistentes: number[]): number {
+    const maximoExistente = idsExistentes.length ? Math.max(...idsExistentes) : 0;
+
+    if (typeof window === 'undefined') {
+      return maximoExistente + 1;
+    }
+
+    const valorGuardado = Number(window.localStorage.getItem(storageKey) || '0');
+    const siguienteId = Math.max(maximoExistente, Number.isFinite(valorGuardado) ? valorGuardado : 0) + 1;
+    window.localStorage.setItem(storageKey, String(siguienteId));
+
+    return siguienteId;
   }
 }

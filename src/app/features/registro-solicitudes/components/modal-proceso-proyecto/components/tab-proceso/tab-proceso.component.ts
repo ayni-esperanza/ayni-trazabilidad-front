@@ -88,12 +88,69 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.vistaFlujo = vista;
   }
 
+  formatearDescripcionDetalle(descripcion?: string): string {
+    if (!descripcion?.trim()) {
+      return '<em>Sin descripcion</em>';
+    }
+
+    const decodificada = this.decodificarEntidades(descripcion).replace(/&nbsp;/g, ' ').trim();
+    return decodificada || '<em>Sin descripcion</em>';
+  }
+
+  puedeAccionarAdjunto(adjunto: { archivo?: File; dataUrl?: string }): boolean {
+    return !!adjunto.archivo || !!adjunto.dataUrl;
+  }
+
+  verAdjunto(adjunto: { archivo?: File; dataUrl?: string }): void {
+    const url = this.obtenerUrlAdjunto(adjunto);
+    if (!url) return;
+
+    const ventana = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!ventana) return;
+
+    if (adjunto.archivo && !adjunto.dataUrl) {
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+  }
+
+  descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string }): void {
+    const url = this.obtenerUrlAdjunto(adjunto);
+    if (!url) return;
+
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = adjunto.nombre || 'documento';
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+
+    if (adjunto.archivo && !adjunto.dataUrl) {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  private decodificarEntidades(valor: string): string {
+    if (!this.isBrowser) {
+      return valor;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = valor;
+    return textarea.value;
+  }
+
+  private obtenerUrlAdjunto(adjunto: { archivo?: File; dataUrl?: string }): string | null {
+    if (adjunto.dataUrl) return adjunto.dataUrl;
+    if (adjunto.archivo) return URL.createObjectURL(adjunto.archivo);
+    return null;
+  }
+
   crearNuevaActividad(): void {
     this.crearActividadDesdeBpmnEvt.emit({ nombre: 'Nueva actividad' });
   }
 
   get flujoTimeline(): FlujoNodo[] {
-    if (this.flujoNodos.length <= 1) return this.flujoNodos;
+    if (this.flujoNodos.length <= 1) return this.flujoNodos.filter(n => n.tipo !== 'inicio');
 
     const porId = new Map(this.flujoNodos.map(n => [n.id, n]));
     const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
@@ -115,7 +172,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       if (!visitados.has(nodo.id)) visitar(nodo);
     }
 
-    return ordenados;
+    return ordenados.filter(n => n.tipo !== 'inicio');
   }
 
   private async renderBpmn(): Promise<void> {

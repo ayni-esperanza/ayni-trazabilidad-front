@@ -2,7 +2,7 @@
   <div class="flex items-center gap-2">
     <h3 class="text-xs font-semibold text-gray-800 dark:text-white">Flujo de actividades</h3>
     <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-      {{ flujoNodos.length }}
+      {{ flujoTimeline.length }}
     </span>
   </div>
 
@@ -79,7 +79,47 @@
         <tr *ngFor="let nodo of flujoTimeline"
           (click)="abrirNodo(nodo)"
           [ngClass]="{ 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40': puedeAbrirNodo(nodo) }">
-          <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">{{ nodo.nombre }}</td>
+          <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
+            <div class="flex flex-col gap-1">
+              <span>{{ nodo.nombre }}</span>
+              <details class="group" (click)="$event.stopPropagation()">
+                <summary class="text-[10px] text-blue-600 dark:text-blue-400 cursor-pointer select-none hover:underline">
+                  Ver detalle
+                </summary>
+                <div class="mt-1.5 p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-600 dark:text-gray-300 space-y-2">
+                  <div>
+                    <p class="font-semibold">Descripcion:</p>
+                    <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="formatearDescripcionDetalle(nodo.descripcion)"></div>
+                  </div>
+                  <div>
+                    <p><span class="font-semibold">Adjuntos:</span> {{ nodo.adjuntos?.length || 0 }}</p>
+                  </div>
+                  <div *ngIf="(nodo.adjuntos?.length || 0) > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div *ngFor="let adj of nodo.adjuntos" class="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2">
+                      <p class="truncate text-[11px] font-medium text-gray-700 dark:text-gray-200" [title]="adj.nombre">{{ adj.nombre }}</p>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ adj.tipo || 'archivo' }}</p>
+                      <div class="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          (click)="verAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!puedeAccionarAdjunto(adj)"
+                          class="px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                          Ver
+                        </button>
+                        <button
+                          type="button"
+                          (click)="descargarAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!puedeAccionarAdjunto(adj)"
+                          class="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300">
+                          Descargar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">
             <span *ngIf="nodo.tipo === 'inicio'" class="px-1.5 py-0.5 text-[10px] rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Inicio</span>
             <span *ngIf="nodo.tipo !== 'inicio'" class="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Actividad</span>

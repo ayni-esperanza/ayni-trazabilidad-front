@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
@@ -47,6 +48,13 @@ export interface TablaCostoExtra {
   expandida: boolean;
 }
 
+type DocumentoResumen = {
+  actividad: string;
+  nombre: string;
+  tipo: string;
+  adjunto: FlujoAdjunto;
+};
+
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
@@ -55,6 +63,8 @@ export interface TablaCostoExtra {
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
 export class ModalProcesoProyectoComponent implements OnChanges {
+  private readonly sanitizer = inject(DomSanitizer);
+
   @Input() visible = false;
   @Input() embedded = false;
   @Input() proyecto: Proyecto | null = null;
@@ -67,6 +77,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   @Output() finalizarProy = new EventEmitter<Proyecto>();
   @Output() cambiarProyecto = new EventEmitter<number>();
   @Output() infoActualizada = new EventEmitter<{ costo: number; fechaInicio: string; fechaFin: string }>();
+  @Output() proyectoActualizado = new EventEmitter<Proyecto>();
 
 
 
@@ -87,6 +98,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarConfirmacionCancelar = false;
   cargandoCancelacion = false;
   configCancelarModal: ConfirmDeleteConfig = {};
+
+  // Vista previa de documentos
+  mostrarVistaPreviaDocumento = false;
+  documentoVistaPrevia: DocumentoResumen | null = null;
+  fuenteVistaPreviaDocumento = '';
+  private fuenteVistaPreviaDocumentoEsBlob = false;
 
   // Navegación de tabs
   tabActiva: 'tablero' | 'proceso' | 'informacion' | 'costos' = 'tablero';
@@ -261,7 +278,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   formatDate(date: Date | string | undefined): string {
     if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().split('T')[0];
+    if (Number.isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   onCerrar(): void {
@@ -310,6 +331,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         this.guardarCambiosEtapaActual();
       }
       this.guardarEtapasEnProyecto();
+      this.marcarActualizacionProyecto();
       this.cancelarProy.emit({ motivo: this.motivoCancelacion });
       this.mostrarConfirmacionCancelar = false;
       this.mostrarModalCancelacion = false;
@@ -339,6 +361,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
       // Guardar etapas en el proyecto para persistir los datos
       this.guardarEtapasEnProyecto();
+      this.marcarActualizacionProyecto();
 
       this.finalizarEtapa.emit(this.etapaSeleccionada);
 
@@ -410,6 +433,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.proyectoFinalizado = true;
       // Guardar etapas en el proyecto antes de emitir
       this.guardarEtapasEnProyecto();
+      this.marcarActualizacionProyecto();
       this.lanzarConfeti();
       this.finalizarProy.emit(this.proyecto);
     }
@@ -524,6 +548,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     this.flujoNodos = [...this.flujoNodos, nuevoNodo];
     this.persistirFlujoProyecto();
+    this.marcarActualizacionProyecto();
 
     this.nodoPadreParaNuevoId = null;
     this.actividadParaEditar = this.mapearNodoATarea(nuevoNodo);
@@ -532,6 +557,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   onGuardarActividad(actividad: Tarea): void {
     if (!this.proyecto) return;
+
+    const fechaActualizacion = this.formatDate(new Date());
 
     const indexNodoExistente = typeof actividad.id === 'number'
       ? this.flujoNodos.findIndex(n => n.id === actividad.id)
@@ -544,8 +571,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nombre: actividad.nombre,
         tipo: 'tarea',
         responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
-        fechaInicio: actividad.fechaInicio || undefined,
-        fechaFin: actividad.fechaFin || undefined,
+        fechaInicio: actividad.fechaInicio || nodoActual.fechaInicio || fechaActualizacion,
+        fechaFin: fechaActualizacion,
         descripcion: actividad.descripcion || '',
         adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos)
       };
@@ -560,8 +587,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         posicionX: posicionInicial.x,
         posicionY: posicionInicial.y,
         responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
-        fechaInicio: actividad.fechaInicio || undefined,
-        fechaFin: actividad.fechaFin || undefined,
+        fechaInicio: actividad.fechaInicio || fechaActualizacion,
+        fechaFin: fechaActualizacion,
         descripcion: actividad.descripcion || '',
         adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos),
         siguientesIds: []
@@ -591,6 +618,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     this.persistirFlujoProyecto();
+    this.marcarActualizacionProyecto();
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
@@ -607,6 +635,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       }));
 
     this.persistirFlujoProyecto();
+    this.marcarActualizacionProyecto();
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
@@ -618,6 +647,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       siguientesIds: [...nodo.siguientesIds]
     }));
     this.persistirFlujoProyecto();
+    this.marcarActualizacionProyecto();
   }
 
   onCerrarModalActividad(): void {
@@ -679,7 +709,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       adjuntos: (nodo.adjuntos || []).map(adjunto => ({
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
-        tamano: adjunto.tamano
+        tamano: adjunto.tamano,
+        dataUrl: adjunto.dataUrl
       })),
       siguientesIds: [...(nodo.siguientesIds || [])]
     }));
@@ -760,6 +791,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nombre: a.nombre,
         tipo: a.tipo,
         tamano: a.tamano,
+        dataUrl: a.dataUrl,
         archivo: (a as any).archivo
       })),
       estado: 'pendiente'
@@ -771,6 +803,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombre: adjunto.nombre,
       tipo: adjunto.tipo,
       tamano: adjunto.tamano,
+      dataUrl: adjunto.dataUrl,
       archivo: adjunto.archivo
     }));
   }
@@ -791,14 +824,21 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
     this.proyecto.responsableNombre = this.getResponsableNombre(Number(this.proyectoInfoForm.responsableId));
     this.proyecto.fechaInicio = this.proyectoInfoForm.fechaInicio;
-    this.proyecto.fechaFinalizacion = this.proyectoInfoForm.fechaFinalizacion;
+    this.proyecto.fechaFinalizacion = this.formatDate(new Date());
     this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
+    this.marcarActualizacionProyecto();
     this.infoActualizada.emit({
       costo: this.proyecto.costo,
       fechaInicio: this.proyectoInfoForm.fechaInicio,
-      fechaFin: this.proyectoInfoForm.fechaFinalizacion
+      fechaFin: this.proyecto.fechaFinalizacion
     });
+
+    if (this.embedded) {
+      this.tabActiva = 'tablero';
+      return;
+    }
+
     this.cerrar.emit();
   }
 
@@ -829,10 +869,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.costosHabilitados = true;
     this.tabActiva = 'costos';
     this.guardarEstadoCostos();
+    this.marcarActualizacionProyecto();
   }
 
   get flujoTimelineResumen(): FlujoNodo[] {
-    if (this.flujoNodos.length <= 1) return this.flujoNodos;
+    if (this.flujoNodos.length <= 1) return this.flujoNodos.filter(n => n.tipo !== 'inicio');
 
     const porId = new Map(this.flujoNodos.map(n => [n.id, n]));
     const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
@@ -854,21 +895,131 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       if (!visitados.has(nodo.id)) visitar(nodo);
     }
 
-    return ordenados;
+    return ordenados.filter(n => n.tipo !== 'inicio');
   }
 
   get totalAdjuntosResumen(): number {
     return this.flujoNodos.reduce((acc, nodo) => acc + (nodo.adjuntos?.length || 0), 0);
   }
 
-  get documentosActividadResumen(): Array<{ actividad: string; nombre: string; tipo: string }> {
-    const docs: Array<{ actividad: string; nombre: string; tipo: string }> = [];
+  get documentosActividadResumen(): DocumentoResumen[] {
+    const docs: DocumentoResumen[] = [];
     for (const nodo of this.flujoNodos) {
       for (const adjunto of nodo.adjuntos || []) {
-        docs.push({ actividad: nodo.nombre, nombre: adjunto.nombre, tipo: adjunto.tipo });
+        docs.push({ actividad: nodo.nombre, nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto });
       }
     }
     return docs;
+  }
+
+  puedeDescargarDocumento(doc: DocumentoResumen): boolean {
+    return !!doc?.adjunto;
+  }
+
+  descargarDocumento(doc: DocumentoResumen): void {
+    const { adjunto } = doc;
+    if (adjunto.archivo) {
+      const enlace = document.createElement('a');
+      const url = window.URL.createObjectURL(adjunto.archivo);
+      enlace.href = url;
+      enlace.download = adjunto.nombre || 'documento';
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      window.URL.revokeObjectURL(url);
+      return;
+    }
+
+    if (adjunto.dataUrl) {
+      const enlace = document.createElement('a');
+      enlace.href = adjunto.dataUrl;
+      enlace.download = adjunto.nombre || 'documento';
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+      return;
+    }
+
+    const contenido = [
+      'Documento no disponible para descarga binaria en esta sesion',
+      '',
+      `Nombre: ${doc.nombre || 'documento'}`,
+      `Tipo: ${doc.tipo || 'desconocido'}`,
+      `Actividad: ${doc.actividad || 'sin actividad'}`,
+      '',
+      'Vuelve a adjuntar este archivo para habilitar descarga real y vista previa completa.'
+    ].join('\n');
+    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    const enlace = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    enlace.href = url;
+    enlace.download = `${(doc.nombre || 'documento').replace(/\.[^.]+$/, '')}-info.txt`;
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    window.URL.revokeObjectURL(url);
+  }
+
+  esVistaPreviaSoportadaDocumento(doc: DocumentoResumen): boolean {
+    const mime = (doc.tipo || '').toLowerCase();
+    if (mime.startsWith('image/') || mime === 'application/pdf') return true;
+
+    const nombre = (doc.nombre || '').toLowerCase();
+    return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+  }
+
+  esPdfDocumento(doc: DocumentoResumen | null): boolean {
+    if (!doc) return false;
+    const mime = (doc.tipo || '').toLowerCase();
+    if (mime === 'application/pdf') return true;
+    return (doc.nombre || '').toLowerCase().endsWith('.pdf');
+  }
+
+  abrirVistaPreviaDocumento(doc: DocumentoResumen): void {
+    if (!this.esVistaPreviaSoportadaDocumento(doc)) return;
+
+    this.liberarFuenteVistaPreviaDocumento();
+
+    if (doc.adjunto.dataUrl) {
+      this.fuenteVistaPreviaDocumento = doc.adjunto.dataUrl;
+      this.fuenteVistaPreviaDocumentoEsBlob = false;
+    } else if (doc.adjunto.archivo) {
+      this.fuenteVistaPreviaDocumento = URL.createObjectURL(doc.adjunto.archivo);
+      this.fuenteVistaPreviaDocumentoEsBlob = true;
+    } else {
+      if (this.esPdfDocumento(doc)) {
+        this.fuenteVistaPreviaDocumento = 'data:text/html;charset=utf-8,' + encodeURIComponent(`
+          <html><body style="margin:0;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100%;background:#f3f4f6;color:#374151;">
+            <div style="text-align:center;max-width:560px;padding:24px;">
+              <h3 style="margin:0 0 10px 0;">Vista previa no disponible</h3>
+              <p style="margin:0;">El archivo "${doc.nombre}" no tiene contenido binario en esta sesión. Vuelve a adjuntarlo para visualizar el PDF.</p>
+            </div>
+          </body></html>
+        `);
+      } else {
+        this.fuenteVistaPreviaDocumento = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" fill="#374151" font-size="28" font-family="Arial">Vista previa no disponible</text><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#6b7280" font-size="18" font-family="Arial">Adjunta nuevamente ${doc.nombre} para ver la imagen</text></svg>`);
+      }
+      this.fuenteVistaPreviaDocumentoEsBlob = false;
+    }
+
+    this.documentoVistaPrevia = doc;
+    this.mostrarVistaPreviaDocumento = true;
+  }
+
+  cerrarVistaPreviaDocumento(): void {
+    this.liberarFuenteVistaPreviaDocumento();
+    this.fuenteVistaPreviaDocumento = '';
+    this.fuenteVistaPreviaDocumentoEsBlob = false;
+    this.documentoVistaPrevia = null;
+    this.mostrarVistaPreviaDocumento = false;
+  }
+
+  obtenerFuenteVistaPreviaDocumentoImagen(): string {
+    return this.fuenteVistaPreviaDocumento;
+  }
+
+  obtenerFuenteVistaPreviaDocumentoPdf(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento);
   }
 
   descargarTodosDocumentosResumen(): void {
@@ -889,6 +1040,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           enlace.click();
           document.body.removeChild(enlace);
           window.URL.revokeObjectURL(url);
+          descargados += 1;
+        } else if (adjunto.dataUrl) {
+          const enlace = document.createElement('a');
+          enlace.href = adjunto.dataUrl;
+          enlace.download = adjunto.nombre || 'documento';
+          document.body.appendChild(enlace);
+          enlace.click();
+          document.body.removeChild(enlace);
           descargados += 1;
         } else {
           sinContenido.push(`${adjunto.nombre || 'documento'} | Actividad: ${nodo.nombre}`);
@@ -940,5 +1099,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private obtenerClaveCostosStorage(): string | null {
     if (!this.proyecto || typeof window === 'undefined') return null;
     return `${this.costosStoragePrefix}${this.proyecto.id}`;
+  }
+
+  private liberarFuenteVistaPreviaDocumento(): void {
+    if (this.fuenteVistaPreviaDocumento && this.fuenteVistaPreviaDocumentoEsBlob) {
+      URL.revokeObjectURL(this.fuenteVistaPreviaDocumento);
+    }
+  }
+
+  private marcarActualizacionProyecto(): void {
+    if (!this.proyecto) return;
+
+    this.proyecto.fechaFinalizacion = this.formatDate(new Date());
+    this.proyectoActualizado.emit({ ...this.proyecto });
   }
 }

@@ -260,6 +260,50 @@
   color: #e5e7eb !important;
 }
 
+/* DatePicker compartido - variante compacta */
+.ayni-date-picker-compact.flatpickr-calendar {
+  font-size: 12px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+}
+
+.ayni-date-picker-compact .flatpickr-months .flatpickr-month,
+.ayni-date-picker-compact .flatpickr-current-month {
+  height: 34px;
+}
+
+.ayni-date-picker-compact .flatpickr-current-month input.cur-year,
+.ayni-date-picker-compact .flatpickr-current-month .flatpickr-monthDropdown-months {
+  font-size: 12px;
+}
+
+.ayni-date-picker-compact .flatpickr-weekdays {
+  height: 24px;
+}
+
+.ayni-date-picker-compact span.flatpickr-weekday {
+  font-size: 10px;
+}
+
+.ayni-date-picker-compact .flatpickr-day {
+  height: 30px;
+  line-height: 30px;
+  font-size: 12px;
+}
+
+.ayni-date-picker-compact .flatpickr-days,
+.ayni-date-picker-compact .dayContainer {
+  min-width: 0;
+}
+
+.ayni-date-picker-compact.hasTime .flatpickr-time {
+  height: 34px;
+}
+
+.ayni-date-picker-compact .flatpickr-prev-month,
+.ayni-date-picker-compact .flatpickr-next-month {
+  padding: 6px;
+}
+
 /* Animaciones sutiles reutilizables */
 @keyframes uiFadeSlideIn {
   from {

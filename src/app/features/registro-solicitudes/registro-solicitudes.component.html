@@ -28,6 +28,7 @@
       (finalizarEtapa)="onFinalizarEtapa($event)"
       (finalizarProy)="onFinalizarProyecto($event)"
       (infoActualizada)="onInfoProyectoActualizada($event)"
+      (proyectoActualizado)="onProyectoActualizado($event)"
       (cambiarProyecto)="onCambiarProyecto($event)">
     </app-modal-proceso-proyecto>
   } @else {
@@ -156,7 +157,6 @@
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Cliente</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Registro - Ultima actualizacion</th>
-            <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Costo</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Estado</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Acciones</th>
           </tr>
@@ -176,13 +176,12 @@
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.cliente }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.responsableNombre }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">
-                @if (solicitud.fechaInicio && solicitud.fechaFin) {
-                  {{ solicitud.fechaInicio | date:'dd/MM/yy' }} - {{ solicitud.fechaFin | date:'dd/MM/yy' }}
+                @if (solicitud.fechaSolicitud && solicitud.fechaFin) {
+                  {{ solicitud.fechaSolicitud | date:'dd/MM/yy' }} - {{ solicitud.fechaFin | date:'dd/MM/yy' }}
                 } @else {
                   -
                 }
               </td>
-              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">S/. {{ solicitud.costo | number:'1.2-2' }}</td>
               <td class="py-2 px-4" (click)="abrirProcesoDesdeTabla(solicitud)">
                 <span class="px-3 py-1 text-xs font-medium rounded-full" [ngClass]="getEstadoClass(solicitud.estado)">
                   {{ solicitud.estado }}
@@ -199,7 +198,7 @@
               </td>
             </tr>
             <tr class="bg-gray-50 dark:bg-gray-800/30">
-              <td colspan="8" class="px-3 py-2">
+              <td colspan="7" class="px-3 py-2">
                 <details class="text-[10px] timeline-details">
                   <summary class="cursor-pointer text-gray-600 dark:text-gray-300 font-semibold timeline-summary">Flujo timeline del proyecto</summary>
                   <div class="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-white dark:bg-gray-900 timeline-details-panel">
@@ -233,7 +232,7 @@
           }
           @if (solicitudesFiltradas.length === 0) {
             <tr>
-              <td colspan="8" class="py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400">
                 No hay solicitudes registradas. Haz clic en "Nueva Solicitud" para crear una.
               </td>
             </tr>

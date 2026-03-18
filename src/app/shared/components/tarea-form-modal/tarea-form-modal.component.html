@@ -94,41 +94,6 @@
             <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-1">{{ errores['fechaInicio'] }}</span>
           </div>
 
-          <!-- Fecha y Hora de Finalizacion -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Ultima actualizacion <span class="text-gray-400">(opcional)</span>
-            </label>
-            <app-date-picker
-              [value]="formData.fechaFin || ''"
-              (valueChange)="formData.fechaFin = $event"
-              [hasError]="tieneError('fechaFin')"
-              [enableTime]="true"
-              [minDate]="formData.fechaInicio"
-              [inputClass]="'w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 outline-none dark:bg-gray-800 dark:text-white cursor-pointer bg-white dark:bg-gray-800'">
-            </app-date-picker>
-            <span *ngIf="tieneError('fechaFin')" class="text-xs text-red-500 mt-1">{{ errores['fechaFin'] }}</span>
-          </div>
-
-          <!-- Estado (solo en modo edicion) -->
-          @if (modoEdicion) {
-            <div>
-              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Estado <span class="text-red-500">*</span>
-              </label>
-              <select 
-                [(ngModel)]="formData.estado"
-                class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
-                required>
-                <option value="">Todos los Estados</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="en-progreso">En Progreso</option>
-                <option value="completada">Completada</option>
-                <option value="retrasada">Retrasada</option>
-              </select>
-            </div>
-          }
-
         </div>
 
         <div class="mt-4">
@@ -183,7 +148,14 @@
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-2.5 min-w-0">
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                      <p class="text-xs font-medium text-gray-700 dark:text-gray-200 truncate" [title]="archivo.nombre">{{ archivo.nombre }}</p>
+                      <button
+                        type="button"
+                        (click)="abrirVistaPrevia(archivo)"
+                        [disabled]="!esVistaPreviaSoportada(archivo) || !puedeDescargarAdjunto(archivo)"
+                        class="text-left text-xs font-medium text-gray-700 dark:text-gray-200 truncate hover:text-green-600 dark:hover:text-green-400 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        [title]="esVistaPreviaSoportada(archivo) ? 'Vista previa' : archivo.nombre">
+                        {{ archivo.nombre }}
+                      </button>
                       <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{{ formatoTamano(archivo.tamano) }}</p>
                     </div>
                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,6 +167,18 @@
                       {{ (archivo.nombre.split('.').pop() || 'file') }}
                     </span>
                     <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="abrirVistaPrevia(archivo)"
+                        [disabled]="!esVistaPreviaSoportada(archivo) || !puedeDescargarAdjunto(archivo)"
+                        title="Vista previa"
+                        aria-label="Vista previa"
+                        class="inline-flex items-center justify-center text-green-500 hover:text-green-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                      </button>
                       <button
                         type="button"
                         (click)="descargarAdjunto(archivo)"
@@ -272,3 +256,26 @@
   (confirmar)="onConfirmarEliminar()"
   (cancelar)="onCancelarEliminar()">
 </app-confirm-delete-modal>
+
+<!-- Vista previa de adjunto -->
+@if (mostrarVistaPrevia && adjuntoVistaPrevia) {
+  <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4" (click)="cerrarVistaPrevia()">
+    <div class="w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700" (click)="$event.stopPropagation()">
+      <div class="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ adjuntoVistaPrevia.nombre }}</h3>
+        <button type="button" (click)="cerrarVistaPrevia()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
+        @if (esPdf(adjuntoVistaPrevia)) {
+          <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaPdf()"></iframe>
+        } @else {
+          <img class="max-w-full max-h-full object-contain" [src]="obtenerFuenteVistaPreviaImagen()" [alt]="adjuntoVistaPrevia.nombre" />
+        }
+      </div>
+    </div>
+  </div>
+}

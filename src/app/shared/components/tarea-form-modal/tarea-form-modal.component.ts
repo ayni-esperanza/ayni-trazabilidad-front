@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, HostListener, Inject, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PLATFORM_ID } from '@angular/core';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 
@@ -11,6 +12,7 @@ export interface ArchivoAdjuntoActividad {
   tipo: string;
   tamano: number;
   archivo?: File;
+  dataUrl?: string;
 }
 
 export interface Tarea {
@@ -31,7 +33,7 @@ export interface Tarea {
   imports: [CommonModule, FormsModule, CKEditorModule, ConfirmDeleteModalComponent, DatePickerComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
-export class TareaFormModalComponent implements OnChanges, OnInit {
+export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   @Input() visible = false;
   @Input() tarea: Tarea | null = null;
   @Input() modoEdicion = false;
@@ -66,6 +68,12 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
 
+  // Vista previa de adjuntos
+  mostrarVistaPrevia = false;
+  adjuntoVistaPrevia: ArchivoAdjuntoActividad | null = null;
+  fuenteVistaPrevia = '';
+  private fuenteVistaPreviaEsBlob = false;
+
   responsables = [
     { id: '1', nombre: 'Rolando Rodriguez Mercedes' },
     { id: '2', nombre: 'Alex Marquina Perez' },
@@ -76,6 +84,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -135,6 +144,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
   }
 
   resetForm(): void {
+    this.cerrarVistaPrevia();
     this.formData = {
       nombre: '',
       responsableId: '',
@@ -240,17 +250,22 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
     return this.modoEdicion ? 'Guardar Actividad' : 'Agregar Actividad';
   }
 
-  onSeleccionarArchivos(event: Event): void {
+  async onSeleccionarArchivos(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     if (!files?.length) return;
 
-    const nuevosAdjuntos: ArchivoAdjuntoActividad[] = Array.from(files).map((file) => ({
-      nombre: file.name,
-      tipo: file.type,
-      tamano: file.size,
-      archivo: file
-    }));
+    const nuevosAdjuntos: ArchivoAdjuntoActividad[] = [];
+    for (const file of Array.from(files)) {
+      const dataUrl = await this.convertirArchivoADataUrl(file);
+      nuevosAdjuntos.push({
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size,
+        archivo: file,
+        dataUrl
+      });
+    }
 
     this.formData.archivosAdjuntos = [...this.formData.archivosAdjuntos, ...nuevosAdjuntos];
     input.value = '';
@@ -267,18 +282,90 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
   }
 
   puedeDescargarAdjunto(adjunto: ArchivoAdjuntoActividad): boolean {
-    return !!adjunto.archivo;
+    return !!adjunto.archivo || !!adjunto.dataUrl;
   }
 
   descargarAdjunto(adjunto: ArchivoAdjuntoActividad): void {
-    if (!adjunto.archivo) return;
+    if (adjunto.archivo) {
+      const blobUrl = URL.createObjectURL(adjunto.archivo);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = adjunto.nombre;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+      return;
+    }
 
-    const blobUrl = URL.createObjectURL(adjunto.archivo);
+    if (!adjunto.dataUrl) return;
+
     const link = document.createElement('a');
-    link.href = blobUrl;
+    link.href = adjunto.dataUrl;
     link.download = adjunto.nombre;
     link.click();
-    URL.revokeObjectURL(blobUrl);
+  }
+
+  esVistaPreviaSoportada(adjunto: ArchivoAdjuntoActividad): boolean {
+    const mime = (adjunto.tipo || '').toLowerCase();
+    if (mime.startsWith('image/') || mime === 'application/pdf') return true;
+
+    const nombre = (adjunto.nombre || '').toLowerCase();
+    return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+  }
+
+  esPdf(adjunto: ArchivoAdjuntoActividad | null): boolean {
+    if (!adjunto) return false;
+    const mime = (adjunto.tipo || '').toLowerCase();
+    if (mime === 'application/pdf') return true;
+    return (adjunto.nombre || '').toLowerCase().endsWith('.pdf');
+  }
+
+  abrirVistaPrevia(adjunto: ArchivoAdjuntoActividad): void {
+    if (!this.esVistaPreviaSoportada(adjunto)) return;
+    if (!adjunto.dataUrl && !adjunto.archivo) return;
+
+    this.liberarFuenteVistaPrevia();
+
+    if (adjunto.dataUrl) {
+      this.fuenteVistaPrevia = adjunto.dataUrl;
+      this.fuenteVistaPreviaEsBlob = false;
+    } else if (adjunto.archivo) {
+      this.fuenteVistaPrevia = URL.createObjectURL(adjunto.archivo);
+      this.fuenteVistaPreviaEsBlob = true;
+    }
+
+    this.adjuntoVistaPrevia = adjunto;
+    this.mostrarVistaPrevia = true;
+  }
+
+  cerrarVistaPrevia(): void {
+    this.liberarFuenteVistaPrevia();
+    this.mostrarVistaPrevia = false;
+    this.adjuntoVistaPrevia = null;
+    this.fuenteVistaPrevia = '';
+    this.fuenteVistaPreviaEsBlob = false;
+  }
+
+  obtenerFuenteVistaPreviaImagen(): string {
+    return this.fuenteVistaPrevia;
+  }
+
+  obtenerFuenteVistaPreviaPdf(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPrevia);
+  }
+
+  private convertirArchivoADataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo adjunto'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private liberarFuenteVistaPrevia(): void {
+    if (this.fuenteVistaPrevia && this.fuenteVistaPreviaEsBlob) {
+      URL.revokeObjectURL(this.fuenteVistaPrevia);
+    }
   }
 
   @HostListener('document:keydown.escape')
@@ -286,5 +373,9 @@ export class TareaFormModalComponent implements OnChanges, OnInit {
     if (this.visible) {
       this.onCerrar();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.liberarFuenteVistaPrevia();
   }
 }

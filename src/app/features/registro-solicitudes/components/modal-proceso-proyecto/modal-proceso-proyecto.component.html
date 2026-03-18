@@ -22,7 +22,6 @@
     }">
   </div>
 </div>
-
 <div *ngIf="visible"
   [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
   [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar"
@@ -47,6 +46,12 @@
     <div *ngIf="embedded" class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-lg mb-4">
       <h2 class="text-xl font-semibold text-white">{{ proyecto?.nombreProyecto || 'Proyecto sin nombre' }}</h2>
       <div class="flex items-center gap-2">
+        <button
+          *ngIf="tabActiva === 'informacion' && !modoSoloLectura"
+          (click)="guardarInfoProyecto()"
+          class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600">
+          Guardar Cambios
+        </button>
         <button
           *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
           (click)="onCancelarProyecto()"
@@ -138,7 +143,7 @@
                 <div class="text-gray-500 dark:text-gray-400">Responsable</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ proyecto?.responsableNombre || '-' }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Fecha de registro</div>
-                <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaInicio) }}</div>
+                <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaRegistro || proyecto?.fechaInicio) }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Ultima actualizacion</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaFinalizacion) }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Ubicacion</div>
@@ -238,10 +243,39 @@
               <div class="max-h-36 overflow-auto pr-1 space-y-1">
                 <div *ngFor="let doc of documentosActividadResumen" class="flex items-start justify-between gap-2 border-b border-gray-100 dark:border-gray-800 pb-1">
                   <div>
-                    <p class="text-gray-800 dark:text-gray-100">{{ doc.nombre }}</p>
+                    <button
+                      type="button"
+                      (click)="abrirVistaPreviaDocumento(doc)"
+                      [disabled]="!esVistaPreviaSoportadaDocumento(doc)"
+                      class="text-left text-gray-800 dark:text-gray-100 hover:text-green-600 dark:hover:text-green-400 disabled:text-gray-400 disabled:cursor-not-allowed">
+                      {{ doc.nombre }}
+                    </button>
                     <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ doc.actividad }}</p>
                   </div>
-                  <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ doc.tipo }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ doc.tipo }}</span>
+                    <button
+                      type="button"
+                      (click)="abrirVistaPreviaDocumento(doc)"
+                      [disabled]="!esVistaPreviaSoportadaDocumento(doc)"
+                      title="Vista previa"
+                      class="text-green-500 hover:text-green-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="descargarDocumento(doc)"
+                      [disabled]="!puedeDescargarDocumento(doc)"
+                      title="Descargar"
+                      class="text-blue-500 hover:text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <p *ngIf="!documentosActividadResumen.length" class="text-center text-gray-400 dark:text-gray-500 py-3">Sin documentos adjuntos</p>
               </div>
@@ -347,6 +381,28 @@
     </div>
   </div>
 </div>
+
+@if (mostrarVistaPreviaDocumento && documentoVistaPrevia) {
+  <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" (click)="cerrarVistaPreviaDocumento()">
+    <div class="w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700" (click)="$event.stopPropagation()">
+      <div class="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ documentoVistaPrevia.nombre }}</h3>
+        <button type="button" (click)="cerrarVistaPreviaDocumento()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
+        @if (esPdfDocumento(documentoVistaPrevia)) {
+          <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaDocumentoPdf()"></iframe>
+        } @else {
+          <img class="max-w-full max-h-full object-contain" [src]="obtenerFuenteVistaPreviaDocumentoImagen()" [alt]="documentoVistaPrevia.nombre" />
+        }
+      </div>
+    </div>
+  </div>
+}
 
 <!-- Modal de Cancelación -->
 @if (mostrarModalCancelacion) {

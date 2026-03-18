@@ -20,10 +20,6 @@ export class UbicacionSelectComponent implements OnInit, OnChanges {
   isOpen = false;
   opcionesFiltradas: GrupoDepartamento[] = ubicacionesAgrupadas;
 
-  dropdownTop = 0;
-  dropdownLeft = 0;
-  dropdownWidth = 0;
-
   ngOnInit() {
     this.searchText = this.value ?? '';
   }
@@ -33,10 +29,6 @@ export class UbicacionSelectComponent implements OnInit, OnChanges {
   }
 
   abrir() {
-    const rect = this.inputEl.nativeElement.getBoundingClientRect();
-    this.dropdownTop = rect.bottom + 2;
-    this.dropdownLeft = rect.left;
-    this.dropdownWidth = rect.width;
     this.searchText = '';
     this.filtrar('');
     this.isOpen = true;

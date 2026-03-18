@@ -32,10 +32,7 @@
   <!-- Dropdown con posición fija (no se corta dentro del modal) -->
   @if (isOpen) {
     <div
-      class="fixed z-[300] bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg overflow-y-auto max-h-52"
-      [style.top.px]="dropdownTop"
-      [style.left.px]="dropdownLeft"
-      [style.width.px]="dropdownWidth">
+      class="absolute z-[300] mt-0.5 w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg overflow-y-auto max-h-52">
 
       @for (grupo of opcionesFiltradas; track grupo.departamento) {
         <!-- Cabecera de departamento -->

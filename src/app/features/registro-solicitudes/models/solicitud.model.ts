@@ -13,6 +13,7 @@ export interface FlujoAdjunto {
   tipo: string;
   tamano: number;
   archivo?: File;
+  dataUrl?: string;
 }
 
 
@@ -57,6 +58,7 @@ export interface Proyecto {
   cliente: string;
   representante?: string;
   costo: number;
+  fechaRegistro?: Date | string;
   ordenesCompra?: OrdenCompra[];
   responsableId: number;
   responsableNombre?: string;

@@ -19,7 +19,7 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Input() maxDate = '';
   @Input() hasError = false;
   @Input() enableTime = false;
-  @Input() inputClass = 'w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700';
+  @Input() inputClass = 'w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700';
 
   @Output() valueChange = new EventEmitter<string>();
 
@@ -54,6 +54,8 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
           this.zone.run(() => this.valueChange.emit(dateStr));
         }
       });
+
+      this.fp.calendarContainer?.classList.add('ayni-date-picker-compact');
 
       this.actualizarAparienciaInput();
     });
