@@ -30,12 +30,12 @@
           </app-ubicacion-select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable *</label>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Responsable de AYNI *</label>
           <select [(ngModel)]="solicitud.responsableId"
             [class.border-red-500]="tieneError('responsableId')"
             [class.ring-red-500]="tieneError('responsableId')"
             class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-            <option value="0">Seleccionar Responsable</option>
+            <option value="0">Seleccionar Responsable de AYNI</option>
             <option *ngFor="let resp of responsables" [value]="resp.id">{{ resp.nombre }}</option>
           </select>
           <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['responsableId'] }}</span>

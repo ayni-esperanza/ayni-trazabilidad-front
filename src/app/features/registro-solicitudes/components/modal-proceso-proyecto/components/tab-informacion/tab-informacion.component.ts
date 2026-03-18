@@ -44,6 +44,8 @@ export class TabInformacionComponent implements OnInit {
     { id: 5, nombre: 'Gian Juarez Rondo' }
   ];
 
+  readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
+
   protected Editor: any;
   protected ckeditorConfig: any = {};
   protected isBrowser = false;
@@ -76,7 +78,14 @@ export class TabInformacionComponent implements OnInit {
   }
 
   agregarOrdenCompra(): void {
-    this.proyectoInfoForm.ordenesCompra.push({ numero: '', fecha: '', tipo: '', total: undefined });
+    this.proyectoInfoForm.ordenesCompra.push({
+      numero: '',
+      fecha: '',
+      tipo: 'SUMINISTRO',
+      numeroLicitacion: '',
+      numeroSolicitud: '',
+      total: undefined
+    });
   }
 
   eliminarOrdenCompra(index: number): void {

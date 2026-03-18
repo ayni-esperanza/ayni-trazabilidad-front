@@ -5,6 +5,8 @@ export interface OrdenCompra {
   numero: string;
   fecha: string;
   tipo?: string;
+  numeroLicitacion?: string;
+  numeroSolicitud?: string;
   total?: number;
 }
 
