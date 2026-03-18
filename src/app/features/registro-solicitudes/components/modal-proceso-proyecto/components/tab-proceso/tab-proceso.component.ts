@@ -19,7 +19,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() crearActividadDesdeBpmnEvt = new EventEmitter<{ nombre: string; nodoOrigenId?: number }>();
   @Output() flujoActualizadoEvt = new EventEmitter<FlujoNodo[]>();
 
-  tablaNodosExpandida = false;
+  vistaFlujo: 'timeline' | 'tabla' = 'tabla';
 
   @ViewChild('bpmnCanvas', { static: false }) bpmnCanvas?: ElementRef<HTMLDivElement>;
 
@@ -84,8 +84,8 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.abrirNodoEvt.emit(nodo);
   }
 
-  toggleTablaNodos(): void {
-    this.tablaNodosExpandida = !this.tablaNodosExpandida;
+  cambiarVistaFlujo(vista: 'timeline' | 'tabla'): void {
+    this.vistaFlujo = vista;
   }
 
   crearNuevaActividad(): void {

@@ -4,6 +4,8 @@ export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado
 export interface OrdenCompra {
   numero: string;
   fecha: string;
+  tipo?: string;
+  total?: number;
 }
 
 export interface FlujoAdjunto {

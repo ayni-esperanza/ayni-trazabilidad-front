@@ -98,6 +98,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   flujoNodos: FlujoNodo[] = [];
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
+  private readonly costosStoragePrefix = 'ayni:registro-solicitudes:costos-habilitados:';
+  costosHabilitados = false;
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -141,6 +143,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.generarEtapas();
       this.cargarProyectoInfoForm();
       this.prepararFlujo();
+      this.inicializarSeccionCostos();
+
+      if (this.tabActiva === 'costos' && !this.costosHabilitados) {
+        this.tabActiva = 'tablero';
+      }
     }
   }
 
@@ -814,6 +821,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
   }
 
+  get tieneDatosCostos(): boolean {
+    return this.materiales.length > 0 || this.manoObra.length > 0 || this.tablasCostosExtras.length > 0 || this.totalCostosGeneral > 0;
+  }
+
+  habilitarSeccionCostos(): void {
+    this.costosHabilitados = true;
+    this.tabActiva = 'costos';
+    this.guardarEstadoCostos();
+  }
+
   get flujoTimelineResumen(): FlujoNodo[] {
     if (this.flujoNodos.length <= 1) return this.flujoNodos;
 
@@ -906,5 +923,22 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return '-';
     return d.toLocaleDateString('es-PE');
+  }
+
+  private inicializarSeccionCostos(): void {
+    const storageKey = this.obtenerClaveCostosStorage();
+    const costosGuardados = storageKey ? window.localStorage.getItem(storageKey) === '1' : false;
+    this.costosHabilitados = costosGuardados || this.tieneDatosCostos;
+  }
+
+  private guardarEstadoCostos(): void {
+    const storageKey = this.obtenerClaveCostosStorage();
+    if (!storageKey) return;
+    window.localStorage.setItem(storageKey, this.costosHabilitados ? '1' : '0');
+  }
+
+  private obtenerClaveCostosStorage(): string | null {
+    if (!this.proyecto || typeof window === 'undefined') return null;
+    return `${this.costosStoragePrefix}${this.proyecto.id}`;
   }
 }

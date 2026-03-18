@@ -272,8 +272,8 @@ export class RegistroSolicitudesComponent implements OnInit {
         representante: 'Roberto Sánchez',
         costo: 85000,
         ordenesCompra: [
-          { numero: 'OC-TEX-001', fecha: '2026-02-06' },
-          { numero: 'OC-TEX-002', fecha: '2026-02-18' }
+          { numero: 'OC-TEX-001', tipo: 'Materiales', fecha: '2026-02-06', total: 18500 },
+          { numero: 'OC-TEX-002', tipo: 'Servicios', fecha: '2026-02-18', total: 22300 }
         ],
         responsableId: 1,
         responsableNombre: 'Rolando Rodriguez Mercedes',
@@ -336,7 +336,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         representante: 'Laura Mendoza',
         costo: 62000,
         ordenesCompra: [
-          { numero: 'OC-MIN-015', fecha: '2026-01-17' }
+          { numero: 'OC-MIN-015', tipo: 'Equipos', fecha: '2026-01-17', total: 31800 }
         ],
         responsableId: 2,
         responsableNombre: 'Alex Marquina Perez',

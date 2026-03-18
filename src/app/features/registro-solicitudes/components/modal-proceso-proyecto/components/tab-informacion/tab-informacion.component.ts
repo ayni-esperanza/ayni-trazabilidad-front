@@ -76,7 +76,7 @@ export class TabInformacionComponent implements OnInit {
   }
 
   agregarOrdenCompra(): void {
-    this.proyectoInfoForm.ordenesCompra.push({ numero: '', fecha: '' });
+    this.proyectoInfoForm.ordenesCompra.push({ numero: '', fecha: '', tipo: '', total: 0 });
   }
 
   eliminarOrdenCompra(index: number): void {

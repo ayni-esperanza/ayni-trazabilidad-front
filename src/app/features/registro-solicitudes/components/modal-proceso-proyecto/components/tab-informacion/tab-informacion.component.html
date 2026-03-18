@@ -82,16 +82,20 @@
           </button>
         </div>
         <div class="space-y-1.5">
-          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra; let i = index" class="flex items-center gap-2">
+          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra; let i = index" class="grid grid-cols-12 gap-2 items-center">
             <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
-              class="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+              class="col-span-4 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            <input type="text" [(ngModel)]="oc.tipo" placeholder="Tipo de orden"
+              class="col-span-3 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
             <app-date-picker
-              class="w-36 shrink-0"
+              class="col-span-2"
               [value]="oc.fecha"
               (valueChange)="oc.fecha = $event">
             </app-date-picker>
+            <input type="number" [(ngModel)]="oc.total" min="0" step="0.01" placeholder="Total"
+              class="col-span-2 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
             <button type="button" (click)="eliminarOrdenCompra(i)"
-              class="flex-shrink-0 text-red-400 hover:text-red-600 p-0.5">
+              class="col-span-1 justify-self-end flex-shrink-0 text-red-400 hover:text-red-600 p-0.5">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -104,9 +108,11 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Órdenes de Compra</label>
         <div *ngIf="proyectoInfoForm.ordenesCompra.length > 0" class="space-y-1">
           <div *ngFor="let oc of proyectoInfoForm.ordenesCompra"
-            class="flex items-center gap-3 px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-700/50 rounded">
-            <span class="font-medium text-gray-700 dark:text-gray-200">{{ oc.numero }}</span>
-            <span *ngIf="oc.fecha" class="text-gray-400 dark:text-gray-400 text-xs ml-auto">{{ oc.fecha | date:'dd/MM/yyyy' }}</span>
+            class="grid grid-cols-4 gap-3 px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-700/50 rounded">
+            <span class="font-medium text-gray-700 dark:text-gray-200">{{ oc.numero || '—' }}</span>
+            <span class="text-gray-600 dark:text-gray-300">{{ oc.tipo || '—' }}</span>
+            <span class="text-gray-500 dark:text-gray-400 text-xs">{{ oc.fecha ? (oc.fecha | date:'dd/MM/yyyy') : '—' }}</span>
+            <span class="text-blue-600 dark:text-blue-400 font-semibold text-right">{{ (oc.total ?? 0) | currency:'S/ ' }}</span>
           </div>
         </div>
         <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded">—</p>

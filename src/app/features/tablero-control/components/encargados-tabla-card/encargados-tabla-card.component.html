@@ -170,8 +170,7 @@
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Actividad</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Etapa</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Inicio - Fin</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha de registro - Ultima actualizacion</th>
               <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
             </tr>
           </thead>
@@ -181,7 +180,6 @@
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.etapa }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
                 <td class="py-1.5 px-1">
                   <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoTareaClass(tarea.estado)">
@@ -191,7 +189,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
                   No hay tareas para el proyecto seleccionado
                 </td>
               </tr>
