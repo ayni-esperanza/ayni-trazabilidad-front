@@ -139,7 +139,7 @@ export class ModalNuevaSolicitudComponent implements OnInit {
       this.errores['cliente'] = 'El cliente es requerido';
     }
     if (!this.solicitud.responsableId || this.solicitud.responsableId === 0) {
-      this.errores['responsableId'] = 'Debe seleccionar un responsable';
+      this.errores['responsableId'] = 'Debe seleccionar un Responsable de AYNI';
     }
     if (!this.solicitud.descripcion?.trim()) {
       this.errores['descripcion'] = 'La descripción es requerida';

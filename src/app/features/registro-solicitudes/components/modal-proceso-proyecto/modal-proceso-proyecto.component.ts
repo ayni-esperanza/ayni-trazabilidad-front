@@ -436,7 +436,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onFinalizarProyecto(): void {
-    if (this.proyecto && this.todasEtapasCompletadas) {
+    if (this.proyecto && !this.proyectoFinalizado && !this.proyectoCancelado) {
       this.proyecto.estado = 'Completado';
       this.proyectoFinalizado = true;
       // Guardar etapas en el proyecto antes de emitir
@@ -498,7 +498,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombreProyecto: this.proyecto.nombreProyecto,
       cliente: this.proyecto.cliente,
       representante: this.proyecto.representante || '',
-      ordenesCompra: (this.proyecto.ordenesCompra || []).map(o => ({ ...o })),
+      ordenesCompra: (this.proyecto.ordenesCompra || []).map(o => ({
+        ...o,
+        tipo: this.normalizarTipoOrdenCompra(o.tipo),
+        numeroLicitacion: o.numeroLicitacion || '',
+        numeroSolicitud: o.numeroSolicitud || ''
+      })),
       costo: this.proyecto.costo,
       procesoId: this.proyecto.procesoId,
       responsableId: this.proyecto.responsableId,
@@ -507,6 +512,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       ubicacion: this.proyecto.ubicacion || '',
       descripcion: this.proyecto.descripcion
     };
+  }
+
+  private normalizarTipoOrdenCompra(tipo?: string): string {
+    const valor = (tipo || '').trim().toLowerCase();
+
+    if (!valor) return 'SUMINISTRO';
+    if (valor.includes('serv')) return 'SERVICIO';
+    if (valor.includes('sumin') || valor.includes('material') || valor.includes('equipo')) return 'SUMINISTRO';
+
+    return 'OTROS';
   }
 
   abrirModalActividad(nodo?: FlujoNodo): void {

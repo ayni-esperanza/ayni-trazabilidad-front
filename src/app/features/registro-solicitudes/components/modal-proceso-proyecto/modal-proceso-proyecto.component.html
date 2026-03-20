@@ -54,6 +54,15 @@
         </button>
         <button
           *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
+          (click)="onFinalizarProyecto()"
+          class="px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Dar proyecto como terminado
+        </button>
+        <button
+          *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
           (click)="onCancelarProyecto()"
           class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
           Cancelar Proyecto
@@ -140,7 +149,7 @@
                 <div class="text-gray-800 dark:text-gray-100 font-medium">{{ proyecto?.cliente || '-' }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Representante</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ proyecto?.representante || '-' }}</div>
-                <div class="text-gray-500 dark:text-gray-400">Responsable</div>
+                <div class="text-gray-500 dark:text-gray-400">Responsable de AYNI</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ proyecto?.responsableNombre || '-' }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Fecha de registro</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaRegistro || proyecto?.fechaInicio) }}</div>
@@ -164,19 +173,23 @@
                   <tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                     <th class="py-1.5 font-semibold">Numero</th>
                     <th class="py-1.5 font-semibold">Tipo</th>
+                    <th class="py-1.5 font-semibold">Nº de licitacion</th>
+                    <th class="py-1.5 font-semibold">Nº de solicitud</th>
                     <th class="py-1.5 font-semibold">Fecha</th>
-                    <th class="py-1.5 font-semibold text-right">Total</th>
+                    <th class="py-1.5 font-semibold text-right">Total sin IGV</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let orden of proyecto?.ordenesCompra" class="border-b border-gray-100 dark:border-gray-800">
                     <td class="py-1.5 text-gray-800 dark:text-gray-100">{{ orden.numero || '-' }}</td>
                     <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.tipo || '-' }}</td>
+                    <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.numeroLicitacion || '-' }}</td>
+                    <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.numeroSolicitud || '-' }}</td>
                     <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.fecha || '-' }}</td>
                     <td class="py-1.5 text-right text-blue-600 dark:text-blue-400 font-semibold">{{ (orden.total ?? 0) | currency:'S/ ' }}</td>
                   </tr>
                   <tr *ngIf="!proyecto?.ordenesCompra?.length">
-                    <td colspan="4" class="py-3 text-center text-gray-400 dark:text-gray-500">Sin ordenes registradas</td>
+                    <td colspan="6" class="py-3 text-center text-gray-400 dark:text-gray-500">Sin ordenes registradas</td>
                   </tr>
                 </tbody>
               </table>
@@ -370,13 +383,13 @@
           </svg>
           Guardar Cambios
         </button>
-        <!-- Botón Finalizar Proyecto (cuando todas las etapas están completadas) -->
-        <button *ngIf="todasEtapasCompletadas && !proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')" (click)="onFinalizarProyecto()" 
+        <!-- Botón Finalizar Proyecto -->
+        <button *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')" (click)="onFinalizarProyecto()" 
           class="px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          Finalizar Proyecto
+          Dar proyecto como terminado
         </button>
       </div>
     </div>
