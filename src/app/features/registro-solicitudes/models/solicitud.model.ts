@@ -1,5 +1,5 @@
 export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
-export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
+export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
 
 export interface OrdenCompra {
   numero: string;
@@ -23,6 +23,8 @@ export interface FlujoNodo {
   tipo: 'inicio' | 'tarea';
   posicionX?: number;
   posicionY?: number;
+  estadoActividad?: EstadoTarea;
+  fechaCambioEstado?: string;
   responsableId?: number;
   fechaInicio?: string;
   fechaFin?: string;

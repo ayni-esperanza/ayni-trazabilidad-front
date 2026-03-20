@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import {
+  ActividadCostoOption,
   MaterialCosto,
   ManoObraCosto,
   OtroCosto,
@@ -19,6 +20,7 @@ export class TabCostosComponent {
   @Input() materiales!: MaterialCosto[];
   @Input() manoObra!: ManoObraCosto[];
   @Input() tablasCostosExtras!: TablaCostoExtra[];
+  @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
 
   subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
@@ -42,7 +44,8 @@ export class TabCostosComponent {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
-      encargado: ''
+      encargado: '',
+      dependenciaActividadId: null
     });
   }
 
@@ -69,7 +72,8 @@ export class TabCostosComponent {
       cargo: '',
       diasTrabajando: null,
       costoPorDia: null,
-      costoTotal: 0
+      costoTotal: 0,
+      dependenciaActividadId: null
     });
   }
 
@@ -116,7 +120,8 @@ export class TabCostosComponent {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
-      encargado: ''
+      encargado: '',
+      dependenciaActividadId: null
     });
   }
 

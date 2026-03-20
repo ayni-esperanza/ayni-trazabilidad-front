@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild, ElementRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Proyecto, Responsable, FlujoNodo } from '../../../../models/solicitud.model';
+import { Proyecto, Responsable, FlujoNodo, EstadoTarea } from '../../../../models/solicitud.model';
 
 @Component({
   selector: 'app-tab-proceso',
@@ -20,6 +20,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() flujoActualizadoEvt = new EventEmitter<FlujoNodo[]>();
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
+  readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
+  // Compatibilidad defensiva para plantillas previas en hot-reload.
+  readonly alertasActividades: unknown[] = [];
 
   @ViewChild('bpmnCanvas', { static: false }) bpmnCanvas?: ElementRef<HTMLDivElement>;
 
@@ -68,8 +71,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   getSiguientesNombres(nodo: FlujoNodo): string {
-    if (!nodo.siguientesIds.length) return 'Sin conexiones';
-    const nombres = nodo.siguientesIds
+    const siguientesIds = Array.isArray(nodo.siguientesIds) ? nodo.siguientesIds : [];
+    if (!siguientesIds.length) return 'Sin conexiones';
+    const nombres = siguientesIds
       .map(id => this.flujoNodos.find(n => n.id === id)?.nombre)
       .filter((nombre): nombre is string => !!nombre);
     return nombres.length ? nombres.join(', ') : 'Sin conexiones';
@@ -86,6 +90,50 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   cambiarVistaFlujo(vista: 'timeline' | 'tabla'): void {
     this.vistaFlujo = vista;
+  }
+
+  getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
+    return nodo.estadoActividad || 'Pendiente';
+  }
+
+  get totalActividadesFlujo(): number {
+    const timeline = this.flujoTimeline;
+    return Array.isArray(timeline) ? timeline.length : 0;
+  }
+
+  onCambiarEstadoActividad(nodo: FlujoNodo, event: Event): void {
+    if (nodo.tipo !== 'tarea' || this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    const select = event.target as HTMLSelectElement;
+    const nuevoEstado = select.value as EstadoTarea;
+    if (!this.estadosActividad.includes(nuevoEstado)) return;
+
+    const estadoActual = this.getEstadoActividad(nodo);
+    if (estadoActual === nuevoEstado && nodo.fechaCambioEstado) return;
+
+    const fechaCambioEstado = new Date().toISOString();
+    const flujoActualizado = this.flujoNodos.map(item =>
+      item.id === nodo.id
+        ? { ...item, estadoActividad: nuevoEstado, fechaCambioEstado }
+        : item
+    );
+
+    this.flujoActualizadoEvt.emit(flujoActualizado);
+  }
+
+  getClaseEstadoActividad(estado: EstadoTarea): string {
+    const clases: Record<EstadoTarea, string> = {
+      Pendiente: 'bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-200',
+      'En Proceso': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+      Completado: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+      Cancelado: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+      Retrasado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+    };
+    return clases[estado];
+  }
+
+  getClaseAlerta(): string {
+    return '';
   }
 
   formatearDescripcionDetalle(descripcion?: string): string {
@@ -150,29 +198,38 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   get flujoTimeline(): FlujoNodo[] {
-    if (this.flujoNodos.length <= 1) return this.flujoNodos.filter(n => n.tipo !== 'inicio');
+    try {
+      const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
+      const nodos = nodosBase.filter((nodo): nodo is FlujoNodo => !!nodo && typeof nodo === 'object');
 
-    const porId = new Map(this.flujoNodos.map(n => [n.id, n]));
-    const inicio = this.flujoNodos.find(n => n.tipo === 'inicio');
-    const visitados = new Set<number>();
-    const ordenados: FlujoNodo[] = [];
+      if (nodos.length <= 1) return nodos.filter(n => n.tipo !== 'inicio');
 
-    const visitar = (nodo: FlujoNodo): void => {
-      if (visitados.has(nodo.id)) return;
-      visitados.add(nodo.id);
-      ordenados.push(nodo);
-      for (const siguienteId of nodo.siguientesIds) {
-        const siguiente = porId.get(siguienteId);
-        if (siguiente) visitar(siguiente);
+      const porId = new Map(nodos.map(n => [n.id, n]));
+      const inicio = nodos.find(n => n.tipo === 'inicio');
+      const visitados = new Set<number>();
+      const ordenados: FlujoNodo[] = [];
+
+      const visitar = (nodo: FlujoNodo): void => {
+        if (visitados.has(nodo.id)) return;
+        visitados.add(nodo.id);
+        ordenados.push(nodo);
+
+        const siguientes = Array.isArray(nodo.siguientesIds) ? nodo.siguientesIds : [];
+        for (const siguienteId of siguientes) {
+          const siguiente = porId.get(siguienteId);
+          if (siguiente) visitar(siguiente);
+        }
+      };
+
+      if (inicio) visitar(inicio);
+      for (const nodo of nodos) {
+        if (!visitados.has(nodo.id)) visitar(nodo);
       }
-    };
 
-    if (inicio) visitar(inicio);
-    for (const nodo of this.flujoNodos) {
-      if (!visitados.has(nodo.id)) visitar(nodo);
+      return ordenados.filter(n => n.tipo !== 'inicio');
+    } catch {
+      return [];
     }
-
-    return ordenados.filter(n => n.tipo !== 'inicio');
   }
 
   private async renderBpmn(): Promise<void> {
@@ -424,12 +481,27 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   private normalizarNodos(): FlujoNodo[] {
-    if (this.flujoNodos.length === 0) {
+    const nodos = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
+
+    if (nodos.length === 0) {
       return [{ id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [] }];
     }
-    const tieneInicio = this.flujoNodos.some(n => n.tipo === 'inicio');
-    if (tieneInicio) return [...this.flujoNodos];
-    return [{ id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [] }, ...this.flujoNodos];
+    const tieneInicio = nodos.some(n => n.tipo === 'inicio');
+    if (tieneInicio) {
+      return nodos.map(nodo => ({
+        ...nodo,
+        siguientesIds: Array.isArray(nodo.siguientesIds) ? [...nodo.siguientesIds] : [],
+        estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined
+      }));
+    }
+    return [
+      { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [] },
+      ...nodos.map(nodo => ({
+        ...nodo,
+        siguientesIds: Array.isArray(nodo.siguientesIds) ? [...nodo.siguientesIds] : [],
+        estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined
+      }))
+    ];
   }
 
   private buildShapes(nodes: FlujoNodo[], startId: string): Array<{ id: string; x: number; y: number; width: number; height: number }> {

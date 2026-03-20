@@ -1,0 +1,54 @@
+<div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800 dark:text-white">Alertas</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Seguimiento de actividades sin cambios de estado</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="cargarAlertas()"
+      class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-800">
+      Actualizar
+    </button>
+  </div>
+
+  <div class="mb-3">
+    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+      {{ alertas.length }} alerta(s) activa(s)
+    </span>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <tr>
+            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Proyecto</th>
+            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Actividad</th>
+            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Estado</th>
+            <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Alerta</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <tr *ngFor="let alerta of alertas">
+            <td class="px-3 py-2 text-gray-700 dark:text-gray-200">#{{ alerta.proyectoId }}</td>
+            <td class="px-3 py-2 text-gray-700 dark:text-gray-200 font-medium">{{ alerta.nombreActividad }}</td>
+            <td class="px-3 py-2 text-gray-700 dark:text-gray-200">{{ alerta.estado }}</td>
+            <td class="px-3 py-2">
+              <span class="inline-flex items-center px-2 py-1 rounded-md border text-[11px] font-semibold" [ngClass]="getClaseAlerta(alerta)">
+                {{ alerta.mensaje }}
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="alertas.length === 0">
+            <td colspan="4" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">
+              No hay alertas activas por ahora.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

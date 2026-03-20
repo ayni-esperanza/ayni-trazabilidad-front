@@ -50,7 +50,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     fechaFin: undefined,
     descripcion: '',
     archivosAdjuntos: [],
-    estado: 'pendiente'
+    estado: 'Pendiente'
   };
 
   acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
@@ -152,7 +152,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       fechaFin: undefined,
       descripcion: '',
       archivosAdjuntos: [],
-      estado: 'pendiente'
+      estado: 'Pendiente'
     };
     this.intentoGuardar = false;
     this.errores = {};

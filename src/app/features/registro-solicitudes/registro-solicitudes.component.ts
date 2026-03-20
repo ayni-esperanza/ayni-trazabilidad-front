@@ -35,6 +35,8 @@ export class RegistroSolicitudesComponent implements OnInit {
   estadoFiltro = '';
   responsableFiltro = '';
   empresaFiltro = '';
+  fechaDesdeFiltro = '';
+  fechaHastaFiltro = '';
 
   // Paginación
   paginacionConfig: PaginacionConfig = {
@@ -184,6 +186,22 @@ export class RegistroSolicitudesComponent implements OnInit {
       resultado = resultado.filter(s => s.responsableId?.toString() === this.responsableFiltro);
     }
 
+    // Filtro por rango de fechas de registro
+    if (this.fechaDesdeFiltro || this.fechaHastaFiltro) {
+      const fechaDesde = this.fechaDesdeFiltro ? this.parseDateAtStart(this.fechaDesdeFiltro) : null;
+      const fechaHasta = this.fechaHastaFiltro ? this.parseDateAtEnd(this.fechaHastaFiltro) : null;
+
+      resultado = resultado.filter(solicitud => {
+        if (!solicitud.fechaSolicitud) return false;
+        const fechaRegistro = new Date(solicitud.fechaSolicitud);
+        if (Number.isNaN(fechaRegistro.getTime())) return false;
+
+        if (fechaDesde && fechaRegistro < fechaDesde) return false;
+        if (fechaHasta && fechaRegistro > fechaHasta) return false;
+        return true;
+      });
+    }
+
     this.solicitudesFiltradas = resultado;
     this.actualizarPaginacion();
     this.calcularEstadisticas();
@@ -206,7 +224,14 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   tieneFiltrosActivos(): boolean {
-    return !!(this.busqueda.trim() || this.estadoFiltro || this.empresaFiltro || this.responsableFiltro);
+    return !!(
+      this.busqueda.trim() ||
+      this.estadoFiltro ||
+      this.empresaFiltro ||
+      this.responsableFiltro ||
+      this.fechaDesdeFiltro ||
+      this.fechaHastaFiltro
+    );
   }
 
   get empresasDisponibles(): string[] {
@@ -243,6 +268,17 @@ export class RegistroSolicitudesComponent implements OnInit {
   onFiltrarResponsable(): void {
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
+  }
+
+  onFiltrarRangoFechas(): void {
+    this.paginacionConfig.paginaActual = 0;
+    this.aplicarFiltros();
+  }
+
+  limpiarFiltroFechas(): void {
+    this.fechaDesdeFiltro = '';
+    this.fechaHastaFiltro = '';
+    this.onFiltrarRangoFechas();
   }
 
   onCambioTamano(nuevoTamano: number): void {
@@ -662,5 +698,17 @@ export class RegistroSolicitudesComponent implements OnInit {
     window.localStorage.setItem(storageKey, String(siguienteId));
 
     return siguienteId;
+  }
+
+  private parseDateAtStart(dateInput: string): Date {
+    const fecha = new Date(dateInput);
+    fecha.setHours(0, 0, 0, 0);
+    return fecha;
+  }
+
+  private parseDateAtEnd(dateInput: string): Date {
+    const fecha = new Date(dateInput);
+    fecha.setHours(23, 59, 59, 999);
+    return fecha;
   }
 }

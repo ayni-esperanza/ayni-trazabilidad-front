@@ -54,6 +54,15 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'alertas',
+    loadComponent: () =>
+      import('./features/alertas/alertas.component').then(
+        (m) => m.AlertasComponent,
+      ),
+    title: 'Alertas - AYNI Trazabilidad',
+    canActivate: [authGuard],
+  },
+  {
     path: 'gestion-usuarios',
     loadComponent: () =>
       import('./features/gestion-usuarios/gestion-usuarios.component').then(

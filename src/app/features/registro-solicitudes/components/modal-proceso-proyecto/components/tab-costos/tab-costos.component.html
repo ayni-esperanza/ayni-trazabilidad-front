@@ -82,6 +82,7 @@
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Unit.</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Total</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Encargado</th>
+              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Dep. Actividad</th>
               <th class="py-1.5 px-2 w-8"></th>
             </tr>
           </thead>
@@ -120,6 +121,13 @@
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
+                <select [(ngModel)]="mat.dependenciaActividadId"
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
+                  <option [ngValue]="null">Sin dependencia</option>
+                  <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>
+                </select>
+              </td>
+              <td class="py-1 px-1">
                 <button (click)="eliminarMaterial(mat.id)" class="text-red-500 hover:text-red-700">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -128,7 +136,7 @@
               </td>
             </tr>
             <tr *ngIf="materiales.length === 0">
-              <td colspan="8" class="py-3 text-center text-gray-400 text-xs">No hay materiales registrados</td>
+              <td colspan="9" class="py-3 text-center text-gray-400 text-xs">No hay materiales registrados</td>
             </tr>
           </tbody>
         </table>
@@ -160,6 +168,7 @@
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Días Trabajando</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo por Día</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Total</th>
+              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Dep. Actividad</th>
               <th class="py-1.5 px-2 w-8"></th>
             </tr>
           </thead>
@@ -187,6 +196,13 @@
                 </span>
               </td>
               <td class="py-1 px-1">
+                <select [(ngModel)]="mo.dependenciaActividadId"
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
+                  <option [ngValue]="null">Sin dependencia</option>
+                  <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>
+                </select>
+              </td>
+              <td class="py-1 px-1">
                 <button (click)="eliminarManoObra(mo.id)" class="text-red-500 hover:text-red-700">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -195,7 +211,7 @@
               </td>
             </tr>
             <tr *ngIf="manoObra.length === 0">
-              <td colspan="6" class="py-3 text-center text-gray-400 text-xs">No hay mano de obra registrada</td>
+              <td colspan="7" class="py-3 text-center text-gray-400 text-xs">No hay mano de obra registrada</td>
             </tr>
           </tbody>
         </table>
@@ -247,6 +263,7 @@
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Unit.</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Total</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Encargado</th>
+                  <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Dep. Actividad</th>
                   <th class="py-1.5 px-2 w-8"></th>
                 </tr>
               </thead>
@@ -281,6 +298,13 @@
                       class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
                   </td>
                   <td class="py-1 px-1">
+                    <select [(ngModel)]="item.dependenciaActividadId"
+                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
+                      <option [ngValue]="null">Sin dependencia</option>
+                      <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>
+                    </select>
+                  </td>
+                  <td class="py-1 px-1">
                     <button (click)="eliminarItemOtroCosto(tabla, item.id)" class="text-red-500 hover:text-red-700">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -289,7 +313,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="tabla.items.length === 0">
-                  <td colspan="7" class="py-3 text-center text-gray-400 text-xs">No hay items registrados</td>
+                  <td colspan="8" class="py-3 text-center text-gray-400 text-xs">No hay items registrados</td>
                 </tr>
               </tbody>
             </table>

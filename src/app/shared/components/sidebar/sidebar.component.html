@@ -80,11 +80,22 @@
     <!-- Alerts -->
     <a 
       routerLink="/alertas"
-      class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+      routerLinkActive="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+      class="relative flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
       [class.justify-center]="!isExpanded()">
       <span class="text-lg">🔔</span>
+      @if (!isExpanded() && alertasPendientes() > 0) {
+        <span class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+          {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
+        </span>
+      }
       @if (isExpanded()) {
         <span class="text-xs font-medium">Alertas</span>
+        @if (alertasPendientes() > 0) {
+          <span class="ml-auto min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] leading-5 text-center font-semibold">
+            {{ alertasPendientes() > 99 ? '99+' : alertasPendientes() }}
+          </span>
+        }
       }
     </a>
 

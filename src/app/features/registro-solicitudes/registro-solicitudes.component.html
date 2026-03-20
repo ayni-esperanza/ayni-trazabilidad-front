@@ -118,6 +118,25 @@
         <option value="">Todos los Responsables</option>
         <option *ngFor="let responsable of responsables" [value]="responsable.id">{{ responsable.nombre }}</option>
       </select>
+      <input
+        type="date"
+        [(ngModel)]="fechaDesdeFiltro"
+        (change)="onFiltrarRangoFechas()"
+        class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
+        title="Fecha desde">
+      <input
+        type="date"
+        [(ngModel)]="fechaHastaFiltro"
+        (change)="onFiltrarRangoFechas()"
+        class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
+        title="Fecha hasta">
+      <button
+        *ngIf="fechaDesdeFiltro || fechaHastaFiltro"
+        type="button"
+        (click)="limpiarFiltroFechas()"
+        class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap">
+        Limpiar fechas
+      </button>
     </div>
   </div>
 

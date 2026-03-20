@@ -20,6 +20,7 @@ export interface MaterialCosto {
   costoUnitario: number | null;
   costoTotal: number;
   encargado: string;
+  dependenciaActividadId?: number | null;
 }
 
 export interface ManoObraCosto {
@@ -29,6 +30,7 @@ export interface ManoObraCosto {
   diasTrabajando: number | null;
   costoPorDia: number | null;
   costoTotal: number;
+  dependenciaActividadId?: number | null;
 }
 
 export interface OtroCosto {
@@ -39,6 +41,12 @@ export interface OtroCosto {
   costoUnitario: number | null;
   costoTotal: number;
   encargado: string;
+  dependenciaActividadId?: number | null;
+}
+
+export interface ActividadCostoOption {
+  id: number;
+  nombre: string;
 }
 
 export interface TablaCostoExtra {
@@ -525,6 +533,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tipo: 'tarea',
       posicionX: posicionInicial.x,
       posicionY: posicionInicial.y,
+      estadoActividad: 'Pendiente',
+      fechaCambioEstado: new Date().toISOString(),
       responsableId: undefined,
       fechaInicio: undefined,
       fechaFin: undefined,
@@ -570,6 +580,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         ...nodoActual,
         nombre: actividad.nombre,
         tipo: 'tarea',
+        estadoActividad: nodoActual.estadoActividad || 'Pendiente',
+        fechaCambioEstado: nodoActual.fechaCambioEstado || new Date().toISOString(),
         responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
         fechaInicio: actividad.fechaInicio || nodoActual.fechaInicio || fechaActualizacion,
         fechaFin: fechaActualizacion,
@@ -586,6 +598,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tipo: 'tarea',
         posicionX: posicionInicial.x,
         posicionY: posicionInicial.y,
+        estadoActividad: 'Pendiente',
+        fechaCambioEstado: new Date().toISOString(),
         responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
         fechaInicio: actividad.fechaInicio || fechaActualizacion,
         fechaFin: fechaActualizacion,
@@ -644,6 +658,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onFlujoActualizado(nodosActualizados: FlujoNodo[]): void {
     this.flujoNodos = nodosActualizados.map(nodo => ({
       ...nodo,
+      estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
+      fechaCambioEstado: nodo.fechaCambioEstado,
       siguientesIds: [...nodo.siguientesIds]
     }));
     this.persistirFlujoProyecto();
@@ -664,6 +680,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.proyecto.flujo = {
         nodos: flujoGuardado.nodos.map(nodo => ({
           ...nodo,
+          estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
+          fechaCambioEstado: nodo.fechaCambioEstado,
           siguientesIds: [...(nodo.siguientesIds || [])]
         }))
       };
@@ -681,7 +699,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         ]
       };
     }
-    this.flujoNodos = [...this.proyecto.flujo.nodos];
+    this.flujoNodos = this.proyecto.flujo.nodos.map(nodo => ({
+      ...nodo,
+      estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
+      fechaCambioEstado: nodo.fechaCambioEstado,
+      siguientesIds: [...(nodo.siguientesIds || [])]
+    }));
   }
 
   private persistirFlujoProyecto(): void {
@@ -716,6 +739,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }));
 
     window.localStorage.setItem(storageKey, JSON.stringify({ nodos: serializable }));
+    window.dispatchEvent(new CustomEvent('ayni-alertas-updated'));
   }
 
   private cargarFlujoDesdeLocalStorage(): { nodos: FlujoNodo[] } | null {
@@ -794,7 +818,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         dataUrl: a.dataUrl,
         archivo: (a as any).archivo
       })),
-      estado: 'pendiente'
+      estado: nodo.estadoActividad || 'Pendiente'
     };
   }
 
@@ -896,6 +920,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     return ordenados.filter(n => n.tipo !== 'inicio');
+  }
+
+  get actividadesDisponiblesCostos(): ActividadCostoOption[] {
+    return this.flujoNodos
+      .filter(nodo => nodo.tipo === 'tarea')
+      .map(nodo => ({
+        id: nodo.id,
+        nombre: nodo.nombre || `Actividad ${nodo.id}`
+      }));
   }
 
   get totalAdjuntosResumen(): number {

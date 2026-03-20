@@ -1,9 +1,10 @@
-import { Component, signal, inject, HostListener, ElementRef } from '@angular/core';
+import { Component, signal, inject, HostListener, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { trigger, state, style, transition, animate, query, stagger } from '@angular/animations';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AlertasActividadesService } from '../../../core/services/alertas-actividades.service';
 import { filter } from 'rxjs/operators';
 
 interface MenuItem {
@@ -47,16 +48,19 @@ interface MenuItem {
     ])
   ]
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   protected themeService = inject(ThemeService);
   protected authService = inject(AuthService);
+  private alertasService = inject(AlertasActividadesService);
   private elementRef = inject(ElementRef);
   private router = inject(Router);
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
   
   isExpanded = signal(true);
   showUserMenu = signal(false);
   currentRoute = signal('');
   animationState = signal<Record<string, string>>({});
+  alertasPendientes = signal(0);
 
   constructor() {
     this.router.events.pipe(
@@ -64,7 +68,27 @@ export class SidebarComponent {
     ).subscribe((event: NavigationEnd) => {
       this.currentRoute.set(event.urlAfterRedirects);
       this.triggerRouteAnimation(event.urlAfterRedirects);
+      this.actualizarAlertasPendientes();
     });
+  }
+
+  ngOnInit(): void {
+    this.currentRoute.set(this.router.url);
+    this.triggerRouteAnimation(this.router.url);
+    this.actualizarAlertasPendientes();
+
+    if (typeof window !== 'undefined') {
+      this.refreshTimer = setInterval(() => {
+        this.actualizarAlertasPendientes();
+      }, 60_000);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    }
   }
 
   private triggerRouteAnimation(route: string): void {
@@ -112,6 +136,15 @@ export class SidebarComponent {
 
   getUserName(): string {
     return this.authService.getUserFullName() || 'Admin';
+  }
+
+  @HostListener('window:ayni-alertas-updated')
+  onAlertasUpdated(): void {
+    this.actualizarAlertasPendientes();
+  }
+
+  private actualizarAlertasPendientes(): void {
+    this.alertasPendientes.set(this.alertasService.obtenerAlertas().length);
   }
 
   // Cerrar el menú al hacer clic fuera
