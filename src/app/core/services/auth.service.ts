@@ -42,17 +42,18 @@ export class AuthService {
   private readonly storageKey = 'currentUser';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  private apiUrl = environment.apiUrl;
+  private apiUrl = `${environment.apiUrl}/v1/auth`;
   private platformId = inject(PLATFORM_ID);
 
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
-    // Verificar primero en localStorage, luego en sessionStorage (solo en el navegador)
     let storedUser: string | null = null;
     if (isPlatformBrowser(this.platformId)) {
-      storedUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      storedUser =
+        localStorage.getItem(this.storageKey) ||
+        sessionStorage.getItem(this.storageKey);
     }
     this.currentUserSubject = new BehaviorSubject<User | null>(
       this.parseStoredUser(storedUser)
@@ -111,14 +112,13 @@ export class AuthService {
   }
 
   private setUser(user: User, rememberMe: boolean): void {
-    // Solo guardar en storage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
-      // Siempre guardar en sessionStorage para la sesión actual
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Si rememberMe está activo, también guardar en localStorage para persistir
+      sessionStorage.setItem(this.storageKey, JSON.stringify(user));
+
       if (rememberMe) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem(this.storageKey, JSON.stringify(user));
+      } else {
+        localStorage.removeItem(this.storageKey);
       }
     }
 
@@ -126,12 +126,7 @@ export class AuthService {
   }
 
   logout(): void {
-    // Eliminar usuario del almacenamiento (solo en el navegador)
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('currentUser');
-      sessionStorage.removeItem('currentUser');
-    }
-    this.currentUserSubject.next(null);
+    this.clearSession();
     this.router.navigate(['/login']);
   }
 
