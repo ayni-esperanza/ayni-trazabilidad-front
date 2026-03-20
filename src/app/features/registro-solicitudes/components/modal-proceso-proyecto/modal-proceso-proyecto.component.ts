@@ -896,6 +896,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.tablasCostosExtras.reduce((sum, t) => sum + t.items.reduce((s, i) => s + i.costoTotal, 0), 0);
   }
 
+  get otrosCostosItems(): OtroCosto[] {
+    return this.tablasCostosExtras.flatMap(tabla => tabla.items);
+  }
+
   get totalCostosGeneral(): number {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
   }

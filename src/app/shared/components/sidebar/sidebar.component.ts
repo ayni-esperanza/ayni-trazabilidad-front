@@ -4,7 +4,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { trigger, state, style, transition, animate, query, stagger } from '@angular/animations';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { AlertasActividadesService } from '../../../core/services/alertas-actividades.service';
+import { AlertasActividadesService, AlertaActividadGlobal } from '../../../core/services/alertas-actividades.service';
 import { filter } from 'rxjs/operators';
 
 interface MenuItem {
@@ -61,6 +61,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   currentRoute = signal('');
   animationState = signal<Record<string, string>>({});
   alertasPendientes = signal(0);
+  mostrarModalAlertas = signal(false);
+  alertasRecientes = signal<AlertaActividadGlobal[]>([]);
 
   constructor() {
     this.router.events.pipe(
@@ -141,10 +143,38 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @HostListener('window:ayni-alertas-updated')
   onAlertasUpdated(): void {
     this.actualizarAlertasPendientes();
+    if (this.mostrarModalAlertas()) {
+      this.actualizarAlertasRecientes();
+    }
   }
 
   private actualizarAlertasPendientes(): void {
     this.alertasPendientes.set(this.alertasService.obtenerAlertas().length);
+  }
+
+  toggleModalAlertas(event: MouseEvent): void {
+    event.stopPropagation();
+    const nuevoEstado = !this.mostrarModalAlertas();
+    this.mostrarModalAlertas.set(nuevoEstado);
+    if (nuevoEstado) {
+      this.actualizarAlertasRecientes();
+    }
+  }
+
+  verTodasAlertas(): void {
+    this.mostrarModalAlertas.set(false);
+    this.router.navigate(['/alertas']);
+  }
+
+  getClaseAlerta(alerta: AlertaActividadGlobal): string {
+    return alerta.nivel === 'alta'
+      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300'
+      : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300';
+  }
+
+  private actualizarAlertasRecientes(): void {
+    const alertas = this.alertasService.obtenerAlertas();
+    this.alertasRecientes.set(alertas.slice(0, 5));
   }
 
   // Cerrar el menú al hacer clic fuera
@@ -153,6 +183,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const userMenuElement = this.elementRef.nativeElement.querySelector('.user-menu-container');
     if (userMenuElement && !userMenuElement.contains(event.target)) {
       this.showUserMenu.set(false);
+    }
+
+    const alertasElement = this.elementRef.nativeElement.querySelector('.alertas-menu-container');
+    if (alertasElement && !alertasElement.contains(event.target)) {
+      this.mostrarModalAlertas.set(false);
     }
   }
 }

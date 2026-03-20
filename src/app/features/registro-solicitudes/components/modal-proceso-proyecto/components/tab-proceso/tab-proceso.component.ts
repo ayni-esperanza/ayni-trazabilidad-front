@@ -14,6 +14,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
   @Input() flujoNodos: FlujoNodo[] = [];
+  @Input() costosMateriales: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
+  @Input() costosManoObra: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
+  @Input() costosOtros: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
 
   @Output() abrirNodoEvt = new EventEmitter<FlujoNodo>();
   @Output() crearActividadDesdeBpmnEvt = new EventEmitter<{ nombre: string; nodoOrigenId?: number }>();
@@ -112,6 +115,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     if (estadoActual === nuevoEstado && nodo.fechaCambioEstado) return;
 
     const fechaCambioEstado = new Date().toISOString();
+
+    nodo.estadoActividad = nuevoEstado;
+    nodo.fechaCambioEstado = fechaCambioEstado;
+
     const flujoActualizado = this.flujoNodos.map(item =>
       item.id === nodo.id
         ? { ...item, estadoActividad: nuevoEstado, fechaCambioEstado }
@@ -134,6 +141,29 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   getClaseAlerta(): string {
     return '';
+  }
+
+  getCostoDependenciaActividad(nodoId: number): number {
+    return this.obtenerCostoPorDependencia(this.costosMateriales, nodoId)
+      + this.obtenerCostoPorDependencia(this.costosManoObra, nodoId)
+      + this.obtenerCostoPorDependencia(this.costosOtros, nodoId);
+  }
+
+  private obtenerCostoPorDependencia(
+    items: Array<{ dependenciaActividadId?: number | null; costoTotal: number }>,
+    nodoId: number
+  ): number {
+    return items.reduce((total, item) => {
+      const dependenciaId = this.normalizarDependenciaId(item.dependenciaActividadId);
+      if (dependenciaId !== nodoId) return total;
+      return total + (Number(item.costoTotal) || 0);
+    }, 0);
+  }
+
+  private normalizarDependenciaId(valor: number | string | null | undefined): number | null {
+    if (valor === null || valor === undefined || valor === '') return null;
+    const id = Number(valor);
+    return Number.isFinite(id) ? id : null;
   }
 
   formatearDescripcionDetalle(descripcion?: string): string {

@@ -78,26 +78,65 @@
     </button>
 
     <!-- Alerts -->
-    <a 
-      routerLink="/alertas"
-      routerLinkActive="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
-      class="relative flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-      [class.justify-center]="!isExpanded()">
-      <span class="text-lg">🔔</span>
-      @if (!isExpanded() && alertasPendientes() > 0) {
-        <span class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
-          {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
-        </span>
-      }
-      @if (isExpanded()) {
-        <span class="text-xs font-medium">Alertas</span>
-        @if (alertasPendientes() > 0) {
-          <span class="ml-auto min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] leading-5 text-center font-semibold">
-            {{ alertasPendientes() > 99 ? '99+' : alertasPendientes() }}
+    <div class="relative alertas-menu-container">
+      <button
+        type="button"
+        (click)="toggleModalAlertas($event)"
+        class="relative flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+        [class.justify-center]="!isExpanded()"
+        [ngClass]="{
+          'bg-amber-50': mostrarModalAlertas(),
+          'dark:bg-amber-900/30': mostrarModalAlertas(),
+          'text-amber-700': mostrarModalAlertas(),
+          'dark:text-amber-300': mostrarModalAlertas()
+        }">
+        <span class="text-lg">🔔</span>
+        @if (!isExpanded() && alertasPendientes() > 0) {
+          <span class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
+            {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
           </span>
         }
+        @if (isExpanded()) {
+          <span class="text-xs font-medium">Alertas</span>
+          @if (alertasPendientes() > 0) {
+            <span class="ml-auto min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] leading-5 text-center font-semibold">
+              {{ alertasPendientes() > 99 ? '99+' : alertasPendientes() }}
+            </span>
+          }
+        }
+      </button>
+
+      @if (mostrarModalAlertas()) {
+        <div
+          class="absolute left-full bottom-0 ml-2 z-50 w-80 max-w-[calc(100vw-5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-2.5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-100">Alertas recientes</p>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400">{{ alertasPendientes() }}</span>
+          </div>
+
+          <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+            @if (alertasRecientes().length > 0) {
+              @for (alerta of alertasRecientes(); track alerta.proyectoId + '-' + alerta.nodoId) {
+                <div class="rounded-md border px-2 py-1.5" [ngClass]="getClaseAlerta(alerta)">
+                  <p class="text-[11px] font-semibold truncate">{{ alerta.nombreActividad }}</p>
+                  <p class="text-[10px] opacity-90">Proyecto #{{ alerta.proyectoId }} · {{ alerta.estado }}</p>
+                  <p class="text-[10px] opacity-90 truncate">{{ alerta.mensaje }}</p>
+                </div>
+              }
+            } @else {
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 text-center py-4">No hay alertas activas.</p>
+            }
+          </div>
+
+          <button
+            type="button"
+            (click)="verTodasAlertas()"
+            class="mt-2 w-full text-center text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+            Ver todas
+          </button>
+        </div>
       }
-    </a>
+    </div>
 
     <!-- User Profile -->
     <div class="relative user-menu-container">
