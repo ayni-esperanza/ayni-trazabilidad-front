@@ -125,6 +125,15 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   // Gastos por proyecto (para vista de gastos)
   gastosProyectos: GastoProyecto[] = [];
   gastosFiltrados: GastoProyecto[] = [];
+
+  readonly areasCatalogo: string[] = [
+    'Metalmecanica',
+    'Mecanica',
+    'Fibra',
+    'Electrico',
+    'Lineas de vida',
+    'Sistemas'
+  ];
   
   /**
    * Obtiene la lista de empresas únicas de los proyectos (filtrados por métrica actual)
@@ -153,6 +162,39 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
+   * Obtiene las áreas únicas según la métrica actual
+   */
+  get areasDisponibles(): string[] {
+    return [...this.areasCatalogo];
+  }
+
+  private obtenerAreaProyecto(proyecto: ProyectoEnCurso): string | null {
+    if (proyecto.area?.trim()) return this.normalizarArea(proyecto.area);
+
+    const etapa = (proyecto.etapa || '').toLowerCase();
+    if (etapa.includes('fibra') || etapa.includes('cableado')) return 'Fibra';
+    if (etapa.includes('electri') || etapa.includes('plc') || etapa.includes('scada') || etapa.includes('hmi') || etapa.includes('panel') || etapa.includes('subest')) return 'Electrico';
+    if (etapa.includes('linea de vida') || etapa.includes('seguridad')) return 'Lineas de vida';
+    if (etapa.includes('metal') || etapa.includes('estructura') || etapa.includes('soldad')) return 'Metalmecanica';
+    if (etapa.includes('manten') || etapa.includes('mecanic') || etapa.includes('diagn') || etapa.includes('montaje')) return 'Mecanica';
+    return 'Sistemas';
+  }
+
+  private normalizarArea(area: string): string {
+    const valor = (area || '').trim().toLowerCase();
+    if (!valor) return 'Sistemas';
+
+    if (valor.includes('fibra')) return 'Fibra';
+    if (valor.includes('electr') || valor.includes('plc') || valor.includes('scada') || valor.includes('hmi')) return 'Electrico';
+    if (valor.includes('linea') || valor.includes('vida') || valor.includes('seguridad')) return 'Lineas de vida';
+    if (valor.includes('metal')) return 'Metalmecanica';
+    if (valor.includes('mecanic') || valor.includes('manten') || valor.includes('operac')) return 'Mecanica';
+    if (valor.includes('sistema') || valor.includes('ti') || valor.includes('ingenier') || valor.includes('calidad') || valor.includes('logistica') || valor.includes('finanza') || valor.includes('comercial')) return 'Sistemas';
+
+    return 'Sistemas';
+  }
+
+  /**
    * Obtiene los estados disponibles según la métrica actual
    */
   get estadosFinalizadosDisponibles(): string[] {
@@ -177,6 +219,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   empresaSeleccionada: string | null = null;
   // Filtros adicionales para proyectos finalizados
   lugarSeleccionado: string | null = null;
+  areaSeleccionada: string | null = null;
   estadoProyecto: string | null = null;
   fechaDesde: string | null = null;
   fechaHasta: string | null = null;
@@ -223,6 +266,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.proyectoSeleccionado = null;
     this.empresaSeleccionada = null;
     this.lugarSeleccionado = null;
+    this.areaSeleccionada = null;
     this.estadoProyecto = null;
     this.fechaDesde = null;
     this.fechaHasta = null;
@@ -320,6 +364,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.categoriaSeleccionada = null;
     this.empresaSeleccionada = null;
     this.lugarSeleccionado = null;
+    this.areaSeleccionada = null;
     this.estadoProyecto = null;
     this.fechaDesde = null;
     this.fechaHasta = null;
@@ -337,6 +382,12 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
 
   onLugarChange(lugar: string | null): void {
     this.lugarSeleccionado = lugar;
+    this.proyectoSeleccionado = null;
+    this.aplicarFiltros();
+  }
+
+  onAreaChange(area: string | null): void {
+    this.areaSeleccionada = area;
     this.proyectoSeleccionado = null;
     this.aplicarFiltros();
   }
@@ -447,6 +498,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     this.categoriaSeleccionada = null;
     this.empresaSeleccionada = null;
     this.lugarSeleccionado = null;
+    this.areaSeleccionada = null;
     this.estadoProyecto = null;
     this.fechaDesde = null;
     this.fechaHasta = null;
@@ -484,6 +536,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtros adicionales (aplican a las 3 métricas)
     if (this.lugarSeleccionado) {
       proyectosFiltrados = proyectosFiltrados.filter(p => p.lugar === this.lugarSeleccionado);
+    }
+    if (this.areaSeleccionada) {
+      proyectosFiltrados = proyectosFiltrados.filter(p => this.obtenerAreaProyecto(p) === this.areaSeleccionada);
     }
     if (this.estadoProyecto) {
       proyectosFiltrados = proyectosFiltrados.filter(p => p.estado === this.estadoProyecto);

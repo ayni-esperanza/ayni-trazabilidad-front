@@ -62,6 +62,17 @@
         }
       </select>
 
+      <!-- Filtro Área -->
+      <select
+        [ngModel]="areaSeleccionada"
+        (ngModelChange)="onAreaChange($event)"
+        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[120px] max-w-[160px]">
+        <option [ngValue]="null">Todas las áreas</option>
+        @for (area of areas; track area) {
+          <option [ngValue]="area">{{ area }}</option>
+        }
+      </select>
+
       <!-- Filtro Fecha Desde -->
       <div class="flex items-center gap-1">
         <span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Desde:</span>

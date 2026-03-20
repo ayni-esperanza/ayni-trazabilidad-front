@@ -145,11 +145,11 @@ export class TableroControlService {
     // return this.http.get<ProyectoEnCurso[]>(`${this.API_URL}/proyectos-en-curso`);
     
     return of([
-      { id: 1, proyecto: 'Línea Producción Textil', empresa: 'HidroPerú Ingeniería S.A.', responsable: 'Juan Pérez', etapa: 'Ingeniería', fechas: '15/01 - 30/03', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 45000, lugar: 'Lima' },
-      { id: 2, proyecto: 'Sistema Ventilación Industrial', empresa: 'Industrias del Sur S.R.L.', responsable: 'María García', etapa: 'Instalación', fechas: '20/01 - 15/04', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 32000, lugar: 'Callao' },
-      { id: 3, proyecto: 'Diseño Puente Vehicular', empresa: 'Textilera del Pacífico S.A.C.', responsable: 'Carlos López', etapa: 'Cálculo Estructural', fechas: '01/02 - 28/02', estado: 'Completado' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 28000, lugar: 'Arequipa' },
-      { id: 4, proyecto: 'Mantenimiento Maquinaria', empresa: 'Industrias del Sur S.R.L.', responsable: 'Ana Martínez', etapa: 'Diagnóstico', fechas: '05/02 - 20/03', estado: 'En Proceso' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 15500, lugar: 'Pasco' },
-      { id: 5, proyecto: 'Sistema Automatización', empresa: 'Industrias del Sur S.R.L.', responsable: 'Pedro Sánchez', etapa: 'Diseño', fechas: '10/02 - 30/04', estado: 'Pendiente' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 22000, lugar: 'Callao' }
+      { id: 1, proyecto: 'Línea Producción Textil', empresa: 'HidroPerú Ingeniería S.A.', responsable: 'Juan Pérez', etapa: 'Ingeniería', fechas: '15/01 - 30/03', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-15'), gastoTotal: 45000, lugar: 'Lima', area: 'Metalmecanica' },
+      { id: 2, proyecto: 'Sistema Ventilación Industrial', empresa: 'Industrias del Sur S.R.L.', responsable: 'María García', etapa: 'Instalación', fechas: '20/01 - 15/04', estado: 'En Proceso' as const, mes: 'Ene', fechaCreacion: new Date('2026-01-20'), gastoTotal: 32000, lugar: 'Callao', area: 'Mecanica' },
+      { id: 3, proyecto: 'Diseño Puente Vehicular', empresa: 'Textilera del Pacífico S.A.C.', responsable: 'Carlos López', etapa: 'Cálculo Estructural', fechas: '01/02 - 28/02', estado: 'Completado' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-01'), gastoTotal: 28000, lugar: 'Arequipa', area: 'Metalmecanica' },
+      { id: 4, proyecto: 'Mantenimiento Maquinaria', empresa: 'Industrias del Sur S.R.L.', responsable: 'Ana Martínez', etapa: 'Diagnóstico', fechas: '05/02 - 20/03', estado: 'En Proceso' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-05'), gastoTotal: 15500, lugar: 'Pasco', area: 'Mecanica' },
+      { id: 5, proyecto: 'Sistema Automatización', empresa: 'Industrias del Sur S.R.L.', responsable: 'Pedro Sánchez', etapa: 'Diseño', fechas: '10/02 - 30/04', estado: 'Pendiente' as const, mes: 'Feb', fechaCreacion: new Date('2026-02-10'), gastoTotal: 22000, lugar: 'Callao', area: 'Sistemas' }
     ]).pipe(delay(100));
   }
 

@@ -14,6 +14,7 @@ export interface ProyectoEnCurso {
   fechaCreacion: Date;
   gastoTotal?: number; // Para vista de gastos
   lugar?: string;      // Ubicación/ciudad del proyecto
+  area?: string;       // Área principal del proyecto
 }
 
 export interface TareaEncargado {

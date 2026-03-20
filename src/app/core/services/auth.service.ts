@@ -27,7 +27,7 @@ interface AuthApiResponse {
   expiresIn: number;
   usuario: {
     id: number;
-    username: string;
+    username                                                      : string;
     email: string;
     nombre: string;
     apellido: string;

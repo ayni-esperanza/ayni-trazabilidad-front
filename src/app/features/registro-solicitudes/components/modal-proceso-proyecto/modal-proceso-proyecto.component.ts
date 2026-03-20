@@ -131,6 +131,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     nombreProyecto: '',
     cliente: '',
     representante: '',
+    areas: [] as string[],
     ordenesCompra: [] as OrdenCompra[],
     costo: 0,
     procesoId: 0,
@@ -498,6 +499,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombreProyecto: this.proyecto.nombreProyecto,
       cliente: this.proyecto.cliente,
       representante: this.proyecto.representante || '',
+      areas: [...(this.proyecto.areas || [])],
       ordenesCompra: (this.proyecto.ordenesCompra || []).map(o => ({
         ...o,
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
@@ -857,6 +859,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
     this.proyecto.representante = this.proyectoInfoForm.representante;
+    this.proyecto.areas = [...(this.proyectoInfoForm.areas || [])];
     this.proyecto.ordenesCompra = this.proyectoInfoForm.ordenesCompra.filter(o => o.numero.trim()).map(o => ({ ...o }));
     this.proyecto.costo = Number(this.proyectoInfoForm.costo);
     this.proyecto.procesoId = Number(this.proyectoInfoForm.procesoId);

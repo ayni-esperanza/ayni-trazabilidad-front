@@ -25,8 +25,10 @@ export class ProyectosTablaCardComponent {
 
   // Filtros adicionales para la vista de finalizados
   @Input() lugares: string[] = [];
+  @Input() areas: string[] = [];
   @Input() estadosDisponibles: string[] = [];
   @Input() lugarSeleccionado: string | null = null;
+  @Input() areaSeleccionada: string | null = null;
   @Input() estadoProyecto: string | null = null;
   @Input() fechaDesde: string | null = null;
   @Input() fechaHasta: string | null = null;
@@ -36,6 +38,7 @@ export class ProyectosTablaCardComponent {
   @Output() selectProyecto = new EventEmitter<ProyectoEnCurso>();
   @Output() empresaSeleccionadaChange = new EventEmitter<string | null>();
   @Output() lugarSeleccionadoChange = new EventEmitter<string | null>();
+  @Output() areaSeleccionadaChange = new EventEmitter<string | null>();
   @Output() estadoProyectoChange = new EventEmitter<string | null>();
   @Output() fechaDesdeChange = new EventEmitter<string | null>();
   @Output() fechaHastaChange = new EventEmitter<string | null>();
@@ -56,6 +59,10 @@ export class ProyectosTablaCardComponent {
     this.lugarSeleccionadoChange.emit(lugar);
   }
 
+  onAreaChange(area: string | null): void {
+    this.areaSeleccionadaChange.emit(area);
+  }
+
   onEstadoProyectoChange(estado: string | null): void {
     this.estadoProyectoChange.emit(estado);
   }
@@ -74,7 +81,7 @@ export class ProyectosTablaCardComponent {
 
   get hayFiltrosActivos(): boolean {
     return !!(this.mesSeleccionado || this.proyectoSeleccionado || this.empresaSeleccionada ||
-              this.lugarSeleccionado || this.estadoProyecto || this.fechaDesde || this.fechaHasta);
+              this.lugarSeleccionado || this.areaSeleccionada || this.estadoProyecto || this.fechaDesde || this.fechaHasta);
   }
   
   get tituloTabla(): string {

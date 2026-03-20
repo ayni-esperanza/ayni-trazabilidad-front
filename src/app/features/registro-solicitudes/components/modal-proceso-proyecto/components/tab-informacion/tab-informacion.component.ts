@@ -10,6 +10,7 @@ export type ProyectoInfoFormData = {
   nombreProyecto: string;
   cliente: string;
   representante: string;
+  areas: string[];
   ordenesCompra: OrdenCompra[];
   costo: number;
   procesoId: number;
@@ -45,6 +46,15 @@ export class TabInformacionComponent implements OnInit {
   ];
 
   readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
+  readonly areasDisponibles: string[] = [
+    'Metalmecanica',
+    'Mecanica',
+    'Fibra',
+    'Electrico',
+    'Lineas de vida',
+    'Sistemas'
+  ];
+  areaSeleccionadaParaAgregar = '';
 
   protected Editor: any;
   protected ckeditorConfig: any = {};
@@ -102,6 +112,30 @@ export class TabInformacionComponent implements OnInit {
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  get areasPendientesParaAgregar(): string[] {
+    const seleccionadas = new Set(this.proyectoInfoForm.areas || []);
+    return this.areasDisponibles.filter(area => !seleccionadas.has(area));
+  }
+
+  agregarAreaSeleccionada(): void {
+    const area = this.areaSeleccionadaParaAgregar;
+    if (!area) return;
+
+    if (!this.proyectoInfoForm.areas) {
+      this.proyectoInfoForm.areas = [];
+    }
+
+    if (!this.proyectoInfoForm.areas.includes(area)) {
+      this.proyectoInfoForm.areas = [...this.proyectoInfoForm.areas, area];
+    }
+
+    this.areaSeleccionadaParaAgregar = '';
+  }
+
+  quitarArea(area: string): void {
+    this.proyectoInfoForm.areas = (this.proyectoInfoForm.areas || []).filter(a => a !== area);
   }
 
 }

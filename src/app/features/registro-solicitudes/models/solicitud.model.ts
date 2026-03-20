@@ -48,6 +48,7 @@ export interface Solicitud {
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;
+  areas?: string[];
   ubicacion?: string;
   fechaSolicitud?: Date;
   fechaInicio?: Date | string;
@@ -67,6 +68,7 @@ export interface Proyecto {
   responsableId: number;
   responsableNombre?: string;
   descripcion: string;
+  areas?: string[];
   ubicacion?: string;
   fechaInicio: Date | string;
   fechaFinalizacion: Date | string;

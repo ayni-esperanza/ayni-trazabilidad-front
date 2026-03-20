@@ -50,8 +50,10 @@
       [proyectoSeleccionado]="proyectoSeleccionado"
       [tablaVisible]="tablaProyectosVisible"
       [lugares]="lugaresDisponibles"
+      [areas]="areasDisponibles"
       [estadosDisponibles]="estadosFinalizadosDisponibles"
       [lugarSeleccionado]="lugarSeleccionado"
+      [areaSeleccionada]="areaSeleccionada"
       [estadoProyecto]="estadoProyecto"
       [fechaDesde]="fechaDesde"
       [fechaHasta]="fechaHasta"
@@ -60,6 +62,7 @@
       (selectProyecto)="onSelectProyecto($event)"
       (empresaSeleccionadaChange)="onEmpresaChange($event)"
       (lugarSeleccionadoChange)="onLugarChange($event)"
+      (areaSeleccionadaChange)="onAreaChange($event)"
       (estadoProyectoChange)="onEstadoProyectoChange($event)"
       (fechaDesdeChange)="onFechaDesdeChange($event)"
       (fechaHastaChange)="onFechaHastaChange($event)">
