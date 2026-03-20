@@ -23,7 +23,7 @@ export class AlertasActividadesService {
     'En Proceso': { advertencia: 72, critica: 168 },
     Completado: null,
     Cancelado: null,
-    Retrasado: { advertencia: 24, critica: 72 }
+    Retrasado: { advertencia: 24, critica: 24 }
   };
 
   obtenerAlertas(): AlertaActividadGlobal[] {
@@ -74,6 +74,9 @@ export class AlertasActividadesService {
 
     const nivel: NivelAlertaActividad = horasSinCambio >= umbrales.critica ? 'alta' : 'media';
     const prefijo = nivel === 'alta' ? 'Urgente:' : 'Atencion:';
+    const mensajeEstado = estado === 'Retrasado'
+      ? `${prefijo} ${this.formatearTiempoSinCambio(horasSinCambio)} sin cambio de estado a Completado o Cancelado`
+      : `${prefijo} ${this.formatearTiempoSinCambio(horasSinCambio)} sin cambio de estado`;
 
     return {
       proyectoId,
@@ -82,7 +85,7 @@ export class AlertasActividadesService {
       estado,
       nivel,
       horasSinCambio,
-      mensaje: `${prefijo} ${this.formatearTiempoSinCambio(horasSinCambio)} sin cambio de estado`
+      mensaje: mensajeEstado
     };
   }
 

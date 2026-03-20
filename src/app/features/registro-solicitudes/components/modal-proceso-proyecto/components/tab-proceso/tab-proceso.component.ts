@@ -115,17 +115,26 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     if (estadoActual === nuevoEstado && nodo.fechaCambioEstado) return;
 
     const fechaCambioEstado = new Date().toISOString();
+    const indiceObjetivo = this.obtenerIndiceNodoObjetivo(nodo);
+    if (indiceObjetivo < 0) return;
 
     nodo.estadoActividad = nuevoEstado;
     nodo.fechaCambioEstado = fechaCambioEstado;
 
-    const flujoActualizado = this.flujoNodos.map(item =>
-      item.id === nodo.id
+    const flujoActualizado = this.flujoNodos.map((item, index) =>
+      index === indiceObjetivo
         ? { ...item, estadoActividad: nuevoEstado, fechaCambioEstado }
         : item
     );
 
     this.flujoActualizadoEvt.emit(flujoActualizado);
+  }
+
+  private obtenerIndiceNodoObjetivo(nodo: FlujoNodo): number {
+    const porReferencia = this.flujoNodos.findIndex(item => item === nodo);
+    if (porReferencia >= 0) return porReferencia;
+
+    return this.flujoNodos.findIndex(item => item.id === nodo.id && item.tipo === nodo.tipo);
   }
 
   getClaseEstadoActividad(estado: EstadoTarea): string {
