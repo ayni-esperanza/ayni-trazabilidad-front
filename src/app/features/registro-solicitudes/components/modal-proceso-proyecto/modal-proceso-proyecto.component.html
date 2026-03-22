@@ -410,7 +410,11 @@
 
 @if (mostrarVistaPreviaDocumento && documentoVistaPrevia) {
   <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4" (click)="cerrarVistaPreviaDocumento()">
-    <div class="w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700" (click)="$event.stopPropagation()">
+    <div
+      [ngClass]="esPdfDocumento(documentoVistaPrevia)
+        ? 'w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'
+        : 'w-auto max-w-[92vw] max-h-[92vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'"
+      (click)="$event.stopPropagation()">
       <div class="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ documentoVistaPrevia.nombre }}</h3>
         <button type="button" (click)="cerrarVistaPreviaDocumento()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
@@ -419,13 +423,15 @@
           </svg>
         </button>
       </div>
-      <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
-        @if (esPdfDocumento(documentoVistaPrevia)) {
+      @if (esPdfDocumento(documentoVistaPrevia)) {
+        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
           <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaDocumentoPdf()"></iframe>
-        } @else {
-          <img class="max-w-full max-h-full object-contain" [src]="obtenerFuenteVistaPreviaDocumentoImagen()" [alt]="documentoVistaPrevia.nombre" />
-        }
-      </div>
+        </div>
+      } @else {
+        <div class="bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
+          <img class="block w-auto h-auto max-w-[88vw] max-h-[78vh] object-contain" [src]="obtenerFuenteVistaPreviaDocumentoImagen()" [alt]="documentoVistaPrevia.nombre" />
+        </div>
+      }
     </div>
   </div>
 }

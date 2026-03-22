@@ -254,21 +254,30 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     if (!files?.length) return;
+    await this.agregarAdjuntosDesdeArchivos(Array.from(files));
+    input.value = '';
+  }
 
-    const nuevosAdjuntos: ArchivoAdjuntoActividad[] = [];
-    for (const file of Array.from(files)) {
-      const dataUrl = await this.convertirArchivoADataUrl(file);
-      nuevosAdjuntos.push({
-        nombre: file.name,
-        tipo: file.type,
-        tamano: file.size,
-        archivo: file,
-        dataUrl
-      });
+  @HostListener('document:paste', ['$event'])
+  async onPegarImagen(event: ClipboardEvent): Promise<void> {
+    if (!this.visible) return;
+
+    const clipboardItems = Array.from(event.clipboardData?.items || []);
+    if (!clipboardItems.length) return;
+
+    const imagenes = clipboardItems
+      .filter(item => item.type.startsWith('image/'))
+      .map(item => item.getAsFile())
+      .filter((file): file is File => file instanceof File);
+
+    if (!imagenes.length) return;
+
+    if (this.debePrevenirPegadoPorImagen(event, clipboardItems)) {
+      event.preventDefault();
     }
 
-    this.formData.archivosAdjuntos = [...this.formData.archivosAdjuntos, ...nuevosAdjuntos];
-    input.value = '';
+    const archivos = imagenes.map((file, index) => this.normalizarNombreArchivoPegado(file, index));
+    await this.agregarAdjuntosDesdeArchivos(archivos);
   }
 
   eliminarAdjunto(index: number): void {
@@ -360,6 +369,66 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       reader.onerror = () => reject(new Error('No se pudo leer el archivo adjunto'));
       reader.readAsDataURL(file);
     });
+  }
+
+  private async agregarAdjuntosDesdeArchivos(files: File[]): Promise<void> {
+    if (!files.length) return;
+
+    const nuevosAdjuntos: ArchivoAdjuntoActividad[] = [];
+    for (const file of files) {
+      const dataUrl = await this.convertirArchivoADataUrl(file);
+      nuevosAdjuntos.push({
+        nombre: file.name,
+        tipo: file.type,
+        tamano: file.size,
+        archivo: file,
+        dataUrl
+      });
+    }
+
+    this.formData.archivosAdjuntos = [...this.formData.archivosAdjuntos, ...nuevosAdjuntos];
+  }
+
+  private normalizarNombreArchivoPegado(file: File, index: number): File {
+    const extensionPorTipo: Record<string, string> = {
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/bmp': 'bmp'
+    };
+
+    const extension = extensionPorTipo[file.type] || 'png';
+    const fecha = new Date();
+    const marcaTiempo = [
+      fecha.getFullYear(),
+      String(fecha.getMonth() + 1).padStart(2, '0'),
+      String(fecha.getDate()).padStart(2, '0')
+    ].join('');
+    const hora = [
+      String(fecha.getHours()).padStart(2, '0'),
+      String(fecha.getMinutes()).padStart(2, '0'),
+      String(fecha.getSeconds()).padStart(2, '0')
+    ].join('');
+
+    const nombreLimpio = (file.name || '').trim();
+    const requiereNombreGenerado = !nombreLimpio || nombreLimpio === 'image.png' || nombreLimpio === 'image.jpg';
+    const nombreFinal = requiereNombreGenerado
+      ? `imagen-pegada-${marcaTiempo}-${hora}-${index + 1}.${extension}`
+      : nombreLimpio;
+
+    return new File([file], nombreFinal, { type: file.type || 'image/png' });
+  }
+
+  private debePrevenirPegadoPorImagen(event: ClipboardEvent, items: DataTransferItem[]): boolean {
+    if (!event.target || !(event.target instanceof Element)) return false;
+
+    const target = event.target as Element;
+    const pegandoEnInputTexto = target.closest('input[type="text"], input[type="search"], input[type="email"], textarea, [contenteditable="true"], .ck-editor__editable');
+    const tieneContenidoNoImagen = items.some(item => item.kind === 'string');
+
+    return !!pegandoEnInputTexto && !tieneContenidoNoImagen;
   }
 
   private liberarFuenteVistaPrevia(): void {

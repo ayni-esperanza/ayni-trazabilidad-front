@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild, ElementRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea } from '../../../../models/solicitud.model';
 
 @Component({
@@ -27,6 +28,12 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   // Compatibilidad defensiva para plantillas previas en hot-reload.
   readonly alertasActividades: unknown[] = [];
 
+  mostrarVistaPreviaAdjunto = false;
+  adjuntoVistaPreviaNombre = '';
+  fuenteVistaPreviaAdjunto = '';
+  private fuenteVistaPreviaAdjuntoEsBlob = false;
+  private adjuntoVistaPreviaEsPdf = false;
+
   @ViewChild('bpmnCanvas', { static: false }) bpmnCanvas?: ElementRef<HTMLDivElement>;
 
   private bpmnModeler: any;
@@ -36,7 +43,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private ultimoSnapshotFlujo = '';
   private tareasExternasPendientes = new Set<string>();
 
-  constructor(@Inject(PLATFORM_ID) platformId: object) {
+  constructor(
+    @Inject(PLATFORM_ID) platformId: object,
+    private readonly sanitizer: DomSanitizer
+  ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
@@ -58,6 +68,8 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   ngOnDestroy(): void {
+    this.cerrarVistaPreviaAdjunto();
+
     if (this.sincronizacionPendiente) {
       clearTimeout(this.sincronizacionPendiente);
       this.sincronizacionPendiente = null;
@@ -188,16 +200,26 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return !!adjunto.archivo || !!adjunto.dataUrl;
   }
 
-  verAdjunto(adjunto: { archivo?: File; dataUrl?: string }): void {
+  puedeVistaPreviaAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
+    if (!this.puedeAccionarAdjunto(adjunto)) return false;
+    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
+    if (tipo.startsWith('image/') || tipo === 'application/pdf') return true;
+    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
+    return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+  }
+
+  verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): void {
+    if (!this.puedeVistaPreviaAdjunto(adjunto)) return;
+
     const url = this.obtenerUrlAdjunto(adjunto);
     if (!url) return;
 
-    const ventana = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!ventana) return;
-
-    if (adjunto.archivo && !adjunto.dataUrl) {
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    }
+    this.cerrarVistaPreviaAdjunto();
+    this.fuenteVistaPreviaAdjunto = url;
+    this.fuenteVistaPreviaAdjuntoEsBlob = !!adjunto.archivo && !adjunto.dataUrl;
+    this.adjuntoVistaPreviaEsPdf = this.esAdjuntoPdf(adjunto);
+    this.adjuntoVistaPreviaNombre = adjunto.nombre || 'Documento adjunto';
+    this.mostrarVistaPreviaAdjunto = true;
   }
 
   descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string }): void {
@@ -230,6 +252,37 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     if (adjunto.dataUrl) return adjunto.dataUrl;
     if (adjunto.archivo) return URL.createObjectURL(adjunto.archivo);
     return null;
+  }
+
+  obtenerFuenteVistaPreviaAdjuntoPdf(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaAdjunto);
+  }
+
+  obtenerFuenteVistaPreviaAdjuntoImagen(): string {
+    return this.fuenteVistaPreviaAdjunto;
+  }
+
+  esPdfVistaPreviaAdjunto(): boolean {
+    return this.adjuntoVistaPreviaEsPdf;
+  }
+
+  cerrarVistaPreviaAdjunto(): void {
+    if (this.fuenteVistaPreviaAdjuntoEsBlob && this.fuenteVistaPreviaAdjunto) {
+      URL.revokeObjectURL(this.fuenteVistaPreviaAdjunto);
+    }
+    this.mostrarVistaPreviaAdjunto = false;
+    this.adjuntoVistaPreviaNombre = '';
+    this.fuenteVistaPreviaAdjunto = '';
+    this.fuenteVistaPreviaAdjuntoEsBlob = false;
+    this.adjuntoVistaPreviaEsPdf = false;
+  }
+
+  private esAdjuntoPdf(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
+    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
+    if (tipo === 'application/pdf') return true;
+    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
+    if (nombre.endsWith('.pdf')) return true;
+    return !!adjunto.dataUrl?.startsWith('data:application/pdf');
   }
 
   crearNuevaActividad(): void {

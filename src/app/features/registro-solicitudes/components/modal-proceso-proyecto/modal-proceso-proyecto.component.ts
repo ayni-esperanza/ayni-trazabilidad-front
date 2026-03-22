@@ -968,7 +968,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   puedeDescargarDocumento(doc: DocumentoResumen): boolean {
-    return !!doc?.adjunto;
+    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl;
   }
 
   descargarDocumento(doc: DocumentoResumen): void {
@@ -1016,6 +1016,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   esVistaPreviaSoportadaDocumento(doc: DocumentoResumen): boolean {
+    if (!this.puedeDescargarDocumento(doc)) return false;
+
     const mime = (doc.tipo || '').toLowerCase();
     if (mime.startsWith('image/') || mime === 'application/pdf') return true;
 
