@@ -102,6 +102,40 @@ type ProyectoApi = {
   };
 };
 
+type CostoMaterialApi = {
+  id: number;
+  fecha?: string;
+  nroComprobante?: string;
+  producto: string;
+  cantidad: number;
+  costoUnitario: number;
+  costoTotal: number;
+  encargado?: string;
+  dependenciaActividadId?: number | null;
+};
+
+type CostoManoObraApi = {
+  id: number;
+  trabajador: string;
+  cargo?: string;
+  diasTrabajando: number;
+  costoPorDia: number;
+  costoTotal: number;
+  dependenciaActividadId?: number | null;
+};
+
+type CostoAdicionalApi = {
+  id: number;
+  fecha?: string;
+  categoria: string;
+  descripcion?: string;
+  cantidad: number;
+  costoUnitario: number;
+  costoTotal: number;
+  encargado?: string;
+  dependenciaActividadId?: number | null;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -236,6 +270,132 @@ export class RegistroSolicitudesService {
         }))
       })))
     );
+  }
+
+  obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
+    return this.http.get<CostoMaterialApi[]>(`/v1/proyectos/${proyectoId}/costos/materiales`).pipe(
+      map((items) => (items || []).map((item) => ({
+        id: item.id,
+        fecha: item.fecha,
+        nroComprobante: item.nroComprobante,
+        producto: item.producto,
+        cantidad: Number(item.cantidad || 0),
+        costoUnitario: Number(item.costoUnitario || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        encargado: item.encargado,
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      })))
+    );
+  }
+
+  crearCostoMaterial(proyectoId: number, item: CostoMaterialApi): Observable<CostoMaterialApi> {
+    return this.http.post<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales`, {
+      fecha: item.fecha || null,
+      nroComprobante: item.nroComprobante || '',
+      producto: item.producto,
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      encargado: item.encargado || '',
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  actualizarCostoMaterial(proyectoId: number, item: CostoMaterialApi): Observable<CostoMaterialApi> {
+    return this.http.put<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales/${item.id}`, {
+      fecha: item.fecha || null,
+      nroComprobante: item.nroComprobante || '',
+      producto: item.producto,
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      encargado: item.encargado || '',
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  eliminarCostoMaterial(proyectoId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/materiales/${id}`);
+  }
+
+  obtenerCostosManoObra(proyectoId: number): Observable<CostoManoObraApi[]> {
+    return this.http.get<CostoManoObraApi[]>(`/v1/proyectos/${proyectoId}/costos/mano-obra`).pipe(
+      map((items) => (items || []).map((item) => ({
+        id: item.id,
+        trabajador: item.trabajador,
+        cargo: item.cargo,
+        diasTrabajando: Number(item.diasTrabajando || 0),
+        costoPorDia: Number(item.costoPorDia || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      })))
+    );
+  }
+
+  crearCostoManoObra(proyectoId: number, item: CostoManoObraApi): Observable<CostoManoObraApi> {
+    return this.http.post<CostoManoObraApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra`, {
+      trabajador: item.trabajador,
+      cargo: item.cargo || '',
+      diasTrabajando: Number(item.diasTrabajando || 0),
+      costoPorDia: Number(item.costoPorDia || 0),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  actualizarCostoManoObra(proyectoId: number, item: CostoManoObraApi): Observable<CostoManoObraApi> {
+    return this.http.put<CostoManoObraApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra/${item.id}`, {
+      trabajador: item.trabajador,
+      cargo: item.cargo || '',
+      diasTrabajando: Number(item.diasTrabajando || 0),
+      costoPorDia: Number(item.costoPorDia || 0),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  eliminarCostoManoObra(proyectoId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/mano-obra/${id}`);
+  }
+
+  obtenerCostosAdicionales(proyectoId: number): Observable<CostoAdicionalApi[]> {
+    return this.http.get<CostoAdicionalApi[]>(`/v1/proyectos/${proyectoId}/costos/adicionales`).pipe(
+      map((items) => (items || []).map((item) => ({
+        id: item.id,
+        fecha: item.fecha,
+        categoria: item.categoria,
+        descripcion: item.descripcion,
+        cantidad: Number(item.cantidad || 0),
+        costoUnitario: Number(item.costoUnitario || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        encargado: item.encargado,
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      })))
+    );
+  }
+
+  crearCostoAdicional(proyectoId: number, item: CostoAdicionalApi): Observable<CostoAdicionalApi> {
+    return this.http.post<CostoAdicionalApi>(`/v1/proyectos/${proyectoId}/costos/adicionales`, {
+      fecha: item.fecha || null,
+      categoria: item.categoria,
+      descripcion: item.descripcion || '',
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      encargado: item.encargado || '',
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  actualizarCostoAdicional(proyectoId: number, item: CostoAdicionalApi): Observable<CostoAdicionalApi> {
+    return this.http.put<CostoAdicionalApi>(`/v1/proyectos/${proyectoId}/costos/adicionales/${item.id}`, {
+      fecha: item.fecha || null,
+      categoria: item.categoria,
+      descripcion: item.descripcion || '',
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      encargado: item.encargado || '',
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    });
+  }
+
+  eliminarCostoAdicional(proyectoId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/adicionales/${id}`);
   }
 
   private mapSolicitud(item: SolicitudApi): Solicitud {

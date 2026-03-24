@@ -9,6 +9,9 @@ import { TareaFormModalComponent, Tarea } from '../../../../shared/components/ta
 import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
 import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
+import { RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
+import { forkJoin, Observable, of } from 'rxjs';
+import { finalize, map, switchMap } from 'rxjs/operators';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -72,6 +75,7 @@ type DocumentoResumen = {
 })
 export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
 
   @Input() visible = false;
   @Input() embedded = false;
@@ -147,6 +151,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   materiales: MaterialCosto[] = [];
   manoObra: ManoObraCosto[] = [];
   tablasCostosExtras: TablaCostoExtra[] = [];
+  private sincronizandoCostos = false;
 
   etapaForm = {
     presupuesto: 0,
@@ -169,7 +174,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.generarEtapas();
       this.cargarProyectoInfoForm();
       this.prepararFlujo();
-      this.inicializarSeccionCostos();
+      this.cargarCostosProyecto();
 
       if (this.tabActiva === 'costos' && !this.costosHabilitados) {
         this.tabActiva = 'tablero';
@@ -295,13 +300,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onCerrar(): void {
+    if (this.sincronizandoCostos) return;
+
     // Guardar cambios de la etapa actual antes de cerrar
     if (this.etapaSeleccionada && !this.modoSoloLectura) {
       this.guardarCambiosEtapaActual();
     }
     // Persistir etapas en el proyecto al cerrar
     this.guardarEtapasEnProyecto();
-    this.cerrar.emit();
+    this.sincronizarCostosProyecto().subscribe({
+      complete: () => this.cerrar.emit(),
+      error: () => this.cerrar.emit()
+    });
   }
 
   onCancelarProyecto(): void {
@@ -1072,6 +1082,200 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return d.toLocaleDateString('es-PE');
   }
 
+  private cargarCostosProyecto(): void {
+    if (!this.proyecto) return;
+
+    forkJoin({
+      materiales: this.registroSolicitudesService.obtenerCostosMateriales(this.proyecto.id),
+      manoObra: this.registroSolicitudesService.obtenerCostosManoObra(this.proyecto.id),
+      adicionales: this.registroSolicitudesService.obtenerCostosAdicionales(this.proyecto.id)
+    }).subscribe({
+      next: ({ materiales, manoObra, adicionales }) => {
+        this.materiales = (materiales || []).map((item) => ({
+          id: item.id,
+          fecha: item.fecha || this.formatDate(new Date()),
+          nroComprobante: item.nroComprobante || '',
+          producto: item.producto || '',
+          cantidad: Number(item.cantidad || 0),
+          costoUnitario: Number(item.costoUnitario || 0),
+          costoTotal: Number(item.costoTotal || 0),
+          encargado: item.encargado || '',
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        }));
+
+        this.manoObra = (manoObra || []).map((item) => ({
+          id: item.id,
+          trabajador: item.trabajador || '',
+          cargo: item.cargo || '',
+          diasTrabajando: Number(item.diasTrabajando || 0),
+          costoPorDia: Number(item.costoPorDia || 0),
+          costoTotal: Number(item.costoTotal || 0),
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        }));
+
+        this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || []);
+        this.inicializarSeccionCostos();
+      },
+      error: () => {
+        this.materiales = [];
+        this.manoObra = [];
+        this.tablasCostosExtras = [];
+        this.inicializarSeccionCostos();
+      }
+    });
+  }
+
+  private agruparAdicionalesPorCategoria(adicionales: Array<{
+    id: number;
+    fecha?: string;
+    categoria: string;
+    descripcion?: string;
+    cantidad: number;
+    costoUnitario: number;
+    costoTotal: number;
+    encargado?: string;
+    dependenciaActividadId?: number | null;
+  }>): TablaCostoExtra[] {
+    const porCategoria = new Map<string, OtroCosto[]>();
+
+    for (const item of adicionales) {
+      const categoria = (item.categoria || 'OTROS').trim() || 'OTROS';
+      const lista = porCategoria.get(categoria) || [];
+      lista.push({
+        id: item.id,
+        fecha: item.fecha || this.formatDate(new Date()),
+        descripcion: item.descripcion || '',
+        cantidad: Number(item.cantidad || 0),
+        costoUnitario: Number(item.costoUnitario || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        encargado: item.encargado || '',
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      });
+      porCategoria.set(categoria, lista);
+    }
+
+    return Array.from(porCategoria.entries()).map(([nombre, items], index) => ({
+      id: index + 1,
+      nombre,
+      items,
+      expandida: true
+    }));
+  }
+
+  private sincronizarCostosProyecto(): Observable<unknown> {
+    if (!this.proyecto || this.sincronizandoCostos) return of(null);
+
+    this.sincronizandoCostos = true;
+
+    const proyectoId = this.proyecto.id;
+    const localesMateriales = this.materiales.map((item) => ({ ...item }));
+    const localesManoObra = this.manoObra.map((item) => ({ ...item }));
+    const localesAdicionales = this.tablasCostosExtras.flatMap((tabla) =>
+      tabla.items.map((item) => ({ ...item, categoria: tabla.nombre }))
+    );
+
+    return forkJoin({
+      existentesMateriales: this.registroSolicitudesService.obtenerCostosMateriales(proyectoId),
+      existentesManoObra: this.registroSolicitudesService.obtenerCostosManoObra(proyectoId),
+      existentesAdicionales: this.registroSolicitudesService.obtenerCostosAdicionales(proyectoId)
+    }).pipe(
+      switchMap(({ existentesMateriales, existentesManoObra, existentesAdicionales }) => {
+        const operaciones: Observable<unknown>[] = [];
+
+        const materialesIdsLocales = new Set(localesMateriales.map((item) => item.id));
+        const materialesIdsExistentes = new Set((existentesMateriales || []).map((item) => item.id));
+
+        for (const item of localesMateriales) {
+          const payload = {
+            id: item.id,
+            fecha: item.fecha,
+            nroComprobante: item.nroComprobante,
+            producto: item.producto,
+            cantidad: Number(item.cantidad || 0),
+            costoUnitario: Number(item.costoUnitario || 0),
+            costoTotal: Number(item.costoTotal || 0),
+            encargado: item.encargado,
+            dependenciaActividadId: item.dependenciaActividadId
+          };
+
+          if (materialesIdsExistentes.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.actualizarCostoMaterial(proyectoId, payload));
+          } else {
+            operaciones.push(this.registroSolicitudesService.crearCostoMaterial(proyectoId, payload));
+          }
+        }
+
+        for (const item of existentesMateriales || []) {
+          if (!materialesIdsLocales.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.eliminarCostoMaterial(proyectoId, item.id));
+          }
+        }
+
+        const manoObraIdsLocales = new Set(localesManoObra.map((item) => item.id));
+        const manoObraIdsExistentes = new Set((existentesManoObra || []).map((item) => item.id));
+
+        for (const item of localesManoObra) {
+          const payload = {
+            id: item.id,
+            trabajador: item.trabajador,
+            cargo: item.cargo,
+            diasTrabajando: Number(item.diasTrabajando || 0),
+            costoPorDia: Number(item.costoPorDia || 0),
+            costoTotal: Number(item.costoTotal || 0),
+            dependenciaActividadId: item.dependenciaActividadId
+          };
+
+          if (manoObraIdsExistentes.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.actualizarCostoManoObra(proyectoId, payload));
+          } else {
+            operaciones.push(this.registroSolicitudesService.crearCostoManoObra(proyectoId, payload));
+          }
+        }
+
+        for (const item of existentesManoObra || []) {
+          if (!manoObraIdsLocales.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.eliminarCostoManoObra(proyectoId, item.id));
+          }
+        }
+
+        const adicionalesIdsLocales = new Set(localesAdicionales.map((item) => item.id));
+        const adicionalesIdsExistentes = new Set((existentesAdicionales || []).map((item) => item.id));
+
+        for (const item of localesAdicionales) {
+          const payload = {
+            id: item.id,
+            fecha: item.fecha,
+            categoria: item.categoria,
+            descripcion: item.descripcion,
+            cantidad: Number(item.cantidad || 0),
+            costoUnitario: Number(item.costoUnitario || 0),
+            costoTotal: Number(item.costoTotal || 0),
+            encargado: item.encargado,
+            dependenciaActividadId: item.dependenciaActividadId
+          };
+
+          if (adicionalesIdsExistentes.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.actualizarCostoAdicional(proyectoId, payload));
+          } else {
+            operaciones.push(this.registroSolicitudesService.crearCostoAdicional(proyectoId, payload));
+          }
+        }
+
+        for (const item of existentesAdicionales || []) {
+          if (!adicionalesIdsLocales.has(item.id)) {
+            operaciones.push(this.registroSolicitudesService.eliminarCostoAdicional(proyectoId, item.id));
+          }
+        }
+
+        return operaciones.length ? forkJoin(operaciones) : of([]);
+      }),
+      map(() => null),
+      finalize(() => {
+        this.sincronizandoCostos = false;
+      })
+    );
+  }
+
   private inicializarSeccionCostos(): void {
     const storageKey = this.obtenerClaveCostosStorage();
     const costosGuardados = storageKey ? window.localStorage.getItem(storageKey) === '1' : false;
@@ -1101,4 +1305,5 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.fechaFinalizacion = this.formatDate(new Date());
     this.proyectoActualizado.emit({ ...this.proyecto });
   }
+
 }
