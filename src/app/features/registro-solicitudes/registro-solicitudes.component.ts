@@ -284,13 +284,12 @@ export class RegistroSolicitudesComponent implements OnInit {
   cargarDatosIniciales(): void {
     forkJoin({
       responsables: this.solicitudesService.obtenerResponsables(),
-      procesos: this.solicitudesService.obtenerProcesos(),
       solicitudes: this.solicitudesService.obtenerSolicitudes(),
       proyectos: this.solicitudesService.obtenerProyectos()
     }).subscribe({
-      next: ({ responsables, procesos, solicitudes, proyectos }) => {
+      next: ({ responsables, solicitudes, proyectos }) => {
         this.responsables = responsables || [];
-        this.procesos = procesos || [];
+        this.procesos = [];
         this.solicitudes = solicitudes || [];
         this.proyectos = proyectos || [];
         this.aplicarFiltros();
@@ -343,21 +342,16 @@ export class RegistroSolicitudesComponent implements OnInit {
   onFinalizarEtapa(etapa: EtapaProyecto): void {
     if (!this.proyectoActual) return;
 
-    this.solicitudesService.completarEtapa(this.proyectoActual.id, etapa.id).subscribe({
-      next: (etapaActualizada) => {
-        if (!this.proyectoActual) return;
-        const etapas = this.proyectoActual.etapas || [];
-        const index = etapas.findIndex((e) => e.id === etapaActualizada.id);
-        if (index >= 0) {
-          etapas[index] = { ...etapaActualizada };
-        } else {
-          etapas.push(etapaActualizada);
-        }
-        this.proyectoActual = { ...this.proyectoActual, etapas: [...etapas] };
-        this.onProyectoActualizado(this.proyectoActual);
-      },
-      error: (error) => console.error('Error al completar etapa:', error)
-    });
+    const etapas = this.proyectoActual.etapas || [];
+    const index = etapas.findIndex((e) => e.id === etapa.id);
+    if (index >= 0) {
+      etapas[index] = { ...etapa, estado: 'Completado' };
+    } else {
+      etapas.push({ ...etapa, estado: 'Completado' });
+    }
+
+    this.proyectoActual = { ...this.proyectoActual, etapas: [...etapas] };
+    this.onProyectoActualizado(this.proyectoActual);
   }
 
   onFinalizarProyecto(proyecto: Proyecto): void {
@@ -492,26 +486,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   private iniciarProyectoDesdeSolicitud(solicitud: Solicitud, abrirModal = false): void {
-    const procesoDefaultId = this.procesos[0]?.id;
-    if (!procesoDefaultId) {
-      this.solicitudesService.obtenerProcesos().subscribe({
-        next: (procesos) => {
-          this.procesos = procesos || [];
-          if (!this.procesos.length) {
-            console.warn('No hay procesos activos disponibles. La solicitud fue creada y quedo pendiente de asociacion a proyecto.');
-            this.aplicarFiltros();
-            return;
-          }
-          this.iniciarProyectoDesdeSolicitud(solicitud, abrirModal);
-        },
-        error: (error) => {
-          console.error('Error al obtener procesos para iniciar proyecto:', error);
-        }
-      });
-      return;
-    }
-
-    this.solicitudesService.iniciarProyecto(solicitud, procesoDefaultId).subscribe({
+    this.solicitudesService.iniciarProyecto(solicitud).subscribe({
       next: (proyectoCreado) => {
         this.sincronizarProyectoEnMemoria(proyectoCreado);
         this.proyectoActual = proyectoCreado;
@@ -521,11 +496,6 @@ export class RegistroSolicitudesComponent implements OnInit {
         }
       },
       error: (error) => {
-        if (error?.status === 400 && String(error?.error?.message || '').toLowerCase().includes('proceso activo')) {
-          this.procesos = [];
-          this.iniciarProyectoDesdeSolicitud(solicitud, abrirModal);
-          return;
-        }
         console.error('Error al iniciar proyecto desde solicitud:', error);
       }
     });

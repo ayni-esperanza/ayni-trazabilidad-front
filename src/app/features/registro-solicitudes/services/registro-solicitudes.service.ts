@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
 import { EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, Solicitud } from '../models/solicitud.model';
 
@@ -91,7 +91,7 @@ type ProyectoApi = {
   ubicacion?: string;
   fechaInicio: string;
   fechaFinalizacion: string;
-  procesoId: number;
+  procesoId?: number;
   procesoNombre?: string;
   estado: string;
   etapaActual?: number;
@@ -195,7 +195,6 @@ export class RegistroSolicitudesService {
   iniciarProyecto(solicitud: Solicitud, procesoId?: number): Observable<Proyecto> {
     return this.http.post<ProyectoApi>('/v1/proyectos/iniciar', {
       solicitudId: solicitud.id,
-      procesoId: procesoId || null,
       representante: solicitud.representante,
       ubicacion: solicitud.ubicacion,
       areas: solicitud.areas || [],
@@ -217,7 +216,6 @@ export class RegistroSolicitudesService {
       costo: Number(proyecto.costo || 0),
       fechaInicio: this.toIsoDate(proyecto.fechaInicio),
       fechaFinalizacion: this.toIsoDate(proyecto.fechaFinalizacion),
-      procesoId: Number(proyecto.procesoId || 0),
       responsableId: Number(proyecto.responsableId || 0),
       motivoCancelacion: proyecto.motivoCancelacion
     }).pipe(map((item) => this.mapProyecto(item)));
@@ -259,17 +257,7 @@ export class RegistroSolicitudesService {
   }
 
   obtenerProcesos(): Observable<ProcesoSimple[]> {
-    return this.http.get<ProcesoSimple[]>('/v1/procesos/simples').pipe(
-      map((items) => (items || []).map((item) => ({
-        id: item.id,
-        nombre: item.nombre,
-        etapas: (item.etapas || []).map((etapa) => ({
-          id: etapa.id,
-          nombre: etapa.nombre,
-          orden: etapa.orden
-        }))
-      })))
-    );
+    return of([]);
   }
 
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
@@ -435,7 +423,7 @@ export class RegistroSolicitudesService {
       ubicacion: item.ubicacion,
       fechaInicio: this.toDate(item.fechaInicio) || item.fechaInicio,
       fechaFinalizacion: this.toDate(item.fechaFinalizacion) || item.fechaFinalizacion,
-      procesoId: item.procesoId,
+      procesoId: Number(item.procesoId || 0),
       procesoNombre: item.procesoNombre,
       estado: this.mapEstadoSolicitud(item.estado),
       etapaActual: item.etapaActual,
