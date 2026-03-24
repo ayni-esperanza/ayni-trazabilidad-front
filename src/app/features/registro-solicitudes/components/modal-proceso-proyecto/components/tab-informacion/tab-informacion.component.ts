@@ -2,7 +2,7 @@ import { Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra } from '../../../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, ComentarioAdicionalActividad, EstadoTarea, FlujoAdjunto } from '../../../../models/solicitud.model';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 
@@ -12,6 +12,7 @@ export type ProyectoInfoFormData = {
   representante: string;
   areas: string[];
   ordenesCompra: OrdenCompra[];
+  comentariosAdicionalesActividad: ComentarioAdicionalActividad[];
   costo: number;
   procesoId: number;
   responsableId: number;
@@ -30,12 +31,16 @@ export type ProyectoInfoFormData = {
 export class TabInformacionComponent implements OnInit {
   @Input() proyecto: Proyecto | null = null;
   @Input() proyectoInfoForm!: ProyectoInfoFormData;
+  @Input() flujoNodos: FlujoNodo[] = [];
   @Input() responsables: Responsable[] = [];
   @Input() procesos: ProcesoSimple[] = [];
   @Input() etapas: EtapaProyecto[] = [];
   @Input() modoSoloLectura = false;
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
+
+  readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
+  readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
 
   readonly responsablesFijos: Responsable[] = [
     { id: 1, nombre: 'Rolando Rodriguez Mercedes' },
@@ -136,6 +141,141 @@ export class TabInformacionComponent implements OnInit {
 
   quitarArea(area: string): void {
     this.proyectoInfoForm.areas = (this.proyectoInfoForm.areas || []).filter(a => a !== area);
+  }
+
+  get actividadesCreadasFlujo(): FlujoNodo[] {
+    return (this.flujoNodos || []).filter(nodo => nodo.tipo === 'tarea');
+  }
+
+  get responsablesComentario(): Responsable[] {
+    const unicos = new Map<number, Responsable>();
+    for (const r of this.responsablesFijos) {
+      unicos.set(r.id, r);
+    }
+    for (const r of this.responsables || []) {
+      if (typeof r.id === 'number' && !unicos.has(r.id)) {
+        unicos.set(r.id, r);
+      }
+    }
+    return Array.from(unicos.values());
+  }
+
+  agregarComentarioAdicional(): void {
+    const actividades = this.actividadesCreadasFlujo;
+    if (!actividades.length) return;
+
+    if (!this.proyectoInfoForm.comentariosAdicionalesActividad) {
+      this.proyectoInfoForm.comentariosAdicionalesActividad = [];
+    }
+
+    const fechaActual = this.formatDateInput(new Date());
+    this.proyectoInfoForm.comentariosAdicionalesActividad = [
+      ...this.proyectoInfoForm.comentariosAdicionalesActividad,
+      {
+        id: this.obtenerSiguienteComentarioId(),
+        actividadId: actividades[0].id,
+        nombre: '',
+        estadoActividad: 'Pendiente',
+        responsableId: undefined,
+        fechaInicio: fechaActual,
+        fechaFin: '',
+        descripcion: '',
+        adjuntos: []
+      }
+    ];
+  }
+
+  eliminarComentarioAdicional(index: number): void {
+    this.proyectoInfoForm.comentariosAdicionalesActividad = (this.proyectoInfoForm.comentariosAdicionalesActividad || [])
+      .filter((_, i) => i !== index);
+  }
+
+  async onSeleccionarAdjuntosComentario(event: Event, index: number): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files?.length) return;
+
+    const comentarios = this.proyectoInfoForm.comentariosAdicionalesActividad || [];
+    const comentario = comentarios[index];
+    if (!comentario) return;
+
+    const nuevosAdjuntos: FlujoAdjunto[] = [];
+    for (const file of Array.from(files)) {
+      nuevosAdjuntos.push({
+        nombre: file.name,
+        tipo: file.type || 'application/octet-stream',
+        tamano: file.size,
+        archivo: file,
+        dataUrl: await this.leerArchivoComoDataUrl(file)
+      });
+    }
+
+    comentario.adjuntos = [...(comentario.adjuntos || []), ...nuevosAdjuntos];
+    input.value = '';
+  }
+
+  eliminarAdjuntoComentario(comentarioIndex: number, adjuntoIndex: number): void {
+    const comentarios = this.proyectoInfoForm.comentariosAdicionalesActividad || [];
+    const comentario = comentarios[comentarioIndex];
+    if (!comentario?.adjuntos) return;
+    comentario.adjuntos = comentario.adjuntos.filter((_, i) => i !== adjuntoIndex);
+  }
+
+  descargarAdjuntoComentario(adjunto: FlujoAdjunto): void {
+    if (!this.isBrowser) return;
+
+    if (adjunto.archivo) {
+      const enlace = document.createElement('a');
+      const url = window.URL.createObjectURL(adjunto.archivo);
+      enlace.href = url;
+      enlace.download = adjunto.nombre || 'adjunto';
+      enlace.click();
+      window.URL.revokeObjectURL(url);
+      return;
+    }
+
+    if (adjunto.dataUrl) {
+      const enlace = document.createElement('a');
+      enlace.href = adjunto.dataUrl;
+      enlace.download = adjunto.nombre || 'adjunto';
+      enlace.click();
+    }
+  }
+
+  getNombreActividad(actividadId: number): string {
+    const actividad = this.actividadesCreadasFlujo.find(item => item.id === actividadId);
+    return actividad?.nombre || `Actividad ${actividadId}`;
+  }
+
+  formatBytes(size?: number): string {
+    if (!size || size <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    const valor = size / Math.pow(1024, i);
+    return `${valor.toFixed(valor >= 10 || i === 0 ? 0 : 1)} ${units[i] || 'B'}`;
+  }
+
+  private obtenerSiguienteComentarioId(): number {
+    const ids = (this.proyectoInfoForm.comentariosAdicionalesActividad || [])
+      .map(comentario => comentario.id)
+      .filter(id => typeof id === 'number');
+    return ids.length ? Math.max(...ids) + 1 : 1;
+  }
+
+  private formatDateInput(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private leerArchivoComoDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+      reader.readAsDataURL(file);
+    });
   }
 
 }

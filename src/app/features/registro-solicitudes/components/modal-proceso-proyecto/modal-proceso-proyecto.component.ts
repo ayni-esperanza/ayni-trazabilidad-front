@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, injec
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TareaFormModalComponent, Tarea } from '../../../../shared/components/tarea-form-modal/tarea-form-modal.component';
@@ -120,6 +120,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarModalActividad = false;
   actividadParaEditar: Tarea | null = null;
   nodoPadreParaNuevoId: number | null = null;
+  bloqueoEdicionActividades = false;
 
   flujoNodos: FlujoNodo[] = [];
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
@@ -133,6 +134,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     representante: '',
     areas: [] as string[],
     ordenesCompra: [] as OrdenCompra[],
+    comentariosAdicionalesActividad: [] as ComentarioAdicionalActividad[],
     costo: 0,
     procesoId: 0,
     responsableId: 0,
@@ -506,6 +508,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroLicitacion: o.numeroLicitacion || '',
         numeroSolicitud: o.numeroSolicitud || ''
       })),
+      comentariosAdicionalesActividad: (this.proyecto.comentariosAdicionalesActividad || []).map(comentario => ({
+        ...comentario,
+        texto: (comentario.texto || comentario.descripcion || '').trim(),
+        adjuntos: (comentario.adjuntos || []).map(adjunto => ({ ...adjunto }))
+      })),
       costo: this.proyecto.costo,
       procesoId: this.proyecto.procesoId,
       responsableId: this.proyecto.responsableId,
@@ -527,18 +534,21 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   abrirModalActividad(nodo?: FlujoNodo): void {
+    if (this.bloqueoEdicionActividades) return;
     this.nodoPadreParaNuevoId = null;
     this.actividadParaEditar = nodo ? this.mapearNodoATarea(nodo) : null;
     this.mostrarModalActividad = true;
   }
 
   abrirNuevaActividadDesdeNodo(nodoBase: FlujoNodo): void {
+    if (this.bloqueoEdicionActividades) return;
     this.nodoPadreParaNuevoId = nodoBase.id;
     this.actividadParaEditar = null;
     this.mostrarModalActividad = true;
   }
 
   abrirNuevaActividadDesdeBpmn(payload: { nombre: string; nodoOrigenId?: number }): void {
+    if (this.bloqueoEdicionActividades) return;
     if (!this.proyecto) return;
 
     const posicionInicial = this.calcularPosicionNuevoNodo(payload.nodoOrigenId);
@@ -687,6 +697,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
+  }
+
+  onBloqueoEdicionActividadesChange(estado: boolean): void {
+    this.bloqueoEdicionActividades = estado;
   }
 
   private prepararFlujo(): void {
@@ -861,6 +875,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.representante = this.proyectoInfoForm.representante;
     this.proyecto.areas = [...(this.proyectoInfoForm.areas || [])];
     this.proyecto.ordenesCompra = this.proyectoInfoForm.ordenesCompra.filter(o => o.numero.trim()).map(o => ({ ...o }));
+    this.proyecto.comentariosAdicionalesActividad = (this.proyectoInfoForm.comentariosAdicionalesActividad || [])
+      .filter(comentario => comentario.actividadId > 0 && ((comentario.texto || '').trim().length > 0 || (comentario.adjuntos || []).length > 0))
+      .map(comentario => ({
+        ...comentario,
+        descripcion: comentario.texto,
+        adjuntos: (comentario.adjuntos || []).map(adjunto => ({ ...adjunto }))
+      }));
     this.proyecto.costo = Number(this.proyectoInfoForm.costo);
     this.proyecto.procesoId = Number(this.proyectoInfoForm.procesoId);
     this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
