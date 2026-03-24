@@ -480,15 +480,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   getResponsableNombre(responsableId: number): string {
-    const responsablesFijos: Responsable[] = [
-      { id: 1, nombre: 'Rolando Rodriguez Mercedes' },
-      { id: 2, nombre: 'Alex Marquina Perez' },
-      { id: 3, nombre: 'Darling Vigo Cotos' },
-      { id: 4, nombre: 'Rodolfo Razuri Arevalo' },
-      { id: 5, nombre: 'Gian Juarez Rondo' }
-    ];
-    const resp = responsablesFijos.find(r => r.id === responsableId)
-      ?? this.responsables.find(r => r.id === responsableId);
+    const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
   }
 
@@ -691,18 +683,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private prepararFlujo(): void {
     if (!this.proyecto) return;
 
-    const flujoGuardado = this.cargarFlujoDesdeLocalStorage();
-    if (flujoGuardado && flujoGuardado.nodos.length > 0) {
-      this.proyecto.flujo = {
-        nodos: flujoGuardado.nodos.map(nodo => ({
-          ...nodo,
-          estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
-          fechaCambioEstado: nodo.fechaCambioEstado,
-          siguientesIds: [...(nodo.siguientesIds || [])]
-        }))
-      };
-    }
-
     if (!this.proyecto.flujo || this.proyecto.flujo.nodos.length === 0) {
       this.proyecto.flujo = {
         nodos: [
@@ -731,54 +711,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         siguientesIds: [...nodo.siguientesIds]
       }))
     };
-    this.guardarFlujoEnLocalStorage(this.proyecto.flujo.nodos);
-  }
-
-  private obtenerClaveFlujoStorage(): string | null {
-    if (!this.proyecto || typeof window === 'undefined') return null;
-    return `${this.flujoStoragePrefix}${this.proyecto.id}`;
-  }
-
-  private guardarFlujoEnLocalStorage(nodos: FlujoNodo[]): void {
-    const storageKey = this.obtenerClaveFlujoStorage();
-    if (!storageKey) return;
-
-    const serializable = nodos.map(nodo => ({
-      ...nodo,
-      adjuntos: (nodo.adjuntos || []).map(adjunto => ({
-        nombre: adjunto.nombre,
-        tipo: adjunto.tipo,
-        tamano: adjunto.tamano,
-        dataUrl: adjunto.dataUrl
-      })),
-      siguientesIds: [...(nodo.siguientesIds || [])]
-    }));
-
-    window.localStorage.setItem(storageKey, JSON.stringify({ nodos: serializable }));
-    window.dispatchEvent(new CustomEvent('ayni-alertas-updated'));
-  }
-
-  private cargarFlujoDesdeLocalStorage(): { nodos: FlujoNodo[] } | null {
-    const storageKey = this.obtenerClaveFlujoStorage();
-    if (!storageKey) return null;
-
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return null;
-
-    try {
-      const parsed = JSON.parse(raw) as { nodos?: FlujoNodo[] };
-      if (!parsed?.nodos || !Array.isArray(parsed.nodos)) return null;
-      return {
-        nodos: parsed.nodos
-          .filter(nodo => typeof nodo.id === 'number' && Array.isArray(nodo.siguientesIds))
-          .map(nodo => ({
-            ...nodo,
-            siguientesIds: [...nodo.siguientesIds]
-          }))
-      };
-    } catch {
-      return null;
-    }
   }
 
   private calcularPosicionNuevoNodo(nodoPadreId?: number): { x: number; y: number } {
