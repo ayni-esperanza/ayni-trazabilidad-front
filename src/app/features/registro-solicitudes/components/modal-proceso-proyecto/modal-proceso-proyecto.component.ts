@@ -334,7 +334,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     
     this.cargandoCancelacion = true;
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
       // Guardar etapas antes de cancelar para preservar datos ingresados
       if (this.etapaSeleccionada) {
         this.guardarCambiosEtapaActual();

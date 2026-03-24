@@ -7,6 +7,8 @@ import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyec
 import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-registro-solicitudes',
@@ -16,9 +18,6 @@ import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/c
   styleUrls: ['./registro-solicitudes.component.css']
 })
 export class RegistroSolicitudesComponent implements OnInit {
-  private readonly solicitudCounterKey = 'ayni:registro-solicitudes:next-solicitud-id';
-  private readonly proyectoCounterKey = 'ayni:registro-solicitudes:next-proyecto-id';
-  
   // Estados de las modales
   showNuevaSolicitudModal = false;
   showProcesoProyectoModal = false;
@@ -121,35 +120,30 @@ export class RegistroSolicitudesComponent implements OnInit {
     }
   }
 
-  async confirmarEliminarSeleccionados(): Promise<void> {
+  confirmarEliminarSeleccionados(): void {
     this.cargandoEliminacion = true;
-    
-    try {
-      const idsAEliminar = Array.from(this.solicitudesSeleccionadas);
-      
-      // TODO: Implementar llamada al backend
-      // await this.solicitudesService.eliminarMasivo(idsAEliminar);
-      
-      // Simulación de llamada al backend (remover cuando se integre)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Eliminar localmente (esto se reemplazará con actualización desde backend)
-      this.solicitudes = this.solicitudes.filter(s => !this.solicitudesSeleccionadas.has(s.id!));
-      this.aplicarFiltros();
-      
-      // Limpiar selección
-      this.solicitudesSeleccionadas.clear();
-      this.mostrarConfirmacionEliminar = false;
-      
-      console.log('Solicitudes eliminadas exitosamente:', idsAEliminar);
-      // TODO: Mostrar notificación de éxito
-      
-    } catch (error) {
-      console.error('Error al eliminar solicitudes:', error);
-      // TODO: Mostrar notificación de error
-    } finally {
+
+    const idsAEliminar = Array.from(this.solicitudesSeleccionadas);
+    if (!idsAEliminar.length) {
       this.cargandoEliminacion = false;
+      return;
     }
+
+    forkJoin(idsAEliminar.map((id) => this.solicitudesService.eliminarSolicitud(id))).subscribe({
+      next: () => {
+        this.solicitudes = this.solicitudes.filter(s => !this.solicitudesSeleccionadas.has(s.id));
+        this.proyectos = this.proyectos.filter(p => !this.solicitudesSeleccionadas.has(p.solicitudId));
+        this.solicitudesSeleccionadas.clear();
+        this.mostrarConfirmacionEliminar = false;
+        this.aplicarFiltros();
+      },
+      error: (error) => {
+        console.error('Error al eliminar solicitudes:', error);
+      },
+      complete: () => {
+        this.cargandoEliminacion = false;
+      }
+    });
   }
 
   cancelarEliminarSeleccionados(): void {
@@ -288,187 +282,28 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   cargarDatosIniciales(): void {
-    this.responsables = [
-      { id: 1, nombre: 'Rolando Rodriguez Mercedes', cargo: 'Responsable de Proyecto' },
-      { id: 2, nombre: 'Alex Marquina Perez', cargo: 'Responsable de Proyecto' },
-      { id: 3, nombre: 'Darling Vigo Cotos', cargo: 'Responsable de Proyecto' },
-      { id: 4, nombre: 'Rodolfo Razuri Arevalo', cargo: 'Responsable de Proyecto' },
-      { id: 5, nombre: 'Gian Juarez Rondo', cargo: 'Responsable de Proyecto' }
-    ];
-
-    this.procesos = [
-      { id: 1, nombre: 'Proceso de Desarrollo', etapas: [
-        { id: 1, nombre: 'Análisis', orden: 1 }, { id: 2, nombre: 'Diseño', orden: 2 },
-        { id: 3, nombre: 'Desarrollo', orden: 3 }, { id: 4, nombre: 'Pruebas', orden: 4 }
-      ]},
-      { id: 2, nombre: 'Proceso de Consultoría', etapas: [
-        { id: 5, nombre: 'Diagnóstico', orden: 1 }, { id: 6, nombre: 'Propuesta', orden: 2 }, { id: 7, nombre: 'Implementación', orden: 3 }
-      ]},
-      { id: 3, nombre: 'Proceso de Auditoría', etapas: [
-        { id: 8, nombre: 'Planificación', orden: 1 }, { id: 9, nombre: 'Ejecución', orden: 2 },
-        { id: 10, nombre: 'Informe', orden: 3 }, { id: 11, nombre: 'Seguimiento', orden: 4 }
-      ]}
-    ];
-
-    this.solicitudes = [
-      { id: 1, nombreProyecto: 'Línea de Producción Textil', cliente: 'Textiles del Norte SAC', representante: 'Roberto Sánchez', costo: 85000, responsableId: 1, responsableNombre: 'Rolando Rodriguez Mercedes', descripcion: 'Diseño e implementación de línea automatizada de producción textil', fechaSolicitud: new Date('2026-01-27'), fechaInicio: new Date('2026-02-01'), fechaFin: new Date('2026-07-30'), estado: 'En Proceso' },
-      { id: 2, nombreProyecto: 'Sistema de Ventilación Industrial', cliente: 'Minera Las Rocas SA', representante: 'Laura Mendoza', costo: 62000, responsableId: 2, responsableNombre: 'Alex Marquina Perez', descripcion: 'Instalación de sistema de ventilación para planta industrial', fechaSolicitud: new Date('2026-01-10'), fechaInicio: new Date('2026-01-15'), fechaFin: new Date('2026-06-15'), estado: 'En Proceso' },
-      { id: 3, nombreProyecto: 'Mantenimiento Predictivo Maquinaria', cliente: 'Industrias Metal SAC', representante: 'Pedro Torres', costo: 38000, responsableId: 3, responsableNombre: 'Darling Vigo Cotos', descripcion: 'Programa de mantenimiento predictivo para equipos industriales', fechaSolicitud: new Date('2025-10-25'), fechaInicio: new Date('2025-11-01'), fechaFin: new Date('2026-01-31'), estado: 'Completado' }
-    ];
-
-    this.proyectos = [
-      {
-        id: 1,
-        solicitudId: 1,
-        nombreProyecto: 'Línea de Producción Textil',
-        cliente: 'Textiles del Norte SAC',
-        representante: 'Roberto Sánchez',
-        costo: 85000,
-        fechaRegistro: new Date('2026-01-27'),
-        ordenesCompra: [
-          { numero: 'OC-TEX-001', tipo: 'Materiales', fecha: '2026-02-06', total: 18500 },
-          { numero: 'OC-TEX-002', tipo: 'Servicios', fecha: '2026-02-18', total: 22300 }
-        ],
-        responsableId: 1,
-        responsableNombre: 'Rolando Rodriguez Mercedes',
-        descripcion: '<p>Diseño e implementación de línea automatizada de producción textil para aumentar capacidad y reducir tiempos operativos.</p>',
-        ubicacion: 'Lima, Ate',
-        fechaInicio: new Date('2026-02-01'),
-        fechaFinalizacion: new Date('2026-07-30'),
-        procesoId: 1,
-        procesoNombre: 'Proceso de Desarrollo',
-        estado: 'En Proceso',
-        etapaActual: 2,
-        flujo: {
-          nodos: [
-            { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
-            {
-              id: 2,
-              nombre: 'Levantamiento de requerimientos',
-              tipo: 'tarea',
-              responsableId: 1,
-              fechaInicio: '2026-02-03',
-              fechaFin: '2026-02-12',
-              descripcion: 'Reuniones con cliente y validación de alcance técnico.',
-              adjuntos: [
-                { nombre: 'Acta-levantamiento.pdf', tipo: 'pdf', tamano: 542130 },
-                { nombre: 'Plano-inicial.dwg', tipo: 'dwg', tamano: 1830240 }
-              ],
-              siguientesIds: [3]
-            },
-            {
-              id: 3,
-              nombre: 'Diseño de solución',
-              tipo: 'tarea',
-              responsableId: 4,
-              fechaInicio: '2026-02-13',
-              fechaFin: '2026-03-01',
-              descripcion: 'Definición de layout y componentes críticos.',
-              adjuntos: [
-                { nombre: 'Diseno-general.pdf', tipo: 'pdf', tamano: 722410 }
-              ],
-              siguientesIds: [4]
-            },
-            {
-              id: 4,
-              nombre: 'Instalación y pruebas iniciales',
-              tipo: 'tarea',
-              responsableId: 5,
-              fechaInicio: '2026-03-05',
-              fechaFin: '2026-03-20',
-              descripcion: 'Montaje en planta y pruebas funcionales base.',
-              siguientesIds: []
-            }
-          ]
-        }
+    forkJoin({
+      responsables: this.solicitudesService.obtenerResponsables(),
+      procesos: this.solicitudesService.obtenerProcesos(),
+      solicitudes: this.solicitudesService.obtenerSolicitudes(),
+      proyectos: this.solicitudesService.obtenerProyectos()
+    }).subscribe({
+      next: ({ responsables, procesos, solicitudes, proyectos }) => {
+        this.responsables = responsables || [];
+        this.procesos = procesos || [];
+        this.solicitudes = solicitudes || [];
+        this.proyectos = proyectos || [];
+        this.aplicarFiltros();
       },
-      {
-        id: 2,
-        solicitudId: 2,
-        nombreProyecto: 'Sistema de Ventilación Industrial',
-        cliente: 'Minera Las Rocas SA',
-        representante: 'Laura Mendoza',
-        costo: 62000,
-        fechaRegistro: new Date('2026-01-10'),
-        ordenesCompra: [
-          { numero: 'OC-MIN-015', tipo: 'Equipos', fecha: '2026-01-17', total: 31800 }
-        ],
-        responsableId: 2,
-        responsableNombre: 'Alex Marquina Perez',
-        descripcion: '<p>Instalación de sistema de ventilación industrial con extractores de aire de alta capacidad para zonas de operación crítica.</p>',
-        ubicacion: 'Cajamarca, Hualgayoc',
-        fechaInicio: new Date('2026-01-15'),
-        fechaFinalizacion: new Date('2026-06-15'),
-        procesoId: 2,
-        procesoNombre: 'Proceso de Consultoría',
-        estado: 'En Proceso',
-        etapaActual: 1,
-        flujo: {
-          nodos: [
-            { id: 1, nombre: 'Inicio', tipo: 'inicio', siguientesIds: [2] },
-            {
-              id: 2,
-              nombre: 'Relevamiento técnico',
-              tipo: 'tarea',
-              responsableId: 2,
-              fechaInicio: '2026-01-20',
-              fechaFin: '2026-01-28',
-              descripcion: 'Inspección de ductos y medición de caudales existentes.',
-              adjuntos: [
-                { nombre: 'Informe-campo.docx', tipo: 'docx', tamano: 268410 }
-              ],
-              siguientesIds: [3]
-            },
-            {
-              id: 3,
-              nombre: 'Propuesta técnica y presupuesto',
-              tipo: 'tarea',
-              responsableId: 3,
-              fechaInicio: '2026-01-30',
-              fechaFin: '2026-02-08',
-              descripcion: 'Definición de equipos, costos y cronograma de implementación.',
-              siguientesIds: [4]
-            },
-            {
-              id: 4,
-              nombre: 'Ejecución de instalación',
-              tipo: 'tarea',
-              responsableId: 2,
-              fechaInicio: '2026-02-10',
-              fechaFin: '2026-03-15',
-              descripcion: 'Instalación y validación operativa por etapas.',
-              adjuntos: [
-                { nombre: 'Checklist-instalacion.xlsx', tipo: 'xlsx', tamano: 143800 }
-              ],
-              siguientesIds: []
-            }
-          ]
-        }
-      },
-      {
-        id: 3,
-        solicitudId: 3,
-        nombreProyecto: 'Mantenimiento Predictivo Maquinaria',
-        cliente: 'Industrias Metal SAC',
-        representante: 'Pedro Torres',
-        costo: 0,
-        fechaRegistro: new Date('2025-10-25'),
-        ordenesCompra: [],
-        responsableId: 3,
-        responsableNombre: 'Darling Vigo Cotos',
-        descripcion: '',
-        ubicacion: '',
-        fechaInicio: '',
-        fechaFinalizacion: '',
-        procesoId: 0,
-        procesoNombre: '',
-        estado: 'Completado',
-        etapaActual: 0,
-        flujo: { nodos: [] }
+      error: (error) => {
+        console.error('Error al cargar datos de registro de solicitudes:', error);
+        this.responsables = [];
+        this.procesos = [];
+        this.solicitudes = [];
+        this.proyectos = [];
+        this.aplicarFiltros();
       }
-    ];
-
-    this.aplicarFiltros();
+    });
   }
 
   // Modal Nueva Solicitud
@@ -476,60 +311,60 @@ export class RegistroSolicitudesComponent implements OnInit {
   cerrarNuevaSolicitud(): void { this.showNuevaSolicitudModal = false; }
 
   onGuardarSolicitud(data: Partial<Solicitud>): void {
-    const responsable = this.responsables.find(r => r.id === Number(data.responsableId));
-    const solicitudId = this.obtenerSiguienteId(this.solicitudCounterKey, this.solicitudes.map(s => s.id ?? 0));
-    const solicitud: Solicitud = {
-      id: solicitudId, nombreProyecto: data.nombreProyecto!, cliente: data.cliente!,
-      representante: data.representante, costo: data.costo!, responsableId: Number(data.responsableId), responsableNombre: responsable?.nombre,
-      descripcion: data.descripcion!, fechaSolicitud: new Date(),
-      fechaInicio: new Date(), fechaFin: new Date(), ubicacion: data.ubicacion, estado: 'En Proceso'
-    };
-    this.solicitudes.push(solicitud);
-    this.aplicarFiltros(); // Actualizar la lista filtrada para mostrar la nueva solicitud
-    this.solicitudActual = solicitud;
-    this.showNuevaSolicitudModal = false;
-    this.proyectoActual = this.crearProyectoDesdeSolicitud(solicitud);
-    this.showProcesoProyectoModal = true;
+    this.solicitudesService.crearSolicitud(data).subscribe({
+      next: (solicitudCreada) => {
+        this.solicitudes = [solicitudCreada, ...this.solicitudes];
+        this.solicitudActual = solicitudCreada;
+        this.showNuevaSolicitudModal = false;
+        this.aplicarFiltros();
+        this.iniciarProyectoDesdeSolicitud(solicitudCreada, true);
+      },
+      error: (error) => {
+        console.error('Error al crear solicitud:', error);
+      }
+    });
   }
 
   // Modal Proceso Proyecto
   cerrarProcesoProyecto(): void { this.showProcesoProyectoModal = false; }
 
   onCancelarProyectoDesdeModal(evento: {motivo: string}): void {
-    if (this.proyectoActual) {
-      const pi = this.proyectos.findIndex(p => p.id === this.proyectoActual!.id);
-      if (pi !== -1) {
-        this.proyectos[pi].estado = 'Cancelado';
-        this.proyectos[pi].motivoCancelacion = evento.motivo;
-        this.proyectos[pi].fechaFinalizacion = new Date();
-      }
-      const si = this.solicitudes.findIndex(s => s.id === this.proyectoActual!.solicitudId);
-      if (si !== -1) {
-        this.solicitudes[si].estado = 'Cancelado';
-        this.solicitudes[si].fechaFin = new Date();
-      }
-      // Actualizar el proyecto actual para que se refleje en el modal
-      this.proyectoActual = { ...this.proyectoActual, estado: 'Cancelado', motivoCancelacion: evento.motivo, fechaFinalizacion: new Date() };
-    }
-    this.aplicarFiltros();
+    if (!this.proyectoActual) return;
+
+    this.solicitudesService
+      .actualizarProyecto(this.proyectoActual.id, { motivoCancelacion: evento.motivo })
+      .pipe(switchMap(() => this.solicitudesService.cambiarEstadoProyecto(this.proyectoActual!.id, 'Cancelado')))
+      .subscribe({
+        next: (proyectoCancelado) => this.sincronizarProyectoEnMemoria(proyectoCancelado),
+        error: (error) => console.error('Error al cancelar proyecto:', error)
+      });
   }
 
-  onFinalizarEtapa(etapa: EtapaProyecto): void { console.log('Etapa finalizada:', etapa); }
+  onFinalizarEtapa(etapa: EtapaProyecto): void {
+    if (!this.proyectoActual) return;
+
+    this.solicitudesService.completarEtapa(this.proyectoActual.id, etapa.id).subscribe({
+      next: (etapaActualizada) => {
+        if (!this.proyectoActual) return;
+        const etapas = this.proyectoActual.etapas || [];
+        const index = etapas.findIndex((e) => e.id === etapaActualizada.id);
+        if (index >= 0) {
+          etapas[index] = { ...etapaActualizada };
+        } else {
+          etapas.push(etapaActualizada);
+        }
+        this.proyectoActual = { ...this.proyectoActual, etapas: [...etapas] };
+        this.onProyectoActualizado(this.proyectoActual);
+      },
+      error: (error) => console.error('Error al completar etapa:', error)
+    });
+  }
 
   onFinalizarProyecto(proyecto: Proyecto): void {
-    console.log('Proyecto finalizado:', proyecto);
-    // Actualizar el proyecto en la lista
-    const index = this.proyectos.findIndex(p => p.id === proyecto.id);
-    if (index >= 0) {
-      this.proyectos[index] = { ...proyecto, estado: 'Completado', fechaFinalizacion: new Date() };
-    }
-    // Actualizar estado de la solicitud asociada
-    const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
-    if (solicitud) {
-      solicitud.estado = 'Completado';
-      solicitud.fechaFin = new Date();
-    }
-    this.aplicarFiltros();
+    this.solicitudesService.finalizarProyecto(proyecto.id).subscribe({
+      next: (proyectoFinalizado) => this.sincronizarProyectoEnMemoria(proyectoFinalizado),
+      error: (error) => console.error('Error al finalizar proyecto:', error)
+    });
   }
 
   onInfoProyectoActualizada(info: { costo: number; fechaInicio: string; fechaFin: string }): void {
@@ -537,51 +372,29 @@ export class RegistroSolicitudesComponent implements OnInit {
 
     this.proyectoActual.costo = info.costo;
     this.proyectoActual.fechaInicio = info.fechaInicio;
-    this.proyectoActual.fechaFinalizacion = info.fechaFin || new Date();
+    this.proyectoActual.fechaFinalizacion = info.fechaFin || this.proyectoActual.fechaFinalizacion;
     this.onProyectoActualizado(this.proyectoActual);
   }
 
   onProyectoActualizado(proyectoActualizado: Proyecto): void {
-    const indexProyecto = this.proyectos.findIndex(p => p.id === proyectoActualizado.id);
-    if (indexProyecto !== -1) {
-      this.proyectos[indexProyecto] = { ...proyectoActualizado };
-    }
-
-    const indexSolicitud = this.solicitudes.findIndex(s => s.id === proyectoActualizado.solicitudId);
-    if (indexSolicitud !== -1) {
-      const solicitud = this.solicitudes[indexSolicitud];
-      this.solicitudes[indexSolicitud] = {
-        ...solicitud,
-        nombreProyecto: proyectoActualizado.nombreProyecto,
-        cliente: proyectoActualizado.cliente,
-        representante: proyectoActualizado.representante,
-        responsableId: proyectoActualizado.responsableId,
-        responsableNombre: proyectoActualizado.responsableNombre,
-        costo: proyectoActualizado.costo,
-        ubicacion: proyectoActualizado.ubicacion,
-        descripcion: proyectoActualizado.descripcion,
-        fechaInicio: solicitud.fechaSolicitud || solicitud.fechaInicio,
-        fechaFin: proyectoActualizado.fechaFinalizacion || new Date()
-      };
-      this.solicitudActual = this.solicitudes[indexSolicitud];
-    }
-
-    if (this.proyectoActual?.id === proyectoActualizado.id) {
-      this.proyectoActual = { ...proyectoActualizado };
-    }
-
-    this.aplicarFiltros();
+    this.solicitudesService.actualizarProyecto(proyectoActualizado.id, proyectoActualizado).subscribe({
+      next: (proyectoGuardado) => this.sincronizarProyectoEnMemoria(proyectoGuardado),
+      error: (error) => console.error('Error al guardar cambios del proyecto:', error)
+    });
   }
 
   onCambiarProyecto(proyectoId: number): void {
-    const proyecto = this.proyectos.find(p => p.id === proyectoId);
-    if (proyecto) {
-      this.proyectoActual = proyecto;
-      const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
-      if (solicitud) {
-        this.solicitudActual = solicitud;
-      }
-    }
+    this.solicitudesService.obtenerProyectoPorId(proyectoId).subscribe({
+      next: (proyecto) => {
+        this.sincronizarProyectoEnMemoria(proyecto);
+        this.proyectoActual = proyecto;
+        const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
+        if (solicitud) {
+          this.solicitudActual = solicitud;
+        }
+      },
+      error: (error) => console.error('Error al cambiar proyecto:', error)
+    });
   }
 
   // Acciones desde tabla
@@ -589,12 +402,21 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.solicitudActual = solicitud;
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (proyecto) {
-      this.proyectoActual = proyecto;
-      this.showProcesoProyectoModal = true;
+      this.solicitudesService.obtenerProyectoPorId(proyecto.id).subscribe({
+        next: (proyectoActualizado) => {
+          this.sincronizarProyectoEnMemoria(proyectoActualizado);
+          this.proyectoActual = proyectoActualizado;
+          this.showProcesoProyectoModal = true;
+        },
+        error: () => {
+          this.proyectoActual = proyecto;
+          this.showProcesoProyectoModal = true;
+        }
+      });
       return;
     }
-    this.proyectoActual = this.crearProyectoDesdeSolicitud(solicitud);
-    this.showProcesoProyectoModal = true;
+
+    this.iniciarProyectoDesdeSolicitud(solicitud, true);
   }
 
   // Helpers
@@ -655,49 +477,94 @@ export class RegistroSolicitudesComponent implements OnInit {
     return responsable?.nombre || 'Sin asignar';
   }
 
-  private crearProyectoDesdeSolicitud(solicitud: Solicitud): Proyecto {
-    const existente = this.proyectos.find(p => p.solicitudId === solicitud.id);
-    if (existente) return existente;
-    const proyectoId = this.obtenerSiguienteId(this.proyectoCounterKey, this.proyectos.map(p => p.id));
-    const proyecto: Proyecto = {
-      id: proyectoId,
-      solicitudId: solicitud.id,
-      nombreProyecto: solicitud.nombreProyecto,
-      cliente: solicitud.cliente,
-      representante: solicitud.representante,
-      costo: solicitud.costo,
-      fechaRegistro: solicitud.fechaSolicitud || new Date(),
-      ordenesCompra: [],
-      responsableId: solicitud.responsableId,
-      responsableNombre: solicitud.responsableNombre,
-      descripcion: solicitud.descripcion,
-      fechaInicio: solicitud.fechaInicio || '',
-      fechaFinalizacion: solicitud.fechaFin || '',
-      procesoId: 0,
-      procesoNombre: '',
-      ubicacion: solicitud.ubicacion,
-      estado: 'En Proceso',
-      etapaActual: 1,
-      flujo: { nodos: [] }
-    };
-    this.proyectos.push(proyecto);
-    solicitud.estado = 'En Proceso';
-    this.aplicarFiltros();
-    return proyecto;
+  getFechaUltimaActualizacion(solicitud: Solicitud): Date | undefined {
+    const proyecto = this.proyectos.find((p) => p.solicitudId === solicitud.id);
+    const desdeProyecto = proyecto?.fechaActualizacion ? new Date(proyecto.fechaActualizacion) : undefined;
+    const desdeSolicitud = solicitud.fechaActualizacion ? new Date(solicitud.fechaActualizacion) : undefined;
+
+    if (desdeProyecto && !Number.isNaN(desdeProyecto.getTime())) {
+      return desdeProyecto;
+    }
+    if (desdeSolicitud && !Number.isNaN(desdeSolicitud.getTime())) {
+      return desdeSolicitud;
+    }
+    return solicitud.fechaSolicitud;
   }
 
-  private obtenerSiguienteId(storageKey: string, idsExistentes: number[]): number {
-    const maximoExistente = idsExistentes.length ? Math.max(...idsExistentes) : 0;
-
-    if (typeof window === 'undefined') {
-      return maximoExistente + 1;
+  private iniciarProyectoDesdeSolicitud(solicitud: Solicitud, abrirModal = false): void {
+    const procesoDefaultId = this.procesos[0]?.id;
+    if (!procesoDefaultId) {
+      this.solicitudesService.obtenerProcesos().subscribe({
+        next: (procesos) => {
+          this.procesos = procesos || [];
+          if (!this.procesos.length) {
+            console.warn('No hay procesos activos disponibles. La solicitud fue creada y quedo pendiente de asociacion a proyecto.');
+            this.aplicarFiltros();
+            return;
+          }
+          this.iniciarProyectoDesdeSolicitud(solicitud, abrirModal);
+        },
+        error: (error) => {
+          console.error('Error al obtener procesos para iniciar proyecto:', error);
+        }
+      });
+      return;
     }
 
-    const valorGuardado = Number(window.localStorage.getItem(storageKey) || '0');
-    const siguienteId = Math.max(maximoExistente, Number.isFinite(valorGuardado) ? valorGuardado : 0) + 1;
-    window.localStorage.setItem(storageKey, String(siguienteId));
+    this.solicitudesService.iniciarProyecto(solicitud, procesoDefaultId).subscribe({
+      next: (proyectoCreado) => {
+        this.sincronizarProyectoEnMemoria(proyectoCreado);
+        this.proyectoActual = proyectoCreado;
+        this.solicitudActual = this.solicitudes.find(s => s.id === proyectoCreado.solicitudId) || solicitud;
+        if (abrirModal) {
+          this.showProcesoProyectoModal = true;
+        }
+      },
+      error: (error) => {
+        if (error?.status === 400 && String(error?.error?.message || '').toLowerCase().includes('proceso activo')) {
+          this.procesos = [];
+          this.iniciarProyectoDesdeSolicitud(solicitud, abrirModal);
+          return;
+        }
+        console.error('Error al iniciar proyecto desde solicitud:', error);
+      }
+    });
+  }
 
-    return siguienteId;
+  private sincronizarProyectoEnMemoria(proyectoActualizado: Proyecto): void {
+    const indexProyecto = this.proyectos.findIndex(p => p.id === proyectoActualizado.id);
+    if (indexProyecto !== -1) {
+      this.proyectos[indexProyecto] = { ...proyectoActualizado };
+    } else {
+      this.proyectos.unshift({ ...proyectoActualizado });
+    }
+
+    const indexSolicitud = this.solicitudes.findIndex(s => s.id === proyectoActualizado.solicitudId);
+    if (indexSolicitud !== -1) {
+      const solicitud = this.solicitudes[indexSolicitud];
+      this.solicitudes[indexSolicitud] = {
+        ...solicitud,
+        nombreProyecto: proyectoActualizado.nombreProyecto,
+        cliente: proyectoActualizado.cliente,
+        representante: proyectoActualizado.representante,
+        responsableId: proyectoActualizado.responsableId,
+        responsableNombre: proyectoActualizado.responsableNombre,
+        costo: proyectoActualizado.costo,
+        ubicacion: proyectoActualizado.ubicacion,
+        descripcion: proyectoActualizado.descripcion,
+        fechaInicio: proyectoActualizado.fechaInicio || solicitud.fechaInicio,
+        fechaFin: proyectoActualizado.fechaFinalizacion || solicitud.fechaFin,
+        estado: proyectoActualizado.estado,
+        fechaActualizacion: this.toDate(proyectoActualizado.fechaActualizacion)
+      };
+      this.solicitudActual = this.solicitudes[indexSolicitud];
+    }
+
+    if (this.proyectoActual?.id === proyectoActualizado.id) {
+      this.proyectoActual = { ...proyectoActualizado };
+    }
+
+    this.aplicarFiltros();
   }
 
   private parseDateAtStart(dateInput: string): Date {
@@ -710,5 +577,11 @@ export class RegistroSolicitudesComponent implements OnInit {
     const fecha = new Date(dateInput);
     fecha.setHours(23, 59, 59, 999);
     return fecha;
+  }
+
+  private toDate(value?: Date | string): Date | undefined {
+    if (!value) return undefined;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date;
   }
 }

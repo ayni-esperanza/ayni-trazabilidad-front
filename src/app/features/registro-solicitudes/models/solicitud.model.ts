@@ -51,6 +51,7 @@ export interface Solicitud {
   areas?: string[];
   ubicacion?: string;
   fechaSolicitud?: Date;
+  fechaActualizacion?: Date;
   fechaInicio?: Date | string;
   fechaFin?: Date | string;
   estado: EstadoSolicitud;
@@ -79,6 +80,7 @@ export interface Proyecto {
   motivoCancelacion?: string;
   etapas?: EtapaProyecto[];
   flujo?: FlujoProyecto;
+  fechaActualizacion?: Date | string;
 }
 
 export interface EtapaProyecto {

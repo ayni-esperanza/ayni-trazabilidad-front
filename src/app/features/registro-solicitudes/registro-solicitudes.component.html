@@ -195,8 +195,8 @@
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.cliente }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.responsableNombre }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">
-                @if (solicitud.fechaSolicitud && solicitud.fechaFin) {
-                  {{ solicitud.fechaSolicitud | date:'dd/MM/yy' }} - {{ solicitud.fechaFin | date:'dd/MM/yy' }}
+                @if (solicitud.fechaSolicitud) {
+                  {{ solicitud.fechaSolicitud | date:'dd/MM/yy' }} - {{ getFechaUltimaActualizacion(solicitud) | date:'dd/MM/yy' }}
                 } @else {
                   -
                 }
