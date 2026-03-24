@@ -551,44 +551,17 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.bloqueoEdicionActividades) return;
     if (!this.proyecto) return;
 
-    const posicionInicial = this.calcularPosicionNuevoNodo(payload.nodoOrigenId);
-
-    // Crear primero el nodo en memoria para que no se pierda al renderizar el flujo.
-    const nuevoNodo: FlujoNodo = {
-      id: this.obtenerSiguienteNodoId(),
+    // No crear nodo aún: la actividad se agrega al flujo recién al guardar en la modal.
+    this.nodoPadreParaNuevoId = typeof payload.nodoOrigenId === 'number' ? payload.nodoOrigenId : null;
+    this.actividadParaEditar = {
       nombre: payload.nombre || 'Nueva actividad',
-      tipo: 'tarea',
-      posicionX: posicionInicial.x,
-      posicionY: posicionInicial.y,
-      estadoActividad: 'Pendiente',
-      fechaCambioEstado: new Date().toISOString(),
-      responsableId: undefined,
-      fechaInicio: undefined,
+      responsableId: '',
+      fechaInicio: '',
       fechaFin: undefined,
       descripcion: '',
-      adjuntos: [],
-      siguientesIds: []
+      archivosAdjuntos: [],
+      estado: 'Pendiente'
     };
-
-    if (typeof payload.nodoOrigenId === 'number') {
-      const indexOrigen = this.flujoNodos.findIndex(n => n.id === payload.nodoOrigenId);
-      if (indexOrigen >= 0) {
-        const origen = this.flujoNodos[indexOrigen];
-        this.flujoNodos[indexOrigen] = {
-          ...origen,
-          siguientesIds: origen.siguientesIds.includes(nuevoNodo.id)
-            ? origen.siguientesIds
-            : [...origen.siguientesIds, nuevoNodo.id]
-        };
-      }
-    }
-
-    this.flujoNodos = [...this.flujoNodos, nuevoNodo];
-    this.persistirFlujoProyecto();
-    this.marcarActualizacionProyecto();
-
-    this.nodoPadreParaNuevoId = null;
-    this.actividadParaEditar = this.mapearNodoATarea(nuevoNodo);
     this.mostrarModalActividad = true;
   }
 
