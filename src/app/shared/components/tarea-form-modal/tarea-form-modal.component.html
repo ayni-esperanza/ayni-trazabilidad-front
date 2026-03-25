@@ -66,16 +66,13 @@
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Responsable <span class="text-red-500">*</span>
             </label>
-            <select 
-              [(ngModel)]="formData.responsableId"
-              [class.border-red-500]="tieneError('responsableId')"
-              class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
-              required>
-              <option value="">Seleccionar Responsable</option>
-              @for (responsable of responsables; track responsable.id) {
-                <option [value]="responsable.id">{{ responsable.nombre }}</option>
-              }
-            </select>
+            <app-responsable-select
+              [responsables]="responsables"
+              [value]="formData.responsableId || ''"
+              (valueChange)="formData.responsableId = '' + $event"
+              [placeholder]="'Seleccionar Responsable'"
+              [emptyValue]="''">
+            </app-responsable-select>
             <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-1">{{ errores['responsableId'] }}</span>
           </div>
 

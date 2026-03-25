@@ -6,6 +6,8 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
+import { ResponsableSelectComponent } from '../responsable-select/responsable-select.component';
+import { Responsable } from '../../../features/registro-solicitudes/models/solicitud.model';
 
 export interface ArchivoAdjuntoActividad {
   nombre: string;
@@ -30,12 +32,13 @@ export interface Tarea {
 @Component({
   selector: 'app-tarea-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, CKEditorModule, ConfirmDeleteModalComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, CKEditorModule, ConfirmDeleteModalComponent, DatePickerComponent, ResponsableSelectComponent],
   templateUrl: './tarea-form-modal.component.html'
 })
 export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   @Input() visible = false;
   @Input() tarea: Tarea | null = null;
+  @Input() responsables: Responsable[] = [];
   @Input() modoEdicion = false;
   @Input() embedded = false;
 
@@ -73,14 +76,6 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   adjuntoVistaPrevia: ArchivoAdjuntoActividad | null = null;
   fuenteVistaPrevia = '';
   private fuenteVistaPreviaEsBlob = false;
-
-  responsables = [
-    { id: '1', nombre: 'Rolando Rodriguez Mercedes' },
-    { id: '2', nombre: 'Alex Marquina Perez' },
-    { id: '3', nombre: 'Darling Vigo Cotos' },
-    { id: '4', nombre: 'Rodolfo Razuri Arevalo' },
-    { id: '5', nombre: 'Gian Juarez Rondo' }
-  ];
 
   constructor(
     private cdr: ChangeDetectorRef,

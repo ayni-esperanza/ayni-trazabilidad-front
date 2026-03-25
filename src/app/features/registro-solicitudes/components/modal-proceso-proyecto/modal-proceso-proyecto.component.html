@@ -333,6 +333,7 @@
             [visible]="mostrarModalActividad"
             [embedded]="true"
             [tarea]="actividadParaEditar"
+            [responsables]="responsables"
             [modoEdicion]="actividadParaEditar?.id != null"
             (cerrar)="onCerrarModalActividad()"
             (guardar)="onGuardarActividad($event)"

@@ -5,6 +5,7 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra } from '../../../../models/solicitud.model';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
+import { ResponsableSelectComponent } from '../../../../../../shared/components/responsable-select/responsable-select.component';
 
 export type ProyectoInfoFormData = {
   nombreProyecto: string;
@@ -24,7 +25,7 @@ export type ProyectoInfoFormData = {
 @Component({
   selector: 'app-tab-informacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, CKEditorModule, DatePickerComponent, UbicacionSelectComponent],
+  imports: [CommonModule, FormsModule, CKEditorModule, DatePickerComponent, UbicacionSelectComponent, ResponsableSelectComponent],
   templateUrl: './tab-informacion.component.html'
 })
 export class TabInformacionComponent implements OnInit {
@@ -36,14 +37,6 @@ export class TabInformacionComponent implements OnInit {
   @Input() modoSoloLectura = false;
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
-
-  readonly responsablesFijos: Responsable[] = [
-    { id: 1, nombre: 'Rolando Rodriguez Mercedes' },
-    { id: 2, nombre: 'Alex Marquina Perez' },
-    { id: 3, nombre: 'Darling Vigo Cotos' },
-    { id: 4, nombre: 'Rodolfo Razuri Arevalo' },
-    { id: 5, nombre: 'Gian Juarez Rondo' }
-  ];
 
   readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
   readonly areasDisponibles: string[] = [
@@ -103,8 +96,7 @@ export class TabInformacionComponent implements OnInit {
   }
 
   getResponsableNombre(responsableId: number): string {
-    const resp = this.responsablesFijos.find(r => r.id === responsableId)
-      ?? this.responsables.find(r => r.id === responsableId);
+    const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
   }
 

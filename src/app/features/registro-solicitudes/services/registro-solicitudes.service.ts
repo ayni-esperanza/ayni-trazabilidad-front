@@ -57,6 +57,7 @@ type FlujoNodoApi = {
   estadoActividad?: string;
   fechaCambioEstado?: string;
   responsableId?: number;
+  responsableNombre?: string;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
@@ -73,6 +74,7 @@ type ActividadRequestApi = {
   estadoActividad?: string;
   fechaCambioEstado?: string;
   responsableId?: number;
+  responsableNombre?: string;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
@@ -309,6 +311,7 @@ export class RegistroSolicitudesService {
       estadoActividad: nodo.estadoActividad,
       fechaCambioEstado: nodo.fechaCambioEstado,
       responsableId: nodo.responsableId,
+      responsableNombre: nodo.responsableNombre,
       fechaInicio: nodo.fechaInicio,
       fechaFin: nodo.fechaFin,
       descripcion: nodo.descripcion,
@@ -535,6 +538,7 @@ export class RegistroSolicitudesService {
         estadoActividad: this.mapEstadoTarea(nodo.estadoActividad),
         fechaCambioEstado: nodo.fechaCambioEstado,
         responsableId: nodo.responsableId,
+        responsableNombre: nodo.responsableNombre,
         fechaInicio: nodo.fechaInicio,
         fechaFin: nodo.fechaFin,
         descripcion: nodo.descripcion,

@@ -568,7 +568,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onGuardarActividad(actividad: Tarea): void {
     if (!this.proyecto) return;
 
-    const fechaActualizacion = this.formatDate(new Date());
+    const fechaActualizacion = new Date().toISOString();
+    const responsableId = actividad.responsableId ? Number(actividad.responsableId) : undefined;
+    const responsableNombre = this.resolveResponsableNombre(responsableId);
 
     const indexNodoExistente = typeof actividad.id === 'number'
       ? this.flujoNodos.findIndex(n => n.id === actividad.id)
@@ -582,9 +584,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tipo: 'tarea',
         estadoActividad: nodoActual.estadoActividad || 'Pendiente',
         fechaCambioEstado: nodoActual.fechaCambioEstado || new Date().toISOString(),
-        responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
-        fechaInicio: actividad.fechaInicio || nodoActual.fechaInicio || fechaActualizacion,
-        fechaFin: fechaActualizacion,
+        responsableId,
+        responsableNombre,
+        fechaInicio: this.toApiDateTime(actividad.fechaInicio) || this.toApiDateTime(nodoActual.fechaInicio) || fechaActualizacion,
+        fechaFin: this.toApiDateOnly(actividad.fechaFin),
         descripcion: actividad.descripcion || '',
         adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos)
       };
@@ -611,9 +614,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         posicionY: posicionInicial.y,
         estadoActividad: 'Pendiente',
         fechaCambioEstado: new Date().toISOString(),
-        responsableId: actividad.responsableId ? Number(actividad.responsableId) : undefined,
-        fechaInicio: actividad.fechaInicio || fechaActualizacion,
-        fechaFin: fechaActualizacion,
+        responsableId,
+        responsableNombre,
+        fechaInicio: this.toApiDateTime(actividad.fechaInicio) || fechaActualizacion,
+        fechaFin: this.toApiDateOnly(actividad.fechaFin),
         descripcion: actividad.descripcion || '',
         adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos),
         siguientesIds: []
@@ -707,6 +711,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     estadoActividad?: string;
     fechaCambioEstado?: string;
     responsableId?: number;
+    responsableNombre?: string;
     fechaInicio?: string;
     fechaFin?: string;
     descripcion?: string;
@@ -723,6 +728,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       estadoActividad: nodo.estadoActividad,
       fechaCambioEstado: nodo.fechaCambioEstado,
       responsableId: nodo.responsableId,
+      responsableNombre: nodo.responsableNombre || this.resolveResponsableNombre(nodo.responsableId),
       fechaInicio: nodo.fechaInicio,
       fechaFin: nodo.fechaFin,
       descripcion: nodo.descripcion,
@@ -734,6 +740,52 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       })),
       siguientesIds: nodo.siguientesIds || []
     };
+  }
+
+  private toApiDateOnly(value?: Date | string): string | undefined {
+    if (!value) return undefined;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      const raw = String(value);
+      if (raw.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        return raw.substring(0, 10);
+      }
+      return undefined;
+    }
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  private toApiDateTime(value?: Date | string): string | undefined {
+    if (!value) return undefined;
+
+    const raw = String(value).trim();
+    if (!raw) return undefined;
+
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}(:\d{2})?$/.test(raw)) {
+      const normalized = raw.replace(' ', 'T');
+      return normalized.length === 16 ? `${normalized}:00` : normalized;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(raw)) {
+      return raw.length === 16 ? `${raw}:00` : raw;
+    }
+
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) {
+      return undefined;
+    }
+
+    return date.toISOString().slice(0, 19);
+  }
+
+  private resolveResponsableNombre(responsableId?: number): string | undefined {
+    if (!responsableId) return undefined;
+    return this.responsables.find(r => r.id === responsableId)?.nombre;
   }
 
   private sincronizarOrdenesCompraProyecto(ordenes: OrdenCompra[]) {

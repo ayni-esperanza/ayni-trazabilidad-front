@@ -5,11 +5,12 @@ import { Solicitud, Responsable } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { UbicacionSelectComponent } from '../../../../shared/components/ubicacion-select/ubicacion-select.component';
+import { ResponsableSelectComponent } from '../../../../shared/components/responsable-select/responsable-select.component';
 
 @Component({
   selector: 'app-modal-nueva-solicitud',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, UbicacionSelectComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, UbicacionSelectComponent, ResponsableSelectComponent],
   templateUrl: './modal-nueva-solicitud.component.html',
   styleUrls: ['./modal-nueva-solicitud.component.css']
 })

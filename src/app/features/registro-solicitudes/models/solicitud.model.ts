@@ -29,6 +29,7 @@ export interface FlujoNodo {
   estadoActividad?: EstadoTarea;
   fechaCambioEstado?: string;
   responsableId?: number;
+  responsableNombre?: string;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
