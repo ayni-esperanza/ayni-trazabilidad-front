@@ -2,6 +2,7 @@ export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
 
 export interface OrdenCompra {
+  id?: number;
   numero: string;
   fecha: string;
   tipo?: string;

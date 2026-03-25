@@ -589,7 +589,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos)
       };
 
-      this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? nodoActualizado : nodo);
+      this.registroSolicitudesService.actualizarActividad(
+        this.proyecto.id,
+        nodoActualizado.id,
+        this.mapearNodoAActividadRequest(nodoActualizado)
+      ).subscribe({
+        next: (actualizadoDesdeApi) => {
+          this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? actualizadoDesdeApi : nodo);
+          this.persistirFlujoProyecto();
+          this.cerrarEditorActividad();
+        },
+        error: (error) => console.error('Error actualizando actividad:', error)
+      });
     } else {
       const posicionInicial = this.posicionInicialNuevaActividad || this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
       const nuevoNodo: FlujoNodo = {
@@ -608,71 +619,159 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         siguientesIds: []
       };
 
-      if (this.nodoPadreParaNuevoId !== null) {
-        const indexPadre = this.flujoNodos.findIndex(n => n.id === this.nodoPadreParaNuevoId);
-        if (indexPadre >= 0) {
-          const padre = this.flujoNodos[indexPadre];
-          const nuevosSiguientes = padre.siguientesIds.includes(nuevoNodo.id)
-            ? padre.siguientesIds
-            : [...padre.siguientesIds, nuevoNodo.id];
-          this.flujoNodos[indexPadre] = { ...padre, siguientesIds: nuevosSiguientes };
-        }
-      } else if (this.flujoNodos.length > 0) {
-        const ultimo = this.flujoNodos[this.flujoNodos.length - 1];
-        const siguientes = ultimo.siguientesIds.includes(nuevoNodo.id)
-          ? ultimo.siguientesIds
-          : [...ultimo.siguientesIds, nuevoNodo.id];
-        this.flujoNodos[this.flujoNodos.length - 1] = {
-          ...ultimo,
-          siguientesIds: siguientes
-        };
-      }
+      this.registroSolicitudesService.crearActividad(this.proyecto.id, {
+        ...this.mapearNodoAActividadRequest(nuevoNodo),
+        nodoOrigenId: this.nodoPadreParaNuevoId ?? undefined
+      }).subscribe({
+        next: (creadaDesdeApi) => {
+          if (this.nodoPadreParaNuevoId !== null) {
+            const indexPadre = this.flujoNodos.findIndex(n => n.id === this.nodoPadreParaNuevoId);
+            if (indexPadre >= 0) {
+              const padre = this.flujoNodos[indexPadre];
+              this.flujoNodos[indexPadre] = {
+                ...padre,
+                siguientesIds: padre.siguientesIds.includes(creadaDesdeApi.id)
+                  ? padre.siguientesIds
+                  : [...padre.siguientesIds, creadaDesdeApi.id]
+              };
+            }
+          }
 
-      this.flujoNodos = [...this.flujoNodos, nuevoNodo];
+          this.flujoNodos = [...this.flujoNodos, creadaDesdeApi];
+          this.persistirFlujoProyecto();
+          this.cerrarEditorActividad();
+        },
+        error: (error) => console.error('Error creando actividad:', error)
+      });
     }
-
-    this.persistirFlujoProyecto();
-    this.marcarActualizacionProyecto();
-    this.mostrarModalActividad = false;
-    this.actividadParaEditar = null;
-    this.nodoPadreParaNuevoId = null;
-    this.posicionInicialNuevaActividad = null;
   }
 
   onEliminarActividad(nodoId: number): void {
     if (!this.proyecto) return;
 
-    this.flujoNodos = this.flujoNodos
-      .filter(nodo => nodo.id !== nodoId)
-      .map(nodo => ({
-        ...nodo,
-        siguientesIds: nodo.siguientesIds.filter(id => id !== nodoId)
-      }));
-
-    this.persistirFlujoProyecto();
-    this.marcarActualizacionProyecto();
-    this.mostrarModalActividad = false;
-    this.actividadParaEditar = null;
-    this.nodoPadreParaNuevoId = null;
-    this.posicionInicialNuevaActividad = null;
+    this.registroSolicitudesService.eliminarActividad(this.proyecto.id, nodoId).subscribe({
+      next: () => {
+        this.flujoNodos = this.flujoNodos
+          .filter(nodo => nodo.id !== nodoId)
+          .map(nodo => ({
+            ...nodo,
+            siguientesIds: nodo.siguientesIds.filter(id => id !== nodoId)
+          }));
+        this.persistirFlujoProyecto();
+        this.cerrarEditorActividad();
+      },
+      error: (error) => console.error('Error eliminando actividad:', error)
+    });
   }
 
   onFlujoActualizado(nodosActualizados: FlujoNodo[]): void {
-    this.flujoNodos = nodosActualizados.map(nodo => ({
+    if (!this.proyecto) return;
+
+    const normalizados = nodosActualizados.map(nodo => ({
       ...nodo,
       estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
       fechaCambioEstado: nodo.fechaCambioEstado,
       siguientesIds: [...nodo.siguientesIds]
     }));
-    this.persistirFlujoProyecto();
-    this.marcarActualizacionProyecto();
+
+    this.registroSolicitudesService.sincronizarActividades(this.proyecto.id, normalizados).subscribe({
+      next: (nodosSincronizados) => {
+        this.flujoNodos = nodosSincronizados;
+        this.persistirFlujoProyecto();
+      },
+      error: (error) => {
+        console.error('Error sincronizando flujo:', error);
+        this.flujoNodos = normalizados;
+        this.persistirFlujoProyecto();
+      }
+    });
   }
 
   onCerrarModalActividad(): void {
+    this.cerrarEditorActividad();
+  }
+
+  private cerrarEditorActividad(): void {
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
     this.posicionInicialNuevaActividad = null;
+  }
+
+  private mapearNodoAActividadRequest(nodo: FlujoNodo): {
+    id?: number;
+    nombre: string;
+    tipo: 'inicio' | 'tarea';
+    posicionX?: number;
+    posicionY?: number;
+    estadoActividad?: string;
+    fechaCambioEstado?: string;
+    responsableId?: number;
+    fechaInicio?: string;
+    fechaFin?: string;
+    descripcion?: string;
+    nodoOrigenId?: number;
+    adjuntos: Array<{ nombre: string; tipo: string; tamano: number; dataUrl?: string }>;
+    siguientesIds: number[];
+  } {
+    return {
+      id: nodo.id,
+      nombre: nodo.nombre,
+      tipo: nodo.tipo,
+      posicionX: nodo.posicionX,
+      posicionY: nodo.posicionY,
+      estadoActividad: nodo.estadoActividad,
+      fechaCambioEstado: nodo.fechaCambioEstado,
+      responsableId: nodo.responsableId,
+      fechaInicio: nodo.fechaInicio,
+      fechaFin: nodo.fechaFin,
+      descripcion: nodo.descripcion,
+      adjuntos: (nodo.adjuntos || []).map((adjunto) => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: adjunto.tamano,
+        dataUrl: adjunto.dataUrl
+      })),
+      siguientesIds: nodo.siguientesIds || []
+    };
+  }
+
+  private sincronizarOrdenesCompraProyecto(ordenes: OrdenCompra[]) {
+    if (!this.proyecto) return of(null);
+
+    return this.registroSolicitudesService.obtenerOrdenesCompra(this.proyecto.id).pipe(
+      switchMap((existentes) => {
+        const operaciones: Observable<unknown>[] = [];
+        const idsLocales = new Set((ordenes || []).map(o => Number(o.id || 0)).filter(id => id > 0));
+
+        for (const orden of ordenes || []) {
+          const payload = {
+            numero: orden.numero,
+            fecha: orden.fecha,
+            tipo: orden.tipo,
+            numeroLicitacion: orden.numeroLicitacion,
+            numeroSolicitud: orden.numeroSolicitud,
+            total: Number(orden.total || 0)
+          };
+
+          if (orden.id) {
+            operaciones.push(this.registroSolicitudesService.actualizarOrdenCompra(this.proyecto!.id, orden.id, payload));
+          } else {
+            operaciones.push(this.registroSolicitudesService.crearOrdenCompra(this.proyecto!.id, payload));
+          }
+        }
+
+        for (const existente of existentes || []) {
+          const idExistente = Number(existente.id || 0);
+          if (idExistente > 0 && !idsLocales.has(idExistente)) {
+            operaciones.push(this.registroSolicitudesService.eliminarOrdenCompra(this.proyecto!.id, idExistente));
+          }
+        }
+
+        return operaciones.length ? forkJoin(operaciones) : of([]);
+      }),
+      map(() => null)
+    );
   }
 
   private prepararFlujo(): void {
@@ -782,11 +881,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   guardarInfoProyecto(): void {
     if (!this.proyecto || this.modoSoloLectura) return;
+
+    const ordenesActualizadas = this.proyectoInfoForm.ordenesCompra
+      .filter(o => o.numero.trim())
+      .map(o => ({ ...o }));
+
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
     this.proyecto.representante = this.proyectoInfoForm.representante;
     this.proyecto.areas = [...(this.proyectoInfoForm.areas || [])];
-    this.proyecto.ordenesCompra = this.proyectoInfoForm.ordenesCompra.filter(o => o.numero.trim()).map(o => ({ ...o }));
+    this.proyecto.ordenesCompra = ordenesActualizadas;
     this.proyecto.costo = Number(this.proyectoInfoForm.costo);
     this.proyecto.procesoId = Number(this.proyectoInfoForm.procesoId);
     this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
@@ -795,19 +899,26 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.fechaFinalizacion = this.formatDate(new Date());
     this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
-    this.marcarActualizacionProyecto();
-    this.infoActualizada.emit({
-      costo: this.proyecto.costo,
-      fechaInicio: this.proyectoInfoForm.fechaInicio,
-      fechaFin: this.proyecto.fechaFinalizacion
+    this.sincronizarOrdenesCompraProyecto(ordenesActualizadas).subscribe({
+      next: () => {
+        this.marcarActualizacionProyecto();
+        this.infoActualizada.emit({
+          costo: this.proyecto!.costo,
+          fechaInicio: this.proyectoInfoForm.fechaInicio,
+          fechaFin: this.formatDate(this.proyecto!.fechaFinalizacion)
+        });
+
+        if (this.embedded) {
+          this.tabActiva = 'tablero';
+          return;
+        }
+
+        this.cerrar.emit();
+      },
+      error: (error) => {
+        console.error('Error sincronizando ordenes de compra:', error);
+      }
     });
-
-    if (this.embedded) {
-      this.tabActiva = 'tablero';
-      return;
-    }
-
-    this.cerrar.emit();
   }
 
   // ========== Métodos para Costos (delegados a TabCostosComponent) ==========

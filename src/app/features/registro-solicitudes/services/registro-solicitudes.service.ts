@@ -30,6 +30,7 @@ type SolicitudApi = {
 };
 
 type OrdenCompraApi = {
+  id?: number;
   numero: string;
   fecha: string;
   tipo?: string;
@@ -39,6 +40,7 @@ type OrdenCompraApi = {
 };
 
 type FlujoAdjuntoApi = {
+  id?: number;
   nombre: string;
   tipo: string;
   tamano: number;
@@ -59,6 +61,23 @@ type FlujoNodoApi = {
   fechaFin?: string;
   descripcion?: string;
   adjuntos?: FlujoAdjuntoApi[];
+  siguientesIds: number[];
+};
+
+type ActividadRequestApi = {
+  id?: number;
+  nombre: string;
+  tipo: 'inicio' | 'tarea';
+  posicionX?: number;
+  posicionY?: number;
+  estadoActividad?: string;
+  fechaCambioEstado?: string;
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  descripcion?: string;
+  nodoOrigenId?: number;
+  adjuntos: FlujoAdjuntoApi[];
   siguientesIds: number[];
 };
 
@@ -211,8 +230,6 @@ export class RegistroSolicitudesService {
       descripcion: proyecto.descripcion,
       ubicacion: proyecto.ubicacion,
       areas: proyecto.areas || [],
-      ordenesCompra: proyecto.ordenesCompra || [],
-      flujo: proyecto.flujo || { nodos: [] },
       costo: Number(proyecto.costo || 0),
       fechaInicio: this.toIsoDate(proyecto.fechaInicio),
       fechaFinalizacion: this.toIsoDate(proyecto.fechaFinalizacion),
@@ -258,6 +275,71 @@ export class RegistroSolicitudesService {
 
   obtenerProcesos(): Observable<ProcesoSimple[]> {
     return of([]);
+  }
+
+  obtenerActividades(proyectoId: number): Observable<FlujoNodo[]> {
+    return this.http.get<FlujoNodoApi[]>(`/v1/proyectos/${proyectoId}/actividades`).pipe(
+      map((items) => this.mapFlujo({ nodos: items || [] }).nodos)
+    );
+  }
+
+  crearActividad(proyectoId: number, payload: ActividadRequestApi): Observable<FlujoNodo> {
+    return this.http.post<FlujoNodoApi>(`/v1/proyectos/${proyectoId}/actividades`, payload).pipe(
+      map((item) => this.mapFlujo({ nodos: [item] }).nodos[0])
+    );
+  }
+
+  actualizarActividad(proyectoId: number, actividadId: number, payload: ActividadRequestApi): Observable<FlujoNodo> {
+    return this.http.put<FlujoNodoApi>(`/v1/proyectos/${proyectoId}/actividades/${actividadId}`, payload).pipe(
+      map((item) => this.mapFlujo({ nodos: [item] }).nodos[0])
+    );
+  }
+
+  eliminarActividad(proyectoId: number, actividadId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/actividades/${actividadId}`);
+  }
+
+  sincronizarActividades(proyectoId: number, nodos: FlujoNodo[]): Observable<FlujoNodo[]> {
+    const payload: ActividadRequestApi[] = (nodos || []).map((nodo) => ({
+      id: nodo.id,
+      nombre: nodo.nombre,
+      tipo: nodo.tipo,
+      posicionX: nodo.posicionX,
+      posicionY: nodo.posicionY,
+      estadoActividad: nodo.estadoActividad,
+      fechaCambioEstado: nodo.fechaCambioEstado,
+      responsableId: nodo.responsableId,
+      fechaInicio: nodo.fechaInicio,
+      fechaFin: nodo.fechaFin,
+      descripcion: nodo.descripcion,
+      adjuntos: (nodo.adjuntos || []).map((adjunto) => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: adjunto.tamano,
+        dataUrl: adjunto.dataUrl
+      })),
+      siguientesIds: nodo.siguientesIds || []
+    }));
+
+    return this.http.put<FlujoNodoApi[]>(`/v1/proyectos/${proyectoId}/actividades`, payload).pipe(
+      map((items) => this.mapFlujo({ nodos: items || [] }).nodos)
+    );
+  }
+
+  obtenerOrdenesCompra(proyectoId: number): Observable<OrdenCompraApi[]> {
+    return this.http.get<OrdenCompraApi[]>(`/v1/proyectos/${proyectoId}/ordenes-compra`);
+  }
+
+  crearOrdenCompra(proyectoId: number, orden: OrdenCompraApi): Observable<OrdenCompraApi> {
+    return this.http.post<OrdenCompraApi>(`/v1/proyectos/${proyectoId}/ordenes-compra`, orden);
+  }
+
+  actualizarOrdenCompra(proyectoId: number, ordenId: number, orden: OrdenCompraApi): Observable<OrdenCompraApi> {
+    return this.http.put<OrdenCompraApi>(`/v1/proyectos/${proyectoId}/ordenes-compra/${ordenId}`, orden);
+  }
+
+  eliminarOrdenCompra(proyectoId: number, ordenId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/ordenes-compra/${ordenId}`);
   }
 
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
@@ -415,7 +497,15 @@ export class RegistroSolicitudesService {
       representante: item.representante,
       costo: Number(item.costo || 0),
       fechaRegistro: this.toDate(item.fechaRegistro),
-      ordenesCompra: item.ordenesCompra || [],
+      ordenesCompra: (item.ordenesCompra || []).map((orden) => ({
+        id: orden.id,
+        numero: orden.numero,
+        fecha: orden.fecha,
+        tipo: orden.tipo,
+        numeroLicitacion: orden.numeroLicitacion,
+        numeroSolicitud: orden.numeroSolicitud,
+        total: Number(orden.total || 0)
+      })),
       responsableId: item.responsableId,
       responsableNombre: item.responsableNombre,
       descripcion: item.descripcion,
