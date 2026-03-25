@@ -124,6 +124,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarModalActividad = false;
   actividadParaEditar: Tarea | null = null;
   nodoPadreParaNuevoId: number | null = null;
+  posicionInicialNuevaActividad: { x: number; y: number } | null = null;
 
   flujoNodos: FlujoNodo[] = [];
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
@@ -529,57 +530,38 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   abrirModalActividad(nodo?: FlujoNodo): void {
     this.nodoPadreParaNuevoId = null;
+    this.posicionInicialNuevaActividad = null;
     this.actividadParaEditar = nodo ? this.mapearNodoATarea(nodo) : null;
     this.mostrarModalActividad = true;
   }
 
   abrirNuevaActividadDesdeNodo(nodoBase: FlujoNodo): void {
     this.nodoPadreParaNuevoId = nodoBase.id;
-    this.actividadParaEditar = null;
+    this.posicionInicialNuevaActividad = this.calcularPosicionNuevoNodo(nodoBase.id);
+    this.actividadParaEditar = {
+      nombre: 'Nueva actividad',
+      responsableId: '',
+      fechaInicio: '',
+      fechaFin: undefined,
+      descripcion: '',
+      archivosAdjuntos: [],
+      estado: 'Pendiente'
+    };
     this.mostrarModalActividad = true;
   }
 
   abrirNuevaActividadDesdeBpmn(payload: { nombre: string; nodoOrigenId?: number }): void {
-    if (!this.proyecto) return;
-
-    const posicionInicial = this.calcularPosicionNuevoNodo(payload.nodoOrigenId);
-
-    // Crear primero el nodo en memoria para que no se pierda al renderizar el flujo.
-    const nuevoNodo: FlujoNodo = {
-      id: this.obtenerSiguienteNodoId(),
+    this.nodoPadreParaNuevoId = typeof payload.nodoOrigenId === 'number' ? payload.nodoOrigenId : null;
+    this.posicionInicialNuevaActividad = this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
+    this.actividadParaEditar = {
       nombre: payload.nombre || 'Nueva actividad',
-      tipo: 'tarea',
-      posicionX: posicionInicial.x,
-      posicionY: posicionInicial.y,
-      estadoActividad: 'Pendiente',
-      fechaCambioEstado: new Date().toISOString(),
-      responsableId: undefined,
-      fechaInicio: undefined,
+      responsableId: '',
+      fechaInicio: '',
       fechaFin: undefined,
       descripcion: '',
-      adjuntos: [],
-      siguientesIds: []
+      archivosAdjuntos: [],
+      estado: 'Pendiente'
     };
-
-    if (typeof payload.nodoOrigenId === 'number') {
-      const indexOrigen = this.flujoNodos.findIndex(n => n.id === payload.nodoOrigenId);
-      if (indexOrigen >= 0) {
-        const origen = this.flujoNodos[indexOrigen];
-        this.flujoNodos[indexOrigen] = {
-          ...origen,
-          siguientesIds: origen.siguientesIds.includes(nuevoNodo.id)
-            ? origen.siguientesIds
-            : [...origen.siguientesIds, nuevoNodo.id]
-        };
-      }
-    }
-
-    this.flujoNodos = [...this.flujoNodos, nuevoNodo];
-    this.persistirFlujoProyecto();
-    this.marcarActualizacionProyecto();
-
-    this.nodoPadreParaNuevoId = null;
-    this.actividadParaEditar = this.mapearNodoATarea(nuevoNodo);
     this.mostrarModalActividad = true;
   }
 
@@ -609,7 +591,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
       this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? nodoActualizado : nodo);
     } else {
-      const posicionInicial = this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
+      const posicionInicial = this.posicionInicialNuevaActividad || this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
       const nuevoNodo: FlujoNodo = {
         id: this.obtenerSiguienteNodoId(),
         nombre: actividad.nombre,
@@ -654,6 +636,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
+    this.posicionInicialNuevaActividad = null;
   }
 
   onEliminarActividad(nodoId: number): void {
@@ -671,6 +654,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
+    this.posicionInicialNuevaActividad = null;
   }
 
   onFlujoActualizado(nodosActualizados: FlujoNodo[]): void {
@@ -688,6 +672,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = false;
     this.actividadParaEditar = null;
     this.nodoPadreParaNuevoId = null;
+    this.posicionInicialNuevaActividad = null;
   }
 
   private prepararFlujo(): void {
