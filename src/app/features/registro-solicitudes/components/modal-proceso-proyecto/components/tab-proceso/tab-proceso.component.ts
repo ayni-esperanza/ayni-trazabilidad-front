@@ -1,20 +1,25 @@
-import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild, ElementRef, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild, ElementRef, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, Responsable, FlujoNodo, EstadoTarea } from '../../../../models/solicitud.model';
+import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto } from '../../../../models/solicitud.model';
+import { AuthService } from '../../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private readonly authService = inject(AuthService);
   @Input() proyecto: Proyecto | null = null;
   @Input() responsables: Responsable[] = [];
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
+  @Input() actividadModalAbierta = false;
   @Input() flujoNodos: FlujoNodo[] = [];
+  @Input() comentariosAdicionalesActividad: ComentarioAdicionalActividad[] = [];
   @Input() costosMateriales: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
   @Input() costosManoObra: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
   @Input() costosOtros: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
@@ -22,9 +27,12 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() abrirNodoEvt = new EventEmitter<FlujoNodo>();
   @Output() crearActividadDesdeBpmnEvt = new EventEmitter<{ nombre: string; nodoOrigenId?: number }>();
   @Output() flujoActualizadoEvt = new EventEmitter<FlujoNodo[]>();
+  @Output() comentariosAdicionalesActividadChange = new EventEmitter<ComentarioAdicionalActividad[]>();
+  @Output() bloqueoEdicionActividadesChange = new EventEmitter<boolean>();
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
+  readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
   // Compatibilidad defensiva para plantillas previas en hot-reload.
   readonly alertasActividades: unknown[] = [];
 
@@ -42,6 +50,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private sincronizacionPendiente: ReturnType<typeof setTimeout> | null = null;
   private ultimoSnapshotFlujo = '';
   private tareasExternasPendientes = new Set<string>();
+  private readonly comentariosEnEdicion = new Set<number>();
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
@@ -95,7 +104,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   puedeAbrirNodo(nodo: FlujoNodo): boolean {
-    return nodo.tipo === 'tarea' && !this.proyectoFinalizado && !this.proyectoCancelado;
+    return nodo.tipo === 'tarea'
+      && !this.proyectoFinalizado
+      && !this.proyectoCancelado
+      && !this.hayComentariosEnEdicion;
   }
 
   abrirNodo(nodo: FlujoNodo): void {
@@ -286,7 +298,253 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   crearNuevaActividad(): void {
+    if (this.hayComentariosEnEdicion) return;
     this.crearActividadDesdeBpmnEvt.emit({ nombre: 'Nueva actividad' });
+  }
+
+  get hayComentariosEnEdicion(): boolean {
+    return this.comentariosEnEdicion.size > 0;
+  }
+
+  getComentariosActividad(nodoId: number): ComentarioAdicionalActividad[] {
+    return (this.comentariosAdicionalesActividad || []).filter(comentario => comentario.actividadId === nodoId);
+  }
+
+  agregarComentarioActividad(nodo: FlujoNodo): void {
+    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta || this.hayComentariosEnEdicion || nodo.tipo !== 'tarea') return;
+
+    const comentario: ComentarioAdicionalActividad = {
+      id: this.obtenerSiguienteComentarioId(),
+      actividadId: nodo.id,
+      guardado: false,
+      texto: '',
+      responsableId: undefined,
+      fechaComentario: this.formatearFechaComentario(new Date()),
+      autorCuenta: this.obtenerNombreCuentaActual(),
+      adjuntos: []
+    };
+
+    this.comentariosAdicionalesActividad = [...(this.comentariosAdicionalesActividad || []), comentario];
+    this.comentariosEnEdicion.add(comentario.id);
+    this.notificarBloqueoEdicionActividades();
+    this.emitirComentariosActualizados();
+  }
+
+  eliminarComentarioActividad(comentarioId: number): void {
+    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+    this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
+    this.comentariosEnEdicion.delete(comentarioId);
+    this.notificarBloqueoEdicionActividades();
+    this.emitirComentariosActualizados();
+  }
+
+  isComentarioEnEdicion(comentarioId: number): boolean {
+    return this.comentariosEnEdicion.has(comentarioId);
+  }
+
+  editarComentarioActividad(comentarioId: number): void {
+    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+    this.comentariosEnEdicion.add(comentarioId);
+    this.notificarBloqueoEdicionActividades();
+  }
+
+  cancelarEdicionComentario(comentarioId: number): void {
+    if (this.actividadModalAbierta) return;
+    this.comentariosEnEdicion.delete(comentarioId);
+    this.notificarBloqueoEdicionActividades();
+  }
+
+  actualizarTextoComentario(comentarioId: number, texto: string): void {
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    comentario.texto = texto;
+  }
+
+  actualizarResponsableComentario(comentarioId: number, responsableId: number | undefined): void {
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    comentario.responsableId = responsableId;
+  }
+
+  onComentarioChange(): void {
+    // Compatibilidad temporal con plantillas cacheadas durante hot-reload.
+  }
+
+  guardarComentarioActividad(comentarioId: number): void {
+    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    if (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length) return;
+
+    const actualizados = [...this.comentariosAdicionalesActividad];
+    actualizados[index] = {
+      ...comentario,
+      guardado: true,
+      texto: (comentario.texto || '').trim(),
+      autorCuenta: comentario.autorCuenta || this.obtenerNombreCuentaActual(),
+      fechaComentario: comentario.fechaComentario || this.formatearFechaComentario(new Date())
+    };
+
+    this.comentariosAdicionalesActividad = actualizados;
+    this.comentariosEnEdicion.delete(comentarioId);
+    this.notificarBloqueoEdicionActividades();
+    this.emitirComentariosActualizados();
+  }
+
+  onToggleDetalleActividad(actividadId: number, event: Event): void {
+    const details = event.target as HTMLDetailsElement;
+    if (details?.open) return;
+
+    const comentariosActividad = (this.comentariosAdicionalesActividad || [])
+      .filter(c => c.actividadId === actividadId);
+
+    let huboCambios = false;
+    for (const comentario of comentariosActividad) {
+      if (this.comentariosEnEdicion.delete(comentario.id)) {
+        huboCambios = true;
+      }
+    }
+
+    const cantidadAntes = (this.comentariosAdicionalesActividad || []).length;
+    this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || [])
+      .filter(c => !(c.actividadId === actividadId && !c.guardado));
+
+    if (this.comentariosAdicionalesActividad.length !== cantidadAntes) {
+      huboCambios = true;
+      this.emitirComentariosActualizados();
+    }
+
+    if (huboCambios) {
+      this.notificarBloqueoEdicionActividades();
+    }
+  }
+
+  async onSeleccionarAdjuntosComentario(event: Event, comentarioId: number): Promise<void> {
+    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files?.length) return;
+
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    const nuevosAdjuntos: FlujoAdjunto[] = [];
+    for (const file of Array.from(files)) {
+      nuevosAdjuntos.push({
+        nombre: file.name,
+        tipo: file.type || 'application/octet-stream',
+        tamano: file.size,
+        archivo: file,
+        dataUrl: await this.leerArchivoComoDataUrl(file)
+      });
+    }
+
+    const actualizados = [...this.comentariosAdicionalesActividad];
+    actualizados[index] = {
+      ...comentario,
+      adjuntos: [...(comentario.adjuntos || []), ...nuevosAdjuntos]
+    };
+    this.comentariosAdicionalesActividad = actualizados;
+    this.emitirComentariosActualizados();
+    input.value = '';
+  }
+
+  async onPegarImagenComentario(event: ClipboardEvent, comentarioId: number): Promise<void> {
+    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    const clipboardItems = event.clipboardData?.items;
+    if (!clipboardItems?.length) return;
+
+    const imagenes: File[] = [];
+    for (const item of Array.from(clipboardItems)) {
+      if (item.kind !== 'file') continue;
+      if (!item.type?.startsWith('image/')) continue;
+      const file = item.getAsFile();
+      if (file) imagenes.push(file);
+    }
+
+    if (!imagenes.length) return;
+
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    const nuevosAdjuntos: FlujoAdjunto[] = [];
+
+    for (const file of imagenes) {
+      nuevosAdjuntos.push({
+        nombre: file.name || `imagen-${Date.now()}.png`,
+        tipo: file.type || 'image/png',
+        tamano: file.size,
+        archivo: file,
+        dataUrl: await this.leerArchivoComoDataUrl(file)
+      });
+    }
+
+    const actualizados = [...this.comentariosAdicionalesActividad];
+    actualizados[index] = {
+      ...comentario,
+      adjuntos: [...(comentario.adjuntos || []), ...nuevosAdjuntos]
+    };
+    this.comentariosAdicionalesActividad = actualizados;
+    this.emitirComentariosActualizados();
+  }
+
+  eliminarAdjuntoComentario(comentarioId: number, adjuntoIndex: number): void {
+    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    const actualizados = [...this.comentariosAdicionalesActividad];
+    actualizados[index] = {
+      ...comentario,
+      adjuntos: (comentario.adjuntos || []).filter((_, i) => i !== adjuntoIndex)
+    };
+    this.comentariosAdicionalesActividad = actualizados;
+    this.emitirComentariosActualizados();
+  }
+
+  descargarAdjuntoComentario(adjunto: FlujoAdjunto): void {
+    const url = adjunto.dataUrl || (adjunto.archivo ? URL.createObjectURL(adjunto.archivo) : null);
+    if (!url) return;
+
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = adjunto.nombre || 'adjunto';
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+
+    if (adjunto.archivo && !adjunto.dataUrl) {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  formatBytes(size?: number): string {
+    if (!size || size <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    const value = size / Math.pow(1024, i);
+    return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i] || 'B'}`;
+  }
+
+  getNombreCuentaComentario(comentario: ComentarioAdicionalActividad): string {
+    return comentario.autorCuenta || this.obtenerNombreCuentaActual() || 'Cuenta actual';
+  }
+
+  trackByComentarioId(_index: number, comentario: ComentarioAdicionalActividad): number {
+    return comentario.id;
   }
 
   get flujoTimeline(): FlujoNodo[] {
@@ -322,6 +580,61 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     } catch {
       return [];
     }
+  }
+
+  private emitirComentariosActualizados(): void {
+    this.comentariosAdicionalesActividadChange.emit([...(this.comentariosAdicionalesActividad || [])]);
+  }
+
+  private notificarBloqueoEdicionActividades(): void {
+    this.bloqueoEdicionActividadesChange.emit(this.hayComentariosEnEdicion);
+  }
+
+  private obtenerSiguienteComentarioId(): number {
+    const ids = (this.comentariosAdicionalesActividad || [])
+      .map(comentario => comentario.id)
+      .filter(id => typeof id === 'number');
+    return ids.length ? Math.max(...ids) + 1 : 1;
+  }
+
+  private formatearFechaInput(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private formatearFechaComentario(date: Date): string {
+    return date.toLocaleString('es-PE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  private obtenerNombreCuentaActual(): string {
+    try {
+      const fullName = this.authService.getUserFullName()?.trim();
+      if (fullName) return fullName;
+
+      const username = this.authService.currentUserValue?.username?.trim();
+      if (username) return username;
+    } catch {
+      return 'Cuenta actual';
+    }
+
+    return 'Cuenta actual';
+  }
+
+  private leerArchivoComoDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+      reader.readAsDataURL(file);
+    });
   }
 
   private async renderBpmn(): Promise<void> {

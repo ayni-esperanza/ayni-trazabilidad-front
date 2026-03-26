@@ -31,12 +31,20 @@
     <button
       type="button"
       (click)="crearNuevaActividad()"
-      [disabled]="proyectoFinalizado || proyectoCancelado"
+      [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
       class="px-2.5 py-1 text-[10px] font-semibold rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
       Nueva actividad
     </button>
   </div>
 </div>
+
+<p *ngIf="hayComentariosEnEdicion" class="mb-2 text-[11px] text-amber-700 dark:text-amber-300">
+  Termina de guardar o cancelar la edición del comentario antes de crear o editar una actividad.
+</p>
+
+<p *ngIf="actividadModalAbierta" class="mb-2 text-[11px] text-blue-700 dark:text-blue-300">
+  La edición de comentarios está temporalmente deshabilitada mientras la actividad está abierta.
+</p>
 
 <div *ngIf="vistaFlujo === 'timeline'" class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 animate-ui-in">
   <div class="relative pl-7">
@@ -88,7 +96,7 @@
           <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
             <div class="flex flex-col gap-1">
               <span>{{ nodo.nombre }}</span>
-              <details class="group" (click)="$event.stopPropagation()">
+              <details class="group" (click)="$event.stopPropagation()" (toggle)="onToggleDetalleActividad(nodo.id, $event)">
                 <summary class="text-[10px] text-blue-600 dark:text-blue-400 cursor-pointer select-none hover:underline">
                   Ver detalle
                 </summary>
@@ -115,18 +123,239 @@
                           type="button"
                           (click)="verAdjunto(adj); $event.stopPropagation()"
                           [disabled]="!puedeVistaPreviaAdjunto(adj)"
-                          class="px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
-                          Ver
+                          title="Ver archivo"
+                          aria-label="Ver archivo"
+                          class="p-1.5 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
                         </button>
                         <button
                           type="button"
                           (click)="descargarAdjunto(adj); $event.stopPropagation()"
                           [disabled]="!puedeAccionarAdjunto(adj)"
-                          class="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300">
-                          Descargar
+                          title="Descargar archivo"
+                          aria-label="Descargar archivo"
+                          class="p-1.5 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/30 dark:text-blue-300">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                          </svg>
                         </button>
                       </div>
                     </div>
+                  </div>
+
+                  <div *ngIf="nodo.tipo !== 'inicio'" class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <p class="font-semibold text-[11px] text-gray-700 dark:text-gray-200">Comentarios adicionales de esta actividad</p>
+                      <ng-container *ngIf="!actividadModalAbierta; else avisoModalActividadAbierta">
+                        <button
+                          type="button"
+                          (click)="agregarComentarioActividad(nodo); $event.stopPropagation()"
+                          [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
+                          class="px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                          Agregar comentario
+                        </button>
+                      </ng-container>
+                      <ng-template #avisoModalActividadAbierta>
+                        <span class="px-2 py-1 text-[10px] rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          Cierra la modal de actividad para comentar
+                        </span>
+                      </ng-template>
+                    </div>
+
+                    <div class="space-y-2" *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividad">
+                      <article *ngFor="let comentario of getComentariosActividad(nodo.id); trackBy: trackByComentarioId" class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]">
+                        <ng-container *ngIf="isComentarioEnEdicion(comentario.id); else comentarioDescripcion">
+                          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                              <label class="block mb-1 font-medium">Responsable</label>
+                              <select
+                                [ngModel]="comentario.responsableId"
+                                (ngModelChange)="actualizarResponsableComentario(comentario.id, $event)"
+                                [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60">
+                                <option [ngValue]="undefined">Sin asignar</option>
+                                <option *ngFor="let resp of responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label class="block mb-1 font-medium">Fecha de comentario</label>
+                              <p class="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                {{ comentario.fechaComentario || 'Pendiente de guardar' }}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label class="block mb-1 font-medium">Agregado por</label>
+                              <p class="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                {{ getNombreCuentaComentario(comentario) }}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div class="mt-2">
+                            <label class="block mb-1 font-medium">Comentario</label>
+                            <textarea
+                              rows="3"
+                              [ngModel]="comentario.texto"
+                              (ngModelChange)="actualizarTextoComentario(comentario.id, $event)"
+                              (paste)="onPegarImagenComentario($event, comentario.id)"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
+                          </div>
+
+                          <div class="mt-2">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                              <label class="block font-medium">Adjuntos</label>
+                              <label
+                                [ngClass]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+                                class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                Adjuntar
+                                <input
+                                  type="file"
+                                  class="hidden"
+                                  [accept]="acceptTiposArchivo"
+                                  [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                  multiple
+                                  (change)="onSeleccionarAdjuntosComentario($event, comentario.id)">
+                              </label>
+                            </div>
+
+                            <div class="space-y-1" *ngIf="(comentario.adjuntos || []).length > 0; else sinAdjuntosComentario">
+                              <div *ngFor="let adjunto of comentario.adjuntos; let adjIdx = index" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+                                <div class="min-w-0">
+                                  <p class="truncate text-gray-700 dark:text-gray-200">{{ adjunto.nombre }}</p>
+                                  <p class="text-gray-500 dark:text-gray-400">{{ formatBytes(adjunto.tamano) }}</p>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    (click)="verAdjunto(adjunto); $event.stopPropagation()"
+                                    [disabled]="!puedeVistaPreviaAdjunto(adjunto)"
+                                    title="Ver archivo"
+                                    aria-label="Ver archivo"
+                                    class="p-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                  </button>
+                                  <button type="button" (click)="descargarAdjuntoComentario(adjunto); $event.stopPropagation()" title="Descargar archivo" aria-label="Descargar archivo" class="p-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    (click)="eliminarAdjuntoComentario(comentario.id, adjIdx); $event.stopPropagation()"
+                                    [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                    class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-900/30 dark:text-red-300">
+                                    Quitar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <ng-template #sinAdjuntosComentario>
+                              <p class="text-gray-500 dark:text-gray-400 italic">Sin adjuntos</p>
+                            </ng-template>
+                          </div>
+
+                          <div class="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              (click)="guardarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
+                              class="px-2 py-1 mr-2 rounded border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30">
+                              Guardar comentario
+                            </button>
+                            <button
+                              type="button"
+                              (click)="cancelarEdicionComentario(comentario.id); $event.stopPropagation()"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              class="px-2 py-1 mr-2 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                              Eliminar comentario
+                            </button>
+                          </div>
+                        </ng-container>
+
+                        <ng-template #comentarioDescripcion>
+                          <div class="rounded bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-2">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1 text-[10px] text-gray-500 dark:text-gray-400">
+                              <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ comentario.fechaComentario || '—' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ getNombreCuentaComentario(comentario) }}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+                            <div class="mt-2" *ngIf="(comentario.adjuntos || []).length > 0">
+                              <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300 mb-1">Adjuntos</p>
+                              <div class="space-y-1">
+                                <div *ngFor="let adjunto of comentario.adjuntos" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/40">
+                                  <div class="min-w-0">
+                                    <p class="truncate text-gray-700 dark:text-gray-200">{{ adjunto.nombre }}</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ formatBytes(adjunto.tamano) }}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    (click)="verAdjunto(adjunto); $event.stopPropagation()"
+                                    [disabled]="!puedeVistaPreviaAdjunto(adjunto)"
+                                    title="Ver archivo"
+                                    aria-label="Ver archivo"
+                                    class="p-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    (click)="descargarAdjuntoComentario(adjunto); $event.stopPropagation()"
+                                    title="Descargar archivo"
+                                    aria-label="Descargar archivo"
+                                    class="p-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              (click)="editarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              class="px-2 py-1 mr-2 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30">
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                              Eliminar comentario
+                            </button>
+                          </div>
+                        </ng-template>
+                      </article>
+                    </div>
+
+                    <ng-template #sinComentariosActividad>
+                      <p class="text-gray-500 dark:text-gray-400 italic">Sin comentarios adicionales para esta actividad.</p>
+                    </ng-template>
                   </div>
                 </div>
               </details>
@@ -161,7 +390,10 @@
 </div>
 
 @if (mostrarVistaPreviaAdjunto) {
-  <div class="fixed inset-0 z-[85] flex items-center justify-center bg-black/70 p-4" (click)="cerrarVistaPreviaAdjunto()">
+  <div
+    class="fixed inset-0 z-[85] flex items-center justify-center p-4"
+    [ngClass]="esPdfVistaPreviaAdjunto() ? 'bg-black/70' : 'bg-transparent'"
+    (click)="cerrarVistaPreviaAdjunto()">
     <div
       [ngClass]="esPdfVistaPreviaAdjunto()
         ? 'w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'

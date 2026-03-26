@@ -325,12 +325,16 @@
             [responsables]="responsables"
             [proyectoFinalizado]="proyectoFinalizado"
             [proyectoCancelado]="proyectoCancelado"
+            [actividadModalAbierta]="mostrarModalActividad"
             [flujoNodos]="flujoNodos"
+            [comentariosAdicionalesActividad]="proyectoInfoForm.comentariosAdicionalesActividad"
             [costosMateriales]="materiales"
             [costosManoObra]="manoObra"
             [costosOtros]="otrosCostosItems"
             (crearActividadDesdeBpmnEvt)="abrirNuevaActividadDesdeBpmn($event)"
             (flujoActualizadoEvt)="onFlujoActualizado($event)"
+            (comentariosAdicionalesActividadChange)="proyectoInfoForm.comentariosAdicionalesActividad = $event"
+            (bloqueoEdicionActividadesChange)="onBloqueoEdicionActividadesChange($event)"
             (abrirNodoEvt)="abrirModalActividad($event)">
           </app-tab-proceso>
         </div>
@@ -354,6 +358,7 @@
         class="animate-ui-in"
         [proyecto]="proyecto"
         [proyectoInfoForm]="proyectoInfoForm"
+        [flujoNodos]="flujoNodos"
         [responsables]="responsables"
         [procesos]="procesos"
         [etapas]="etapas"

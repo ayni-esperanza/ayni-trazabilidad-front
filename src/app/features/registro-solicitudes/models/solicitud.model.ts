@@ -41,6 +41,22 @@ export interface FlujoProyecto {
   nodos: FlujoNodo[];
 }
 
+export interface ComentarioAdicionalActividad {
+  id: number;
+  actividadId: number;
+  guardado?: boolean;
+  nombre?: string;
+  texto?: string;
+  autorCuenta?: string;
+  fechaComentario?: string;
+  estadoActividad?: EstadoTarea;
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  descripcion?: string;
+  adjuntos?: FlujoAdjunto[];
+}
+
 export interface Solicitud {
   id: number;
   nombreProyecto: string;
@@ -83,6 +99,7 @@ export interface Proyecto {
   etapas?: EtapaProyecto[];
   flujo?: FlujoProyecto;
   fechaActualizacion?: Date | string;
+  comentariosAdicionalesActividad?: ComentarioAdicionalActividad[];
 }
 
 export interface EtapaProyecto {
