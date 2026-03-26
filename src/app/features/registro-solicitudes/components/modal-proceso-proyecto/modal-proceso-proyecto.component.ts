@@ -153,6 +153,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   manoObra: ManoObraCosto[] = [];
   tablasCostosExtras: TablaCostoExtra[] = [];
   private sincronizandoCostos = false;
+  private costosSyncDebounce: ReturnType<typeof setTimeout> | null = null;
 
   etapaForm = {
     presupuesto: 0,
@@ -302,6 +303,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   onCerrar(): void {
     if (this.sincronizandoCostos) return;
+
+    if (this.costosSyncDebounce) {
+      clearTimeout(this.costosSyncDebounce);
+      this.costosSyncDebounce = null;
+    }
 
     // Guardar cambios de la etapa actual antes de cerrar
     if (this.etapaSeleccionada && !this.modoSoloLectura) {
@@ -1001,6 +1007,22 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.tabActiva = 'costos';
     this.guardarEstadoCostos();
     this.marcarActualizacionProyecto();
+  }
+
+  onCostosChange(): void {
+    if (!this.proyecto || this.modoSoloLectura) return;
+
+    if (this.costosSyncDebounce) {
+      clearTimeout(this.costosSyncDebounce);
+    }
+
+    this.costosSyncDebounce = setTimeout(() => {
+      this.costosSyncDebounce = null;
+      this.sincronizarCostosProyecto().subscribe({
+        next: () => this.marcarActualizacionProyecto(),
+        error: (error) => console.error('Error sincronizando costos:', error)
+      });
+    }, 700);
   }
 
   get flujoTimelineResumen(): FlujoNodo[] {

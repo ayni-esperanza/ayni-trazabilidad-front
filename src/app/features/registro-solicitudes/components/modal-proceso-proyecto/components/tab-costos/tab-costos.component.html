@@ -91,16 +91,16 @@
               <td class="py-1 px-1">
                 <app-date-picker
                   [value]="mat.fecha"
-                  (valueChange)="mat.fecha = $event"
+                  (valueChange)="mat.fecha = $event; emitirCambios()"
                   [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
                 </app-date-picker>
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mat.nroComprobante" placeholder="000-000"
+                <input type="text" [(ngModel)]="mat.nroComprobante" (ngModelChange)="emitirCambios()" placeholder="000-000"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mat.producto" placeholder="Nombre del producto"
+                <input type="text" [(ngModel)]="mat.producto" (ngModelChange)="emitirCambios()" placeholder="Nombre del producto"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
@@ -117,11 +117,11 @@
                 </span>
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mat.encargado" placeholder="Nombre"
+                <input type="text" [(ngModel)]="mat.encargado" (ngModelChange)="emitirCambios()" placeholder="Nombre"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <select [(ngModel)]="mat.dependenciaActividadId"
+                <select [(ngModel)]="mat.dependenciaActividadId" (ngModelChange)="emitirCambios()"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
                   <option [ngValue]="null">Sin dependencia</option>
                   <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>
@@ -175,11 +175,11 @@
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
             <tr *ngFor="let mo of manoObra" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mo.trabajador" placeholder="Nombre del trabajador"
+                <input type="text" [(ngModel)]="mo.trabajador" (ngModelChange)="emitirCambios()" placeholder="Nombre del trabajador"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mo.cargo" placeholder="Cargo"
+                <input type="text" [(ngModel)]="mo.cargo" (ngModelChange)="emitirCambios()" placeholder="Cargo"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
@@ -196,7 +196,7 @@
                 </span>
               </td>
               <td class="py-1 px-1">
-                <select [(ngModel)]="mo.dependenciaActividadId"
+                <select [(ngModel)]="mo.dependenciaActividadId" (ngModelChange)="emitirCambios()"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
                   <option [ngValue]="null">Sin dependencia</option>
                   <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>
@@ -272,12 +272,12 @@
                   <td class="py-1 px-1">
                     <app-date-picker
                       [value]="item.fecha"
-                      (valueChange)="item.fecha = $event"
+                      (valueChange)="item.fecha = $event; emitirCambios()"
                       [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
                     </app-date-picker>
                   </td>
                   <td class="py-1 px-1">
-                    <input type="text" [(ngModel)]="item.descripcion" placeholder="Descripción"
+                    <input type="text" [(ngModel)]="item.descripcion" (ngModelChange)="emitirCambios()" placeholder="Descripción"
                       class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
                   </td>
                   <td class="py-1 px-1">
@@ -294,11 +294,11 @@
                     </span>
                   </td>
                   <td class="py-1 px-1">
-                    <input type="text" [(ngModel)]="item.encargado" placeholder="Nombre"
+                    <input type="text" [(ngModel)]="item.encargado" (ngModelChange)="emitirCambios()" placeholder="Nombre"
                       class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
                   </td>
                   <td class="py-1 px-1">
-                    <select [(ngModel)]="item.dependenciaActividadId"
+                    <select [(ngModel)]="item.dependenciaActividadId" (ngModelChange)="emitirCambios()"
                       class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
                       <option [ngValue]="null">Sin dependencia</option>
                       <option *ngFor="let actividad of actividadesDisponibles" [ngValue]="actividad.id">{{ actividad.nombre }}</option>

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
@@ -22,6 +22,7 @@ export class TabCostosComponent {
   @Input() tablasCostosExtras!: TablaCostoExtra[];
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
+  @Output() costosChange = new EventEmitter<void>();
 
   subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
   nuevoNombreTablaExtra = '';
@@ -32,7 +33,9 @@ export class TabCostosComponent {
     return d.toISOString().split('T')[0];
   }
 
-  // --- Materiales ---
+  emitirCambios(): void {
+    this.costosChange.emit();
+  }
 
   agregarMaterial(): void {
     const nuevoId = this.materiales.length > 0 ? Math.max(...this.materiales.map(m => m.id)) + 1 : 1;
@@ -47,22 +50,25 @@ export class TabCostosComponent {
       encargado: '',
       dependenciaActividadId: null
     });
+    this.emitirCambios();
   }
 
   eliminarMaterial(id: number): void {
     const idx = this.materiales.findIndex(m => m.id === id);
-    if (idx >= 0) this.materiales.splice(idx, 1);
+    if (idx >= 0) {
+      this.materiales.splice(idx, 1);
+      this.emitirCambios();
+    }
   }
 
   calcularCostoTotalMaterial(material: MaterialCosto): void {
     material.costoTotal = (material.cantidad || 0) * (material.costoUnitario || 0);
+    this.emitirCambios();
   }
 
   get totalMateriales(): number {
     return this.materiales?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
   }
-
-  // --- Mano de Obra ---
 
   agregarManoObra(): void {
     const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map(m => m.id)) + 1 : 1;
@@ -75,22 +81,25 @@ export class TabCostosComponent {
       costoTotal: 0,
       dependenciaActividadId: null
     });
+    this.emitirCambios();
   }
 
   eliminarManoObra(id: number): void {
     const idx = this.manoObra.findIndex(m => m.id === id);
-    if (idx >= 0) this.manoObra.splice(idx, 1);
+    if (idx >= 0) {
+      this.manoObra.splice(idx, 1);
+      this.emitirCambios();
+    }
   }
 
   calcularCostoTotalManoObra(item: ManoObraCosto): void {
     item.costoTotal = (item.diasTrabajando || 0) * (item.costoPorDia || 0);
+    this.emitirCambios();
   }
 
   get totalManoObra(): number {
     return this.manoObra?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
   }
-
-  // --- Otros Costos (tablas dinámicas) ---
 
   agregarTablaExtra(): void {
     if (!this.nuevoNombreTablaExtra.trim()) return;
@@ -104,11 +113,15 @@ export class TabCostosComponent {
       expandida: true
     });
     this.nuevoNombreTablaExtra = '';
+    this.emitirCambios();
   }
 
   eliminarTablaExtra(id: number): void {
     const idx = this.tablasCostosExtras.findIndex(t => t.id === id);
-    if (idx >= 0) this.tablasCostosExtras.splice(idx, 1);
+    if (idx >= 0) {
+      this.tablasCostosExtras.splice(idx, 1);
+      this.emitirCambios();
+    }
   }
 
   agregarItemOtroCosto(tabla: TablaCostoExtra): void {
@@ -123,15 +136,20 @@ export class TabCostosComponent {
       encargado: '',
       dependenciaActividadId: null
     });
+    this.emitirCambios();
   }
 
   eliminarItemOtroCosto(tabla: TablaCostoExtra, itemId: number): void {
     const idx = tabla.items.findIndex(i => i.id === itemId);
-    if (idx >= 0) tabla.items.splice(idx, 1);
+    if (idx >= 0) {
+      tabla.items.splice(idx, 1);
+      this.emitirCambios();
+    }
   }
 
   calcularCostoTotalOtro(item: OtroCosto): void {
     item.costoTotal = (item.cantidad || 0) * (item.costoUnitario || 0);
+    this.emitirCambios();
   }
 
   getTotalTablaExtra(tabla: TablaCostoExtra): number {
