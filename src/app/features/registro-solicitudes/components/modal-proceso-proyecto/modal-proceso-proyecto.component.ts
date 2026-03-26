@@ -1348,19 +1348,23 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       switchMap(({ existentesMateriales, existentesManoObra, existentesAdicionales }) => {
         const operaciones: Observable<unknown>[] = [];
 
+        const materialesValidos = localesMateriales.filter((item) => this.esMaterialValido(item));
+        const manoObraValida = localesManoObra.filter((item) => this.esManoObraValida(item));
+        const adicionalesValidos = localesAdicionales.filter((item) => this.esAdicionalValido(item));
+
         const materialesIdsLocales = new Set(localesMateriales.map((item) => item.id));
         const materialesIdsExistentes = new Set((existentesMateriales || []).map((item) => item.id));
 
-        for (const item of localesMateriales) {
+        for (const item of materialesValidos) {
           const payload = {
             id: item.id,
             fecha: item.fecha,
-            nroComprobante: item.nroComprobante,
-            producto: item.producto,
+            nroComprobante: item.nroComprobante?.trim() || '',
+            producto: item.producto?.trim(),
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
             costoTotal: Number(item.costoTotal || 0),
-            encargado: item.encargado,
+            encargado: item.encargado?.trim() || '',
             dependenciaActividadId: item.dependenciaActividadId
           };
 
@@ -1380,11 +1384,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         const manoObraIdsLocales = new Set(localesManoObra.map((item) => item.id));
         const manoObraIdsExistentes = new Set((existentesManoObra || []).map((item) => item.id));
 
-        for (const item of localesManoObra) {
+        for (const item of manoObraValida) {
           const payload = {
             id: item.id,
-            trabajador: item.trabajador,
-            cargo: item.cargo,
+            trabajador: item.trabajador?.trim(),
+            cargo: item.cargo?.trim() || '',
             diasTrabajando: Number(item.diasTrabajando || 0),
             costoPorDia: Number(item.costoPorDia || 0),
             costoTotal: Number(item.costoTotal || 0),
@@ -1407,16 +1411,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         const adicionalesIdsLocales = new Set(localesAdicionales.map((item) => item.id));
         const adicionalesIdsExistentes = new Set((existentesAdicionales || []).map((item) => item.id));
 
-        for (const item of localesAdicionales) {
+        for (const item of adicionalesValidos) {
           const payload = {
             id: item.id,
             fecha: item.fecha,
-            categoria: item.categoria,
-            descripcion: item.descripcion,
+            categoria: item.categoria?.trim(),
+            descripcion: item.descripcion?.trim() || '',
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
             costoTotal: Number(item.costoTotal || 0),
-            encargado: item.encargado,
+            encargado: item.encargado?.trim() || '',
             dependenciaActividadId: item.dependenciaActividadId
           };
 
@@ -1470,6 +1474,24 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     this.proyecto.fechaFinalizacion = this.formatDate(new Date());
     this.proyectoActualizado.emit({ ...this.proyecto });
+  }
+
+  private esMaterialValido(item: MaterialCosto): boolean {
+    return !!item?.producto?.trim()
+      && Number(item.cantidad || 0) > 0
+      && Number(item.costoUnitario || 0) > 0;
+  }
+
+  private esManoObraValida(item: ManoObraCosto): boolean {
+    return !!item?.trabajador?.trim()
+      && Number(item.diasTrabajando || 0) > 0
+      && Number(item.costoPorDia || 0) > 0;
+  }
+
+  private esAdicionalValido(item: OtroCosto & { categoria?: string }): boolean {
+    return !!item?.categoria?.trim()
+      && Number(item.cantidad || 0) > 0
+      && Number(item.costoUnitario || 0) > 0;
   }
 
 }
