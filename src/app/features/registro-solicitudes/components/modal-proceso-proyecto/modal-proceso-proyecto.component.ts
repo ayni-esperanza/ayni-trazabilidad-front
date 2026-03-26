@@ -706,8 +706,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     id?: number;
     nombre: string;
     tipo: 'inicio' | 'tarea';
-    posicionX?: number;
-    posicionY?: number;
     estadoActividad?: string;
     fechaCambioEstado?: string;
     responsableId?: number;
@@ -723,8 +721,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       id: nodo.id,
       nombre: nodo.nombre,
       tipo: nodo.tipo,
-      posicionX: nodo.posicionX,
-      posicionY: nodo.posicionY,
       estadoActividad: nodo.estadoActividad,
       fechaCambioEstado: nodo.fechaCambioEstado,
       responsableId: nodo.responsableId,

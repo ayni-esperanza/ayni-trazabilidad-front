@@ -138,7 +138,7 @@
           </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaInicio || '—' }}</td>
-          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaFin || '—' }}</td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td class="py-2 px-2">
             <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
               <select
