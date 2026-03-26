@@ -848,6 +848,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.bloqueoEdicionActividades = estado;
   }
 
+  onComentariosAdicionalesActividadChange(comentarios: ComentarioAdicionalActividad[]): void {
+    this.proyectoInfoForm.comentariosAdicionalesActividad = [...(comentarios || [])];
+
+    if (!this.proyecto || this.modoSoloLectura) return;
+
+    this.proyecto.comentariosAdicionalesActividad = [...this.proyectoInfoForm.comentariosAdicionalesActividad];
+    this.proyectoActualizado.emit({ ...this.proyecto });
+  }
+
   private prepararFlujo(): void {
     if (!this.proyecto) return;
 

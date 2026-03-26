@@ -333,7 +333,7 @@
             [costosOtros]="otrosCostosItems"
             (crearActividadDesdeBpmnEvt)="abrirNuevaActividadDesdeBpmn($event)"
             (flujoActualizadoEvt)="onFlujoActualizado($event)"
-            (comentariosAdicionalesActividadChange)="proyectoInfoForm.comentariosAdicionalesActividad = $event"
+            (comentariosAdicionalesActividadChange)="onComentariosAdicionalesActividadChange($event)"
             (bloqueoEdicionActividadesChange)="onBloqueoEdicionActividadesChange($event)"
             (abrirNodoEvt)="abrirModalActividad($event)">
           </app-tab-proceso>
