@@ -854,7 +854,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (!this.proyecto || this.modoSoloLectura) return;
 
     this.proyecto.comentariosAdicionalesActividad = [...this.proyectoInfoForm.comentariosAdicionalesActividad];
-    this.proyectoActualizado.emit({ ...this.proyecto });
   }
 
   private prepararFlujo(): void {

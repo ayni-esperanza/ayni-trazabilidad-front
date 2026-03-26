@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
+import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
 
 @Component({
   selector: 'app-tab-proceso',
@@ -13,6 +14,7 @@ import { AuthService } from '../../../../../../core/services/auth.service';
 })
 export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy {
   private readonly authService = inject(AuthService);
+  private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
   @Input() proyecto: Proyecto | null = null;
   @Input() responsables: Responsable[] = [];
   @Input() proyectoFinalizado = false;
@@ -332,10 +334,24 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   eliminarComentarioActividad(comentarioId: number): void {
     if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
-    this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
-    this.comentariosEnEdicion.delete(comentarioId);
-    this.notificarBloqueoEdicionActividades();
-    this.emitirComentariosActualizados();
+
+    if (!this.proyecto?.id || comentarioId <= 0) {
+      this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
+      this.comentariosEnEdicion.delete(comentarioId);
+      this.notificarBloqueoEdicionActividades();
+      this.emitirComentariosActualizados();
+      return;
+    }
+
+    this.registroSolicitudesService.eliminarComentarioActividad(this.proyecto.id, comentarioId).subscribe({
+      next: () => {
+        this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
+        this.comentariosEnEdicion.delete(comentarioId);
+        this.notificarBloqueoEdicionActividades();
+        this.emitirComentariosActualizados();
+      },
+      error: (error) => console.error('Error eliminando comentario de actividad:', error)
+    });
   }
 
   isComentarioEnEdicion(comentarioId: number): boolean {
@@ -392,10 +408,41 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       fechaComentario: comentario.fechaComentario || this.formatearFechaComentario(new Date())
     };
 
-    this.comentariosAdicionalesActividad = actualizados;
-    this.comentariosEnEdicion.delete(comentarioId);
-    this.notificarBloqueoEdicionActividades();
-    this.emitirComentariosActualizados();
+    const comentarioActualizado = actualizados[index];
+
+    if (!this.proyecto?.id) {
+      this.comentariosAdicionalesActividad = actualizados;
+      this.comentariosEnEdicion.delete(comentarioId);
+      this.notificarBloqueoEdicionActividades();
+      this.emitirComentariosActualizados();
+      return;
+    }
+
+    const payload = this.mapComentarioPayload(comentarioActualizado);
+    if (!payload) return;
+
+    const request$ = comentarioActualizado.id > 0
+      ? this.registroSolicitudesService.actualizarComentarioActividad(this.proyecto.id, comentarioActualizado.id, payload)
+      : this.registroSolicitudesService.crearComentarioActividad(this.proyecto.id, payload);
+
+    request$.subscribe({
+      next: (guardado) => {
+        const lista = [...(this.comentariosAdicionalesActividad || [])];
+        const i = lista.findIndex(c => c.id === comentarioId);
+        if (i >= 0) {
+          lista[i] = {
+            ...guardado,
+            guardado: true
+          };
+        }
+
+        this.comentariosAdicionalesActividad = lista;
+        this.comentariosEnEdicion.delete(comentarioId);
+        this.notificarBloqueoEdicionActividades();
+        this.emitirComentariosActualizados();
+      },
+      error: (error) => console.error('Error guardando comentario de actividad:', error)
+    });
   }
 
   onToggleDetalleActividad(actividadId: number, event: Event): void {
@@ -593,8 +640,33 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private obtenerSiguienteComentarioId(): number {
     const ids = (this.comentariosAdicionalesActividad || [])
       .map(comentario => comentario.id)
-      .filter(id => typeof id === 'number');
-    return ids.length ? Math.max(...ids) + 1 : 1;
+      .filter((id): id is number => typeof id === 'number' && id <= 0);
+    return ids.length ? Math.min(...ids) - 1 : -1;
+  }
+
+  private mapComentarioPayload(comentario: ComentarioAdicionalActividad): ComentarioActividadPayloadApi | null {
+    if (!comentario?.actividadId) return null;
+
+    const nodo = this.flujoNodos.find(item => item.id === comentario.actividadId);
+
+    return {
+      actividadId: comentario.actividadId,
+      nombre: nodo?.nombre,
+      texto: (comentario.texto || '').trim(),
+      autorCuenta: comentario.autorCuenta || this.obtenerNombreCuentaActual(),
+      fechaComentario: new Date().toISOString(),
+      estadoActividad: nodo?.estadoActividad,
+      responsableId: comentario.responsableId,
+      fechaInicio: nodo?.fechaInicio,
+      fechaFin: nodo?.fechaFin,
+      descripcion: (comentario.texto || '').trim(),
+      adjuntos: (comentario.adjuntos || []).map(adjunto => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: Number(adjunto.tamano || 0),
+        dataUrl: adjunto.dataUrl
+      }))
+    };
   }
 
   private formatearFechaInput(date: Date): string {

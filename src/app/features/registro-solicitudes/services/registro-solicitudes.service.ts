@@ -80,6 +80,20 @@ type ComentarioAdicionalApi = {
   adjuntos?: FlujoAdjuntoApi[];
 };
 
+export type ComentarioActividadPayloadApi = {
+  actividadId: number;
+  nombre?: string;
+  texto?: string;
+  autorCuenta?: string;
+  fechaComentario?: string;
+  estadoActividad?: string;
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  descripcion?: string;
+  adjuntos?: FlujoAdjuntoApi[];
+};
+
 type ActividadRequestApi = {
   id?: number;
   nombre: string;
@@ -250,27 +264,22 @@ export class RegistroSolicitudesService {
       fechaInicio: this.toIsoDate(proyecto.fechaInicio),
       fechaFinalizacion: this.toIsoDate(proyecto.fechaFinalizacion),
       responsableId: Number(proyecto.responsableId || 0),
-      motivoCancelacion: proyecto.motivoCancelacion,
-      comentariosAdicionalesActividad: (proyecto.comentariosAdicionalesActividad || []).map((comentario) => ({
-        id: comentario.id,
-        actividadId: Number(comentario.actividadId || 0),
-        nombre: comentario.nombre,
-        texto: comentario.texto,
-        autorCuenta: comentario.autorCuenta,
-        fechaComentario: comentario.fechaComentario,
-        estadoActividad: comentario.estadoActividad,
-        responsableId: comentario.responsableId,
-        fechaInicio: comentario.fechaInicio,
-        fechaFin: comentario.fechaFin,
-        descripcion: comentario.descripcion,
-        adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
-          nombre: adjunto.nombre,
-          tipo: adjunto.tipo,
-          tamano: Number(adjunto.tamano || 0),
-          dataUrl: adjunto.dataUrl
-        }))
-      }))
+      motivoCancelacion: proyecto.motivoCancelacion
     }).pipe(map((item) => this.mapProyecto(item)));
+  }
+
+  crearComentarioActividad(proyectoId: number, payload: ComentarioActividadPayloadApi): Observable<ComentarioAdicionalActividad> {
+    return this.http.post<ComentarioAdicionalApi>(`/v1/proyectos/${proyectoId}/comentarios-actividad`, payload)
+      .pipe(map((item) => this.mapComentarioAdicional(item)));
+  }
+
+  actualizarComentarioActividad(proyectoId: number, comentarioId: number, payload: ComentarioActividadPayloadApi): Observable<ComentarioAdicionalActividad> {
+    return this.http.put<ComentarioAdicionalApi>(`/v1/proyectos/${proyectoId}/comentarios-actividad/${comentarioId}`, payload)
+      .pipe(map((item) => this.mapComentarioAdicional(item)));
+  }
+
+  eliminarComentarioActividad(proyectoId: number, comentarioId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/comentarios-actividad/${comentarioId}`);
   }
 
   finalizarProyecto(id: number): Observable<Proyecto> {
@@ -555,25 +564,29 @@ export class RegistroSolicitudesService {
       etapas: (item.etapasProyecto || []).map((etapa) => this.mapEtapa(etapa, item.id)),
       flujo: this.mapFlujo(item.flujo),
       fechaActualizacion: this.toDate(item.fechaActualizacion),
-      comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario): ComentarioAdicionalActividad => ({
-        id: Number(comentario.id || 0),
-        actividadId: Number(comentario.actividadId || 0),
-        guardado: true,
-        nombre: comentario.nombre,
-        texto: comentario.texto || comentario.descripcion || '',
-        autorCuenta: comentario.autorCuenta,
-        fechaComentario: comentario.fechaComentario,
-        estadoActividad: this.mapEstadoTarea(comentario.estadoActividad),
-        responsableId: comentario.responsableId,
-        fechaInicio: comentario.fechaInicio,
-        fechaFin: comentario.fechaFin,
-        descripcion: comentario.descripcion,
-        adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
-          nombre: adjunto.nombre,
-          tipo: adjunto.tipo,
-          tamano: Number(adjunto.tamano || 0),
-          dataUrl: adjunto.dataUrl || adjunto.url
-        }))
+      comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario) => this.mapComentarioAdicional(comentario))
+    };
+  }
+
+  private mapComentarioAdicional(comentario: ComentarioAdicionalApi): ComentarioAdicionalActividad {
+    return {
+      id: Number(comentario.id || 0),
+      actividadId: Number(comentario.actividadId || 0),
+      guardado: true,
+      nombre: comentario.nombre,
+      texto: comentario.texto || comentario.descripcion || '',
+      autorCuenta: comentario.autorCuenta,
+      fechaComentario: comentario.fechaComentario,
+      estadoActividad: this.mapEstadoTarea(comentario.estadoActividad),
+      responsableId: comentario.responsableId,
+      fechaInicio: comentario.fechaInicio,
+      fechaFin: comentario.fechaFin,
+      descripcion: comentario.descripcion,
+      adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: Number(adjunto.tamano || 0),
+        dataUrl: adjunto.dataUrl || adjunto.url
       }))
     };
   }
