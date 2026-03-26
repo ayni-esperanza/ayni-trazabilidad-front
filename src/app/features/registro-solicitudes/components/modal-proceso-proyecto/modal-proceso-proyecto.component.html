@@ -67,6 +67,13 @@
           class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
           Cancelar Proyecto
         </button>
+        <button
+          *ngIf="tabActiva === 'costos' && !modoSoloLectura"
+          (click)="guardarCostosProyecto()"
+          [disabled]="sincronizandoCostos"
+          class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
+          {{ sincronizandoCostos ? 'Guardando...' : 'Guardar Costos' }}
+        </button>
         <button (click)="onCerrar()" class="px-3 py-1.5 text-sm text-white border border-white/70 rounded hover:bg-white/10">
           Volver
         </button>
@@ -362,8 +369,7 @@
         [manoObra]="manoObra"
         [tablasCostosExtras]="tablasCostosExtras"
         [actividadesDisponibles]="actividadesDisponiblesCostos"
-        [modoSoloLectura]="modoSoloLectura"
-        (costosChange)="onCostosChange()">
+        [modoSoloLectura]="modoSoloLectura">
       </app-tab-costos>
 
     </div>
