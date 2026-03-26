@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, of } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
-import { EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, Solicitud } from '../models/solicitud.model';
+import { ComentarioAdicionalActividad, EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, Solicitud } from '../models/solicitud.model';
 
 type PaginatedResponse<T> = {
   content: T[];
@@ -65,6 +65,21 @@ type FlujoNodoApi = {
   siguientesIds: number[];
 };
 
+type ComentarioAdicionalApi = {
+  id?: number;
+  actividadId: number;
+  nombre?: string;
+  texto?: string;
+  autorCuenta?: string;
+  fechaComentario?: string;
+  estadoActividad?: string;
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  descripcion?: string;
+  adjuntos?: FlujoAdjuntoApi[];
+};
+
 type ActividadRequestApi = {
   id?: number;
   nombre: string;
@@ -119,6 +134,7 @@ type ProyectoApi = {
   flujo?: {
     nodos: FlujoNodoApi[];
   };
+  comentariosAdicionalesActividad?: ComentarioAdicionalApi[];
 };
 
 type CostoMaterialApi = {
@@ -234,7 +250,26 @@ export class RegistroSolicitudesService {
       fechaInicio: this.toIsoDate(proyecto.fechaInicio),
       fechaFinalizacion: this.toIsoDate(proyecto.fechaFinalizacion),
       responsableId: Number(proyecto.responsableId || 0),
-      motivoCancelacion: proyecto.motivoCancelacion
+      motivoCancelacion: proyecto.motivoCancelacion,
+      comentariosAdicionalesActividad: (proyecto.comentariosAdicionalesActividad || []).map((comentario) => ({
+        id: comentario.id,
+        actividadId: Number(comentario.actividadId || 0),
+        nombre: comentario.nombre,
+        texto: comentario.texto,
+        autorCuenta: comentario.autorCuenta,
+        fechaComentario: comentario.fechaComentario,
+        estadoActividad: comentario.estadoActividad,
+        responsableId: comentario.responsableId,
+        fechaInicio: comentario.fechaInicio,
+        fechaFin: comentario.fechaFin,
+        descripcion: comentario.descripcion,
+        adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          tamano: Number(adjunto.tamano || 0),
+          dataUrl: adjunto.dataUrl
+        }))
+      }))
     }).pipe(map((item) => this.mapProyecto(item)));
   }
 
@@ -519,7 +554,27 @@ export class RegistroSolicitudesService {
       motivoCancelacion: item.motivoCancelacion,
       etapas: (item.etapasProyecto || []).map((etapa) => this.mapEtapa(etapa, item.id)),
       flujo: this.mapFlujo(item.flujo),
-      fechaActualizacion: this.toDate(item.fechaActualizacion)
+      fechaActualizacion: this.toDate(item.fechaActualizacion),
+      comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario): ComentarioAdicionalActividad => ({
+        id: Number(comentario.id || 0),
+        actividadId: Number(comentario.actividadId || 0),
+        guardado: true,
+        nombre: comentario.nombre,
+        texto: comentario.texto || comentario.descripcion || '',
+        autorCuenta: comentario.autorCuenta,
+        fechaComentario: comentario.fechaComentario,
+        estadoActividad: this.mapEstadoTarea(comentario.estadoActividad),
+        responsableId: comentario.responsableId,
+        fechaInicio: comentario.fechaInicio,
+        fechaFin: comentario.fechaFin,
+        descripcion: comentario.descripcion,
+        adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          tamano: Number(adjunto.tamano || 0),
+          dataUrl: adjunto.dataUrl || adjunto.url
+        }))
+      }))
     };
   }
 
