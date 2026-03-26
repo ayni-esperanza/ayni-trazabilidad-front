@@ -47,7 +47,7 @@
       <h2 class="text-xl font-semibold text-white">{{ proyecto?.nombreProyecto || 'Proyecto sin nombre' }}</h2>
       <div class="flex items-center gap-2">
         <button
-          *ngIf="tabActiva === 'informacion' && !modoSoloLectura"
+          *ngIf="tabActiva === 'informacion' && !modoSoloLectura && hayCambiosInformacion"
           (click)="guardarInfoProyecto()"
           class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600">
           Guardar Cambios
@@ -68,7 +68,7 @@
           Cancelar Proyecto
         </button>
         <button
-          *ngIf="tabActiva === 'costos' && !modoSoloLectura"
+          *ngIf="tabActiva === 'costos' && !modoSoloLectura && hayCambiosCostos"
           (click)="guardarCostosProyecto()"
           [disabled]="sincronizandoCostos"
           class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -401,7 +401,7 @@
           {{ (proyectoFinalizado || proyectoCancelado) ? 'Cerrar' : 'Cancelar' }}
         </button>
         <!-- Botón Guardar Cambios (tab información) -->
-        <button *ngIf="tabActiva === 'informacion' && !modoSoloLectura" (click)="guardarInfoProyecto()"
+        <button *ngIf="tabActiva === 'informacion' && !modoSoloLectura && hayCambiosInformacion" (click)="guardarInfoProyecto()"
           class="px-3 py-1.5 text-sm text-white bg-green-500 rounded hover:bg-green-600 flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>

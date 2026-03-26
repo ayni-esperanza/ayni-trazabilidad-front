@@ -131,6 +131,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
   private readonly costosStoragePrefix = 'ayni:registro-solicitudes:costos-habilitados:';
   costosHabilitados = false;
+  private snapshotInfoBase = '';
+  private snapshotCostosBase = '';
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -532,6 +534,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       ubicacion: this.proyecto.ubicacion || '',
       descripcion: this.proyecto.descripcion
     };
+
+    this.snapshotInfoBase = this.crearSnapshotInformacionActual();
   }
 
   private normalizarTipoOrdenCompra(tipo?: string): string {
@@ -990,6 +994,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
     this.sincronizarOrdenesCompraProyecto(ordenesActualizadas).subscribe({
       next: () => {
+        this.snapshotInfoBase = this.crearSnapshotInformacionActual();
         this.marcarActualizacionProyecto();
         this.infoActualizada.emit({
           costo: this.proyecto!.costo,
@@ -1300,12 +1305,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
         this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || []);
         this.inicializarSeccionCostos();
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
       },
       error: () => {
         this.materiales = [];
         this.manoObra = [];
         this.tablasCostosExtras = [];
         this.inicializarSeccionCostos();
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
       }
     });
   }
@@ -1458,11 +1465,93 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
         return operaciones.length ? forkJoin(operaciones) : of([]);
       }),
-      map(() => null),
+      map(() => {
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
+        return null;
+      }),
       finalize(() => {
         this.sincronizandoCostos = false;
       })
     );
+  }
+
+  get hayCambiosInformacion(): boolean {
+    return this.crearSnapshotInformacionActual() !== this.snapshotInfoBase;
+  }
+
+  get hayCambiosCostos(): boolean {
+    return this.crearSnapshotCostosActual() !== this.snapshotCostosBase;
+  }
+
+  private crearSnapshotInformacionActual(): string {
+    const ordenes = (this.proyectoInfoForm.ordenesCompra || [])
+      .filter((o) => (o.numero || '').trim())
+      .map((o) => ({
+        id: Number(o.id || 0),
+        numero: (o.numero || '').trim(),
+        fecha: o.fecha || '',
+        tipo: this.normalizarTipoOrdenCompra(o.tipo),
+        numeroLicitacion: (o.numeroLicitacion || '').trim(),
+        numeroSolicitud: (o.numeroSolicitud || '').trim(),
+        total: Number(o.total || 0)
+      }));
+
+    const payload = {
+      nombreProyecto: (this.proyectoInfoForm.nombreProyecto || '').trim(),
+      cliente: (this.proyectoInfoForm.cliente || '').trim(),
+      representante: (this.proyectoInfoForm.representante || '').trim(),
+      areas: [...(this.proyectoInfoForm.areas || [])].map((a) => (a || '').trim()).sort(),
+      ordenesCompra: ordenes,
+      costo: Number(this.proyectoInfoForm.costo || 0),
+      procesoId: Number(this.proyectoInfoForm.procesoId || 0),
+      responsableId: Number(this.proyectoInfoForm.responsableId || 0),
+      fechaInicio: this.proyectoInfoForm.fechaInicio || '',
+      ubicacion: (this.proyectoInfoForm.ubicacion || '').trim(),
+      descripcion: (this.proyectoInfoForm.descripcion || '').trim()
+    };
+
+    return JSON.stringify(payload);
+  }
+
+  private crearSnapshotCostosActual(): string {
+    const materiales = (this.materiales || []).map((item) => ({
+      id: Number(item.id || 0),
+      fecha: item.fecha || '',
+      nroComprobante: (item.nroComprobante || '').trim(),
+      producto: (item.producto || '').trim(),
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      costoTotal: Number(item.costoTotal || 0),
+      encargado: (item.encargado || '').trim(),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    }));
+
+    const manoObra = (this.manoObra || []).map((item) => ({
+      id: Number(item.id || 0),
+      trabajador: (item.trabajador || '').trim(),
+      cargo: (item.cargo || '').trim(),
+      diasTrabajando: Number(item.diasTrabajando || 0),
+      costoPorDia: Number(item.costoPorDia || 0),
+      costoTotal: Number(item.costoTotal || 0),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    }));
+
+    const extras = (this.tablasCostosExtras || []).map((tabla) => ({
+      id: Number(tabla.id || 0),
+      nombre: (tabla.nombre || '').trim(),
+      items: (tabla.items || []).map((item) => ({
+        id: Number(item.id || 0),
+        fecha: item.fecha || '',
+        descripcion: (item.descripcion || '').trim(),
+        cantidad: Number(item.cantidad || 0),
+        costoUnitario: Number(item.costoUnitario || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        encargado: (item.encargado || '').trim(),
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      }))
+    }));
+
+    return JSON.stringify({ materiales, manoObra, extras });
   }
 
   private inicializarSeccionCostos(): void {
