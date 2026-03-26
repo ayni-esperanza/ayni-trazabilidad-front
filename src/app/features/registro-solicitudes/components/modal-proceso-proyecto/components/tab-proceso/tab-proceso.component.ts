@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild, ElementRef, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
@@ -41,8 +41,11 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   mostrarVistaPreviaAdjunto = false;
   adjuntoVistaPreviaNombre = '';
   fuenteVistaPreviaAdjunto = '';
+  htmlVistaPreviaAdjunto: SafeHtml | null = null;
+  cargandoVistaPreviaAdjunto = false;
   private fuenteVistaPreviaAdjuntoEsBlob = false;
   private adjuntoVistaPreviaEsPdf = false;
+  private adjuntoVistaPreviaEsOffice = false;
 
   @ViewChild('bpmnCanvas', { static: false }) bpmnCanvas?: ElementRef<HTMLDivElement>;
 
@@ -216,22 +219,56 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   puedeVistaPreviaAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
     if (!this.puedeAccionarAdjunto(adjunto)) return false;
+
+    if (this.esAdjuntoOffice(adjunto)) return true;
+
     const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
     if (tipo.startsWith('image/') || tipo === 'application/pdf') return true;
     const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
     return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
   }
 
-  verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): void {
+  async verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): Promise<void> {
     if (!this.puedeVistaPreviaAdjunto(adjunto)) return;
+
+    this.cerrarVistaPreviaAdjunto();
+    this.htmlVistaPreviaAdjunto = null;
+    this.cargandoVistaPreviaAdjunto = false;
+
+    if (this.esAdjuntoOffice(adjunto)) {
+      this.adjuntoVistaPreviaNombre = adjunto.nombre || 'Documento adjunto';
+      this.adjuntoVistaPreviaEsOffice = true;
+      this.mostrarVistaPreviaAdjunto = true;
+      this.cargandoVistaPreviaAdjunto = true;
+
+      try {
+        const blob = this.obtenerBlobAdjunto(adjunto);
+        if (!blob) {
+          this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.'));
+          return;
+        }
+
+        const html = this.esAdjuntoExcel(adjunto)
+          ? await this.generarVistaPreviaExcel(blob)
+          : await this.generarVistaPreviaWord(blob, adjunto.nombre);
+
+        this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(html);
+      } catch (error) {
+        console.error('Error generando vista previa Office:', error);
+        this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.'));
+      } finally {
+        this.cargandoVistaPreviaAdjunto = false;
+      }
+      return;
+    }
 
     const url = this.obtenerUrlAdjunto(adjunto);
     if (!url) return;
 
-    this.cerrarVistaPreviaAdjunto();
     this.fuenteVistaPreviaAdjunto = url;
     this.fuenteVistaPreviaAdjuntoEsBlob = !!adjunto.archivo && !adjunto.dataUrl;
     this.adjuntoVistaPreviaEsPdf = this.esAdjuntoPdf(adjunto);
+    this.adjuntoVistaPreviaEsOffice = false;
     this.adjuntoVistaPreviaNombre = adjunto.nombre || 'Documento adjunto';
     this.mostrarVistaPreviaAdjunto = true;
   }
@@ -247,7 +284,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     enlace.click();
     document.body.removeChild(enlace);
 
-    if (adjunto.archivo && !adjunto.dataUrl) {
+    if (adjunto.archivo instanceof Blob && !adjunto.dataUrl) {
       URL.revokeObjectURL(url);
     }
   }
@@ -264,7 +301,15 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   private obtenerUrlAdjunto(adjunto: { archivo?: File; dataUrl?: string }): string | null {
     if (adjunto.dataUrl) return adjunto.dataUrl;
-    if (adjunto.archivo) return URL.createObjectURL(adjunto.archivo);
+    if (adjunto.archivo instanceof Blob) return URL.createObjectURL(adjunto.archivo);
+    return null;
+  }
+
+  private obtenerBlobAdjunto(adjunto: { archivo?: File; dataUrl?: string }): Blob | null {
+    if (adjunto.archivo instanceof Blob) return adjunto.archivo;
+    if (adjunto.dataUrl && this.esDataUrl(adjunto.dataUrl)) {
+      return this.dataUrlABlob(adjunto.dataUrl);
+    }
     return null;
   }
 
@@ -280,6 +325,14 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return this.adjuntoVistaPreviaEsPdf;
   }
 
+  esOfficeVistaPreviaAdjunto(): boolean {
+    return this.adjuntoVistaPreviaEsOffice;
+  }
+
+  obtenerHtmlVistaPreviaAdjunto(): SafeHtml {
+    return this.htmlVistaPreviaAdjunto || this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('Sin contenido para vista previa.'));
+  }
+
   cerrarVistaPreviaAdjunto(): void {
     if (this.fuenteVistaPreviaAdjuntoEsBlob && this.fuenteVistaPreviaAdjunto) {
       URL.revokeObjectURL(this.fuenteVistaPreviaAdjunto);
@@ -287,8 +340,11 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.mostrarVistaPreviaAdjunto = false;
     this.adjuntoVistaPreviaNombre = '';
     this.fuenteVistaPreviaAdjunto = '';
+    this.htmlVistaPreviaAdjunto = null;
+    this.cargandoVistaPreviaAdjunto = false;
     this.fuenteVistaPreviaAdjuntoEsBlob = false;
     this.adjuntoVistaPreviaEsPdf = false;
+    this.adjuntoVistaPreviaEsOffice = false;
   }
 
   private esAdjuntoPdf(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
@@ -297,6 +353,108 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
     if (nombre.endsWith('.pdf')) return true;
     return !!adjunto.dataUrl?.startsWith('data:application/pdf');
+  }
+
+  private esAdjuntoOffice(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
+    return this.esAdjuntoWord(adjunto) || this.esAdjuntoExcel(adjunto);
+  }
+
+  private esAdjuntoWord(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
+    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
+    if (tipo.includes('wordprocessingml') || tipo.includes('msword')) return true;
+    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
+    return nombre.endsWith('.docx') || nombre.endsWith('.doc');
+  }
+
+  private esAdjuntoExcel(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
+    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
+    if (tipo.includes('spreadsheetml') || tipo.includes('ms-excel')) return true;
+    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
+    return nombre.endsWith('.xlsx') || nombre.endsWith('.xls');
+  }
+
+  private async generarVistaPreviaExcel(blob: Blob): Promise<string> {
+    const XLSX: any = await import('xlsx');
+    const arrayBuffer = await blob.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const primeraHoja = workbook.SheetNames?.[0];
+
+    if (!primeraHoja) {
+      return this.generarMensajePreviewHtml('El archivo Excel no contiene hojas para mostrar.');
+    }
+
+    const hoja = workbook.Sheets[primeraHoja];
+    const tablaHtml = XLSX.utils.sheet_to_html(hoja, { editable: false });
+
+    return `
+      <div style="padding: 12px; font-family: Segoe UI, Arial, sans-serif; color: #111827;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4b5563;"><strong>Hoja:</strong> ${primeraHoja}</p>
+        <div style="overflow:auto; max-height:68vh; border:1px solid #e5e7eb; border-radius:8px; background:#fff; padding:8px;">
+          ${tablaHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  private async generarVistaPreviaWord(blob: Blob, nombreArchivo?: string): Promise<string> {
+    const nombre = (nombreArchivo || '').toLowerCase();
+    if (nombre.endsWith('.doc') && !nombre.endsWith('.docx')) {
+      return this.generarMensajePreviewHtml('La vista previa de .doc no esta soportada. Usa .docx para vista previa o descarga el archivo.');
+    }
+
+    let mammoth: any;
+    try {
+      mammoth = await import('mammoth/mammoth.browser');
+    } catch {
+      mammoth = await import('mammoth');
+    }
+
+    const arrayBuffer = await blob.arrayBuffer();
+    const resultado = await mammoth.convertToHtml({ arrayBuffer });
+    const contenido = (resultado?.value || '').trim();
+
+    if (!contenido) {
+      return this.generarMensajePreviewHtml('El documento Word no contiene texto renderizable para vista previa.');
+    }
+
+    return `
+      <div style="padding: 16px; max-height: 72vh; overflow:auto; font-family: Segoe UI, Arial, sans-serif; color:#111827; background:#fff;">
+        ${contenido}
+      </div>
+    `;
+  }
+
+  private generarMensajePreviewHtml(mensaje: string): string {
+    return `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:52vh;padding:24px;background:#f9fafb;color:#374151;font-family:Segoe UI,Arial,sans-serif;">
+        <p style="text-align:center;max-width:760px;font-size:14px;line-height:1.5;margin:0;">${mensaje}</p>
+      </div>
+    `;
+  }
+
+  private dataUrlABlob(dataUrl: string): Blob | null {
+    const partes = dataUrl.split(',');
+    if (partes.length !== 2) return null;
+
+    const encabezado = partes[0];
+    const base64 = partes[1];
+    const mimeMatch = encabezado.match(/data:([^;]+);base64/);
+    const mime = mimeMatch?.[1] || 'application/octet-stream';
+
+    try {
+      const binario = atob(base64);
+      const bytes = new Uint8Array(binario.length);
+      for (let i = 0; i < binario.length; i++) {
+        bytes[i] = binario.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mime });
+    } catch {
+      return null;
+    }
+  }
+
+  private esDataUrl(valor: string): boolean {
+    return valor.startsWith('data:');
   }
 
   crearNuevaActividad(): void {
