@@ -23,6 +23,8 @@ export class TabCostosComponent {
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
   @Output() costosChange = new EventEmitter<void>();
+  @Output() agregarCategoria = new EventEmitter<string>();
+  @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
 
   subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
   nuevoNombreTablaExtra = '';
@@ -102,26 +104,17 @@ export class TabCostosComponent {
   }
 
   agregarTablaExtra(): void {
-    if (!this.nuevoNombreTablaExtra.trim()) return;
-    const nuevoId = this.tablasCostosExtras.length > 0
-      ? Math.max(...this.tablasCostosExtras.map(t => t.id)) + 1
-      : 1;
-    this.tablasCostosExtras.push({
-      id: nuevoId,
-      nombre: this.nuevoNombreTablaExtra.trim(),
-      items: [],
-      expandida: true
-    });
+    const nombre = this.nuevoNombreTablaExtra.trim();
+    if (!nombre) return;
+
+    this.agregarCategoria.emit(nombre);
     this.nuevoNombreTablaExtra = '';
-    this.emitirCambios();
   }
 
   eliminarTablaExtra(id: number): void {
-    const idx = this.tablasCostosExtras.findIndex(t => t.id === id);
-    if (idx >= 0) {
-      this.tablasCostosExtras.splice(idx, 1);
-      this.emitirCambios();
-    }
+    const tabla = this.tablasCostosExtras.find(t => t.id === id);
+    if (!tabla) return;
+    this.eliminarCategoria.emit(tabla);
   }
 
   agregarItemOtroCosto(tabla: TablaCostoExtra): void {

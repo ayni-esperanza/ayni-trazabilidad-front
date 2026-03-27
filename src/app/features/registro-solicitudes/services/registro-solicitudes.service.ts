@@ -185,6 +185,11 @@ type CostoAdicionalApi = {
   dependenciaActividadId?: number | null;
 };
 
+export type CostoCategoriaAdicionalApi = {
+  id: number;
+  nombre: string;
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -290,6 +295,16 @@ export class RegistroSolicitudesService {
     return this.http.patch<ProyectoApi>(`/v1/proyectos/${id}/estado`, { nuevoEstado: estado }).pipe(
       map((item) => this.mapProyecto(item))
     );
+  }
+
+  cancelarProyecto(id: number, motivo: string): Observable<Proyecto> {
+    return this.http.post<ProyectoApi>(`/v1/proyectos/${id}/cancelar`, { motivo }).pipe(
+      map((item) => this.mapProyecto(item))
+    );
+  }
+
+  eliminarProyecto(id: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${id}`);
   }
 
   obtenerEtapasPorProyecto(proyectoId: number): Observable<EtapaProyecto[]> {
@@ -481,6 +496,20 @@ export class RegistroSolicitudesService {
         dependenciaActividadId: item.dependenciaActividadId ?? null
       })))
     );
+  }
+
+  obtenerCategoriasAdicionales(proyectoId: number): Observable<CostoCategoriaAdicionalApi[]> {
+    return this.http.get<CostoCategoriaAdicionalApi[]>(`/v1/proyectos/${proyectoId}/costos/adicionales/categorias-registro`);
+  }
+
+  crearCategoriaAdicional(proyectoId: number, nombre: string): Observable<CostoCategoriaAdicionalApi> {
+    return this.http.post<CostoCategoriaAdicionalApi>(`/v1/proyectos/${proyectoId}/costos/adicionales/categorias-registro`, {
+      nombre
+    });
+  }
+
+  eliminarCategoriaAdicional(proyectoId: number, categoriaId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/adicionales/categorias-registro/${categoriaId}`);
   }
 
   crearCostoAdicional(proyectoId: number, item: CostoAdicionalApi): Observable<CostoAdicionalApi> {

@@ -136,8 +136,12 @@
             class="hidden">
 
           <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2">
-            Puedes adjuntar xlsx, pdf, docx, imágenes y otros archivos. Tambien puedes pegar una imagen con Ctrl+V para adjuntarla como documento en esta actividad.
+            Archivos permitidos: xlsx, xls, pdf, docx, doc, pptx, ppt, txt, csv, zip, rar e imagenes. Limite maximo: 5MB por archivo. Audio y video no estan permitidos. Las imagenes se comprimen automaticamente.
           </p>
+
+          @if (errorAdjuntos) {
+            <p class="text-[11px] text-red-600 dark:text-red-400 mb-2">{{ errorAdjuntos }}</p>
+          }
 
           @if (formData.archivosAdjuntos.length > 0) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-auto pr-1">

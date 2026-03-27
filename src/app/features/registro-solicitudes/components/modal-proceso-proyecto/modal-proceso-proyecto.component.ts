@@ -9,7 +9,7 @@ import { TareaFormModalComponent, Tarea } from '../../../../shared/components/ta
 import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
 import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
-import { RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
+import { CostoCategoriaAdicionalApi, RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 
@@ -54,6 +54,7 @@ export interface ActividadCostoOption {
 
 export interface TablaCostoExtra {
   id: number;
+  categoriaId?: number;
   nombre: string;
   items: OtroCosto[];
   expandida: boolean;
@@ -96,6 +97,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   etapas: EtapaProyecto[] = [];
   proyectoFinalizado = false;
   proyectoCancelado = false;
+  guardandoInfo = false;
   infoProyectoExpandida = false;
   mostrarConfeti = false;
   confetis: { id: number; tipo: string; color: string; left: number; delay: number; duration: number }[] = [];
@@ -803,15 +805,17 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.responsables.find(r => r.id === responsableId)?.nombre;
   }
 
-  private sincronizarOrdenesCompraProyecto(ordenes: OrdenCompra[]) {
-    if (!this.proyecto) return of(null);
+  private sincronizarOrdenesCompraProyecto(ordenes: OrdenCompra[]): Observable<OrdenCompra[]> {
+    if (!this.proyecto) return of([]);
+
+    const ordenesNormalizadas = this.normalizarOrdenesCompraLocales(ordenes || []);
 
     return this.registroSolicitudesService.obtenerOrdenesCompra(this.proyecto.id).pipe(
       switchMap((existentes) => {
         const operaciones: Observable<unknown>[] = [];
-        const idsLocales = new Set((ordenes || []).map(o => Number(o.id || 0)).filter(id => id > 0));
+        const idsLocales = new Set((ordenesNormalizadas || []).map(o => Number(o.id || 0)).filter(id => id > 0));
 
-        for (const orden of ordenes || []) {
+        for (const orden of ordenesNormalizadas) {
           const payload = {
             numero: orden.numero,
             fecha: orden.fecha,
@@ -835,10 +839,55 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           }
         }
 
-        return operaciones.length ? forkJoin(operaciones) : of([]);
+        const sincronizacion$ = operaciones.length ? forkJoin(operaciones) : of([]);
+        return sincronizacion$.pipe(
+          switchMap(() => this.registroSolicitudesService.obtenerOrdenesCompra(this.proyecto!.id))
+        );
       }),
-      map(() => null)
+      map((items) => (items || []).map((orden) => ({
+        id: orden.id,
+        numero: orden.numero || '',
+        fecha: orden.fecha || '',
+        tipo: this.normalizarTipoOrdenCompra(orden.tipo),
+        numeroLicitacion: orden.numeroLicitacion || '',
+        numeroSolicitud: orden.numeroSolicitud || '',
+        total: Number(orden.total || 0)
+      })))
     );
+  }
+
+  private normalizarOrdenesCompraLocales(ordenes: OrdenCompra[]): OrdenCompra[] {
+    const porClave = new Map<string, OrdenCompra>();
+
+    for (const orden of ordenes) {
+      const numero = (orden.numero || '').trim();
+      if (!numero) continue;
+
+      const fecha = (orden.fecha || '').trim();
+      const tipo = this.normalizarTipoOrdenCompra(orden.tipo);
+      const numeroLicitacion = (orden.numeroLicitacion || '').trim();
+      const numeroSolicitud = (orden.numeroSolicitud || '').trim();
+      const total = Number(orden.total || 0);
+      const id = Number(orden.id || 0);
+
+      const clave = id > 0
+        ? `id:${id}`
+        : `new:${numero}|${fecha}|${tipo}|${numeroLicitacion}|${numeroSolicitud}|${total}`;
+
+      if (!porClave.has(clave)) {
+        porClave.set(clave, {
+          id: id > 0 ? id : undefined,
+          numero,
+          fecha,
+          tipo,
+          numeroLicitacion,
+          numeroSolicitud,
+          total
+        });
+      }
+    }
+
+    return Array.from(porClave.values());
   }
 
   onBloqueoEdicionActividadesChange(estado: boolean): void {
@@ -959,11 +1008,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   guardarInfoProyecto(): void {
-    if (!this.proyecto || this.modoSoloLectura) return;
+    if (!this.proyecto || this.modoSoloLectura || this.guardandoInfo) return;
 
-    const ordenesActualizadas = this.proyectoInfoForm.ordenesCompra
-      .filter(o => o.numero.trim())
-      .map(o => ({ ...o }));
+    this.guardandoInfo = true;
+
+    const ordenesActualizadas = this.normalizarOrdenesCompraLocales(this.proyectoInfoForm.ordenesCompra || []);
 
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
@@ -982,11 +1031,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.responsableId = Number(this.proyectoInfoForm.responsableId);
     this.proyecto.responsableNombre = this.getResponsableNombre(Number(this.proyectoInfoForm.responsableId));
     this.proyecto.fechaInicio = this.proyectoInfoForm.fechaInicio;
-    this.proyecto.fechaFinalizacion = this.formatDate(new Date());
+    this.proyecto.fechaFinalizacion = this.proyectoInfoForm.fechaFinalizacion || this.proyecto.fechaFinalizacion;
     this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
     this.sincronizarOrdenesCompraProyecto(ordenesActualizadas).subscribe({
-      next: () => {
+      next: (ordenesPersistidas) => {
+        this.proyectoInfoForm.ordenesCompra = ordenesPersistidas;
+        this.proyecto!.ordenesCompra = [...ordenesPersistidas];
         this.marcarActualizacionProyecto();
         this.infoActualizada.emit({
           costo: this.proyecto!.costo,
@@ -1003,6 +1054,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       },
       error: (error) => {
         console.error('Error sincronizando ordenes de compra:', error);
+      },
+      complete: () => {
+        this.guardandoInfo = false;
       }
     });
   }
@@ -1270,9 +1324,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     forkJoin({
       materiales: this.registroSolicitudesService.obtenerCostosMateriales(this.proyecto.id),
       manoObra: this.registroSolicitudesService.obtenerCostosManoObra(this.proyecto.id),
-      adicionales: this.registroSolicitudesService.obtenerCostosAdicionales(this.proyecto.id)
+      adicionales: this.registroSolicitudesService.obtenerCostosAdicionales(this.proyecto.id),
+      categoriasPersistidas: this.registroSolicitudesService.obtenerCategoriasAdicionales(this.proyecto.id)
     }).subscribe({
-      next: ({ materiales, manoObra, adicionales }) => {
+      next: ({ materiales, manoObra, adicionales, categoriasPersistidas }) => {
         this.materiales = (materiales || []).map((item) => ({
           id: item.id,
           fecha: item.fecha || this.formatDate(new Date()),
@@ -1295,7 +1350,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
 
-        this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || []);
+        this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || [], categoriasPersistidas || []);
         this.inicializarSeccionCostos();
       },
       error: () => {
@@ -1317,13 +1372,43 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     costoTotal: number;
     encargado?: string;
     dependenciaActividadId?: number | null;
-  }>): TablaCostoExtra[] {
-    const porCategoria = new Map<string, OtroCosto[]>();
+  }>, categoriasPersistidas: CostoCategoriaAdicionalApi[]): TablaCostoExtra[] {
+    const tablas: TablaCostoExtra[] = [];
+    const porNombreNormalizado = new Map<string, TablaCostoExtra>();
+
+    for (const categoria of categoriasPersistidas || []) {
+      const nombre = (categoria.nombre || '').trim();
+      if (!nombre) continue;
+
+      const tabla: TablaCostoExtra = {
+        id: this.obtenerSiguienteIdTablaLocal(tablas),
+        categoriaId: categoria.id,
+        nombre,
+        items: [],
+        expandida: true
+      };
+
+      tablas.push(tabla);
+      porNombreNormalizado.set(nombre.toLowerCase(), tabla);
+    }
 
     for (const item of adicionales) {
       const categoria = (item.categoria || 'OTROS').trim() || 'OTROS';
-      const lista = porCategoria.get(categoria) || [];
-      lista.push({
+      const claveCategoria = categoria.toLowerCase();
+      let tabla = porNombreNormalizado.get(claveCategoria);
+
+      if (!tabla) {
+        tabla = {
+          id: this.obtenerSiguienteIdTablaLocal(tablas),
+          nombre: categoria,
+          items: [],
+          expandida: true
+        };
+        tablas.push(tabla);
+        porNombreNormalizado.set(claveCategoria, tabla);
+      }
+
+      tabla.items.push({
         id: item.id,
         fecha: item.fecha || this.formatDate(new Date()),
         descripcion: item.descripcion || '',
@@ -1333,15 +1418,64 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         encargado: item.encargado || '',
         dependenciaActividadId: item.dependenciaActividadId ?? null
       });
-      porCategoria.set(categoria, lista);
     }
 
-    return Array.from(porCategoria.entries()).map(([nombre, items], index) => ({
-      id: index + 1,
-      nombre,
-      items,
-      expandida: true
-    }));
+    return tablas.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  onAgregarCategoriaCostos(nombreCategoria: string): void {
+    if (!this.proyecto || this.modoSoloLectura) return;
+
+    const nombre = (nombreCategoria || '').trim();
+    if (!nombre) return;
+
+    const existente = this.tablasCostosExtras.find((tabla) => tabla.nombre.trim().toLowerCase() === nombre.toLowerCase());
+    if (existente) {
+      existente.expandida = true;
+      return;
+    }
+
+    this.registroSolicitudesService.crearCategoriaAdicional(this.proyecto.id, nombre).subscribe({
+      next: (categoria) => {
+        this.tablasCostosExtras = [
+          ...this.tablasCostosExtras,
+          {
+            id: this.obtenerSiguienteIdTablaLocal(this.tablasCostosExtras),
+            categoriaId: categoria.id,
+            nombre: categoria.nombre,
+            items: [],
+            expandida: true
+          }
+        ].sort((a, b) => a.nombre.localeCompare(b.nombre));
+      },
+      error: (error) => console.error('Error creando categoría adicional:', error)
+    });
+  }
+
+  onEliminarCategoriaCostos(tabla: TablaCostoExtra): void {
+    if (!this.proyecto || this.modoSoloLectura) return;
+
+    const nombre = (tabla.nombre || '').trim().toLowerCase();
+    this.tablasCostosExtras = this.tablasCostosExtras.filter((item) => item.id !== tabla.id);
+
+    if (!tabla.categoriaId) {
+      return;
+    }
+
+    this.registroSolicitudesService.eliminarCategoriaAdicional(this.proyecto.id, tabla.categoriaId).subscribe({
+      error: (error) => {
+        console.error('Error eliminando categoría adicional:', error);
+        const existeRestaurada = this.tablasCostosExtras.some((item) => item.nombre.trim().toLowerCase() === nombre);
+        if (!existeRestaurada) {
+          this.tablasCostosExtras = [...this.tablasCostosExtras, tabla].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        }
+      }
+    });
+  }
+
+  private obtenerSiguienteIdTablaLocal(tablas: TablaCostoExtra[]): number {
+    if (!tablas.length) return 1;
+    return Math.max(...tablas.map((tabla) => tabla.id)) + 1;
   }
 
   private sincronizarCostosProyecto(): Observable<unknown> {
@@ -1488,7 +1622,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private marcarActualizacionProyecto(): void {
     if (!this.proyecto) return;
 
-    this.proyecto.fechaFinalizacion = this.formatDate(new Date());
+    this.proyecto.fechaActualizacion = new Date();
     this.proyectoActualizado.emit({ ...this.proyecto });
   }
 

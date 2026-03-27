@@ -34,7 +34,33 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
-  readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
+  readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
+  private readonly maxAdjuntoBytes = 5 * 1024 * 1024;
+  private readonly tiposPermitidos = new Set([
+    'application/pdf',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'text/csv',
+    'application/zip',
+    'application/x-zip-compressed',
+    'application/vnd.rar',
+    'application/x-rar-compressed',
+    'application/octet-stream',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/gif'
+  ]);
+  private readonly extensionesPermitidas = new Set([
+    'xlsx', 'xls', 'pdf', 'docx', 'doc', 'pptx', 'ppt', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'zip', 'rar'
+  ]);
+  erroresAdjuntosComentario: Record<number, string> = {};
   // Compatibilidad defensiva para plantillas previas en hot-reload.
   readonly alertasActividades: unknown[] = [];
 
@@ -483,25 +509,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
     if (index < 0) return;
 
-    const comentario = this.comentariosAdicionalesActividad[index];
-    const nuevosAdjuntos: FlujoAdjunto[] = [];
-    for (const file of Array.from(files)) {
-      nuevosAdjuntos.push({
-        nombre: file.name,
-        tipo: file.type || 'application/octet-stream',
-        tamano: file.size,
-        archivo: file,
-        dataUrl: await this.leerArchivoComoDataUrl(file)
-      });
-    }
-
-    const actualizados = [...this.comentariosAdicionalesActividad];
-    actualizados[index] = {
-      ...comentario,
-      adjuntos: [...(comentario.adjuntos || []), ...nuevosAdjuntos]
-    };
-    this.comentariosAdicionalesActividad = actualizados;
-    this.emitirComentariosActualizados();
+    await this.agregarAdjuntosComentario(comentarioId, Array.from(files));
     input.value = '';
   }
 
@@ -521,29 +529,8 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
     if (!imagenes.length) return;
 
-    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
-    if (index < 0) return;
-
-    const comentario = this.comentariosAdicionalesActividad[index];
-    const nuevosAdjuntos: FlujoAdjunto[] = [];
-
-    for (const file of imagenes) {
-      nuevosAdjuntos.push({
-        nombre: file.name || `imagen-${Date.now()}.png`,
-        tipo: file.type || 'image/png',
-        tamano: file.size,
-        archivo: file,
-        dataUrl: await this.leerArchivoComoDataUrl(file)
-      });
-    }
-
-    const actualizados = [...this.comentariosAdicionalesActividad];
-    actualizados[index] = {
-      ...comentario,
-      adjuntos: [...(comentario.adjuntos || []), ...nuevosAdjuntos]
-    };
-    this.comentariosAdicionalesActividad = actualizados;
-    this.emitirComentariosActualizados();
+    const normalizadas = imagenes.map((file, index) => this.normalizarNombreArchivoPegado(file, index));
+    await this.agregarAdjuntosComentario(comentarioId, normalizadas);
   }
 
   eliminarAdjuntoComentario(comentarioId: number, adjuntoIndex: number): void {
@@ -707,6 +694,214 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
       reader.readAsDataURL(file);
     });
+  }
+
+  private async agregarAdjuntosComentario(comentarioId: number, archivos: File[]): Promise<void> {
+    const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
+    if (index < 0) return;
+
+    delete this.erroresAdjuntosComentario[comentarioId];
+
+    const comentario = this.comentariosAdicionalesActividad[index];
+    const nuevosAdjuntos: FlujoAdjunto[] = [];
+    const errores: string[] = [];
+
+    for (const file of archivos) {
+      const procesado = await this.prepararAdjuntoComentario(file);
+      if (!procesado) {
+        errores.push(`No se pudo adjuntar ${file.name}`);
+        continue;
+      }
+
+      if (typeof procesado === 'string') {
+        errores.push(procesado);
+        continue;
+      }
+
+      nuevosAdjuntos.push({
+        nombre: procesado.name,
+        tipo: procesado.type || 'application/octet-stream',
+        tamano: procesado.size,
+        archivo: procesado,
+        dataUrl: await this.leerArchivoComoDataUrl(procesado)
+      });
+    }
+
+    const actualizados = [...this.comentariosAdicionalesActividad];
+    actualizados[index] = {
+      ...comentario,
+      adjuntos: [...(comentario.adjuntos || []), ...nuevosAdjuntos]
+    };
+    this.comentariosAdicionalesActividad = actualizados;
+    this.emitirComentariosActualizados();
+
+    if (errores.length) {
+      this.erroresAdjuntosComentario[comentarioId] = errores.length === 1
+        ? errores[0]
+        : `${errores[0]} (+${errores.length - 1} más)`;
+    }
+  }
+
+  private async prepararAdjuntoComentario(file: File): Promise<File | string | null> {
+    const nombre = (file.name || '').trim();
+    if (!nombre) {
+      return 'No se pudo adjuntar un archivo sin nombre';
+    }
+
+    if (this.esAudioOVideo(file)) {
+      return `No se permiten archivos de audio o video (${nombre})`;
+    }
+
+    if (!this.esTipoPermitido(file)) {
+      return `Tipo de archivo no permitido (${nombre})`;
+    }
+
+    let archivoFinal = file;
+    if (this.esImagenComprimible(file)) {
+      const comprimido = await this.comprimirImagen(file);
+      if (comprimido) {
+        archivoFinal = comprimido;
+      }
+    }
+
+    if (archivoFinal.size > this.maxAdjuntoBytes) {
+      return `El archivo supera el límite de 5MB (${nombre})`;
+    }
+
+    return archivoFinal;
+  }
+
+  private esAudioOVideo(file: File): boolean {
+    const tipo = (file.type || '').toLowerCase();
+    if (tipo.startsWith('audio/') || tipo.startsWith('video/')) {
+      return true;
+    }
+
+    const extension = this.obtenerExtension(file.name);
+    return ['mp3', 'wav', 'ogg', 'm4a', 'mp4', 'mov', 'avi', 'mkv', 'webm'].includes(extension);
+  }
+
+  private esTipoPermitido(file: File): boolean {
+    const tipo = (file.type || '').toLowerCase();
+    if (tipo && this.tiposPermitidos.has(tipo)) {
+      return true;
+    }
+
+    return this.extensionesPermitidas.has(this.obtenerExtension(file.name));
+  }
+
+  private obtenerExtension(nombre: string): string {
+    const limpio = (nombre || '').trim().toLowerCase();
+    const partes = limpio.split('.');
+    return partes.length > 1 ? partes[partes.length - 1] : '';
+  }
+
+  private esImagenComprimible(file: File): boolean {
+    const tipo = (file.type || '').toLowerCase();
+    return tipo === 'image/jpeg' || tipo === 'image/jpg' || tipo === 'image/png' || tipo === 'image/webp';
+  }
+
+  private async comprimirImagen(file: File): Promise<File | null> {
+    if (!this.isBrowser) return file;
+
+    const bitmap = await this.cargarBitmap(file);
+    if (!bitmap) return file;
+
+    const maxDimension = 1920;
+    const escala = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    let width = Math.max(1, Math.round(bitmap.width * escala));
+    let height = Math.max(1, Math.round(bitmap.height * escala));
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return file;
+
+    const outputType = file.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+    let quality = outputType === 'image/jpeg' ? 0.82 : 0.8;
+    let resultado: Blob | null = null;
+
+    for (let intento = 0; intento < 6; intento += 1) {
+      canvas.width = width;
+      canvas.height = height;
+      context.clearRect(0, 0, width, height);
+      context.drawImage(bitmap, 0, 0, width, height);
+
+      resultado = await this.canvasToBlob(canvas, outputType, quality);
+      if (!resultado) break;
+      if (resultado.size <= this.maxAdjuntoBytes) {
+        break;
+      }
+
+      if (quality > 0.5) {
+        quality -= 0.08;
+      } else {
+        width = Math.max(960, Math.round(width * 0.86));
+        height = Math.max(640, Math.round(height * 0.86));
+      }
+    }
+
+    if (!resultado) return file;
+    if (resultado.size >= file.size) return file;
+
+    const nombreBase = file.name.replace(/\.[^.]+$/, '');
+    const extension = outputType === 'image/webp' ? 'webp' : 'jpg';
+    return new File([resultado], `${nombreBase}.${extension}`, { type: outputType });
+  }
+
+  private cargarBitmap(file: File): Promise<HTMLImageElement | null> {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+
+      image.src = url;
+    });
+  }
+
+  private canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), type, quality);
+    });
+  }
+
+  private normalizarNombreArchivoPegado(file: File, index: number): File {
+    const extensionPorTipo: Record<string, string> = {
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/bmp': 'bmp'
+    };
+
+    const extension = extensionPorTipo[file.type] || 'png';
+    const fecha = new Date();
+    const marcaTiempo = [
+      fecha.getFullYear(),
+      String(fecha.getMonth() + 1).padStart(2, '0'),
+      String(fecha.getDate()).padStart(2, '0')
+    ].join('');
+    const hora = [
+      String(fecha.getHours()).padStart(2, '0'),
+      String(fecha.getMinutes()).padStart(2, '0'),
+      String(fecha.getSeconds()).padStart(2, '0')
+    ].join('');
+
+    const nombreLimpio = (file.name || '').trim();
+    const requiereNombreGenerado = !nombreLimpio || nombreLimpio === 'image.png' || nombreLimpio === 'image.jpg';
+    const nombreFinal = requiereNombreGenerado
+      ? `imagen-pegada-${marcaTiempo}-${hora}-${index + 1}.${extension}`
+      : nombreLimpio;
+
+    return new File([file], nombreFinal, { type: file.type || 'image/png' });
   }
 
   private async renderBpmn(): Promise<void> {

@@ -161,7 +161,7 @@
                 <div class="text-gray-500 dark:text-gray-400">Fecha de registro</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaRegistro || proyecto?.fechaInicio) }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Ultima actualizacion</div>
-                <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaFinalizacion) }}</div>
+                <div class="text-gray-800 dark:text-gray-100">{{ formatDateResumen(proyecto?.fechaActualizacion || proyecto?.fechaFinalizacion) }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Ubicacion</div>
                 <div class="text-gray-800 dark:text-gray-100">{{ proyecto?.ubicacion || '-' }}</div>
                 <div class="text-gray-500 dark:text-gray-400">Areas involucradas</div>
@@ -374,7 +374,9 @@
         [manoObra]="manoObra"
         [tablasCostosExtras]="tablasCostosExtras"
         [actividadesDisponibles]="actividadesDisponiblesCostos"
-        [modoSoloLectura]="modoSoloLectura">
+        [modoSoloLectura]="modoSoloLectura"
+        (agregarCategoria)="onAgregarCategoriaCostos($event)"
+        (eliminarCategoria)="onEliminarCategoriaCostos($event)">
       </app-tab-costos>
 
     </div>

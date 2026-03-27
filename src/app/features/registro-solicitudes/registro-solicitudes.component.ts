@@ -8,7 +8,6 @@ import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNo
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-registro-solicitudes',
@@ -330,13 +329,10 @@ export class RegistroSolicitudesComponent implements OnInit {
   onCancelarProyectoDesdeModal(evento: {motivo: string}): void {
     if (!this.proyectoActual) return;
 
-    this.solicitudesService
-      .actualizarProyecto(this.proyectoActual.id, { motivoCancelacion: evento.motivo })
-      .pipe(switchMap(() => this.solicitudesService.cambiarEstadoProyecto(this.proyectoActual!.id, 'Cancelado')))
-      .subscribe({
-        next: (proyectoCancelado) => this.sincronizarProyectoEnMemoria(proyectoCancelado),
-        error: (error) => console.error('Error al cancelar proyecto:', error)
-      });
+    this.solicitudesService.cancelarProyecto(this.proyectoActual.id, evento.motivo).subscribe({
+      next: (proyectoCancelado) => this.sincronizarProyectoEnMemoria(proyectoCancelado),
+      error: (error) => console.error('Error al cancelar proyecto:', error)
+    });
   }
 
   onFinalizarEtapa(etapa: EtapaProyecto): void {
