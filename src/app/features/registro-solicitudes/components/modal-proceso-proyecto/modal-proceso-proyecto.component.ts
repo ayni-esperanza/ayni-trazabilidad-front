@@ -1581,11 +1581,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tabla.items.map((item) => ({ ...item, categoria: tabla.nombre }))
     );
 
-    return forkJoin({
-      existentesMateriales: this.registroSolicitudesService.obtenerCostosMateriales(proyectoId),
-      existentesManoObra: this.registroSolicitudesService.obtenerCostosManoObra(proyectoId),
-      existentesAdicionales: this.registroSolicitudesService.obtenerCostosAdicionales(proyectoId)
-    }).pipe(
+    return this.asegurarCategoriasCostosPersistidas(proyectoId).pipe(
+      switchMap(() => forkJoin({
+        existentesMateriales: this.registroSolicitudesService.obtenerCostosMateriales(proyectoId),
+        existentesManoObra: this.registroSolicitudesService.obtenerCostosManoObra(proyectoId),
+        existentesAdicionales: this.registroSolicitudesService.obtenerCostosAdicionales(proyectoId)
+      })),
       switchMap(({ existentesMateriales, existentesManoObra, existentesAdicionales }) => {
         const operaciones: Observable<unknown>[] = [];
 
@@ -1686,6 +1687,71 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       }),
       finalize(() => {
         this.sincronizandoCostos = false;
+      })
+    );
+  }
+
+  private asegurarCategoriasCostosPersistidas(proyectoId: number): Observable<void> {
+    const porNombre = new Map<string, TablaCostoExtra>();
+
+    for (const tabla of this.tablasCostosExtras || []) {
+      const nombre = (tabla.nombre || '').trim();
+      if (!nombre) continue;
+      const clave = nombre.toLowerCase();
+      if (!porNombre.has(clave)) {
+        porNombre.set(clave, tabla);
+      }
+    }
+
+    if (!porNombre.size) {
+      return of(void 0);
+    }
+
+    return this.registroSolicitudesService.obtenerCategoriasAdicionales(proyectoId).pipe(
+      switchMap((persistidas) => {
+        const porNombrePersistido = new Map<string, CostoCategoriaAdicionalApi>();
+        for (const categoria of persistidas || []) {
+          const nombre = (categoria.nombre || '').trim();
+          if (!nombre) continue;
+          porNombrePersistido.set(nombre.toLowerCase(), categoria);
+        }
+
+        for (const tabla of this.tablasCostosExtras || []) {
+          const nombre = (tabla.nombre || '').trim().toLowerCase();
+          const existente = porNombrePersistido.get(nombre);
+          if (existente) {
+            tabla.categoriaId = existente.id;
+          }
+        }
+
+        const pendientesCrear: Array<{ tabla: TablaCostoExtra; nombre: string }> = [];
+        for (const [clave, tabla] of porNombre.entries()) {
+          if (!porNombrePersistido.has(clave)) {
+            pendientesCrear.push({ tabla, nombre: tabla.nombre.trim() });
+          }
+        }
+
+        if (!pendientesCrear.length) {
+          return of([] as Array<{ tablaId: number; categoria: CostoCategoriaAdicionalApi }>);
+        }
+
+        return forkJoin(
+          pendientesCrear.map((pendiente) =>
+            this.registroSolicitudesService.crearCategoriaAdicional(proyectoId, pendiente.nombre).pipe(
+              map((categoria) => ({ tablaId: pendiente.tabla.id, categoria }))
+            )
+          )
+        );
+      }),
+      map((creadas) => {
+        for (const creada of creadas || []) {
+          const tabla = this.tablasCostosExtras.find((item) => item.id === creada.tablaId);
+          if (tabla) {
+            tabla.categoriaId = creada.categoria.id;
+            tabla.nombre = creada.categoria.nombre;
+          }
+        }
+        return void 0;
       })
     );
   }
