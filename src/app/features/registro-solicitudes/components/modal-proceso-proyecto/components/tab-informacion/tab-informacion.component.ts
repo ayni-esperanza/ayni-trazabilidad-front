@@ -95,8 +95,14 @@ export class TabInformacionComponent implements OnInit {
     });
   }
 
-  eliminarOrdenCompra(index: number): void {
-    this.proyectoInfoForm.ordenesCompra.splice(index, 1);
+  eliminarOrdenCompra(index: number, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const ordenes = this.proyectoInfoForm.ordenesCompra || [];
+    if (index < 0 || index >= ordenes.length) return;
+
+    this.proyectoInfoForm.ordenesCompra = ordenes.filter((_, i) => i !== index);
   }
 
   getResponsableNombre(responsableId: number): string {

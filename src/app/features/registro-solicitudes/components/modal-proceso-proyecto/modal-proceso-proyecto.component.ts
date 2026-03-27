@@ -853,40 +853,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     const ordenesNormalizadas = this.normalizarOrdenesCompraLocales(ordenes || []);
 
-    return this.registroSolicitudesService.obtenerOrdenesCompra(this.proyecto.id).pipe(
-      switchMap((existentes) => {
-        const operaciones: Observable<unknown>[] = [];
-        const idsLocales = new Set((ordenesNormalizadas || []).map(o => Number(o.id || 0)).filter(id => id > 0));
+    const payload = ordenesNormalizadas.map((orden) => ({
+      numero: orden.numero,
+      fecha: orden.fecha,
+      tipo: orden.tipo,
+      numeroLicitacion: orden.numeroLicitacion,
+      numeroSolicitud: orden.numeroSolicitud,
+      total: Number(orden.total || 0)
+    }));
 
-        for (const orden of ordenesNormalizadas) {
-          const payload = {
-            numero: orden.numero,
-            fecha: orden.fecha,
-            tipo: orden.tipo,
-            numeroLicitacion: orden.numeroLicitacion,
-            numeroSolicitud: orden.numeroSolicitud,
-            total: Number(orden.total || 0)
-          };
-
-          if (orden.id) {
-            operaciones.push(this.registroSolicitudesService.actualizarOrdenCompra(this.proyecto!.id, orden.id, payload));
-          } else {
-            operaciones.push(this.registroSolicitudesService.crearOrdenCompra(this.proyecto!.id, payload));
-          }
-        }
-
-        for (const existente of existentes || []) {
-          const idExistente = Number(existente.id || 0);
-          if (idExistente > 0 && !idsLocales.has(idExistente)) {
-            operaciones.push(this.registroSolicitudesService.eliminarOrdenCompra(this.proyecto!.id, idExistente));
-          }
-        }
-
-        const sincronizacion$ = operaciones.length ? forkJoin(operaciones) : of([]);
-        return sincronizacion$.pipe(
-          switchMap(() => this.registroSolicitudesService.obtenerOrdenesCompra(this.proyecto!.id))
-        );
-      }),
+    return this.registroSolicitudesService.reemplazarOrdenesCompra(this.proyecto.id, payload).pipe(
       map((items) => (items || []).map((orden) => ({
         id: orden.id,
         numero: orden.numero || '',

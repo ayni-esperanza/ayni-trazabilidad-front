@@ -400,6 +400,10 @@ export class RegistroSolicitudesService {
     return this.http.delete<void>(`/v1/proyectos/${proyectoId}/ordenes-compra/${ordenId}`);
   }
 
+  reemplazarOrdenesCompra(proyectoId: number, ordenes: OrdenCompraApi[]): Observable<OrdenCompraApi[]> {
+    return this.http.put<OrdenCompraApi[]>(`/v1/proyectos/${proyectoId}/ordenes-compra`, ordenes);
+  }
+
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
     return this.http.get<CostoMaterialApi[]>(`/v1/proyectos/${proyectoId}/costos/materiales`).pipe(
       map((items) => (items || []).map((item) => ({
