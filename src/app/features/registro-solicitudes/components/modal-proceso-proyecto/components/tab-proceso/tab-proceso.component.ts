@@ -160,11 +160,12 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return Array.isArray(timeline) ? timeline.length : 0;
   }
 
-  onCambiarEstadoActividad(nodo: FlujoNodo, event: Event): void {
+  onCambiarEstadoActividad(nodo: FlujoNodo, cambio: EstadoTarea | Event): void {
     if (nodo.tipo !== 'tarea' || this.proyectoFinalizado || this.proyectoCancelado) return;
 
-    const select = event.target as HTMLSelectElement;
-    const nuevoEstado = select.value as EstadoTarea;
+    const nuevoEstado = typeof cambio === 'string'
+      ? cambio
+      : ((cambio.target as HTMLSelectElement | null)?.value as EstadoTarea);
     if (!this.estadosActividad.includes(nuevoEstado)) return;
 
     const estadoActual = this.getEstadoActividad(nodo);

@@ -523,12 +523,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       cliente: this.proyecto.cliente,
       representante: this.proyecto.representante || '',
       areas: [...(this.proyecto.areas || [])],
-      ordenesCompra: (this.proyecto.ordenesCompra || []).map(o => ({
+      ordenesCompra: this.deduplicarOrdenesCompra((this.proyecto.ordenesCompra || []).map(o => ({
         ...o,
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         numeroLicitacion: o.numeroLicitacion || '',
         numeroSolicitud: o.numeroSolicitud || ''
-      })),
+      }))),
       comentariosAdicionalesActividad: (this.proyecto.comentariosAdicionalesActividad || []).map(comentario => ({
         ...comentario,
         texto: (comentario.texto || comentario.descripcion || '').trim(),
@@ -554,6 +554,39 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (valor.includes('sumin') || valor.includes('material') || valor.includes('equipo')) return 'SUMINISTRO';
 
     return 'OTROS';
+  }
+
+  private deduplicarOrdenesCompra(ordenes: OrdenCompra[]): OrdenCompra[] {
+    const porClave = new Map<string, OrdenCompra>();
+
+    for (const orden of ordenes || []) {
+      const id = Number(orden.id || 0);
+      const numero = (orden.numero || '').trim();
+      const fecha = (orden.fecha || '').trim();
+      const tipo = this.normalizarTipoOrdenCompra(orden.tipo);
+      const licitacion = (orden.numeroLicitacion || '').trim();
+      const solicitud = (orden.numeroSolicitud || '').trim();
+      const total = Number(orden.total || 0);
+
+      const clave = id > 0
+        ? `id:${id}`
+        : `raw:${numero}|${fecha}|${tipo}|${licitacion}|${solicitud}|${total}`;
+
+      if (!porClave.has(clave)) {
+        porClave.set(clave, {
+          ...orden,
+          id: id > 0 ? id : undefined,
+          numero,
+          fecha,
+          tipo,
+          numeroLicitacion: licitacion,
+          numeroSolicitud: solicitud,
+          total
+        });
+      }
+    }
+
+    return Array.from(porClave.values());
   }
 
   abrirModalActividad(nodo?: FlujoNodo): void {
