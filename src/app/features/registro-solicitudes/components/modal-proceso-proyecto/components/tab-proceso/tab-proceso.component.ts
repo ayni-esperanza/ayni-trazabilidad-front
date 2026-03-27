@@ -109,7 +109,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return nodo.tipo === 'tarea'
       && !this.proyectoFinalizado
       && !this.proyectoCancelado
-      && !this.hayComentariosEnEdicion;
+      && !this.actividadModalAbierta;
   }
 
   abrirNodo(nodo: FlujoNodo): void {
@@ -300,7 +300,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   crearNuevaActividad(): void {
-    if (this.hayComentariosEnEdicion) return;
+    if (this.actividadModalAbierta) return;
     this.crearActividadDesdeBpmnEvt.emit({ nombre: 'Nueva actividad' });
   }
 

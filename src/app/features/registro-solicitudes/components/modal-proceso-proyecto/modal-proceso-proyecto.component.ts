@@ -545,7 +545,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   abrirModalActividad(nodo?: FlujoNodo): void {
-    if (this.bloqueoEdicionActividades) return;
     this.nodoPadreParaNuevoId = null;
     this.posicionInicialNuevaActividad = null;
     this.actividadParaEditar = nodo ? this.mapearNodoATarea(nodo) : null;
@@ -553,7 +552,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   abrirNuevaActividadDesdeNodo(nodoBase: FlujoNodo): void {
-    if (this.bloqueoEdicionActividades) return;
     this.nodoPadreParaNuevoId = nodoBase.id;
     this.posicionInicialNuevaActividad = this.calcularPosicionNuevoNodo(nodoBase.id);
     this.actividadParaEditar = {
@@ -569,7 +567,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   abrirNuevaActividadDesdeBpmn(payload: { nombre: string; nodoOrigenId?: number }): void {
-    if (this.bloqueoEdicionActividades) return;
     if (!this.proyecto) return;
 
     // No crear nodo aún: la actividad se agrega al flujo recién al guardar en la modal.
