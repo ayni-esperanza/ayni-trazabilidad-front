@@ -60,7 +60,8 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   protected Editor: any;
   protected ckeditorConfig: any = {};
   protected isBrowser = false;
-  private readonly maxAdjuntoBytes = 5 * 1024 * 1024;
+  private readonly maxImagenBytes = 5 * 1024 * 1024;
+  private readonly maxDocumentoBytes = 25 * 1024 * 1024;
   private readonly tiposPermitidos = new Set([
     'application/pdf',
     'application/vnd.ms-excel',
@@ -504,8 +505,9 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       }
     }
 
-    if (archivoFinal.size > this.maxAdjuntoBytes) {
-      return `El archivo supera el límite de 5MB (${nombre})`;
+    const limiteBytes = this.obtenerLimiteBytes(archivoFinal);
+    if (archivoFinal.size > limiteBytes) {
+      return `El archivo supera el límite de ${this.formatearLimiteMb(limiteBytes)} (${nombre})`;
     }
 
     return archivoFinal;
@@ -541,6 +543,21 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     return tipo === 'image/jpeg' || tipo === 'image/jpg' || tipo === 'image/png' || tipo === 'image/webp';
   }
 
+  private esImagen(file: File): boolean {
+    const tipo = (file.type || '').toLowerCase();
+    if (tipo.startsWith('image/')) return true;
+    const extension = this.obtenerExtension(file.name);
+    return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension);
+  }
+
+  private obtenerLimiteBytes(file: File): number {
+    return this.esImagen(file) ? this.maxImagenBytes : this.maxDocumentoBytes;
+  }
+
+  private formatearLimiteMb(bytes: number): string {
+    return `${Math.round(bytes / (1024 * 1024))}MB`;
+  }
+
   private async comprimirImagen(file: File): Promise<File | null> {
     if (!this.isBrowser) return file;
 
@@ -568,7 +585,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
 
       resultado = await this.canvasToBlob(canvas, outputType, quality);
       if (!resultado) break;
-      if (resultado.size <= this.maxAdjuntoBytes) {
+      if (resultado.size <= this.maxImagenBytes) {
         break;
       }
 

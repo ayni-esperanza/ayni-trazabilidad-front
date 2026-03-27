@@ -340,7 +340,7 @@
                                   (change)="onSeleccionarAdjuntosComentario($event, comentario.id)">
                               </label>
                             </div>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-1">Limite 5MB por archivo. Audio/video no permitido. Las imagenes se comprimen automaticamente.</p>
+                            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-1">Limite 25MB para documentos y 5MB para imagenes. Audio/video no permitido. Las imagenes se comprimen automaticamente.</p>
                             <p *ngIf="erroresAdjuntosComentario[comentario.id]" class="text-[11px] text-red-600 dark:text-red-400 mb-1">{{ erroresAdjuntosComentario[comentario.id] }}</p>
 
                             <div class="space-y-1" *ngIf="(comentario.adjuntos || []).length > 0; else sinAdjuntosComentario">

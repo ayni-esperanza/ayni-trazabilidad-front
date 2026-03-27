@@ -35,7 +35,8 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
-  private readonly maxAdjuntoBytes = 5 * 1024 * 1024;
+  private readonly maxImagenBytes = 5 * 1024 * 1024;
+  private readonly maxDocumentoBytes = 25 * 1024 * 1024;
   private readonly tiposPermitidos = new Set([
     'application/pdf',
     'application/vnd.ms-excel',
@@ -922,8 +923,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       }
     }
 
-    if (archivoFinal.size > this.maxAdjuntoBytes) {
-      return `El archivo supera el límite de 5MB (${nombre})`;
+    const limiteBytes = this.obtenerLimiteBytes(archivoFinal);
+    if (archivoFinal.size > limiteBytes) {
+      return `El archivo supera el límite de ${this.formatearLimiteMb(limiteBytes)} (${nombre})`;
     }
 
     return archivoFinal;
@@ -959,6 +961,21 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return tipo === 'image/jpeg' || tipo === 'image/jpg' || tipo === 'image/png' || tipo === 'image/webp';
   }
 
+  private esImagen(file: File): boolean {
+    const tipo = (file.type || '').toLowerCase();
+    if (tipo.startsWith('image/')) return true;
+    const extension = this.obtenerExtension(file.name);
+    return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension);
+  }
+
+  private obtenerLimiteBytes(file: File): number {
+    return this.esImagen(file) ? this.maxImagenBytes : this.maxDocumentoBytes;
+  }
+
+  private formatearLimiteMb(bytes: number): string {
+    return `${Math.round(bytes / (1024 * 1024))}MB`;
+  }
+
   private async comprimirImagen(file: File): Promise<File | null> {
     if (!this.isBrowser) return file;
 
@@ -986,7 +1003,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
       resultado = await this.canvasToBlob(canvas, outputType, quality);
       if (!resultado) break;
-      if (resultado.size <= this.maxAdjuntoBytes) {
+      if (resultado.size <= this.maxImagenBytes) {
         break;
       }
 
