@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
@@ -12,6 +13,7 @@ import { TabCostosComponent } from './components/tab-costos/tab-costos.component
 import { CostoCategoriaAdicionalApi, RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 // Interfaces para Costos
 export interface MaterialCosto {
@@ -62,6 +64,7 @@ export interface TablaCostoExtra {
 
 type DocumentoResumen = {
   actividad: string;
+  origen: string;
   nombre: string;
   tipo: string;
   adjunto: FlujoAdjunto;
@@ -77,6 +80,7 @@ type DocumentoResumen = {
 export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
+  private readonly httpClient = inject(HttpClient);
 
   @Input() visible = false;
   @Input() embedded = false;
@@ -117,6 +121,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarVistaPreviaDocumento = false;
   documentoVistaPrevia: DocumentoResumen | null = null;
   fuenteVistaPreviaDocumento = '';
+  htmlVistaPreviaDocumento: SafeHtml | null = null;
+  cargandoVistaPreviaDocumento = false;
   private fuenteVistaPreviaDocumentoEsBlob = false;
 
   // Navegación de tabs
@@ -133,6 +139,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
   private readonly costosStoragePrefix = 'ayni:registro-solicitudes:costos-habilitados:';
   costosHabilitados = false;
+  private snapshotInfoBase = '';
+  private snapshotCostosBase = '';
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -534,6 +542,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       ubicacion: this.proyecto.ubicacion || '',
       descripcion: this.proyecto.descripcion
     };
+
+    this.snapshotInfoBase = this.crearSnapshotInformacionActual();
   }
 
   private normalizarTipoOrdenCompra(tipo?: string): string {
@@ -1038,6 +1048,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       next: (ordenesPersistidas) => {
         this.proyectoInfoForm.ordenesCompra = ordenesPersistidas;
         this.proyecto!.ordenesCompra = [...ordenesPersistidas];
+        this.snapshotInfoBase = this.crearSnapshotInformacionActual();
         this.marcarActualizacionProyecto();
         this.infoActualizada.emit({
           costo: this.proyecto!.costo,
@@ -1131,44 +1142,58 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   get totalAdjuntosResumen(): number {
-    return this.flujoNodos.reduce((acc, nodo) => acc + (nodo.adjuntos?.length || 0), 0);
+    return this.documentosActividadResumen.length;
   }
 
   get documentosActividadResumen(): DocumentoResumen[] {
     const docs: DocumentoResumen[] = [];
+
     for (const nodo of this.flujoNodos) {
       for (const adjunto of nodo.adjuntos || []) {
-        docs.push({ actividad: nodo.nombre, nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto });
+        docs.push({
+          actividad: nodo.nombre,
+          origen: 'Actividad',
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          adjunto
+        });
       }
     }
+
+    for (const comentario of this.proyectoInfoForm.comentariosAdicionalesActividad || []) {
+      const actividad = this.flujoNodos.find((nodo) => nodo.id === comentario.actividadId)?.nombre || `Actividad ${comentario.actividadId}`;
+      for (const adjunto of comentario.adjuntos || []) {
+        docs.push({
+          actividad,
+          origen: 'Comentario',
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          adjunto
+        });
+      }
+    }
+
     return docs;
   }
 
   puedeDescargarDocumento(doc: DocumentoResumen): boolean {
-    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl;
+    const fuenteAlterna = (doc?.adjunto as any)?.url;
+    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl || !!fuenteAlterna;
   }
 
-  descargarDocumento(doc: DocumentoResumen): void {
-    const { adjunto } = doc;
-    if (adjunto.archivo) {
+  async descargarDocumento(doc: DocumentoResumen): Promise<void> {
+    const fuente = await this.resolverFuenteAdjunto(doc.adjunto);
+    if (fuente) {
       const enlace = document.createElement('a');
-      const url = window.URL.createObjectURL(adjunto.archivo);
-      enlace.href = url;
-      enlace.download = adjunto.nombre || 'documento';
+      enlace.href = fuente.url;
+      enlace.download = doc.adjunto.nombre || 'documento';
       document.body.appendChild(enlace);
       enlace.click();
       document.body.removeChild(enlace);
-      window.URL.revokeObjectURL(url);
-      return;
-    }
 
-    if (adjunto.dataUrl) {
-      const enlace = document.createElement('a');
-      enlace.href = adjunto.dataUrl;
-      enlace.download = adjunto.nombre || 'documento';
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
+      if (fuente.revokeObjectUrl) {
+        window.URL.revokeObjectURL(fuente.url);
+      }
       return;
     }
 
@@ -1195,6 +1220,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   esVistaPreviaSoportadaDocumento(doc: DocumentoResumen): boolean {
     if (!this.puedeDescargarDocumento(doc)) return false;
 
+    if (this.esDocumentoOffice(doc)) return true;
+
     const mime = (doc.tipo || '').toLowerCase();
     if (mime.startsWith('image/') || mime === 'application/pdf') return true;
 
@@ -1209,17 +1236,80 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return (doc.nombre || '').toLowerCase().endsWith('.pdf');
   }
 
-  abrirVistaPreviaDocumento(doc: DocumentoResumen): void {
-    if (!this.esVistaPreviaSoportadaDocumento(doc)) return;
+  esImagenDocumento(doc: DocumentoResumen | null): boolean {
+    if (!doc) return false;
+    const mime = (doc.tipo || '').toLowerCase();
+    if (mime.startsWith('image/')) return true;
+    const nombre = (doc.nombre || '').toLowerCase();
+    return nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+  }
+
+  esDocumentoOffice(doc: DocumentoResumen | null): boolean {
+    if (!doc) return false;
+    return this.esDocumentoWord(doc) || this.esDocumentoExcel(doc);
+  }
+
+  private esDocumentoWord(doc: DocumentoResumen | null): boolean {
+    if (!doc) return false;
+    const mime = (doc.tipo || '').toLowerCase();
+    if (mime.includes('wordprocessingml') || mime.includes('msword')) return true;
+    const nombre = (doc.nombre || '').toLowerCase();
+    return nombre.endsWith('.docx') || nombre.endsWith('.doc');
+  }
+
+  private esDocumentoExcel(doc: DocumentoResumen | null): boolean {
+    if (!doc) return false;
+    const mime = (doc.tipo || '').toLowerCase();
+    if (mime.includes('spreadsheetml') || mime.includes('ms-excel')) return true;
+    const nombre = (doc.nombre || '').toLowerCase();
+    return nombre.endsWith('.xlsx') || nombre.endsWith('.xls');
+  }
+
+  async abrirVistaPreviaDocumento(doc: DocumentoResumen): Promise<void> {
+    if (!this.puedeDescargarDocumento(doc)) return;
 
     this.liberarFuenteVistaPreviaDocumento();
+    this.htmlVistaPreviaDocumento = null;
+    this.cargandoVistaPreviaDocumento = false;
 
-    if (doc.adjunto.dataUrl) {
-      this.fuenteVistaPreviaDocumento = doc.adjunto.dataUrl;
+    if (this.esDocumentoOffice(doc)) {
+      this.documentoVistaPrevia = doc;
+      this.mostrarVistaPreviaDocumento = true;
+      this.cargandoVistaPreviaDocumento = true;
+
+      try {
+        const blob = await this.resolverBlobAdjunto(doc.adjunto);
+        if (!blob) {
+          this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.'));
+          return;
+        }
+
+        const html = this.esDocumentoExcel(doc)
+          ? await this.generarVistaPreviaExcel(blob)
+          : await this.generarVistaPreviaWord(blob, doc.nombre);
+
+        this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(html);
+      } catch (error) {
+        console.error('Error generando vista previa Office:', error);
+        this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.'));
+      } finally {
+        this.cargandoVistaPreviaDocumento = false;
+      }
+      return;
+    }
+
+    if (!this.esVistaPreviaSoportadaDocumento(doc)) {
+      this.fuenteVistaPreviaDocumento = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" fill="#374151" font-size="26" font-family="Arial">Vista previa no disponible para este tipo de archivo</text><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#6b7280" font-size="17" font-family="Arial">Usa el botón descargar para abrirlo con su aplicación</text></svg>`);
       this.fuenteVistaPreviaDocumentoEsBlob = false;
-    } else if (doc.adjunto.archivo) {
-      this.fuenteVistaPreviaDocumento = URL.createObjectURL(doc.adjunto.archivo);
-      this.fuenteVistaPreviaDocumentoEsBlob = true;
+      this.documentoVistaPrevia = doc;
+      this.mostrarVistaPreviaDocumento = true;
+      return;
+    }
+
+    const fuente = await this.resolverFuenteAdjunto(doc.adjunto);
+    if (fuente) {
+      this.fuenteVistaPreviaDocumento = fuente.url;
+      this.fuenteVistaPreviaDocumentoEsBlob = fuente.revokeObjectUrl;
     } else {
       if (this.esPdfDocumento(doc)) {
         this.fuenteVistaPreviaDocumento = 'data:text/html;charset=utf-8,' + encodeURIComponent(`
@@ -1243,6 +1333,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   cerrarVistaPreviaDocumento(): void {
     this.liberarFuenteVistaPreviaDocumento();
     this.fuenteVistaPreviaDocumento = '';
+    this.htmlVistaPreviaDocumento = null;
+    this.cargandoVistaPreviaDocumento = false;
     this.fuenteVistaPreviaDocumentoEsBlob = false;
     this.documentoVistaPrevia = null;
     this.mostrarVistaPreviaDocumento = false;
@@ -1256,36 +1348,33 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento);
   }
 
-  descargarTodosDocumentosResumen(): void {
+  obtenerHtmlVistaPreviaDocumento(): SafeHtml {
+    return this.htmlVistaPreviaDocumento || this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('Sin contenido para vista previa.'));
+  }
+
+  async descargarTodosDocumentosResumen(): Promise<void> {
     if (typeof window === 'undefined') return;
 
     const sinContenido: string[] = [];
     let descargados = 0;
 
-    for (const nodo of this.flujoNodos) {
-      for (const adjunto of nodo.adjuntos || []) {
-        const posibleArchivo = (adjunto as any).archivo;
-        if (posibleArchivo instanceof Blob) {
-          const enlace = document.createElement('a');
-          const url = window.URL.createObjectURL(posibleArchivo);
-          enlace.href = url;
-          enlace.download = adjunto.nombre || 'documento';
-          document.body.appendChild(enlace);
-          enlace.click();
-          document.body.removeChild(enlace);
-          window.URL.revokeObjectURL(url);
-          descargados += 1;
-        } else if (adjunto.dataUrl) {
-          const enlace = document.createElement('a');
-          enlace.href = adjunto.dataUrl;
-          enlace.download = adjunto.nombre || 'documento';
-          document.body.appendChild(enlace);
-          enlace.click();
-          document.body.removeChild(enlace);
-          descargados += 1;
-        } else {
-          sinContenido.push(`${adjunto.nombre || 'documento'} | Actividad: ${nodo.nombre}`);
+    for (const doc of this.documentosActividadResumen) {
+      const { adjunto } = doc;
+      const fuente = await this.resolverFuenteAdjunto(adjunto);
+      if (fuente) {
+        const enlace = document.createElement('a');
+        enlace.href = fuente.url;
+        enlace.download = adjunto.nombre || 'documento';
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+
+        if (fuente.revokeObjectUrl) {
+          window.URL.revokeObjectURL(fuente.url);
         }
+        descargados += 1;
+      } else {
+        sinContenido.push(`${adjunto.nombre || 'documento'} | ${doc.origen} | Actividad: ${doc.actividad}`);
       }
     }
 
@@ -1352,12 +1441,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
         this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || [], categoriasPersistidas || []);
         this.inicializarSeccionCostos();
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
       },
       error: () => {
         this.materiales = [];
         this.manoObra = [];
         this.tablasCostosExtras = [];
         this.inicializarSeccionCostos();
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
       }
     });
   }
@@ -1589,11 +1680,93 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
         return operaciones.length ? forkJoin(operaciones) : of([]);
       }),
-      map(() => null),
+      map(() => {
+        this.snapshotCostosBase = this.crearSnapshotCostosActual();
+        return null;
+      }),
       finalize(() => {
         this.sincronizandoCostos = false;
       })
     );
+  }
+
+  get hayCambiosInformacion(): boolean {
+    return this.crearSnapshotInformacionActual() !== this.snapshotInfoBase;
+  }
+
+  get hayCambiosCostos(): boolean {
+    return this.crearSnapshotCostosActual() !== this.snapshotCostosBase;
+  }
+
+  private crearSnapshotInformacionActual(): string {
+    const ordenes = (this.proyectoInfoForm.ordenesCompra || [])
+      .filter((o) => (o.numero || '').trim())
+      .map((o) => ({
+        id: Number(o.id || 0),
+        numero: (o.numero || '').trim(),
+        fecha: o.fecha || '',
+        tipo: this.normalizarTipoOrdenCompra(o.tipo),
+        numeroLicitacion: (o.numeroLicitacion || '').trim(),
+        numeroSolicitud: (o.numeroSolicitud || '').trim(),
+        total: Number(o.total || 0)
+      }));
+
+    const payload = {
+      nombreProyecto: (this.proyectoInfoForm.nombreProyecto || '').trim(),
+      cliente: (this.proyectoInfoForm.cliente || '').trim(),
+      representante: (this.proyectoInfoForm.representante || '').trim(),
+      areas: [...(this.proyectoInfoForm.areas || [])].map((a) => (a || '').trim()).sort(),
+      ordenesCompra: ordenes,
+      costo: Number(this.proyectoInfoForm.costo || 0),
+      procesoId: Number(this.proyectoInfoForm.procesoId || 0),
+      responsableId: Number(this.proyectoInfoForm.responsableId || 0),
+      fechaInicio: this.proyectoInfoForm.fechaInicio || '',
+      ubicacion: (this.proyectoInfoForm.ubicacion || '').trim(),
+      descripcion: (this.proyectoInfoForm.descripcion || '').trim()
+    };
+
+    return JSON.stringify(payload);
+  }
+
+  private crearSnapshotCostosActual(): string {
+    const materiales = (this.materiales || []).map((item) => ({
+      id: Number(item.id || 0),
+      fecha: item.fecha || '',
+      nroComprobante: (item.nroComprobante || '').trim(),
+      producto: (item.producto || '').trim(),
+      cantidad: Number(item.cantidad || 0),
+      costoUnitario: Number(item.costoUnitario || 0),
+      costoTotal: Number(item.costoTotal || 0),
+      encargado: (item.encargado || '').trim(),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    }));
+
+    const manoObra = (this.manoObra || []).map((item) => ({
+      id: Number(item.id || 0),
+      trabajador: (item.trabajador || '').trim(),
+      cargo: (item.cargo || '').trim(),
+      diasTrabajando: Number(item.diasTrabajando || 0),
+      costoPorDia: Number(item.costoPorDia || 0),
+      costoTotal: Number(item.costoTotal || 0),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
+    }));
+
+    const extras = (this.tablasCostosExtras || []).map((tabla) => ({
+      id: Number(tabla.id || 0),
+      nombre: (tabla.nombre || '').trim(),
+      items: (tabla.items || []).map((item) => ({
+        id: Number(item.id || 0),
+        fecha: item.fecha || '',
+        descripcion: (item.descripcion || '').trim(),
+        cantidad: Number(item.cantidad || 0),
+        costoUnitario: Number(item.costoUnitario || 0),
+        costoTotal: Number(item.costoTotal || 0),
+        encargado: (item.encargado || '').trim(),
+        dependenciaActividadId: item.dependenciaActividadId ?? null
+      }))
+    }));
+
+    return JSON.stringify({ materiales, manoObra, extras });
   }
 
   private inicializarSeccionCostos(): void {
@@ -1617,6 +1790,140 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (this.fuenteVistaPreviaDocumento && this.fuenteVistaPreviaDocumentoEsBlob) {
       URL.revokeObjectURL(this.fuenteVistaPreviaDocumento);
     }
+  }
+
+  private async resolverFuenteAdjunto(adjunto: FlujoAdjunto): Promise<{ url: string; revokeObjectUrl: boolean } | null> {
+    if (adjunto.archivo instanceof Blob) {
+      return {
+        url: window.URL.createObjectURL(adjunto.archivo),
+        revokeObjectUrl: true
+      };
+    }
+
+    const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
+    if (!fuente) return null;
+
+    if (this.esDataUrl(fuente) || fuente.startsWith('blob:')) {
+      return { url: fuente, revokeObjectUrl: false };
+    }
+
+    try {
+      const blob = await firstValueFrom(this.httpClient.get(fuente, { responseType: 'blob' }));
+      return {
+        url: window.URL.createObjectURL(blob),
+        revokeObjectUrl: true
+      };
+    } catch (error) {
+      console.error('No se pudo resolver adjunto remoto para vista/descarga:', error);
+      if (/^https?:\/\//i.test(fuente) || fuente.startsWith('/')) {
+        return { url: fuente, revokeObjectUrl: false };
+      }
+      return null;
+    }
+  }
+
+  private async resolverBlobAdjunto(adjunto: FlujoAdjunto): Promise<Blob | null> {
+    if (adjunto.archivo instanceof Blob) {
+      return adjunto.archivo;
+    }
+
+    const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
+    if (!fuente) return null;
+
+    if (this.esDataUrl(fuente)) {
+      return this.dataUrlABlob(fuente);
+    }
+
+    try {
+      return await firstValueFrom(this.httpClient.get(fuente, { responseType: 'blob' }));
+    } catch (error) {
+      console.error('No se pudo descargar el adjunto como blob:', error);
+      return null;
+    }
+  }
+
+  private dataUrlABlob(dataUrl: string): Blob | null {
+    const partes = dataUrl.split(',');
+    if (partes.length !== 2) return null;
+
+    const encabezado = partes[0];
+    const base64 = partes[1];
+    const mimeMatch = encabezado.match(/data:([^;]+);base64/);
+    const mime = mimeMatch?.[1] || 'application/octet-stream';
+
+    try {
+      const binario = atob(base64);
+      const bytes = new Uint8Array(binario.length);
+      for (let i = 0; i < binario.length; i++) {
+        bytes[i] = binario.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mime });
+    } catch {
+      return null;
+    }
+  }
+
+  private async generarVistaPreviaExcel(blob: Blob): Promise<string> {
+    const XLSX: any = await import('xlsx');
+    const arrayBuffer = await blob.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const primeraHoja = workbook.SheetNames?.[0];
+
+    if (!primeraHoja) {
+      return this.generarMensajePreviewHtml('El archivo Excel no contiene hojas para mostrar.');
+    }
+
+    const hoja = workbook.Sheets[primeraHoja];
+    const tablaHtml = XLSX.utils.sheet_to_html(hoja, { editable: false });
+
+    return `
+      <div style="padding: 12px; font-family: Segoe UI, Arial, sans-serif; color: #111827;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4b5563;"><strong>Hoja:</strong> ${primeraHoja}</p>
+        <div style="overflow:auto; max-height:68vh; border:1px solid #e5e7eb; border-radius:8px; background:#fff; padding:8px;">
+          ${tablaHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  private async generarVistaPreviaWord(blob: Blob, nombreArchivo?: string): Promise<string> {
+    const nombre = (nombreArchivo || '').toLowerCase();
+    if (nombre.endsWith('.doc') && !nombre.endsWith('.docx')) {
+      return this.generarMensajePreviewHtml('La vista previa de .doc no esta soportada. Usa .docx para vista previa o descarga el archivo.');
+    }
+
+    let mammoth: any;
+    try {
+      mammoth = await import('mammoth/mammoth.browser');
+    } catch {
+      mammoth = await import('mammoth');
+    }
+
+    const arrayBuffer = await blob.arrayBuffer();
+    const resultado = await mammoth.convertToHtml({ arrayBuffer });
+    const contenido = (resultado?.value || '').trim();
+
+    if (!contenido) {
+      return this.generarMensajePreviewHtml('El documento Word no contiene texto renderizable para vista previa.');
+    }
+
+    return `
+      <div style="padding: 16px; max-height: 72vh; overflow:auto; font-family: Segoe UI, Arial, sans-serif; color:#111827; background:#fff;">
+        ${contenido}
+      </div>
+    `;
+  }
+
+  private generarMensajePreviewHtml(mensaje: string): string {
+    return `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:52vh;padding:24px;background:#f9fafb;color:#374151;font-family:Segoe UI,Arial,sans-serif;">
+        <p style="text-align:center;max-width:760px;font-size:14px;line-height:1.5;margin:0;">${mensaje}</p>
+      </div>
+    `;
+  }
+
+  private esDataUrl(value: string): boolean {
+    return value.startsWith('data:');
   }
 
   private marcarActualizacionProyecto(): void {

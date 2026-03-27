@@ -68,6 +68,122 @@
             {{ getEstadoActividad(nodo) }}
           </span>
         </div>
+
+        <div *ngIf="nodo.tipo !== 'inicio'" class="mt-2 pt-2 border-t border-gray-200/80 dark:border-gray-700/80" (click)="$event.stopPropagation()">
+          <div class="relative ml-1 pl-5">
+            <div class="absolute left-1.5 top-1.5 bottom-2 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+            <div class="relative mb-1.5 flex items-center justify-between gap-2">
+              <span class="absolute -left-3 top-2 h-px w-3 bg-gray-300 dark:bg-gray-600"></span>
+              <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">Subrama de comentarios</p>
+              <ng-container *ngIf="!actividadModalAbierta; else avisoModalActividadAbiertaTimeline">
+                <button
+                  type="button"
+                  (click)="agregarComentarioActividad(nodo); $event.stopPropagation()"
+                  [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
+                  class="px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Agregar
+                </button>
+              </ng-container>
+              <ng-template #avisoModalActividadAbiertaTimeline>
+                <span class="text-[10px] text-blue-600 dark:text-blue-300">Cierra modal para comentar</span>
+              </ng-template>
+            </div>
+
+            <div *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividadTimeline" class="space-y-2">
+              <article *ngFor="let comentario of getComentariosActividad(nodo.id); trackBy: trackByComentarioId"
+                class="relative rounded border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 p-2.5"
+                [ngClass]="{ 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600': !isComentarioEnEdicion(comentario.id) && !proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta }"
+                (click)="$event.stopPropagation(); !proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta && editarComentarioActividad(comentario.id)">
+                <span class="absolute -left-3 top-3 h-px w-3 bg-gray-300 dark:bg-gray-600"></span>
+                <span class="absolute -left-[13px] top-[10px] h-1.5 w-1.5 rounded-full bg-blue-400 dark:bg-blue-500"></span>
+
+                <ng-container *ngIf="isComentarioEnEdicion(comentario.id); else comentarioTimelineResumen">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-2" (click)="$event.stopPropagation()">
+                    <div>
+                      <label class="block mb-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">Responsable</label>
+                      <select
+                        [ngModel]="comentario.responsableId"
+                        (ngModelChange)="actualizarResponsableComentario(comentario.id, $event)"
+                        [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                        class="w-full px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60">
+                        <option [ngValue]="undefined">Sin asignar</option>
+                        <option *ngFor="let resp of responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block mb-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">Fecha</label>
+                      <p class="px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                        {{ comentario.fechaComentario || 'Pendiente de guardar' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-2" (click)="$event.stopPropagation()">
+                    <label class="block mb-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">Comentario</label>
+                    <textarea
+                      rows="3"
+                      [ngModel]="comentario.texto"
+                      (ngModelChange)="actualizarTextoComentario(comentario.id, $event)"
+                      (paste)="onPegarImagenComentario($event, comentario.id)"
+                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      class="w-full px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
+                  </div>
+
+                  <div class="mt-2 flex justify-end gap-1" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      (click)="guardarComentarioActividad(comentario.id); $event.stopPropagation()"
+                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
+                      class="px-2 py-1 text-[10px] rounded border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30">
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="cancelarEdicionComentario(comentario.id); $event.stopPropagation()"
+                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      class="px-2 py-1 text-[10px] rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      class="px-2 py-1 text-[10px] rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                      Eliminar
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #comentarioTimelineResumen>
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500 dark:text-gray-400 mb-1">
+                    <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
+                    <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ comentario.fechaComentario || '—' }}</span>
+                  </div>
+                  <p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+                  <p *ngIf="!proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta" class="mt-1 text-[10px] text-blue-600 dark:text-blue-400">Click para editar comentario</p>
+                  <div class="mt-2 flex justify-end" (click)="$event.stopPropagation()">
+                    <button
+                      type="button"
+                      (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      class="px-2 py-1 text-[10px] rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                      Eliminar
+                    </button>
+                  </div>
+                </ng-template>
+              </article>
+            </div>
+
+            <ng-template #sinComentariosActividadTimeline>
+              <div class="relative rounded border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-900/20 px-2 py-1.5">
+                <span class="absolute -left-3 top-1/2 -translate-y-1/2 h-px w-3 bg-gray-300 dark:bg-gray-600"></span>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 italic">Sin comentarios adicionales para esta actividad.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
       </article>
       <div *ngIf="totalActividadesFlujo === 0" class="text-center py-6 text-xs text-gray-500 dark:text-gray-400">
         No hay actividades en el flujo
@@ -394,10 +510,10 @@
 @if (mostrarVistaPreviaAdjunto) {
   <div
     class="fixed inset-0 z-[85] flex items-center justify-center p-4"
-    [ngClass]="esPdfVistaPreviaAdjunto() ? 'bg-black/70' : 'bg-transparent'"
+    [ngClass]="(esPdfVistaPreviaAdjunto() || esOfficeVistaPreviaAdjunto()) ? 'bg-black/70' : 'bg-transparent'"
     (click)="cerrarVistaPreviaAdjunto()">
     <div
-      [ngClass]="esPdfVistaPreviaAdjunto()
+      [ngClass]="(esPdfVistaPreviaAdjunto() || esOfficeVistaPreviaAdjunto())
         ? 'w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'
         : 'w-auto max-w-[92vw] max-h-[92vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'"
       (click)="$event.stopPropagation()">
@@ -409,7 +525,14 @@
           </svg>
         </button>
       </div>
-      @if (esPdfVistaPreviaAdjunto()) {
+      @if (cargandoVistaPreviaAdjunto) {
+        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
+          <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300"></div>
+          <p class="text-sm">Generando vista previa...</p>
+        </div>
+      } @else if (esOfficeVistaPreviaAdjunto()) {
+        <div class="h-[78vh] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPreviaAdjunto()"></div>
+      } @else if (esPdfVistaPreviaAdjunto()) {
         <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
           <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaAdjuntoPdf()"></iframe>
         </div>
