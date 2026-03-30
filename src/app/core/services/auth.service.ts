@@ -40,7 +40,7 @@ interface AuthApiResponse {
 })
 export class AuthService {
   private readonly storageKey = 'currentUser';
-  private readonly adminUsername = 'admin';
+  private readonly adminUsername = environment.adminUsername.trim().toLowerCase();
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private apiUrl = `${environment.apiUrl}/auth`;

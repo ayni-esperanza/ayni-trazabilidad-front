@@ -3,9 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "node tools/generate-environment.cjs",
     "start": "ng serve",
+    "prebuild": "node tools/generate-environment.cjs",
     "build": "ng build",
+    "prewatch": "node tools/generate-environment.cjs",
     "watch": "ng build --watch --configuration development",
+    "pretest": "node tools/generate-environment.cjs",
     "test": "ng test",
     "serve:ssr:trazabilidad-front": "node dist/trazabilidad-front/server/server.mjs",
     "vectorize": "node tools/vectorize.js"
@@ -65,6 +69,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.6",
+    "dotenv": "^16.4.7",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.7.2"
   }
