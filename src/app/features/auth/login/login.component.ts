@@ -24,9 +24,8 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Si ya está autenticado, redirigir al tablero
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/tablero-control']);
+      this.router.navigate([this.authService.getLandingRoute()]);
     }
 
     this.loginForm = this.formBuilder.group({
@@ -61,7 +60,7 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(username, password, rememberMe).subscribe({
       next: () => {
-        this.router.navigate(['/tablero-control']);
+        this.router.navigate([this.authService.getLandingRoute()]);
       },
       error: (err) => {
         this.error = err.message || 'Usuario o contraseña incorrectos';

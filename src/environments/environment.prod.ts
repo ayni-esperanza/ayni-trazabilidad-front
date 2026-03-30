@@ -1,4 +1,6 @@
+import { resolveApiUrl } from './runtime-env';
+
 export const environment = {
   production: true,
-  apiUrl: 'https://tu-api-produccion.com/api'
+  apiUrl: resolveApiUrl('https://api.tu-dominio.com/api/v1'),
 };

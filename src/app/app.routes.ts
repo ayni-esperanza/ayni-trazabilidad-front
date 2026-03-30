@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
+import { submoduleLockGuard } from './core/guards/submodule-lock.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/tablero-control',
+    redirectTo: '/registro-solicitudes',
     pathMatch: 'full',
   },
   {
@@ -24,7 +25,8 @@ export const routes: Routes = [
         (m) => m.TableroControlComponent,
       ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard],
+    canActivate: [authGuard, submoduleLockGuard],
+    data: { moduleLabel: 'Tablero de control' },
   },
   {
     path: 'registro-solicitudes',
@@ -42,7 +44,8 @@ export const routes: Routes = [
         (m) => m.InformesEvidenciasComponent,
       ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard],
+    canActivate: [authGuard, submoduleLockGuard],
+    data: { moduleLabel: 'Informes y evidencias' },
   },
   {
     path: 'estadisticas-indicadores',
@@ -51,7 +54,8 @@ export const routes: Routes = [
         (m) => m.EstadisticasIndicadoresComponent,
       ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard],
+    canActivate: [authGuard, submoduleLockGuard],
+    data: { moduleLabel: 'Estadisticas e indicadores' },
   },
   {
     path: 'alertas',
@@ -60,7 +64,8 @@ export const routes: Routes = [
         (m) => m.AlertasComponent,
       ),
     title: 'Alertas - AYNI Trazabilidad',
-    canActivate: [authGuard],
+    canActivate: [authGuard, submoduleLockGuard],
+    data: { moduleLabel: 'Alertas' },
   },
   {
     path: 'gestion-usuarios',
@@ -69,6 +74,16 @@ export const routes: Routes = [
         (m) => m.GestionUsuariosComponent,
       ),
     title: 'Módulo de Trazabilidad',
+    canActivate: [authGuard, submoduleLockGuard],
+    data: { moduleLabel: 'Gestion de usuarios' },
+  },
+  {
+    path: 'submodulo-en-construccion',
+    loadComponent: () =>
+      import('./features/submodulo-construccion/submodulo-construccion.component').then(
+        (m) => m.SubmoduloConstruccionComponent,
+      ),
+    title: 'Submodulo en construccion - AYNI Trazabilidad',
     canActivate: [authGuard],
   },
   {

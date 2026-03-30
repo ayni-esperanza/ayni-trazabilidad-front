@@ -7,8 +7,7 @@ export const noAuthGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (authService.isAuthenticated()) {
-    // Ya autenticado, redirigir al tablero
-    router.navigate(['/tablero-control']);
+    router.navigate([authService.getLandingRoute()]);
     return false;
   }
 

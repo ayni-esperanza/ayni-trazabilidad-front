@@ -40,9 +40,10 @@ interface AuthApiResponse {
 })
 export class AuthService {
   private readonly storageKey = 'currentUser';
+  private readonly adminUsername = 'admin';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  private apiUrl = `${environment.apiUrl}/v1/auth`;
+  private apiUrl = `${environment.apiUrl}/auth`;
   private platformId = inject(PLATFORM_ID);
 
   constructor(
@@ -159,6 +160,20 @@ export class AuthService {
     return this.currentUserValue?.permissions?.includes(permission) || false;
   }
 
+  isAdminUser(): boolean {
+    const normalizedUsername = this.currentUserValue?.username?.trim().toLowerCase();
+    if (normalizedUsername === this.adminUsername) {
+      return true;
+    }
+
+    const tokenUsername = this.getTokenUsername();
+    return tokenUsername === this.adminUsername;
+  }
+
+  getLandingRoute(): string {
+    return this.isAdminUser() ? '/tablero-control' : '/registro-solicitudes';
+  }
+
   getUserFullName(): string {
     const user = this.currentUserValue;
     if (user) {
@@ -215,5 +230,31 @@ export class AuthService {
     }
 
     this.currentUserSubject.next(null);
+  }
+
+  private getTokenUsername(): string | null {
+    const token = this.currentUserValue?.token;
+    if (!token) {
+      return null;
+    }
+
+    const payload = token.split('.')[1];
+    if (!payload) {
+      return null;
+    }
+
+    try {
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+      if (!isPlatformBrowser(this.platformId) || typeof atob !== 'function') {
+        return null;
+      }
+
+      const decoded = atob(padded);
+      const parsed = JSON.parse(decoded) as { sub?: string };
+      return parsed.sub?.trim().toLowerCase() || null;
+    } catch {
+      return null;
+    }
   }
 }
