@@ -44,8 +44,15 @@ type FlujoAdjuntoApi = {
   nombre: string;
   tipo: string;
   tamano: number;
+  objectKey?: string;
   dataUrl?: string;
   url?: string;
+};
+
+type StorageUploadResponseApi = {
+  objectKey: string;
+  publicUrl?: string;
+  eTag?: string;
 };
 
 type FlujoNodoApi = {
@@ -374,7 +381,8 @@ export class RegistroSolicitudesService {
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
         tamano: adjunto.tamano,
-        dataUrl: adjunto.dataUrl
+        objectKey: adjunto.objectKey,
+        dataUrl: adjunto.objectKey ? undefined : adjunto.dataUrl
       })),
       siguientesIds: nodo.siguientesIds || []
     }));
@@ -382,6 +390,21 @@ export class RegistroSolicitudesService {
     return this.http.put<FlujoNodoApi[]>(`/v1/proyectos/${proyectoId}/actividades`, payload).pipe(
       map((items) => this.mapFlujo({ nodos: items || [] }).nodos)
     );
+  }
+
+  subirAdjuntoActividad(file: File, proyectoId?: number, actividadId?: number, carpeta: string = 'evidencias'): Observable<StorageUploadResponseApi> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('carpeta', carpeta);
+
+    if (typeof proyectoId === 'number' && Number.isFinite(proyectoId) && proyectoId > 0) {
+      formData.append('proyectoId', String(proyectoId));
+    }
+    if (typeof actividadId === 'number' && Number.isFinite(actividadId) && actividadId > 0) {
+      formData.append('actividadId', String(actividadId));
+    }
+
+    return this.http.uploadFile<StorageUploadResponseApi>('/v1/storage/upload', formData);
   }
 
   obtenerOrdenesCompra(proyectoId: number): Observable<OrdenCompraApi[]> {
@@ -619,6 +642,7 @@ export class RegistroSolicitudesService {
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
         tamano: Number(adjunto.tamano || 0),
+        objectKey: adjunto.objectKey,
         dataUrl: adjunto.dataUrl || adjunto.url
       }))
     };
@@ -643,6 +667,7 @@ export class RegistroSolicitudesService {
           nombre: adjunto.nombre,
           tipo: adjunto.tipo,
           tamano: Number(adjunto.tamano || 0),
+          objectKey: adjunto.objectKey,
           dataUrl: adjunto.dataUrl || adjunto.url
         })),
         siguientesIds: nodo.siguientesIds || []

@@ -5,6 +5,7 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tab-proceso',
@@ -576,7 +577,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     // Compatibilidad temporal con plantillas cacheadas durante hot-reload.
   }
 
-  guardarComentarioActividad(comentarioId: number): void {
+  async guardarComentarioActividad(comentarioId: number): Promise<void> {
     if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
 
     const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
@@ -604,11 +605,14 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       return;
     }
 
-    const payload = this.mapComentarioPayload(comentarioActualizado);
+    const comentarioConAdjuntosSubidos = await this.subirAdjuntosPendientesComentario(comentarioActualizado);
+    if (!comentarioConAdjuntosSubidos) return;
+
+    const payload = this.mapComentarioPayload(comentarioConAdjuntosSubidos);
     if (!payload) return;
 
-    const request$ = comentarioActualizado.id > 0
-      ? this.registroSolicitudesService.actualizarComentarioActividad(this.proyecto.id, comentarioActualizado.id, payload)
+    const request$ = comentarioConAdjuntosSubidos.id > 0
+      ? this.registroSolicitudesService.actualizarComentarioActividad(this.proyecto.id, comentarioConAdjuntosSubidos.id, payload)
       : this.registroSolicitudesService.crearComentarioActividad(this.proyecto.id, payload);
 
     request$.subscribe({
@@ -811,8 +815,57 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
         tamano: Number(adjunto.tamano || 0),
-        dataUrl: adjunto.dataUrl
+        objectKey: adjunto.objectKey,
+        dataUrl: adjunto.objectKey ? undefined : adjunto.dataUrl
       }))
+    };
+  }
+
+  private async subirAdjuntosPendientesComentario(comentario: ComentarioAdicionalActividad): Promise<ComentarioAdicionalActividad | null> {
+    if (!this.proyecto?.id) {
+      return comentario;
+    }
+
+    const adjuntos = comentario.adjuntos || [];
+    if (!adjuntos.length) {
+      return comentario;
+    }
+
+    const resultado: FlujoAdjunto[] = [];
+    try {
+      for (const adjunto of adjuntos) {
+        if (!adjunto.archivo || adjunto.objectKey) {
+          resultado.push(adjunto);
+          continue;
+        }
+
+        const subida = await firstValueFrom(
+          this.registroSolicitudesService.subirAdjuntoActividad(
+            adjunto.archivo,
+            this.proyecto.id,
+            comentario.actividadId,
+            'evidencias'
+          )
+        );
+
+        resultado.push({
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+          objectKey: subida.objectKey,
+          dataUrl: subida.publicUrl || adjunto.dataUrl
+        });
+      }
+    } catch (error) {
+      console.error('Error subiendo adjunto de comentario:', error);
+      this.erroresAdjuntosComentario[comentario.id] = 'No se pudo subir uno o más adjuntos. Intenta nuevamente.';
+      return null;
+    }
+
+    delete this.erroresAdjuntosComentario[comentario.id];
+    return {
+      ...comentario,
+      adjuntos: resultado
     };
   }
 

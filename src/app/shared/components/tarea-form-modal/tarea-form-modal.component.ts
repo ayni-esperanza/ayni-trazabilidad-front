@@ -13,6 +13,7 @@ export interface ArchivoAdjuntoActividad {
   nombre: string;
   tipo: string;
   tamano: number;
+  objectKey?: string;
   archivo?: File;
   dataUrl?: string;
 }

@@ -629,7 +629,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = true;
   }
 
-  onGuardarActividad(actividad: Tarea): void {
+  async onGuardarActividad(actividad: Tarea): Promise<void> {
     if (!this.proyecto) return;
 
     const fechaActualizacion = new Date().toISOString();
@@ -642,6 +642,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     if (indexNodoExistente >= 0) {
       const nodoActual = this.flujoNodos[indexNodoExistente];
+      const adjuntosSubidos = await this.subirAdjuntosPendientesActividad(actividad.archivosAdjuntos, nodoActual.id);
+      if (!adjuntosSubidos) return;
       const nodoActualizado: FlujoNodo = {
         ...nodoActual,
         nombre: actividad.nombre,
@@ -653,7 +655,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         fechaInicio: this.toApiDateTime(actividad.fechaInicio) || this.toApiDateTime(nodoActual.fechaInicio) || fechaActualizacion,
         fechaFin: this.toApiDateOnly(actividad.fechaFin),
         descripcion: actividad.descripcion || '',
-        adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos)
+        adjuntos: this.mapearAdjuntosActividadANodo(adjuntosSubidos)
       };
 
       this.registroSolicitudesService.actualizarActividad(
@@ -670,6 +672,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       });
     } else {
       const posicionInicial = this.posicionInicialNuevaActividad || this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
+      const adjuntosSubidos = await this.subirAdjuntosPendientesActividad(actividad.archivosAdjuntos);
+      if (!adjuntosSubidos) return;
       const nuevoNodo: FlujoNodo = {
         id: this.obtenerSiguienteNodoId(),
         nombre: actividad.nombre,
@@ -683,7 +687,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         fechaInicio: this.toApiDateTime(actividad.fechaInicio) || fechaActualizacion,
         fechaFin: this.toApiDateOnly(actividad.fechaFin),
         descripcion: actividad.descripcion || '',
-        adjuntos: this.mapearAdjuntosActividadANodo(actividad.archivosAdjuntos),
+        adjuntos: this.mapearAdjuntosActividadANodo(adjuntosSubidos),
         siguientesIds: []
       };
 
@@ -778,7 +782,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     fechaFin?: string;
     descripcion?: string;
     nodoOrigenId?: number;
-    adjuntos: Array<{ nombre: string; tipo: string; tamano: number; dataUrl?: string }>;
+    adjuntos: Array<{ nombre: string; tipo: string; tamano: number; objectKey?: string; dataUrl?: string }>;
     siguientesIds: number[];
   } {
     return {
@@ -796,7 +800,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
         tamano: adjunto.tamano,
-        dataUrl: adjunto.dataUrl
+        objectKey: adjunto.objectKey,
+        dataUrl: adjunto.objectKey ? undefined : adjunto.dataUrl
       })),
       siguientesIds: nodo.siguientesIds || []
     };
@@ -1004,6 +1009,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nombre: a.nombre,
         tipo: a.tipo,
         tamano: a.tamano,
+        objectKey: a.objectKey,
         dataUrl: a.dataUrl,
         archivo: (a as any).archivo
       })),
@@ -1016,9 +1022,48 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombre: adjunto.nombre,
       tipo: adjunto.tipo,
       tamano: adjunto.tamano,
+      objectKey: adjunto.objectKey,
       dataUrl: adjunto.dataUrl,
       archivo: adjunto.archivo
     }));
+  }
+
+  private async subirAdjuntosPendientesActividad(adjuntos: Tarea['archivosAdjuntos'], actividadId?: number): Promise<Tarea['archivosAdjuntos'] | null> {
+    if (!this.proyecto?.id || !(adjuntos || []).length) {
+      return adjuntos || [];
+    }
+
+    const resultado: Tarea['archivosAdjuntos'] = [];
+    try {
+      for (const adjunto of adjuntos || []) {
+        if (!adjunto.archivo || adjunto.objectKey) {
+          resultado.push(adjunto);
+          continue;
+        }
+
+        const subida = await firstValueFrom(
+          this.registroSolicitudesService.subirAdjuntoActividad(
+            adjunto.archivo,
+            this.proyecto.id,
+            actividadId,
+            'evidencias'
+          )
+        );
+
+        resultado.push({
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+          objectKey: subida.objectKey,
+          dataUrl: subida.publicUrl || adjunto.dataUrl
+        });
+      }
+    } catch (error) {
+      console.error('Error subiendo adjuntos de actividad:', error);
+      return null;
+    }
+
+    return resultado;
   }
 
   private obtenerSiguienteNodoId(): number {
