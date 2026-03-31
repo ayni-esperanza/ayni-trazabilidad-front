@@ -97,7 +97,7 @@ app.get('**', (req, res, next) => {
       providers: [{ provide: APP_BASE_HREF, useValue: appBasePath }],
     })
     .then((html) => {
-      const htmlWithBase = html.replace('<base href="/">', `<base href="${appBasePath}">`);
+      const htmlWithBase = html.replace(/<base\s+href="[^"]*"\s*\/?>(?![\s\S]*<base\s+href)/i, `<base href="${appBasePath}">`);
       res.send(htmlWithBase);
     })
     .catch((err) => next(err));
