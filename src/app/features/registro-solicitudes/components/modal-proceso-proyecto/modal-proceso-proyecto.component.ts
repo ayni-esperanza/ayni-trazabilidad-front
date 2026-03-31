@@ -1055,7 +1055,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           tipo: adjunto.tipo,
           tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
           objectKey: subida.objectKey,
-          dataUrl: subida.publicUrl || adjunto.dataUrl
+          dataUrl: adjunto.dataUrl || subida.publicUrl
         });
       }
     } catch (error) {
