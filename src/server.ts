@@ -12,6 +12,18 @@ const indexHtml = join(serverDistFolder, 'index.server.html');
 const app = express();
 const commonEngine = new CommonEngine();
 
+function normalizeBasePath(value: string | undefined): string {
+  const raw = value?.trim();
+  if (!raw || raw === '/') {
+    return '/';
+  }
+
+  const withoutTrailing = raw.endsWith('/') ? raw.slice(0, -1) : raw;
+  return withoutTrailing.startsWith('/') ? `${withoutTrailing}/` : `/${withoutTrailing}/`;
+}
+
+const appBasePath = normalizeBasePath(process.env['APP_BASE_PATH']);
+
 function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
   const value = process.env[key]?.trim();
   if (!value) {
@@ -36,7 +48,7 @@ function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
 /**
  * Serve runtime env for browser hydration
  */
-app.get('/env.js', (_req, res) => {
+app.get(`${appBasePath}env.js`, (_req, res) => {
   const apiUrl = readRequiredEnv('API_URL');
   const adminUsername = readRequiredEnv('ADMIN_USERNAME').toLowerCase();
 
@@ -48,8 +60,8 @@ app.get('/env.js', (_req, res) => {
 /**
  * Serve static files from /browser
  */
-app.get(
-  '**',
+app.use(
+  appBasePath,
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: 'index.html'
@@ -59,8 +71,8 @@ app.get(
 /**
  * Handle all other requests by rendering the Angular application.
  */
-app.get('**', (req, res, next) => {
-  const { protocol, originalUrl, baseUrl, headers } = req;
+app.get(appBasePath === '/' ? '**' : `${appBasePath}**`, (req, res, next) => {
+  const { protocol, originalUrl, headers } = req;
 
   commonEngine
     .render({
@@ -68,9 +80,12 @@ app.get('**', (req, res, next) => {
       documentFilePath: indexHtml,
       url: `${protocol}://${headers.host}${originalUrl}`,
       publicPath: browserDistFolder,
-      providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+      providers: [{ provide: APP_BASE_HREF, useValue: appBasePath }],
     })
-    .then((html) => res.send(html))
+    .then((html) => {
+      const htmlWithBase = html.replace('<base href="/">', `<base href="${appBasePath}">`);
+      res.send(htmlWithBase);
+    })
     .catch((err) => next(err));
 });
 

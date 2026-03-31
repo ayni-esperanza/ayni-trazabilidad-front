@@ -14,7 +14,7 @@ pnpm start
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-`pnpm start` genera `public/env.js` desde `.env` para que el frontend lea `API_URL` y `ADMIN_USERNAME` en runtime.
+`pnpm start` genera `public/env.js` desde `.env` para runtime local.
 
 ## Docker
 
@@ -30,6 +30,7 @@ docker build -t ayni-front:local .
 docker run --rm -p 4000:4000 \
   -e API_URL=http://localhost:8080/api/v1 \
   -e ADMIN_USERNAME=admin \
+  -e APP_BASE_PATH=/ \
   ayni-front:local
 ```
 
@@ -37,8 +38,9 @@ docker run --rm -p 4000:4000 \
 
 - Usa el `Dockerfile` de este repo.
 - Internal port del servicio: `4000`.
-- Define en panel: `API_URL` y `ADMIN_USERNAME`.
-- El servidor SSR expone `/env.js` dinámico con esas variables.
+- Define en panel: `API_URL`, `ADMIN_USERNAME` y opcional `APP_BASE_PATH`.
+- El servidor SSR expone `${APP_BASE_PATH}env.js` dinámico con esas variables.
+- Si publicas en `linea.aynisac.com/trazabilidad`, usa `APP_BASE_PATH=/trazabilidad/`.
 
 ## Code scaffolding
 
