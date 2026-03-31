@@ -41,6 +41,7 @@ docker run --rm -p 4000:4000 \
 - Define en panel: `API_URL`, `ADMIN_USERNAME` y opcional `APP_BASE_PATH`.
 - El servidor SSR expone `${APP_BASE_PATH}env.js` dinámico con esas variables.
 - Si publicas en `linea.aynisac.com/trazabilidad`, usa `APP_BASE_PATH=/trazabilidad/`.
+- En dominio/path de Dokploy usa `Path=/trazabilidad`, `Internal Path=/` y `Strip Path` desactivado.
 
 ## Code scaffolding
 

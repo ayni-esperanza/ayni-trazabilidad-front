@@ -24,6 +24,27 @@ function normalizeBasePath(value: string | undefined): string {
 
 const appBasePath = normalizeBasePath(process.env['APP_BASE_PATH']);
 
+function normalizeRequestUrl(url: string): string {
+  if (!url || url === '/') {
+    return '/';
+  }
+
+  return url.startsWith('/') ? url : `/${url}`;
+}
+
+function buildRenderUrlPath(originalUrl: string): string {
+  const normalizedUrl = normalizeRequestUrl(originalUrl);
+  if (appBasePath === '/') {
+    return normalizedUrl;
+  }
+
+  if (normalizedUrl === appBasePath.slice(0, -1) || normalizedUrl.startsWith(appBasePath)) {
+    return normalizedUrl;
+  }
+
+  return `${appBasePath.slice(0, -1)}${normalizedUrl}`;
+}
+
 function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
   const value = process.env[key]?.trim();
   if (!value) {
@@ -97,12 +118,13 @@ if (appBasePath !== '/') {
  */
 app.get('**', (req, res, next) => {
   const { protocol, originalUrl, headers } = req;
+  const renderPath = buildRenderUrlPath(originalUrl);
 
   commonEngine
     .render({
       bootstrap,
       documentFilePath: indexHtml,
-      url: `${protocol}://${headers.host}${originalUrl}`,
+      url: `${protocol}://${headers.host}${renderPath}`,
       publicPath: browserDistFolder,
       providers: [{ provide: APP_BASE_HREF, useValue: appBasePath }],
     })
