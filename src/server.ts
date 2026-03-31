@@ -12,6 +12,15 @@ const indexHtml = join(serverDistFolder, 'index.server.html');
 const app = express();
 const commonEngine = new CommonEngine();
 
+function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
+  const value = process.env[key]?.trim();
+  if (!value) {
+    throw new Error(`[runtime-env] Missing required variable: ${key}`);
+  }
+
+  return value;
+}
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.
@@ -23,6 +32,18 @@ const commonEngine = new CommonEngine();
  * });
  * ```
  */
+
+/**
+ * Serve runtime env for browser hydration
+ */
+app.get('/env.js', (_req, res) => {
+  const apiUrl = readRequiredEnv('API_URL');
+  const adminUsername = readRequiredEnv('ADMIN_USERNAME').toLowerCase();
+
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.send(`window.__env = { API_URL: "${apiUrl}", ADMIN_USERNAME: "${adminUsername}" };`);
+});
 
 /**
  * Serve static files from /browser

@@ -1,6 +1,6 @@
-import { generatedEnvironment } from './environment.generated';
+import { runtimeEnvironment } from './runtime-env';
 
 export const environment = {
   production: false,
-  ...generatedEnvironment,
+  ...runtimeEnvironment,
 };

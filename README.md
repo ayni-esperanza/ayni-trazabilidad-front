@@ -7,10 +7,38 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 To start a local development server, run:
 
 ```bash
-ng serve
+cp .env.example .env
+pnpm install
+pnpm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+`pnpm start` genera `public/env.js` desde `.env` para que el frontend lea `API_URL` y `ADMIN_USERNAME` en runtime.
+
+## Docker
+
+### Build local image
+
+```bash
+docker build -t ayni-front:local .
+```
+
+### Run local container
+
+```bash
+docker run --rm -p 4000:4000 \
+  -e API_URL=http://localhost:8080/api/v1 \
+  -e ADMIN_USERNAME=admin \
+  ayni-front:local
+```
+
+### Dokploy
+
+- Usa el `Dockerfile` de este repo.
+- Internal port del servicio: `4000`.
+- Define en panel: `API_URL` y `ADMIN_USERNAME`.
+- El servidor SSR expone `/env.js` dinámico con esas variables.
 
 ## Code scaffolding
 
