@@ -43,7 +43,7 @@ export class AuthService {
   private readonly adminUsername = environment.adminUsername.trim().toLowerCase();
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  private apiUrl = `${environment.apiUrl}/auth`;
+  private apiUrl = `${environment.apiUrl}/v1/auth`;
   private platformId = inject(PLATFORM_ID);
 
   constructor(
