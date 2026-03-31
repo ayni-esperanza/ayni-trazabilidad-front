@@ -1,7 +1,7 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine, isMainModule } from '@angular/ssr/node';
 import express from 'express';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bootstrap from './main.server';
 
@@ -70,10 +70,18 @@ const envHandler = (_req: express.Request, res: express.Response) => {
   res.send(`window.__env = { API_URL: "${apiUrl}", ADMIN_USERNAME: "${adminUsername}" };`);
 };
 
-app.get('/env.js', envHandler);
-if (appBasePath !== '/') {
-  app.get(`${appBasePath}env.js`, envHandler);
-}
+app.get(/\/env\.js$/, envHandler);
+
+app.get(/\.(js|css|png|ico|svg|woff2?|ttf|map)$/, (req, res, next) => {
+  const fileName = basename(req.path);
+  const resolvedFile = join(browserDistFolder, fileName);
+
+  res.sendFile(resolvedFile, (error) => {
+    if (error) {
+      next();
+    }
+  });
+});
 
 /**
  * Serve static files from /browser
@@ -81,7 +89,7 @@ if (appBasePath !== '/') {
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
-    index: 'index.html'
+    index: false
   }),
 );
 
@@ -90,7 +98,7 @@ if (appBasePath !== '/') {
     appBasePath,
     express.static(browserDistFolder, {
       maxAge: '1y',
-      index: 'index.html'
+      index: false
     }),
   );
 }
