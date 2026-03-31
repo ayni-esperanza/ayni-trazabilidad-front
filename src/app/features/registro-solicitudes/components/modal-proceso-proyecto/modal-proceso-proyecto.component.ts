@@ -1046,7 +1046,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             adjunto.archivo,
             this.proyecto.id,
             actividadId,
-            'evidencias'
+            'actividad'
           )
         );
 

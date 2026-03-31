@@ -844,7 +844,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
             adjunto.archivo,
             this.proyecto.id,
             comentario.actividadId,
-            'evidencias'
+            'comentario'
           )
         );
 
