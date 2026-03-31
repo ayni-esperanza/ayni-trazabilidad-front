@@ -24,19 +24,6 @@ function normalizeBasePath(value: string | undefined): string {
 
 const appBasePath = normalizeBasePath(process.env['APP_BASE_PATH']);
 
-if (appBasePath !== '/') {
-  app.use((req, res, next) => {
-    if (req.path.startsWith(appBasePath) && req.path.length > appBasePath.length && req.path.endsWith('/')) {
-      const queryIndex = req.url.indexOf('?');
-      const query = queryIndex >= 0 ? req.url.slice(queryIndex) : '';
-      const normalizedPath = req.path.replace(/\/+$/, '');
-      return res.redirect(301, `${normalizedPath}${query}`);
-    }
-
-    return next();
-  });
-}
-
 function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
   const value = process.env[key]?.trim();
   if (!value) {
@@ -89,7 +76,8 @@ app.get(/\.(js|css|png|ico|svg|woff2?|ttf|map)$/, (req, res, next) => {
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
-    index: false
+    index: false,
+    redirect: false
   }),
 );
 
@@ -98,7 +86,8 @@ if (appBasePath !== '/') {
     appBasePath,
     express.static(browserDistFolder, {
       maxAge: '1y',
-      index: false
+      index: false,
+      redirect: false
     }),
   );
 }
