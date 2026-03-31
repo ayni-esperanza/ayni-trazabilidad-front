@@ -48,30 +48,44 @@ function readRequiredEnv(key: 'API_URL' | 'ADMIN_USERNAME'): string {
 /**
  * Serve runtime env for browser hydration
  */
-app.get(`${appBasePath}env.js`, (_req, res) => {
+const envHandler = (_req: express.Request, res: express.Response) => {
   const apiUrl = readRequiredEnv('API_URL');
   const adminUsername = readRequiredEnv('ADMIN_USERNAME').toLowerCase();
 
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.send(`window.__env = { API_URL: "${apiUrl}", ADMIN_USERNAME: "${adminUsername}" };`);
-});
+};
+
+app.get('/env.js', envHandler);
+if (appBasePath !== '/') {
+  app.get(`${appBasePath}env.js`, envHandler);
+}
 
 /**
  * Serve static files from /browser
  */
 app.use(
-  appBasePath,
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: 'index.html'
   }),
 );
 
+if (appBasePath !== '/') {
+  app.use(
+    appBasePath,
+    express.static(browserDistFolder, {
+      maxAge: '1y',
+      index: 'index.html'
+    }),
+  );
+}
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
-app.get(appBasePath === '/' ? '**' : `${appBasePath}**`, (req, res, next) => {
+app.get('**', (req, res, next) => {
   const { protocol, originalUrl, headers } = req;
 
   commonEngine
