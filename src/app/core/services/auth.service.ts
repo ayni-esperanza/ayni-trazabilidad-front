@@ -43,7 +43,7 @@ export class AuthService {
   private readonly adminUsername = environment.adminUsername.trim().toLowerCase();
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  private apiUrl = `${environment.apiUrl}/v1/auth`;
+  private apiUrl = this.buildAuthUrl(environment.apiUrl);
   private platformId = inject(PLATFORM_ID);
 
   constructor(
@@ -256,5 +256,13 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  private buildAuthUrl(baseUrlRaw: string): string {
+    const baseUrl = (baseUrlRaw || '').replace(/\/+$/, '');
+    if (baseUrl.endsWith('/api/v1') || baseUrl.endsWith('/v1')) {
+      return `${baseUrl}/auth`;
+    }
+    return `${baseUrl}/v1/auth`;
   }
 }

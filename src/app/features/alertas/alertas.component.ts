@@ -38,7 +38,14 @@ export class AlertasComponent implements OnInit, OnDestroy {
   }
 
   cargarAlertas(): void {
-    this.alertas = this.alertasService.obtenerAlertas();
+    this.alertasService.refrescarAlertas().subscribe({
+      next: (items) => {
+        this.alertas = items;
+      },
+      error: () => {
+        this.alertas = this.alertasService.obtenerAlertas();
+      }
+    });
   }
 
   getClaseAlerta(alerta: AlertaActividadGlobal): string {

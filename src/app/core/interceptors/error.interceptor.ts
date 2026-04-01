@@ -12,7 +12,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error) => {
       const isUnauthorized = error.status === 401;
       const isAuthEndpoint =
-        req.url.includes('/v1/auth/login') || req.url.includes('/v1/auth/refresh');
+        req.url.includes('/auth/login') || req.url.includes('/auth/refresh');
       const alreadyRetried = req.context.get(RETRY_ONCE);
 
       if (!isUnauthorized) {

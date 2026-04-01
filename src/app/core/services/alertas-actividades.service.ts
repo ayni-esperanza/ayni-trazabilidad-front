@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { Observable, catchError, map, of, tap } from 'rxjs';
+import { HttpService } from './http.service';
 import { EstadoTarea, FlujoNodo } from '../../features/registro-solicitudes/models/solicitud.model';
 
 export type NivelAlertaActividad = 'media' | 'alta';
@@ -18,6 +20,8 @@ export interface AlertaActividadGlobal {
 })
 export class AlertasActividadesService {
   private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
+  private readonly endpoint = '/v1/alertas/actividades';
+  private alertasCache: AlertaActividadGlobal[] = [];
   private readonly umbralesAlertaHoras: Record<EstadoTarea, { advertencia: number; critica: number } | null> = {
     Pendiente: { advertencia: 48, critica: 120 },
     'En Proceso': { advertencia: 72, critica: 168 },
@@ -26,7 +30,39 @@ export class AlertasActividadesService {
     Retrasado: { advertencia: 24, critica: 24 }
   };
 
+  constructor(private readonly http: HttpService) {}
+
   obtenerAlertas(): AlertaActividadGlobal[] {
+    return this.alertasCache;
+  }
+
+  refrescarAlertas(): Observable<AlertaActividadGlobal[]> {
+    return this.http.get<AlertaActividadGlobal[]>(this.endpoint).pipe(
+      map((items) => (items || []).map((item) => ({
+        ...item,
+        estado: this.normalizarEstado(item.estado),
+      }))),
+      tap((items) => {
+        this.alertasCache = items;
+      }),
+      catchError(() => {
+        const local = this.obtenerAlertasDesdeLocalStorage();
+        this.alertasCache = local;
+        return of(local);
+      })
+    );
+  }
+
+  private normalizarEstado(value?: string): EstadoTarea {
+    const clean = (value || '').toLowerCase();
+    if (clean.includes('complet')) return 'Completado';
+    if (clean.includes('cancel')) return 'Cancelado';
+    if (clean.includes('retras')) return 'Retrasado';
+    if (clean.includes('proceso')) return 'En Proceso';
+    return 'Pendiente';
+  }
+
+  private obtenerAlertasDesdeLocalStorage(): AlertaActividadGlobal[] {
     if (typeof window === 'undefined') return [];
 
     const alertas: AlertaActividadGlobal[] = [];

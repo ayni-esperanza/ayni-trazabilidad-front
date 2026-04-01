@@ -6,11 +6,11 @@ import { Firma, FirmaRequest, FirmaResponse } from '../models/firma.model';
 
 // Configuración de endpoints
 const API_ENDPOINTS = {
-  firmas: '/firmas',
+  firmas: '/v1/firmas',
 };
 
 // Flag para usar datos mock mientras no hay backend
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +24,15 @@ export class FirmasService {
 
   constructor(private http: HttpClient) {}
 
+  private buildUrl(endpoint: string): string {
+    const base = (this.baseUrl || '').replace(/\/+$/, '');
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    if ((base.endsWith('/api/v1') || base.endsWith('/v1')) && path.startsWith('/v1/')) {
+      return `${base}${path.slice(3)}`;
+    }
+    return `${base}${path}`;
+  }
+
   /**
    * Obtiene todas las firmas disponibles
    */
@@ -32,7 +41,7 @@ export class FirmasService {
       return of([...this.mockFirmas]).pipe(delay(200));
     }
 
-    return this.http.get<Firma[]>(`${this.baseUrl}${API_ENDPOINTS.firmas}`);
+    return this.http.get<Firma[]>(this.buildUrl(API_ENDPOINTS.firmas));
   }
 
   /**
@@ -47,7 +56,7 @@ export class FirmasService {
       return throwError(() => new Error('Firma no encontrada'));
     }
 
-    return this.http.get<Firma>(`${this.baseUrl}${API_ENDPOINTS.firmas}/${id}`);
+    return this.http.get<Firma>(this.buildUrl(`${API_ENDPOINTS.firmas}/${id}`));
   }
 
   /**
@@ -72,7 +81,7 @@ export class FirmasService {
     }
 
     return this.http.post<FirmaResponse>(
-      `${this.baseUrl}${API_ENDPOINTS.firmas}`,
+      this.buildUrl(API_ENDPOINTS.firmas),
       request
     );
   }
@@ -98,7 +107,7 @@ export class FirmasService {
     }
 
     return this.http.put<Firma>(
-      `${this.baseUrl}${API_ENDPOINTS.firmas}/${id}`,
+      this.buildUrl(`${API_ENDPOINTS.firmas}/${id}`),
       request
     );
   }
@@ -117,7 +126,7 @@ export class FirmasService {
     }
 
     return this.http.delete<void>(
-      `${this.baseUrl}${API_ENDPOINTS.firmas}/${id}`
+      this.buildUrl(`${API_ENDPOINTS.firmas}/${id}`)
     );
   }
 
@@ -135,7 +144,7 @@ export class FirmasService {
     }
 
     return this.http.patch<Firma>(
-      `${this.baseUrl}${API_ENDPOINTS.firmas}/${id}/estado`,
+      this.buildUrl(`${API_ENDPOINTS.firmas}/${id}/estado`),
       { activo }
     );
   }

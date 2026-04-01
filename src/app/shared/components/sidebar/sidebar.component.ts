@@ -149,7 +149,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private actualizarAlertasPendientes(): void {
-    this.alertasPendientes.set(this.alertasService.obtenerAlertas().length);
+    this.alertasService.refrescarAlertas().subscribe({
+      next: (items) => this.alertasPendientes.set(items.length),
+      error: () => this.alertasPendientes.set(this.alertasService.obtenerAlertas().length),
+    });
   }
 
   toggleModalAlertas(event: MouseEvent): void {
@@ -173,8 +176,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private actualizarAlertasRecientes(): void {
-    const alertas = this.alertasService.obtenerAlertas();
-    this.alertasRecientes.set(alertas.slice(0, 5));
+    this.alertasService.refrescarAlertas().subscribe({
+      next: (alertas) => this.alertasRecientes.set(alertas.slice(0, 5)),
+      error: () => this.alertasRecientes.set(this.alertasService.obtenerAlertas().slice(0, 5)),
+    });
   }
 
   // Cerrar el menú al hacer clic fuera

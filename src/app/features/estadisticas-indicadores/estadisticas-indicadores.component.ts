@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { EstadisticasIndicadoresService } from './services/estadisticas-indicadores.service';
+import { forkJoin } from 'rxjs';
 
 export interface ProyectoIndicador {
   id: number;
@@ -528,8 +529,78 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   }
 
   cargarDatos(): void {
-    this.actualizarROI();
-    this.aplicarFiltrosTareas();
+    forkJoin({
+      responsables: this.estadisticasService.obtenerIndicadoresRendimiento(),
+      proyectos: this.estadisticasService.obtenerIndicadoresPorProyecto(0),
+    }).subscribe({
+      next: ({ responsables, proyectos }) => {
+        if ((responsables || []).length > 0) {
+          this.responsables = this.mapResponsablesDesdeBackend(responsables);
+        }
+        if ((proyectos || []).length > 0) {
+          this.proyectos = this.mapProyectosDesdeBackend(proyectos);
+        }
+        this.actualizarROI();
+        this.aplicarFiltrosTareas();
+      },
+      error: () => {
+        this.actualizarROI();
+        this.aplicarFiltrosTareas();
+      }
+    });
+  }
+
+  private mapResponsablesDesdeBackend(items: any[]): ResponsableIndicador[] {
+    return (items || []).map((item: any) => {
+      const p = item.parametros || {};
+      return {
+        id: Number(p.id || item.id || 0),
+        nombre: p.nombre || item.nombre || 'Responsable',
+        cargo: p.cargo || item.descripcion || '',
+        antiguedad: p.antiguedad || 'N/A',
+        participacionProyectos: Number(p.participacionProyectos || 0),
+        tareasRealizadas: Number(p.tareasRealizadas || 0),
+        tareasRealizadasPorcentaje: Number(p.tareasRealizadasPorcentaje || 0),
+        tareasRealizadasTiempo: Number(p.tareasRealizadasTiempo || 0),
+        tareasPorcentajeProyectos: Number(p.tareasPorcentajeProyectos || 0),
+        promedio: Number(p.promedio || 0),
+        eficienciaGeneral: Number(p.eficienciaGeneral || item.valor || 0),
+      };
+    });
+  }
+
+  private mapProyectosDesdeBackend(items: any[]): ProyectoIndicador[] {
+    return (items || []).map((item: any) => {
+      const p = item.parametros || {};
+      return {
+        id: Number(p.id || item.id || 0),
+        nombre: p.nombre || item.nombre || 'Proyecto',
+        responsable: p.responsable || 'Sin responsable',
+        responsableId: Number(p.responsableId || 0),
+        cliente: p.cliente || 'Cliente',
+        etapa: p.etapa || 'Ejecucion',
+        estado: this.mapEstadoProyecto(p.estado),
+        avance: Number(p.avance || item.valor || 0),
+        tareasCompletadas: Number(p.tareasCompletadas || 0),
+        tareasTotal: Number(p.tareasTotal || 0),
+        eficiencia: Number(p.eficiencia || 0),
+        inversion: Number(p.inversion || 0),
+        gasto: Number(p.gasto || 0),
+        retorno: Number(p.retorno || 0),
+        durationStart: p.durationStart || '',
+        durationEnd: p.durationEnd || '',
+        tasaRetorno: Number(p.tasaRetorno || 0),
+        descripcion: p.descripcion || '',
+      };
+    });
+  }
+
+  private mapEstadoProyecto(estado?: string): ProyectoIndicador['estado'] {
+    const clean = (estado || '').toUpperCase();
+    if (clean.includes('COMPLET')) return 'Completado';
+    if (clean.includes('CANCEL')) return 'Cancelado';
+    if (clean.includes('FINAL')) return 'Finalizada';
+    return 'En Proceso';
   }
 
   cambiarFiltro(categoria: 'responsables' | 'proyectos'): void {
