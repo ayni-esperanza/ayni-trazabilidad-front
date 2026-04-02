@@ -5,6 +5,25 @@ import { AuthService } from '../services/auth.service';
 
 const RETRY_ONCE = new HttpContextToken<boolean>(() => false);
 
+function buildErrorMessage(error: any, requestUrl: string): string {
+  const rawError = error?.error;
+  const responseText = typeof rawError?.text === 'string'
+    ? rawError.text.trim()
+    : typeof rawError === 'string'
+      ? rawError.trim()
+      : '';
+
+  if (
+    rawError instanceof SyntaxError ||
+    responseText.startsWith('<!DOCTYPE') ||
+    responseText.startsWith('<html')
+  ) {
+    return `La URL configurada para la API no esta respondiendo JSON. Revisa API_URL y que el backend este levantado. Request: ${requestUrl}`;
+  }
+
+  return error.error?.message || error.statusText || 'Error HTTP no identificado';
+}
+
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
@@ -16,7 +35,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       const alreadyRetried = req.context.get(RETRY_ONCE);
 
       if (!isUnauthorized) {
-        const errorMessage = error.error?.message || error.statusText;
+        const errorMessage = buildErrorMessage(error, req.url);
         console.error('Error HTTP:', errorMessage);
         return throwError(() => error);
       }

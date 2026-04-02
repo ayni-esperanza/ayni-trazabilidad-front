@@ -15,6 +15,7 @@ pnpm start
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
 `pnpm start` genera `public/env.js` desde `.env` para runtime local.
+No existe ni se necesita `public/env.template.js`.
 
 ## Docker
 

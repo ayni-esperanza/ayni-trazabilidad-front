@@ -40,15 +40,10 @@ function requireVar(key, envs) {
 
 const root = process.cwd();
 const envPath = path.resolve(root, '.env');
-const templatePath = path.resolve(root, 'public', 'env.template.js');
 const outputPath = path.resolve(root, 'public', 'env.js');
 
 if (!fs.existsSync(envPath)) {
   throw new Error(`[runtime-env] .env file not found at: ${envPath}`);
-}
-
-if (!fs.existsSync(templatePath)) {
-  throw new Error(`[runtime-env] env template not found at: ${templatePath}`);
 }
 
 const envContent = fs.readFileSync(envPath, 'utf8');
@@ -57,10 +52,7 @@ const envs = parseEnvFile(envContent);
 const apiUrl = requireVar('API_URL', envs);
 const adminUsername = requireVar('ADMIN_USERNAME', envs).toLowerCase();
 
-const template = fs.readFileSync(templatePath, 'utf8');
-const generated = template
-  .replaceAll('__API_URL__', apiUrl)
-  .replaceAll('__ADMIN_USERNAME__', adminUsername);
+const generated = `window.__env = {\n  API_URL: ${JSON.stringify(apiUrl)},\n  ADMIN_USERNAME: ${JSON.stringify(adminUsername)},\n};\n`;
 
 fs.writeFileSync(outputPath, generated, 'utf8');
 console.log('[runtime-env] public/env.js generated from .env');
