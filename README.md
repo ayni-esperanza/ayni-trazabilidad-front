@@ -14,8 +14,9 @@ pnpm start
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-`pnpm start` genera `public/env.js` desde `.env` para runtime local.
+`pnpm start` genera `public/env.js` desde `.env` para runtime local y tambien inyecta esas variables al proceso SSR del dev server.
 No existe ni se necesita `public/env.template.js`.
+Si ejecutas `ng serve` directo desde el IDE, debes cargar manualmente `API_URL` y `ADMIN_USERNAME` en las variables de entorno del proceso; de lo contrario veras valores como `__API_URL_UNSET__`.
 
 ## Docker
 
