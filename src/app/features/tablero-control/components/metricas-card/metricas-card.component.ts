@@ -14,7 +14,7 @@ export class MetricasCardComponent {
   @Input() gastosMes: number = 0;
   @Input() gastosHoy: number = 0;
   @Input() gastosAyer: number = 0;
-  @Input() metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'finalizados';
+  @Input() metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'activos';
   
   @Output() metricaSeleccionadaChange = new EventEmitter<'finalizados' | 'activos' | 'gastos'>();
   

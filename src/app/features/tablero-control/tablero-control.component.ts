@@ -59,7 +59,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   gastosAyer = 0;
   
   // Métrica seleccionada para el gráfico
-  metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'finalizados';
+  metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'activos';
   
   // Datos de los gráficos
   datosProyectosFinalizados: DatoGrafico[] = [];
