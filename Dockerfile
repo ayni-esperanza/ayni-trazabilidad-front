@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build --configuration production
+RUN npx ng build --configuration production
 RUN pnpm prune --prod
 
 FROM node:20-alpine
