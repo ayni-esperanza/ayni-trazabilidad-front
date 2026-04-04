@@ -16,6 +16,7 @@ import {
   FirmarDocumentoModalComponent 
 } from './components/firmar-documento-modal/firmar-documento-modal.component';
 import { Firma } from './models/firma.model';
+import { FirmasService } from './services/firmas.service';
 
 interface InformeItem {
   id: string;
@@ -68,13 +69,13 @@ export class InformesEvidenciasComponent implements OnInit {
   
   constructor(
     private informesService: InformesEvidenciasService,
+    private firmasService: FirmasService,
     private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
     this.cargarModoVisualizacion();
     this.cargarFirmasDisponibles();
-    this.seedMock();
     this.recalcularPaginacion();
   }
 
@@ -112,7 +113,7 @@ export class InformesEvidenciasComponent implements OnInit {
   protected verInforme(informe: InformeItem): void {
     // Si es un PDF firmado, reabrir el modal de firmar documento con el PDF pre-cargado
     if (informe.esPDFfirmado && informe.pdfBytes) {
-      const blob = new Blob([informe.pdfBytes], { type: 'application/pdf' });
+      const blob = new Blob([informe.pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
       this.archivoInicialFirma = new File([blob], `${informe.titulo}.pdf`, { type: 'application/pdf' });
       this.mostrarModalFirmarDocumento = true;
     } else {
@@ -135,7 +136,7 @@ export class InformesEvidenciasComponent implements OnInit {
       return;
     }
 
-    const blob = new Blob([informe.pdfBytes], { type: 'application/pdf' });
+    const blob = new Blob([informe.pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -154,25 +155,14 @@ export class InformesEvidenciasComponent implements OnInit {
   // ==================== Modal de firmar documento ====================
 
   private cargarFirmasDisponibles(): void {
-    // Mock de firmas disponibles - en producción esto vendría de un servicio
-    this.firmasDisponibles = [
-      {
-        id: 1,
-        nombre: 'Ing. Juan Pérez',
-        cargo: 'Gerente de Proyectos',
-        imagenBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-        fechaCreacion: new Date(),
-        activo: true,
+    this.firmasService.obtenerFirmas().subscribe({
+      next: (firmas) => {
+        this.firmasDisponibles = firmas;
       },
-      {
-        id: 2,
-        nombre: 'Dra. María García',
-        cargo: 'Directora Técnica',
-        imagenBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-        fechaCreacion: new Date(),
-        activo: true,
-      },
-    ];
+      error: () => {
+        this.firmasDisponibles = [];
+      }
+    });
   }
 
   protected abrirModalFirmarDocumento(): void {
@@ -365,39 +355,7 @@ export class InformesEvidenciasComponent implements OnInit {
     }
   }
 
-  private seedMock(): void {
-    if (this.informes.length) return;
 
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const fecha = `${yyyy}-${mm}-${dd}`;
-
-    this.informes = Array.from({ length: 10 }, (_, index) => {
-      const id = String(index + 1);
-      const data: InformeFormData = {
-        id,
-        titulo: `Informe de Entrega - ${String(index + 1).padStart(3, '0')}`,
-        fecha,
-        cuerpoHtml: '<p>Contenido de ejemplo del informe...</p>',
-        firma: 'Todas las Firmas',
-        usarMembrete: false,
-        firmasAgregadas: [],
-      };
-
-      return {
-        id,
-        titulo: data.titulo,
-        fecha: data.fecha,
-        cuerpoHtml: data.cuerpoHtml,
-        firma: data.firma,
-        usarMembrete: data.usarMembrete ?? false,
-        firmasAgregadas: data.firmasAgregadas ?? [],
-        previewHtml: this.sanitizer.bypassSecurityTrustHtml(this.buildPreviewHtml(data)),
-      };
-    });
-  }
 
   private buildPreviewHtml(data: Pick<InformeFormData, 'titulo' | 'fecha' | 'cuerpoHtml' | 'usarMembrete' | 'firmasAgregadas'>): string {
     const titulo = this.escapeHtml((data.titulo || 'Informe').trim() || 'Informe');
