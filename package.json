@@ -6,7 +6,7 @@
     "env:generate": "node tools/generate-runtime-env.cjs",
     "prestart": "pnpm env:generate",
     "start": "node tools/run-with-env.cjs ng serve",
-    "build": "node tools/run-with-env.cjsng build",
+    "build": "node tools/run-with-env.cjs ng build",
     "watch": "node tools/run-with-env.cjs ng build --watch --configuration development",
     "test": "node tools/run-with-env.cjs ng test",
     "serve:ssr:trazabilidad-front": "node dist/trazabilidad-front/server/server.mjs",
