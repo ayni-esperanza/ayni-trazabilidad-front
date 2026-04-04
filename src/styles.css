@@ -2,6 +2,9 @@
 
 /* Todos los @import deben ir primero */
 @import "tailwindcss";
+
+/* Tailwind v4: habilitar dark mode basado en la clase .dark (no media query) */
+@custom-variant dark (&:where(.dark, .dark *));
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
