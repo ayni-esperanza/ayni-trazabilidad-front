@@ -61,6 +61,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   mostrarConfirmacionEliminar = false;
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
+  private readonly proyectosConFlujoSolicitado = new Set<number>();
 
   constructor(private solicitudesService: RegistroSolicitudesService) {}
 
@@ -424,6 +425,9 @@ export class RegistroSolicitudesComponent implements OnInit {
   getFlujoNodos(solicitudId: number | undefined): FlujoNodo[] {
     if (!solicitudId) return [];
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitudId);
+    if (proyecto && (!proyecto.flujo?.nodos?.length)) {
+      this.cargarFlujoProyecto(proyecto.id);
+    }
     return proyecto?.flujo?.nodos || [];
   }
 
@@ -531,6 +535,35 @@ export class RegistroSolicitudesComponent implements OnInit {
     }
 
     this.aplicarFiltros();
+  }
+
+  private cargarFlujoProyecto(proyectoId: number): void {
+    if (this.proyectosConFlujoSolicitado.has(proyectoId)) return;
+
+    this.proyectosConFlujoSolicitado.add(proyectoId);
+    this.solicitudesService.obtenerActividades(proyectoId).subscribe({
+      next: (nodos) => {
+        const indexProyecto = this.proyectos.findIndex((p) => p.id === proyectoId);
+        if (indexProyecto !== -1) {
+          this.proyectos[indexProyecto] = {
+            ...this.proyectos[indexProyecto],
+            flujo: { nodos: nodos || [] },
+            fechaActualizacion: this.proyectos[indexProyecto].fechaActualizacion
+          };
+        }
+
+        if (this.proyectoActual?.id === proyectoId) {
+          this.proyectoActual = {
+            ...this.proyectoActual,
+            flujo: { nodos: nodos || [] }
+          };
+        }
+      },
+      error: () => {
+        // Permite reintentar automáticamente en próximos ciclos de render.
+        this.proyectosConFlujoSolicitado.delete(proyectoId);
+      }
+    });
   }
 
   private parseDateAtStart(dateInput: string): Date {
