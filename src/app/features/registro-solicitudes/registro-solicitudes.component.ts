@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
-import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo } from './models/solicitud.model';
+import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { forkJoin } from 'rxjs';
@@ -466,6 +466,19 @@ export class RegistroSolicitudesComponent implements OnInit {
     return nombres.length ? nombres.join(', ') : 'Sin conexiones';
   }
 
+  getComentariosActividadTimeline(solicitudId: number | undefined, actividadId: number): ComentarioAdicionalActividad[] {
+    if (!solicitudId || !actividadId) return [];
+
+    const proyecto = this.proyectos.find((p) => p.solicitudId === solicitudId);
+    return (proyecto?.comentariosAdicionalesActividad || []).filter((comentario) => comentario.actividadId === actividadId);
+  }
+
+  getAdjuntoUrl(adjunto: FlujoAdjunto): string | null {
+    const fuente = ((adjunto?.dataUrl || (adjunto as any)?.url || '') as string).trim();
+    if (!fuente) return null;
+    return fuente;
+  }
+
   getResponsableNombre(responsableId: number): string {
     const responsable = this.responsables.find(r => r.id === responsableId);
     return responsable?.nombre || 'Sin asignar';
@@ -541,21 +554,20 @@ export class RegistroSolicitudesComponent implements OnInit {
     if (this.proyectosConFlujoSolicitado.has(proyectoId)) return;
 
     this.proyectosConFlujoSolicitado.add(proyectoId);
-    this.solicitudesService.obtenerActividades(proyectoId).subscribe({
-      next: (nodos) => {
+    this.solicitudesService.obtenerProyectoPorId(proyectoId).subscribe({
+      next: (proyectoDetallado) => {
         const indexProyecto = this.proyectos.findIndex((p) => p.id === proyectoId);
         if (indexProyecto !== -1) {
           this.proyectos[indexProyecto] = {
             ...this.proyectos[indexProyecto],
-            flujo: { nodos: nodos || [] },
-            fechaActualizacion: this.proyectos[indexProyecto].fechaActualizacion
+            ...proyectoDetallado
           };
         }
 
         if (this.proyectoActual?.id === proyectoId) {
           this.proyectoActual = {
             ...this.proyectoActual,
-            flujo: { nodos: nodos || [] }
+            ...proyectoDetallado
           };
         }
       },

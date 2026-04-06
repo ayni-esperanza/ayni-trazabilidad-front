@@ -1224,6 +1224,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return docs;
   }
 
+  getComentariosActividadResumen(actividadId: number): ComentarioAdicionalActividad[] {
+    return (this.proyectoInfoForm.comentariosAdicionalesActividad || []).filter((comentario) => comentario.actividadId === actividadId);
+  }
+
   puedeDescargarDocumento(doc: DocumentoResumen): boolean {
     const fuenteAlterna = (doc?.adjunto as any)?.url;
     return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl || !!fuenteAlterna;

@@ -248,6 +248,83 @@
                     <h4 class="text-xs font-semibold text-gray-800 dark:text-gray-100">{{ nodo.nombre }}</h4>
                     <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ getResponsableNombre(nodo.responsableId || 0) }}</p>
                     <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ nodo.fechaInicio || '-' }} - {{ nodo.fechaFin || '-' }}</p>
+
+                    <div *ngIf="(nodo.adjuntos || []).length > 0" class="mt-2">
+                      <p class="text-[11px] font-semibold text-gray-600 dark:text-gray-300 mb-1">Documentos de actividad</p>
+                      <div class="space-y-1">
+                        <div *ngFor="let adjunto of nodo.adjuntos" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/40">
+                          <div class="min-w-0">
+                            <p class="text-[11px] text-gray-700 dark:text-gray-200 truncate">{{ adjunto.nombre }}</p>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ adjunto.tipo || 'Archivo' }}</p>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <button
+                              type="button"
+                              (click)="abrirVistaPreviaDocumento({ actividad: nodo.nombre, origen: 'Actividad', nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto: adjunto })"
+                              [disabled]="!puedeDescargarDocumento({ actividad: nodo.nombre, origen: 'Actividad', nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto: adjunto })"
+                              title="Vista previa"
+                              class="text-green-500 hover:text-green-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              (click)="descargarDocumento({ actividad: nodo.nombre, origen: 'Actividad', nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto: adjunto })"
+                              [disabled]="!puedeDescargarDocumento({ actividad: nodo.nombre, origen: 'Actividad', nombre: adjunto.nombre, tipo: adjunto.tipo, adjunto: adjunto })"
+                              title="Descargar"
+                              class="text-blue-500 hover:text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="getComentariosActividadResumen(nodo.id).length > 0" class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
+                      <p class="text-[11px] font-semibold text-gray-600 dark:text-gray-300 mb-1">Comentarios</p>
+                      <div class="space-y-1.5">
+                        <div *ngFor="let comentario of getComentariosActividadResumen(nodo.id)" class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/40 px-2 py-1.5">
+                          <p class="text-[11px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+                          <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{{ comentario.fechaComentario || '—' }}</p>
+
+                          <div *ngIf="(comentario.adjuntos || []).length > 0" class="mt-1.5 space-y-1">
+                            <div *ngFor="let adjuntoComentario of comentario.adjuntos" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
+                              <div class="min-w-0">
+                                <p class="text-[11px] text-gray-700 dark:text-gray-200 truncate">{{ adjuntoComentario.nombre }}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ adjuntoComentario.tipo || 'Archivo' }}</p>
+                              </div>
+                              <div class="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  (click)="abrirVistaPreviaDocumento({ actividad: nodo.nombre, origen: 'Comentario', nombre: adjuntoComentario.nombre, tipo: adjuntoComentario.tipo, adjunto: adjuntoComentario })"
+                                  [disabled]="!puedeDescargarDocumento({ actividad: nodo.nombre, origen: 'Comentario', nombre: adjuntoComentario.nombre, tipo: adjuntoComentario.tipo, adjunto: adjuntoComentario })"
+                                  title="Vista previa"
+                                  class="text-green-500 hover:text-green-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                  </svg>
+                                </button>
+                                <button
+                                  type="button"
+                                  (click)="descargarDocumento({ actividad: nodo.nombre, origen: 'Comentario', nombre: adjuntoComentario.nombre, tipo: adjuntoComentario.tipo, adjunto: adjuntoComentario })"
+                                  [disabled]="!puedeDescargarDocumento({ actividad: nodo.nombre, origen: 'Comentario', nombre: adjuntoComentario.nombre, tipo: adjuntoComentario.tipo, adjunto: adjuntoComentario })"
+                                  title="Descargar"
+                                  class="text-blue-500 hover:text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed">
+                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 19h14"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </article>
                   <p *ngIf="!flujoTimelineResumen.length" class="text-center text-xs text-gray-400 dark:text-gray-500 py-4">Sin actividades registradas</p>
                 </div>

@@ -237,6 +237,96 @@
                             <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
                               {{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}
                             </div>
+                            @if ((nodo.adjuntos || []).length > 0) {
+                              <div class="mt-1.5 space-y-1">
+                                <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">Documentos de actividad</p>
+                                <div class="flex flex-wrap gap-1">
+                                  @for (adjunto of (nodo.adjuntos || []); track adjunto.nombre + ($index || 0)) {
+                                    @if (getAdjuntoUrl(adjunto); as fuenteAdjuntoActividad) {
+                                      <div class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 max-w-full">
+                                        <span class="truncate text-[10px] max-w-40" [title]="adjunto.nombre">{{ adjunto.nombre }}</span>
+                                        <a
+                                          [href]="fuenteAdjuntoActividad"
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          title="Ver archivo"
+                                          aria-label="Ver archivo"
+                                          class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300">
+                                          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                          </svg>
+                                        </a>
+                                        <a
+                                          [href]="fuenteAdjuntoActividad"
+                                          [attr.download]="adjunto.nombre || 'documento'"
+                                          title="Descargar archivo"
+                                          aria-label="Descargar archivo"
+                                          class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300">
+                                          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                          </svg>
+                                        </a>
+                                      </div>
+                                    } @else {
+                                      <span class="inline-flex items-center px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-600 dark:text-gray-300">
+                                        {{ adjunto.nombre }}
+                                      </span>
+                                    }
+                                  }
+                                </div>
+                              </div>
+                            }
+
+                            @if (getComentariosActividadTimeline(solicitud.id, nodo.id).length > 0) {
+                              <div class="mt-2 space-y-1.5 border-t border-gray-200 dark:border-gray-700 pt-1.5">
+                                <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">Comentarios</p>
+                                @for (comentario of getComentariosActividadTimeline(solicitud.id, nodo.id); track comentario.id + ($index || 0)) {
+                                  <div class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 px-1.5 py-1">
+                                    <p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+                                    @if ((comentario.adjuntos || []).length > 0) {
+                                      <div class="mt-1 flex flex-wrap gap-1">
+                                        @for (adjuntoComentario of (comentario.adjuntos || []); track adjuntoComentario.nombre + ($index || 0)) {
+                                          @if (getAdjuntoUrl(adjuntoComentario); as fuenteAdjuntoComentario) {
+                                            <div class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 max-w-full">
+                                              <span class="truncate text-[10px] max-w-40" [title]="adjuntoComentario.nombre">{{ adjuntoComentario.nombre }}</span>
+                                              <a
+                                                [href]="fuenteAdjuntoComentario"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title="Ver archivo"
+                                                aria-label="Ver archivo"
+                                                class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                              </a>
+                                              <a
+                                                [href]="fuenteAdjuntoComentario"
+                                                [attr.download]="adjuntoComentario.nombre || 'documento'"
+                                                title="Descargar archivo"
+                                                aria-label="Descargar archivo"
+                                                class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                                </svg>
+                                              </a>
+                                            </div>
+                                          } @else {
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-600 dark:text-gray-300">
+                                              {{ adjuntoComentario.nombre }}
+                                            </span>
+                                          }
+                                        }
+                                      </div>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            }
                           </article>
                         }
                         @if (getFlujoTimeline(solicitud.id).length === 0) {
