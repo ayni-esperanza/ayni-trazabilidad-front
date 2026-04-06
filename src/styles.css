@@ -2,15 +2,22 @@
 
 /* Todos los @import deben ir primero */
 @import "tailwindcss";
-
-/* Tailwind v4: habilitar dark mode basado en la clase .dark (no media query) */
-@custom-variant dark (&:where(.dark, .dark *));
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
 @import "../node_modules/bpmn-js/dist/assets/diagram-js.css";
 @import "../node_modules/bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
+@import "flowbite/src/themes/default";
 @import "flatpickr/dist/flatpickr.min.css";
+
+/* Configuración de dark mode con selector de clase para Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Plugin de Flowbite */
+@plugin "flowbite/plugin";
+
+/* Source files de Flowbite */
+@source "../node_modules/flowbite";
 
 /* Estilos para ngx-charts en modo oscuro */
 .dark .ngx-charts text {

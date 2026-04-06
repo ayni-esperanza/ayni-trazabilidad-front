@@ -4,6 +4,16 @@
 	transition: all 0.2s ease-out;
 }
 
+tr.fila-seleccionada,
+tr.fila-seleccionada > td {
+	background-color: rgb(239 246 255);
+}
+
+:host-context(.dark) tr.fila-seleccionada,
+:host-context(.dark) tr.fila-seleccionada > td {
+	background-color: rgba(30, 58, 138, 0.35) !important;
+}
+
 .timeline-summary {
 	transition: color 0.2s ease-out;
 }

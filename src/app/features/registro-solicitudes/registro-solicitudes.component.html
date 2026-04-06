@@ -183,7 +183,7 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
           @for (solicitud of solicitudesPaginadas; track solicitud.id) {
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer"
-                [class.bg-blue-50]="estaSeleccionado(solicitud.id)">
+                [class.fila-seleccionada]="estaSeleccionado(solicitud.id)">
               <td class="py-1.5 px-3" (click)="$event.stopPropagation()">
                 <input 
                   type="checkbox"
