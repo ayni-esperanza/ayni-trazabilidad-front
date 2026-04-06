@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
-import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from './models/solicitud.model';
+import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { forkJoin } from 'rxjs';
@@ -425,7 +425,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   getFlujoNodos(solicitudId: number | undefined): FlujoNodo[] {
     if (!solicitudId) return [];
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitudId);
-    if (proyecto && (!proyecto.flujo?.nodos?.length)) {
+    if (proyecto) {
       this.cargarFlujoProyecto(proyecto.id);
     }
     return proyecto?.flujo?.nodos || [];
@@ -477,6 +477,27 @@ export class RegistroSolicitudesComponent implements OnInit {
     const fuente = ((adjunto?.dataUrl || (adjunto as any)?.url || '') as string).trim();
     if (!fuente) return null;
     return fuente;
+  }
+
+  getEstadoTareaTimeline(nodo: FlujoNodo): EstadoTarea {
+    return (nodo.estadoActividad || 'Pendiente') as EstadoTarea;
+  }
+
+  getEstadoTareaClass(estado: EstadoTarea): string {
+    const clases: Record<EstadoTarea, string> = {
+      Pendiente: 'bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-200',
+      'En Proceso': 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+      Completado: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+      Cancelado: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+      Retrasado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+    };
+    return clases[estado] || clases.Pendiente;
+  }
+
+  getRangoFechasTareaTimeline(nodo: FlujoNodo): string {
+    const inicio = (nodo.fechaInicio || '').toString().trim();
+    if (inicio) return inicio;
+    return 'Sin fecha asignada';
   }
 
   getResponsableNombre(responsableId: number): string {

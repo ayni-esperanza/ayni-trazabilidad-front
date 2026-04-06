@@ -11,6 +11,7 @@ import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.compon
 import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
 import { CostoCategoriaAdicionalApi, RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
+import { HttpService } from '../../../../core/services/http.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -81,6 +82,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
   private readonly httpClient = inject(HttpClient);
+  private readonly httpService = inject(HttpService);
 
   @Input() visible = false;
   @Input() embedded = false;
@@ -744,11 +746,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       next: (nodosSincronizados) => {
         this.flujoNodos = nodosSincronizados;
         this.persistirFlujoProyecto();
+        this.marcarActualizacionProyecto();
       },
       error: (error) => {
         console.error('Error sincronizando flujo:', error);
         this.flujoNodos = normalizados;
         this.persistirFlujoProyecto();
+        this.marcarActualizacionProyecto();
       }
     });
   }
@@ -1225,12 +1229,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   getComentariosActividadResumen(actividadId: number): ComentarioAdicionalActividad[] {
-    return (this.proyectoInfoForm.comentariosAdicionalesActividad || []).filter((comentario) => comentario.actividadId === actividadId);
+    return (this.proyectoInfoForm.comentariosAdicionalesActividad || []).filter((comentario) => Number(comentario.actividadId) === Number(actividadId));
   }
 
   puedeDescargarDocumento(doc: DocumentoResumen): boolean {
     const fuenteAlterna = (doc?.adjunto as any)?.url;
-    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl || !!fuenteAlterna;
+    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl || !!fuenteAlterna || !!doc?.adjunto?.objectKey;
   }
 
   async descargarDocumento(doc: DocumentoResumen): Promise<void> {
@@ -1919,7 +1923,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
-    if (!fuente) return null;
+    if (!fuente) {
+      if (adjunto.objectKey) {
+        const blob = await this.resolverBlobPorObjectKey(adjunto.objectKey);
+        if (blob) {
+          return {
+            url: window.URL.createObjectURL(blob),
+            revokeObjectUrl: true
+          };
+        }
+      }
+      return null;
+    }
 
     if (this.esDataUrl(fuente) || fuente.startsWith('blob:')) {
       return { url: fuente, revokeObjectUrl: false };
@@ -1936,7 +1951,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       if (/^https?:\/\//i.test(fuente) || fuente.startsWith('/')) {
         return { url: fuente, revokeObjectUrl: false };
       }
-      return null;
+      return { url: `/${fuente.replace(/^\/+/, '')}`, revokeObjectUrl: false };
     }
   }
 
@@ -1946,7 +1961,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
-    if (!fuente) return null;
+    if (!fuente) {
+      if (adjunto.objectKey) {
+        return this.resolverBlobPorObjectKey(adjunto.objectKey);
+      }
+      return null;
+    }
 
     if (this.esDataUrl(fuente)) {
       return this.dataUrlABlob(fuente);
@@ -1958,6 +1978,29 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       console.error('No se pudo descargar el adjunto como blob:', error);
       return null;
     }
+  }
+
+  private async resolverBlobPorObjectKey(objectKey: string): Promise<Blob | null> {
+    const key = (objectKey || '').trim();
+    if (!key) return null;
+
+    const encodedKey = encodeURIComponent(key);
+    const endpoints = [
+      `/v1/storage/download?objectKey=${encodedKey}`,
+      `/v1/storage/download/${encodedKey}`,
+      `/v1/storage/file/${encodedKey}`,
+      `/v1/storage/${encodedKey}`
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        return await firstValueFrom(this.httpService.downloadFile(endpoint));
+      } catch {
+        // Probar siguiente endpoint compatible.
+      }
+    }
+
+    return null;
   }
 
   private dataUrlABlob(dataUrl: string): Blob | null {

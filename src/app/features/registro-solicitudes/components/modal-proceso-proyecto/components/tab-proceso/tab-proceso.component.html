@@ -57,16 +57,27 @@
         <div class="absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white dark:border-gray-900"
           [ngClass]="nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500'"></div>
         <div class="text-[11px] font-semibold text-gray-700 dark:text-gray-200 truncate">{{ nodo.nombre }}</div>
-        <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
-          {{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}
-        </div>
-        <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-          {{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}
-        </div>
-        <div class="mt-1.5">
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="getClaseEstadoActividad(getEstadoActividad(nodo))">
-            {{ getEstadoActividad(nodo) }}
-          </span>
+        <div class="mt-1 flex items-center gap-2 flex-wrap text-[10px] text-gray-500 dark:text-gray-400" (click)="$event.stopPropagation()">
+          <span class="truncate">{{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</span>
+          <span>•</span>
+          <span class="truncate">{{ nodo.fechaInicio || '—' }} - {{ nodo.fechaFin || '—' }}</span>
+          <div *ngIf="nodo.tipo !== 'inicio'" class="relative inline-flex items-center group">
+            <select
+              [ngModel]="getEstadoActividad(nodo)"
+              (ngModelChange)="onCambiarEstadoActividad(nodo, $event); onEstadoDropdownClose(nodo.id)"
+              (mousedown)="onEstadoDropdownOpen(nodo.id)"
+              (blur)="onEstadoDropdownClose(nodo.id)"
+              (keydown.enter)="onEstadoDropdownOpen(nodo.id)"
+              (keydown.escape)="onEstadoDropdownClose(nodo.id)"
+              [disabled]="proyectoFinalizado || proyectoCancelado"
+              style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
+              class="text-[10px] pl-2 pr-6 py-0.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+              <option *ngFor="let estado of estadosActividad" [value]="estado">{{ estado }}</option>
+            </select>
+            <svg class="pointer-events-none absolute right-1.5 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200" [ngClass]="{ 'rotate-180': isEstadoDropdownAbierto(nodo.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
         </div>
 
         <div *ngIf="(nodo.adjuntos || []).length > 0" class="mt-2 pt-2 border-t border-gray-200/80 dark:border-gray-700/80" (click)="$event.stopPropagation()">
@@ -550,14 +561,23 @@
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td class="py-2 px-2">
             <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
-              <select
-                *ngIf="nodo.tipo !== 'inicio'"
-                [ngModel]="getEstadoActividad(nodo)"
-                (ngModelChange)="onCambiarEstadoActividad(nodo, $event)"
-                [disabled]="proyectoFinalizado || proyectoCancelado"
-                class="text-[11px] px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-                <option *ngFor="let estado of estadosActividad" [value]="estado">{{ estado }}</option>
-              </select>
+              <div *ngIf="nodo.tipo !== 'inicio'" class="relative inline-flex items-center group">
+                <select
+                  [ngModel]="getEstadoActividad(nodo)"
+                  (ngModelChange)="onCambiarEstadoActividad(nodo, $event); onEstadoDropdownClose(nodo.id)"
+                  (mousedown)="onEstadoDropdownOpen(nodo.id)"
+                  (blur)="onEstadoDropdownClose(nodo.id)"
+                  (keydown.enter)="onEstadoDropdownOpen(nodo.id)"
+                  (keydown.escape)="onEstadoDropdownClose(nodo.id)"
+                  [disabled]="proyectoFinalizado || proyectoCancelado"
+                  style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
+                  class="text-[11px] pl-2 pr-7 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <option *ngFor="let estado of estadosActividad" [value]="estado">{{ estado }}</option>
+                </select>
+                <svg class="pointer-events-none absolute right-2 w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200" [ngClass]="{ 'rotate-180': isEstadoDropdownAbierto(nodo.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
             </div>
           </td>
         </tr>

@@ -84,6 +84,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private ultimoSnapshotFlujo = '';
   private tareasExternasPendientes = new Set<string>();
   private readonly comentariosEnEdicion = new Set<number>();
+  private readonly estadoDropdownAbierto: Record<number, boolean> = {};
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
@@ -208,6 +209,18 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   getClaseAlerta(): string {
     return '';
+  }
+
+  onEstadoDropdownOpen(nodoId: number): void {
+    this.estadoDropdownAbierto[nodoId] = true;
+  }
+
+  onEstadoDropdownClose(nodoId: number): void {
+    this.estadoDropdownAbierto[nodoId] = false;
+  }
+
+  isEstadoDropdownAbierto(nodoId: number): boolean {
+    return !!this.estadoDropdownAbierto[nodoId];
   }
 
   getCostoDependenciaActividad(nodoId: number): number {
@@ -496,7 +509,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   getComentariosActividad(nodoId: number): ComentarioAdicionalActividad[] {
-    return (this.comentariosAdicionalesActividad || []).filter(comentario => comentario.actividadId === nodoId);
+    return (this.comentariosAdicionalesActividad || []).filter((comentario) => Number(comentario.actividadId) === Number(nodoId));
   }
 
   agregarComentarioActividad(nodo: FlujoNodo): void {
