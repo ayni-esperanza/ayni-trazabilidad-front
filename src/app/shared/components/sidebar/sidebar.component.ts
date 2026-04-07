@@ -8,7 +8,7 @@ import { AlertasActividadesService, AlertaActividadGlobal } from '../../../core/
 import { filter } from 'rxjs/operators';
 
 interface MenuItem {
-  icon: string;
+  icon: 'dashboard' | 'requests' | 'stats' | 'reports' | 'users';
   label: string;
   route: string;
 }
@@ -110,11 +110,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   menuItems: MenuItem[] = [
-    { icon: '📊', label: 'Tablero de control', route: '/tablero-control' },
-    { icon: '📝', label: 'Registro de solicitudes', route: '/registro-solicitudes' },
-    { icon: '📈', label: 'Estadísticas e indicadores', route: '/estadisticas-indicadores' },
-    { icon: '📄', label: 'Informes y evidencias', route: '/informes-evidencias' },
-    { icon: '👥', label: 'Gestión de usuarios', route: '/gestion-usuarios' }
+    { icon: 'dashboard', label: 'Tablero de control', route: '/tablero-control' },
+    { icon: 'requests', label: 'Registro de solicitudes', route: '/registro-solicitudes' },
+    { icon: 'stats', label: 'Estadísticas e indicadores', route: '/estadisticas-indicadores' },
+    { icon: 'reports', label: 'Informes y evidencias', route: '/informes-evidencias' },
+    { icon: 'users', label: 'Gestión de usuarios', route: '/gestion-usuarios' }
   ];
 
   toggleSidebar(): void {

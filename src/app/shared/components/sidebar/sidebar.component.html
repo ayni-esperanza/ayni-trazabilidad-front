@@ -52,8 +52,36 @@
             @if (isActiveRoute(item.route)) {
               <span class="absolute left-0 top-0 h-full w-1 bg-green-500 animate-slide-in"></span>
             }
-            <span class="text-lg flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                  [class.animate-bounce-subtle]="isActiveRoute(item.route)">{{ item.icon }}</span>
+            <span class="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
+                  [class.animate-bounce-subtle]="isActiveRoute(item.route)">
+              @switch (item.icon) {
+                @case ('dashboard') {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                  </svg>
+                }
+                @case ('requests') {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                }
+                @case ('stats') {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7" />
+                  </svg>
+                }
+                @case ('reports') {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h6m-6 0l2-2m-2 2l2 2M7 7h10a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" />
+                  </svg>
+                }
+                @case ('users') {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                }
+              }
+            </span>
             @if (isExpanded()) {
               <span class="text-xs font-medium truncate transition-all duration-200">{{ item.label }}</span>
             }
@@ -71,7 +99,17 @@
       class="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
       [class.justify-center]="!isExpanded()"
       [attr.aria-label]="themeService.isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
-      <span class="text-lg">{{ themeService.isDarkMode() ? '☀️' : '🌙' }}</span>
+      <span class="flex-shrink-0">
+        @if (themeService.isDarkMode()) {
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m7-9h2M3 12H5m11.364 6.364l1.414 1.414M6.222 6.222l1.414 1.414m8.728 0 1.414-1.414M6.222 17.778l1.414-1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
+          </svg>
+        } @else {
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+          </svg>
+        }
+      </span>
       @if (isExpanded()) {
         <span class="text-xs font-medium">{{ themeService.isDarkMode() ? 'Modo Claro' : 'Modo Oscuro' }}</span>
       }
@@ -90,7 +128,11 @@
           'text-amber-700': mostrarModalAlertas(),
           'dark:text-amber-300': mostrarModalAlertas()
         }">
-        <span class="text-lg">🔔</span>
+        <span class="flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </span>
         @if (!isExpanded() && alertasPendientes() > 0) {
           <span class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
             {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
