@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, AfterViewInit, OnChanges, OnDes
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto } from '../../../../models/solicitud.model';
+import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto, OrdenCompra } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
 import { firstValueFrom } from 'rxjs';
@@ -22,6 +22,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Input() proyectoCancelado = false;
   @Input() actividadModalAbierta = false;
   @Input() flujoNodos: FlujoNodo[] = [];
+  @Input() ordenesCompra: OrdenCompra[] = [];
   @Input() comentariosAdicionalesActividad: ComentarioAdicionalActividad[] = [];
   @Input() costosMateriales: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
   @Input() costosManoObra: Array<{ dependenciaActividadId?: number | null; costoTotal: number }> = [];
@@ -140,6 +141,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   puedeAbrirNodo(nodo: FlujoNodo): boolean {
     return nodo.tipo === 'tarea'
+      && !this.esNodoOrdenCompra(nodo)
       && !this.proyectoFinalizado
       && !this.proyectoCancelado
       && !this.actividadModalAbierta;
@@ -159,6 +161,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
+    if (this.esNodoOrdenCompra(nodo)) return 'Completado';
     return nodo.estadoActividad || 'Pendiente';
   }
 
@@ -168,7 +171,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   onCambiarEstadoActividad(nodo: FlujoNodo, cambio: EstadoTarea | Event): void {
-    if (nodo.tipo !== 'tarea' || this.proyectoFinalizado || this.proyectoCancelado) return;
+    if (nodo.tipo !== 'tarea' || this.esNodoOrdenCompra(nodo) || this.proyectoFinalizado || this.proyectoCancelado) return;
 
     const nuevoEstado = typeof cambio === 'string'
       ? cambio
@@ -777,14 +780,28 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return comentario.id;
   }
 
+  esNodoOrdenCompra(nodo: FlujoNodo): boolean {
+    return !!(nodo as any)?.esOrdenCompra;
+  }
+
   get flujoTimeline(): FlujoNodo[] {
     try {
       const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
       const nodos = nodosBase.filter((nodo): nodo is FlujoNodo => !!nodo && typeof nodo === 'object');
+      const nodosOrdenCompra = this.mapearOrdenesCompraANodos();
+      const direction = this.ordenRecientePrimero ? -1 : 1;
 
-      return nodos
-        .filter((nodo) => nodo.tipo !== 'inicio')
-        .sort((a, b) => this.ordenRecientePrimero ? (b.id - a.id) : (a.id - b.id));
+      return [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
+        .sort((a, b) => {
+          const fechaA = this.obtenerSortFechaNodo(a);
+          const fechaB = this.obtenerSortFechaNodo(b);
+
+          if (fechaA !== fechaB) {
+            return (fechaA - fechaB) * direction;
+          }
+
+          return (a.id - b.id) * direction;
+        });
     } catch {
       return [];
     }
@@ -795,6 +812,73 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const date = new Date(value);
     const time = date.getTime();
     return Number.isNaN(time) ? 0 : time;
+  }
+
+  private mapearOrdenesCompraANodos(): FlujoNodo[] {
+    return (this.ordenesCompra || [])
+      .map((orden, index) => {
+        const numero = (orden.numero || '').trim();
+        const fecha = (orden.fecha || '').trim();
+        const tipo = (orden.tipo || 'OTROS').trim();
+        const numeroLicitacion = (orden.numeroLicitacion || '').trim();
+        const numeroSolicitud = (orden.numeroSolicitud || '').trim();
+        const total = Number(orden.total || 0);
+
+        if (!numero && !fecha && total <= 0) return null;
+
+        const clave = `${orden.id || 0}|${numero}|${fecha}|${tipo}|${numeroLicitacion}|${numeroSolicitud}|${total}`;
+        const idBase = Number(orden.id || 0) > 0
+          ? Number(orden.id || 0)
+          : this.hashOrdenCompra(clave) + index + 1;
+
+        const descripcion = [
+          `Orden de compra: ${numero || '-'} (${tipo || 'OTROS'})`,
+          `N° licitacion: ${numeroLicitacion || '-'}`,
+          `N° solicitud: ${numeroSolicitud || '-'}`,
+          `Total sin IGV: S/ ${total.toFixed(2)}`
+        ].join('\n');
+
+        return {
+          id: -(100000 + idBase),
+          nombre: `Orden de compra ${numero || `#${index + 1}`}`,
+          tipo: 'tarea' as const,
+          estadoActividad: 'Completado' as EstadoTarea,
+          fechaCambioEstado: fecha || undefined,
+          fechaInicio: fecha || undefined,
+          fechaFin: fecha || undefined,
+          descripcion,
+          siguientesIds: [],
+          responsableNombre: 'Compras',
+          esOrdenCompra: true,
+          ordenCompraMeta: {
+            ...orden,
+            numero,
+            tipo,
+            numeroLicitacion,
+            numeroSolicitud,
+            total
+          }
+        } as FlujoNodo;
+      })
+      .filter((nodo): nodo is FlujoNodo => !!nodo);
+  }
+
+  private hashOrdenCompra(value: string): number {
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash % 89999);
+  }
+
+  private obtenerSortFechaNodo(nodo: FlujoNodo): number {
+    const fecha = this.esNodoOrdenCompra(nodo)
+      ? this.parseFechaComentario(nodo.fechaInicio)
+      : (this.parseFechaComentario(nodo.fechaCambioEstado) || this.parseFechaComentario(nodo.fechaInicio));
+
+    if (fecha) return fecha;
+    return Math.abs(Number(nodo.id || 0));
   }
 
   private emitirComentariosActualizados(): void {

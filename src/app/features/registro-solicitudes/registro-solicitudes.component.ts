@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
-import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea } from './models/solicitud.model';
+import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea, OrdenCompra } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { forkJoin } from 'rxjs';
@@ -432,10 +432,24 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   getFlujoTimeline(solicitudId: number | undefined): FlujoNodo[] {
-    const nodos = this.getFlujoNodos(solicitudId);
-    return nodos
-      .filter((nodo) => nodo.tipo !== 'inicio')
-      .sort((a, b) => b.id - a.id);
+    const nodos = this.getFlujoNodos(solicitudId).filter((nodo) => nodo.tipo !== 'inicio');
+    const proyecto = this.proyectos.find((item) => item.solicitudId === solicitudId);
+    const nodosOrdenCompra = this.mapearOrdenesCompraTimeline(proyecto?.ordenesCompra || []);
+
+    return [...nodos, ...nodosOrdenCompra].sort((a, b) => {
+      const fechaA = this.getTimelineNodeSortValue(a);
+      const fechaB = this.getTimelineNodeSortValue(b);
+
+      if (fechaA !== fechaB) {
+        return fechaB - fechaA;
+      }
+
+      return b.id - a.id;
+    });
+  }
+
+  esNodoOrdenCompraTimeline(nodo: FlujoNodo): boolean {
+    return !!(nodo as any)?.esOrdenCompra;
   }
 
   getSiguientesNombres(nodos: FlujoNodo[], nodo: FlujoNodo): string {
@@ -448,6 +462,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   getComentariosActividadTimeline(solicitudId: number | undefined, actividadId: number): ComentarioAdicionalActividad[] {
     if (!solicitudId || !actividadId) return [];
+    if (actividadId < 0) return [];
 
     const proyecto = this.proyectos.find((p) => p.solicitudId === solicitudId);
     return (proyecto?.comentariosAdicionalesActividad || [])
@@ -471,6 +486,9 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   getEstadoTareaTimeline(nodo: FlujoNodo): EstadoTarea {
+    if (this.esNodoOrdenCompraTimeline(nodo)) {
+      return 'Completado';
+    }
     return (nodo.estadoActividad || 'Pendiente') as EstadoTarea;
   }
 
@@ -487,6 +505,9 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   getRangoFechasTareaTimeline(nodo: FlujoNodo): string {
     const inicio = (nodo.fechaInicio || '').toString().trim();
+    if (this.esNodoOrdenCompraTimeline(nodo)) {
+      return inicio ? `Fecha OC: ${inicio}` : 'Fecha OC no registrada';
+    }
     if (inicio) return inicio;
     return 'Sin fecha asignada';
   }
@@ -606,5 +627,52 @@ export class RegistroSolicitudesComponent implements OnInit {
     if (!value) return undefined;
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+
+  private mapearOrdenesCompraTimeline(ordenes: OrdenCompra[]): FlujoNodo[] {
+    return (ordenes || [])
+      .map((orden, index) => {
+        const numero = (orden.numero || '').trim();
+        const fecha = (orden.fecha || '').trim();
+        const tipo = (orden.tipo || 'OTROS').trim();
+        const numeroLicitacion = (orden.numeroLicitacion || '').trim();
+        const numeroSolicitud = (orden.numeroSolicitud || '').trim();
+        const total = Number(orden.total || 0);
+
+        if (!numero && !fecha && total <= 0) return null;
+
+        const identificador = Number(orden.id || 0) > 0
+          ? Number(orden.id || 0)
+          : (index + 1);
+
+        const descripcion = [
+          `Orden de compra: ${numero || '-'}`,
+          `Tipo: ${tipo || 'OTROS'}`,
+          `N° licitacion: ${numeroLicitacion || '-'}`,
+          `N° solicitud: ${numeroSolicitud || '-'}`,
+          `Total sin IGV: S/ ${total.toFixed(2)}`
+        ].join(' | ');
+
+        return {
+          id: -(100000 + identificador),
+          nombre: `Orden de compra ${numero || `#${index + 1}`}`,
+          tipo: 'tarea' as const,
+          estadoActividad: 'Completado' as EstadoTarea,
+          fechaInicio: fecha || undefined,
+          fechaFin: fecha || undefined,
+          fechaCambioEstado: fecha || undefined,
+          responsableNombre: 'Compras',
+          descripcion,
+          siguientesIds: [],
+          esOrdenCompra: true
+        } as FlujoNodo;
+      })
+      .filter((nodo): nodo is FlujoNodo => !!nodo);
+  }
+
+  private getTimelineNodeSortValue(nodo: FlujoNodo): number {
+    const fecha = this.toDate(nodo.fechaCambioEstado || nodo.fechaInicio)?.getTime();
+    if (fecha && !Number.isNaN(fecha)) return fecha;
+    return Math.abs(Number(nodo.id || 0));
   }
 }

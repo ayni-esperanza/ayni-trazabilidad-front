@@ -227,19 +227,27 @@
                         @for (nodo of getFlujoTimeline(solicitud.id); track nodo.id) {
                           <article class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2 ml-2 timeline-node-item">
                             <div class="absolute -left-[14px] top-3 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900"
-                              [ngClass]="nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500'"></div>
-                            <div class="text-[10px] font-semibold text-gray-700 dark:text-gray-200 truncate">
-                              {{ nodo.nombre }}
+                              [ngClass]="esNodoOrdenCompraTimeline(nodo) ? 'bg-amber-500' : (nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500')"></div>
+                            <div class="text-[10px] font-semibold text-gray-700 dark:text-gray-200 truncate flex items-center gap-1">
+                              <span>{{ nodo.nombre }}</span>
+                              @if (esNodoOrdenCompraTimeline(nodo)) {
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">OC</span>
+                              }
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
-                              {{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}
+                              {{ esNodoOrdenCompraTimeline(nodo) ? 'Compras' : (nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap">
                               <span class="truncate">{{ getRangoFechasTareaTimeline(nodo) }}</span>
                               <span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold" [ngClass]="getEstadoTareaClass(getEstadoTareaTimeline(nodo))">
-                                {{ getEstadoTareaTimeline(nodo) }}
+                                {{ esNodoOrdenCompraTimeline(nodo) ? 'Registrada' : getEstadoTareaTimeline(nodo) }}
                               </span>
                             </div>
+                            @if (esNodoOrdenCompraTimeline(nodo) && nodo.descripcion) {
+                              <div class="mt-1 text-[10px] text-amber-700 dark:text-amber-300">
+                                {{ nodo.descripcion }}
+                              </div>
+                            }
                             @if ((nodo.adjuntos || []).length > 0) {
                               <div class="mt-1.5 space-y-1">
                                 <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">Documentos de actividad</p>
