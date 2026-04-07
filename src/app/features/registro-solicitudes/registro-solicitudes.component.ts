@@ -433,29 +433,9 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   getFlujoTimeline(solicitudId: number | undefined): FlujoNodo[] {
     const nodos = this.getFlujoNodos(solicitudId);
-    if (nodos.length <= 1) return nodos.filter(n => n.tipo !== 'inicio');
-
-    const porId = new Map(nodos.map(n => [n.id, n]));
-    const inicio = nodos.find(n => n.tipo === 'inicio');
-    const visitados = new Set<number>();
-    const ordenados: FlujoNodo[] = [];
-
-    const visitar = (nodo: FlujoNodo): void => {
-      if (visitados.has(nodo.id)) return;
-      visitados.add(nodo.id);
-      ordenados.push(nodo);
-      for (const siguienteId of nodo.siguientesIds) {
-        const siguiente = porId.get(siguienteId);
-        if (siguiente) visitar(siguiente);
-      }
-    };
-
-    if (inicio) visitar(inicio);
-    for (const nodo of nodos) {
-      if (!visitados.has(nodo.id)) visitar(nodo);
-    }
-
-    return ordenados.filter(n => n.tipo !== 'inicio');
+    return nodos
+      .filter((nodo) => nodo.tipo !== 'inicio')
+      .sort((a, b) => b.id - a.id);
   }
 
   getSiguientesNombres(nodos: FlujoNodo[], nodo: FlujoNodo): string {
@@ -470,7 +450,18 @@ export class RegistroSolicitudesComponent implements OnInit {
     if (!solicitudId || !actividadId) return [];
 
     const proyecto = this.proyectos.find((p) => p.solicitudId === solicitudId);
-    return (proyecto?.comentariosAdicionalesActividad || []).filter((comentario) => comentario.actividadId === actividadId);
+    return (proyecto?.comentariosAdicionalesActividad || [])
+      .filter((comentario) => comentario.actividadId === actividadId)
+      .sort((a, b) => {
+        const fechaA = this.toDate(a.fechaComentario)?.getTime() || 0;
+        const fechaB = this.toDate(b.fechaComentario)?.getTime() || 0;
+
+        if (fechaA !== fechaB) {
+          return fechaB - fechaA;
+        }
+
+        return b.id - a.id;
+      });
   }
 
   getAdjuntoUrl(adjunto: FlujoAdjunto): string | null {

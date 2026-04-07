@@ -30,6 +30,27 @@
 
     <button
       type="button"
+      (click)="alternarOrdenFlujo()"
+      class="inline-flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-200 ease-out hover:-translate-y-[1px]"
+      [ngClass]="ordenRecientePrimero
+        ? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+      [attr.aria-label]="ordenRecientePrimero ? 'Cambiar a antiguos primero' : 'Cambiar a recientes primero'"
+      title="Cambiar orden">
+      <svg
+        class="w-3.5 h-3.5 transition-transform duration-200"
+        [ngClass]="{ 'rotate-180': !ordenRecientePrimero }"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 12h8m-8 5h4M4 4v16m0 0l-2-2m2 2l2-2"/>
+      </svg>
+      <span class="sr-only">{{ ordenRecientePrimero ? 'Recientes primero' : 'Antiguos primero' }}</span>
+    </button>
+
+    <button
+      type="button"
       (click)="crearNuevaActividad()"
       [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
       class="px-2.5 py-1 text-[10px] font-semibold rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">

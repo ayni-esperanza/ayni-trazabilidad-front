@@ -34,6 +34,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() bloqueoEdicionActividadesChange = new EventEmitter<boolean>();
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
+  ordenRecientePrimero = true;
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
   private readonly maxImagenBytes = 5 * 1024 * 1024;
@@ -151,6 +152,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   cambiarVistaFlujo(vista: 'timeline' | 'tabla'): void {
     this.vistaFlujo = vista;
+  }
+
+  alternarOrdenFlujo(): void {
+    this.ordenRecientePrimero = !this.ordenRecientePrimero;
   }
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
@@ -509,7 +514,21 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   getComentariosActividad(nodoId: number): ComentarioAdicionalActividad[] {
-    return (this.comentariosAdicionalesActividad || []).filter((comentario) => Number(comentario.actividadId) === Number(nodoId));
+    return (this.comentariosAdicionalesActividad || [])
+      .map((comentario, index) => ({ comentario, index }))
+      .filter((item) => Number(item.comentario.actividadId) === Number(nodoId))
+      .sort((a, b) => {
+        const fechaA = this.parseFechaComentario(a.comentario.fechaComentario);
+        const fechaB = this.parseFechaComentario(b.comentario.fechaComentario);
+        const direction = this.ordenRecientePrimero ? -1 : 1;
+
+        if (fechaA !== fechaB) {
+          return (fechaA - fechaB) * direction;
+        }
+
+        return (a.index - b.index) * direction;
+      })
+      .map((item) => item.comentario);
   }
 
   agregarComentarioActividad(nodo: FlujoNodo): void {
@@ -763,34 +782,19 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
       const nodos = nodosBase.filter((nodo): nodo is FlujoNodo => !!nodo && typeof nodo === 'object');
 
-      if (nodos.length <= 1) return nodos.filter(n => n.tipo !== 'inicio');
-
-      const porId = new Map(nodos.map(n => [n.id, n]));
-      const inicio = nodos.find(n => n.tipo === 'inicio');
-      const visitados = new Set<number>();
-      const ordenados: FlujoNodo[] = [];
-
-      const visitar = (nodo: FlujoNodo): void => {
-        if (visitados.has(nodo.id)) return;
-        visitados.add(nodo.id);
-        ordenados.push(nodo);
-
-        const siguientes = Array.isArray(nodo.siguientesIds) ? nodo.siguientesIds : [];
-        for (const siguienteId of siguientes) {
-          const siguiente = porId.get(siguienteId);
-          if (siguiente) visitar(siguiente);
-        }
-      };
-
-      if (inicio) visitar(inicio);
-      for (const nodo of nodos) {
-        if (!visitados.has(nodo.id)) visitar(nodo);
-      }
-
-      return ordenados.filter(n => n.tipo !== 'inicio');
+      return nodos
+        .filter((nodo) => nodo.tipo !== 'inicio')
+        .sort((a, b) => this.ordenRecientePrimero ? (b.id - a.id) : (a.id - b.id));
     } catch {
       return [];
     }
+  }
+
+  private parseFechaComentario(value?: string): number {
+    if (!value) return 0;
+    const date = new Date(value);
+    const time = date.getTime();
+    return Number.isNaN(time) ? 0 : time;
   }
 
   private emitirComentariosActualizados(): void {
