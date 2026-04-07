@@ -183,34 +183,76 @@
           </button>
         </div>
         <div class="space-y-1.5">
-          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra; let i = index" class="flex items-center gap-2">
-            <div class="grid grid-cols-6 gap-2 flex-1">
-              <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
-                class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
-              <select [(ngModel)]="oc.tipo"
-                class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-                <option *ngFor="let tipo of tiposOrdenCompra" [ngValue]="tipo">{{ tipo }}</option>
-              </select>
-              <input type="text" [(ngModel)]="oc.numeroLicitacion" placeholder="Nº de licitación (opcional)"
-                class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
-              <input type="text" [(ngModel)]="oc.numeroSolicitud" placeholder="Nº de solicitud (opcional)"
-                class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
-              <app-date-picker
-                class="w-full"
-                [value]="oc.fecha"
-                (valueChange)="oc.fecha = $event"
-                [inputClass]="'w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
-              </app-date-picker>
-              <input type="number" [(ngModel)]="oc.total" min="0" step="0.01" placeholder="Total sin IGV"
-                (focus)="oc.total === 0 ? oc.total = undefined : null"
-                class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra; let i = index" class="flex items-start gap-3">
+            <div class="flex-1 space-y-1.5">
+              <div class="grid grid-cols-6 gap-2">
+                <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <select [(ngModel)]="oc.tipo"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
+                  <option *ngFor="let tipo of tiposOrdenCompra" [ngValue]="tipo">{{ tipo }}</option>
+                </select>
+                <input type="text" [(ngModel)]="oc.numeroLicitacion" placeholder="Nº de licitación (opcional)"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <input type="text" [(ngModel)]="oc.numeroSolicitud" placeholder="Nº de solicitud (opcional)"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                <app-date-picker
+                  class="w-full"
+                  [value]="oc.fecha"
+                  (valueChange)="oc.fecha = $event"
+                  [inputClass]="'w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                </app-date-picker>
+                <input type="number" [(ngModel)]="oc.total" min="0" step="0.01" placeholder="Total sin IGV"
+                  (focus)="oc.total === 0 ? oc.total = undefined : null"
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+              </div>
+              <div class="flex items-start gap-2 flex-wrap" *ngIf="(oc.adjuntos || []).length > 0">
+                <div class="flex flex-wrap gap-1">
+                  <div *ngFor="let adjunto of (oc.adjuntos || []); let adjIndex = index"
+                    class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 max-w-full">
+                    <span class="truncate text-[10px] max-w-40" [title]="adjunto.nombre">{{ adjunto.nombre }}</span>
+                    <button type="button" (click)="verAdjuntoOrdenCompra(adjunto)" title="Ver archivo" aria-label="Ver archivo"
+                      class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300">
+                      <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                    </button>
+                    <button type="button" (click)="descargarAdjuntoOrdenCompra(adjunto)" title="Descargar archivo" aria-label="Descargar archivo"
+                      class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300">
+                      <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                      </svg>
+                    </button>
+                    <button type="button" (click)="eliminarAdjuntoOrdenCompra(i, adjIndex)" title="Quitar archivo" aria-label="Quitar archivo"
+                      class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300">
+                      <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button type="button" (click)="eliminarOrdenCompra(i, $event)"
-              class="flex-shrink-0 text-red-400 hover:text-red-600 p-0.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
+            <div class="flex-shrink-0 h-[38px] flex items-center gap-2 self-start">
+              <label
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                title="Subir archivo">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 8l4-4m0 0l4 4m-4-4v12"/>
+                </svg>
+                <input type="file" class="hidden" [accept]="acceptTiposArchivo" multiple (change)="onSeleccionarAdjuntosOrdenCompra($event, i)">
+              </label>
+
+              <button type="button" (click)="eliminarOrdenCompra(i, $event)"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                title="Eliminar orden de compra">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="text-xs text-gray-400 dark:text-gray-500 italic">Sin órdenes de compra</p>
         </div>
@@ -226,6 +268,28 @@
             <span class="text-gray-600 dark:text-gray-300">{{ oc.numeroSolicitud || '—' }}</span>
             <span class="text-gray-500 dark:text-gray-400 text-xs">{{ oc.fecha ? (oc.fecha | date:'dd/MM/yyyy') : '—' }}</span>
             <span class="text-blue-600 dark:text-blue-400 font-semibold text-right">{{ (oc.total ?? 0) | currency:'S/ ' }}</span>
+            <div class="col-span-6" *ngIf="(oc.adjuntos || []).length > 0">
+              <div class="flex flex-wrap gap-1 mt-1">
+                <div *ngFor="let adjunto of (oc.adjuntos || [])"
+                  class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 max-w-full">
+                  <span class="truncate text-[10px] max-w-40" [title]="adjunto.nombre">{{ adjunto.nombre }}</span>
+                  <button type="button" (click)="verAdjuntoOrdenCompra(adjunto)" title="Ver archivo" aria-label="Ver archivo"
+                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300">
+                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  </button>
+                  <button type="button" (click)="descargarAdjuntoOrdenCompra(adjunto)" title="Descargar archivo" aria-label="Descargar archivo"
+                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300">
+                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded">—</p>

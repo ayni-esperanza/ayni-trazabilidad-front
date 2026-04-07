@@ -629,6 +629,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     return Number.isNaN(date.getTime()) ? undefined : date;
   }
 
+
   private mapearOrdenesCompraTimeline(ordenes: OrdenCompra[]): FlujoNodo[] {
     return (ordenes || [])
       .map((orden, index) => {
@@ -663,6 +664,7 @@ export class RegistroSolicitudesComponent implements OnInit {
           fechaCambioEstado: fecha || undefined,
           responsableNombre: 'Compras',
           descripcion,
+          adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),
           siguientesIds: [],
           esOrdenCompra: true
         } as FlujoNodo;

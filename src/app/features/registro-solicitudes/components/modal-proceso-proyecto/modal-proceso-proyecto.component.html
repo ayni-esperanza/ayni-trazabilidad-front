@@ -49,7 +49,7 @@
         <button
           *ngIf="tabActiva === 'informacion' && !modoSoloLectura"
           (click)="guardarInfoProyecto()"
-          [disabled]="!hayCambiosInformacion || guardandoInfo"
+          [disabled]="!tieneCambiosInformacion() || guardandoInfo"
           class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
           {{ guardandoInfo ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
@@ -69,7 +69,7 @@
           Cancelar Proyecto
         </button>
         <button
-          *ngIf="tabActiva === 'costos' && !modoSoloLectura && hayCambiosCostos"
+          *ngIf="tabActiva === 'costos' && !modoSoloLectura && tieneCambiosCostos()"
           (click)="guardarCostosProyecto()"
           [disabled]="sincronizandoCostos"
           class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -483,7 +483,7 @@
         </button>
         <!-- Botón Guardar Cambios (tab información) -->
         <button *ngIf="tabActiva === 'informacion' && !modoSoloLectura" (click)="guardarInfoProyecto()"
-          [disabled]="!hayCambiosInformacion || guardandoInfo"
+          [disabled]="!tieneCambiosInformacion() || guardandoInfo"
           class="px-3 py-1.5 text-sm text-white bg-green-500 rounded hover:bg-green-600 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>

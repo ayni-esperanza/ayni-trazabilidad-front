@@ -105,6 +105,62 @@ export class TabInformacionComponent implements OnInit {
     this.proyectoInfoForm.ordenesCompra = ordenes.filter((_, i) => i !== index);
   }
 
+  async onSeleccionarAdjuntosOrdenCompra(event: Event, index: number): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files?.length) return;
+
+    const ordenes = this.proyectoInfoForm.ordenesCompra || [];
+    const orden = ordenes[index];
+    if (!orden) return;
+
+    const nuevosAdjuntos: FlujoAdjunto[] = [];
+    for (const file of Array.from(files)) {
+      nuevosAdjuntos.push({
+        nombre: file.name,
+        tipo: file.type || 'application/octet-stream',
+        tamano: file.size,
+        archivo: file,
+        dataUrl: await this.leerArchivoComoDataUrl(file)
+      });
+    }
+
+    orden.adjuntos = [...(orden.adjuntos || []), ...nuevosAdjuntos];
+    input.value = '';
+  }
+
+  eliminarAdjuntoOrdenCompra(ordenIndex: number, adjuntoIndex: number): void {
+    const orden = (this.proyectoInfoForm.ordenesCompra || [])[ordenIndex];
+    if (!orden?.adjuntos) return;
+    orden.adjuntos = orden.adjuntos.filter((_, i) => i !== adjuntoIndex);
+  }
+
+  verAdjuntoOrdenCompra(adjunto: FlujoAdjunto): void {
+    if (!this.isBrowser) return;
+    const url = this.obtenerUrlAdjunto(adjunto);
+    if (!url) return;
+
+    const nuevaVentana = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!nuevaVentana && adjunto.archivo) {
+      window.URL.revokeObjectURL(url);
+    }
+  }
+
+  descargarAdjuntoOrdenCompra(adjunto: FlujoAdjunto): void {
+    if (!this.isBrowser) return;
+    const url = this.obtenerUrlAdjunto(adjunto);
+    if (!url) return;
+
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = adjunto.nombre || 'adjunto';
+    enlace.click();
+
+    if (adjunto.archivo && !adjunto.dataUrl) {
+      window.URL.revokeObjectURL(url);
+    }
+  }
+
   getResponsableNombre(responsableId: number): string {
     const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';
@@ -270,6 +326,14 @@ export class TabInformacionComponent implements OnInit {
       reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
       reader.readAsDataURL(file);
     });
+  }
+
+  private obtenerUrlAdjunto(adjunto: FlujoAdjunto): string | null {
+    if (adjunto.dataUrl) return adjunto.dataUrl;
+    if (adjunto.archivo && this.isBrowser) {
+      return window.URL.createObjectURL(adjunto.archivo);
+    }
+    return null;
   }
 
 }

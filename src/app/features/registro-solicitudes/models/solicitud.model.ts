@@ -9,6 +9,7 @@ export interface OrdenCompra {
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  adjuntos?: FlujoAdjunto[];
 }
 
 export interface FlujoAdjunto {

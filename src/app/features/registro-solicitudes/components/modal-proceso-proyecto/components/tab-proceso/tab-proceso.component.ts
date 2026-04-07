@@ -847,6 +847,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
           fechaInicio: fecha || undefined,
           fechaFin: fecha || undefined,
           descripcion,
+          adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),
           siguientesIds: [],
           responsableNombre: 'Compras',
           esOrdenCompra: true,

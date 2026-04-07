@@ -577,7 +577,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           tipo,
           numeroLicitacion: licitacion,
           numeroSolicitud: solicitud,
-          total
+          total,
+          adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
         });
       }
     }
@@ -1075,6 +1076,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.guardandoInfo = true;
 
     const ordenesActualizadas = this.normalizarOrdenesCompraLocales(this.proyectoInfoForm.ordenesCompra || []);
+    const indiceAdjuntos = this.crearIndiceAdjuntosOrdenCompra(ordenesActualizadas);
 
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
@@ -1098,8 +1100,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
     this.sincronizarOrdenesCompraProyecto(ordenesActualizadas).subscribe({
       next: (ordenesPersistidas) => {
-        this.proyectoInfoForm.ordenesCompra = ordenesPersistidas;
-        this.proyecto!.ordenesCompra = [...ordenesPersistidas];
+        const ordenesConAdjuntos = ordenesPersistidas.map((orden) => ({
+          ...orden,
+          adjuntos: (indiceAdjuntos.get(this.generarClaveOrdenCompra(orden)) || []).map((adjunto) => ({ ...adjunto }))
+        }));
+
+        this.proyectoInfoForm.ordenesCompra = ordenesConAdjuntos;
+        this.proyecto!.ordenesCompra = [...ordenesConAdjuntos];
         this.snapshotInfoBase = this.crearSnapshotInformacionActual();
         this.marcarActualizacionProyecto();
         this.infoActualizada.emit({
@@ -1762,7 +1769,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (!porNombre.size) {
       return of(void 0);
     }
-
     return this.registroSolicitudesService.obtenerCategoriasAdicionales(proyectoId).pipe(
       switchMap((persistidas) => {
         const porNombrePersistido = new Map<string, CostoCategoriaAdicionalApi>();
@@ -1812,12 +1818,42 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     );
   }
 
+  private crearIndiceAdjuntosOrdenCompra(ordenes: OrdenCompra[]): Map<string, FlujoAdjunto[]> {
+    const indice = new Map<string, FlujoAdjunto[]>();
+
+    for (const orden of ordenes || []) {
+      const clave = this.generarClaveOrdenCompra(orden);
+      indice.set(clave, (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })));
+    }
+
+    return indice;
+  }
+
+  private generarClaveOrdenCompra(orden: OrdenCompra): string {
+    return [
+      (orden.numero || '').trim(),
+      (orden.fecha || '').trim(),
+      this.normalizarTipoOrdenCompra(orden.tipo),
+      (orden.numeroLicitacion || '').trim(),
+      (orden.numeroSolicitud || '').trim(),
+      Number(orden.total || 0).toFixed(2)
+    ].join('|');
+  }
+
   get hayCambiosInformacion(): boolean {
     return this.crearSnapshotInformacionActual() !== this.snapshotInfoBase;
   }
 
   get hayCambiosCostos(): boolean {
     return this.crearSnapshotCostosActual() !== this.snapshotCostosBase;
+  }
+
+  tieneCambiosInformacion(): boolean {
+    return this.hayCambiosInformacion;
+  }
+
+  tieneCambiosCostos(): boolean {
+    return this.hayCambiosCostos;
   }
 
   private crearSnapshotInformacionActual(): string {
