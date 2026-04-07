@@ -75,7 +75,7 @@
         <table class="w-full text-xs">
           <thead class="bg-gray-50 dark:bg-gray-800/60">
             <tr>
-              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Fecha</th>
+              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Fecha</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Nº Comprobante</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Producto</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-16">Cantidad</th>
@@ -88,11 +88,11 @@
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
             <tr *ngFor="let mat of materiales" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
-              <td class="py-1 px-1">
+              <td class="py-1 px-1 w-32">
                 <app-date-picker
                   [value]="mat.fecha"
                   (valueChange)="mat.fecha = $event; emitirCambios()"
-                  [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                  [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
                 </app-date-picker>
               </td>
               <td class="py-1 px-1">
@@ -260,7 +260,7 @@
             <table class="w-full text-xs">
               <thead class="bg-gray-50 dark:bg-gray-800/60">
                 <tr>
-                  <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Fecha</th>
+                  <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Fecha</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Descripción</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-16">Cantidad</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Unit.</th>
@@ -272,11 +272,11 @@
               </thead>
               <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                 <tr *ngFor="let item of tabla.items" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
-                  <td class="py-1 px-1">
+                  <td class="py-1 px-1 w-32">
                     <app-date-picker
                       [value]="item.fecha"
                       (valueChange)="item.fecha = $event; emitirCambios()"
-                      [inputClass]="'w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                      [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
                     </app-date-picker>
                   </td>
                   <td class="py-1 px-1">
