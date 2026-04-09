@@ -142,7 +142,7 @@
 
   <!-- Tabla de Usuarios -->
   <div
-    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+    class="bg-white dark:bg-[oklch(0.21_0.034_264.665)] rounded-2xl border border-gray-200 dark:border-[#1f3554] overflow-hidden relative shadow-sm">
     <!-- Loading overlay -->
     @if (cargando) {
     <div class="absolute inset-0 bg-white/70 dark:bg-gray-800/70 flex items-center justify-center z-10">
@@ -160,20 +160,20 @@
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="bg-gray-50 dark:bg-gray-800/60">
+        <thead class="bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
           <tr>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Foto</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Usuario</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Nombre</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Teléfono</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Email</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Rol</th>
-            <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Estado</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Foto</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Usuario</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Nombre</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Teléfono</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Email</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Rol</th>
+            <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Estado</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
           @for (usuario of usuarios; track usuario.id) {
-          <tr (click)="seleccionarUsuario(usuario)" class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
+          <tr (click)="seleccionarUsuario(usuario)" class="hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)] cursor-pointer transition-colors">
             <!-- Foto -->
             <td class="py-2 px-4">
               <div
@@ -190,10 +190,10 @@
             </td>
 
             <!-- Usuario -->
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ usuario.username }}</td>
+            <td class="py-2.5 px-4 text-gray-700 dark:text-[#e9f1ff] font-medium">{{ usuario.username }}</td>
 
             <!-- Nombre -->
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ usuario.nombre }} {{ usuario.apellido }}</td>
+            <td class="py-2.5 px-4 text-gray-700 dark:text-[#f5f9ff]">{{ usuario.nombre }} {{ usuario.apellido }}</td>
 
             <!-- Teléfono -->
             <td class="py-2 px-4">
@@ -212,10 +212,10 @@
             </td>
 
             <!-- Email -->
-            <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ usuario.email }}</td>
+            <td class="py-2.5 px-4 text-gray-700 dark:text-[#dbe7f8]">{{ usuario.email }}</td>
 
             <!-- Rol -->
-            <td class="py-2 px-4">
+            <td class="py-2.5 px-4">
               @for (rol of usuario.roles; track rol.id) {
               <span [class]="getRolClasses(rol.nombre)"
                 class="px-3 py-1 text-xs font-medium rounded-full uppercase tracking-wide">
@@ -225,7 +225,7 @@
             </td>
 
             <!-- Estado -->
-            <td class="py-2 px-4">
+            <td class="py-2.5 px-4">
               <span class="px-3 py-1 text-xs font-medium rounded-full"
                 [ngClass]="usuario.activo ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300'">
                 {{ usuario.activo ? 'Activo' : 'Inactivo' }}

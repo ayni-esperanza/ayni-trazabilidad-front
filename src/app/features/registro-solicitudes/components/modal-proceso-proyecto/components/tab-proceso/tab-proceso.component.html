@@ -298,24 +298,24 @@
   </div>
 </div>
 
-<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 animate-ui-in">
+<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-hidden bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
   <div class="overflow-x-auto">
     <table class="w-full text-xs">
-      <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800/80">
+      <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
         <tr>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Actividad</th>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Tipo</th>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Responsable</th>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Fecha de registro</th>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Ultima actualizacion</th>
-          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-gray-300">Estado</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Actividad</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Tipo</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Responsable</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Fecha de registro</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Ultima actualizacion</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Estado</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+      <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
         <tr *ngFor="let nodo of flujoTablaPaginada"
           (click)="abrirNodo(nodo)"
           [ngClass]="{
-            'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40': puedeAbrirNodo(nodo),
+            'cursor-pointer hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)]': puedeAbrirNodo(nodo),
             'bg-amber-50/70 dark:bg-amber-900/20': esNodoOrdenCompra(nodo)
           }">
           <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
