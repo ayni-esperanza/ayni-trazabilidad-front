@@ -1,10 +1,10 @@
-<div class="p-4 bg-gray-50 dark:bg-gray-900 h-screen flex flex-col overflow-hidden">
+<div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col overflow-y-auto">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4 h-10 flex-shrink-0">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Estadísticas e Indicadores</h1>
   </div>
   <!-- Filtros rápidos -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 mb-6" *ngIf="!proyectoSeleccionado && !responsableSeleccionado">
+  <div class="stats-card p-4 mb-6" *ngIf="!proyectoSeleccionado && !responsableSeleccionado">
     <div class="flex flex-wrap gap-3 items-center">
       <select
         [(ngModel)]="filtroCategoria"
@@ -20,7 +20,7 @@
   <div *ngIf="!proyectoSeleccionado && !responsableSeleccionado" class="flex-1 overflow-auto">
 
     <!-- Tabla de Responsables -->
-    <div *ngIf="filtroCategoria === 'responsables'" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+    <div *ngIf="filtroCategoria === 'responsables'" class="stats-card overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50 dark:bg-gray-800/60">
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Tabla de Proyectos -->
-    <div *ngIf="filtroCategoria === 'proyectos'" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden">
+    <div *ngIf="filtroCategoria === 'proyectos'" class="stats-card overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50 dark:bg-gray-800/60">
@@ -79,7 +79,7 @@
   <!-- Vista: Detalle del Proyecto -->
   <div *ngIf="proyectoSeleccionado" class="flex-1 overflow-auto space-y-4">
     <!-- Filtros rápidos con selector de proyecto -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 mb-6">
+    <div class="stats-card p-4 mb-6">
       <div class="flex flex-wrap gap-3 items-center">
         <select 
           class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white"
@@ -96,13 +96,13 @@
     </div>
 
     <!-- Grid principal de 2 columnas -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
       
       <!-- Columna izquierda: Info Proyecto + Tareas -->
-      <div class="flex flex-col gap-3 overflow-hidden">
+      <div class="flex flex-col gap-3 min-h-0">
         
         <!-- Info del Proyecto -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
+        <div class="stats-card p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
           [class.flex-1]="infoProyectoVisible"
           [class.h-12]="!infoProyectoVisible"
           [class.flex-shrink-0]="!infoProyectoVisible">
@@ -138,7 +138,7 @@
         </div>
 
         <!-- Tabla de Tareas -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
+        <div class="stats-card p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
           [class.flex-1]="tareasProyectoVisible"
           [class.h-12]="!tareasProyectoVisible"
           [class.flex-shrink-0]="!tareasProyectoVisible">
@@ -269,10 +269,10 @@
       </div>
       
       <!-- Columna derecha: ROI (Métricas + Gráfico unificados) -->
-      <div class="flex flex-col gap-3 overflow-hidden">
+      <div class="flex flex-col gap-3 min-h-0">
         
         <!-- Card unificada: ROI con Métricas y Gráfico -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5 transition-all overflow-hidden flex flex-col min-h-0 flex-1">
+        <div class="stats-card p-2.5 transition-all overflow-hidden flex flex-col min-h-0 flex-1">
           <!-- Header con título y botón de colapsar -->
           <div class="flex items-center justify-between flex-shrink-0" [class.mb-3]="kpisGraficoVisible">
             <h3 class="text-base font-semibold text-gray-800 dark:text-white">ROI del Proyecto</h3>
@@ -362,7 +362,7 @@
                   }
                 </div>
                 <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">Gráfico de barras y líneas</p>
-                <div class="flex justify-center">
+                <div class="flex justify-center overflow-x-auto">
                   <ngx-charts-bar-vertical
                     [view]="[320, 160]"
                     [scheme]="graficoSeleccionado === 'inversion' ? colorSchemeBlue : graficoSeleccionado === 'gasto' ? colorSchemeRed : colorScheme"
@@ -408,7 +408,7 @@
   <!-- Vista: Detalle del Responsable -->
   <div *ngIf="responsableSeleccionado" class="flex-1 overflow-auto space-y-4">
     <!-- Filtros rápidos con selector de responsable -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-4 mb-6">
+    <div class="stats-card p-4 mb-6">
       <div class="flex flex-wrap gap-3 items-center">
         <select 
           class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white min-w-[200px]"
@@ -425,7 +425,7 @@
     </div>
 
     <!-- Info del Responsable en header -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-3 mb-4">
+    <div class="stats-card p-3 mb-4">
       <h2 class="text-base font-semibold text-gray-800 dark:text-white">
         Nombre: <span class="font-normal">{{ responsableSeleccionado.nombre }}</span> · 
         Cargo: <span class="font-normal">{{ responsableSeleccionado.cargo }}</span> · 
@@ -439,7 +439,7 @@
       <div class="space-y-4 min-w-0 w-full h-full">
 
         <!-- Tabla: Participación en Proyectos -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
+        <div class="stats-card p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
           [class.flex-1]="participacionProyectosVisible"
           [class.h-12]="!participacionProyectosVisible"
           [class.flex-shrink-0]="!participacionProyectosVisible">
@@ -503,7 +503,7 @@
 
       <!-- Columna Derecha: Tareas Asignadas -->
       <div class="space-y-4 min-w-0 w-full h-full">
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
+        <div class="stats-card p-2.5 transition-all overflow-hidden flex flex-col min-h-0"
           [class.flex-1]="tareasAsignadasVisible"
           [class.h-12]="!tareasAsignadasVisible"
           [class.flex-shrink-0]="!tareasAsignadasVisible">
@@ -647,9 +647,9 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         <!-- Gráfico de Tareas Realizadas -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5">
+        <div class="stats-card p-2.5">
           <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Tareas Realizadas</h4>
-          <div class="flex justify-center">
+          <div class="flex justify-center overflow-x-auto">
             <ngx-charts-bar-horizontal
               [view]="[200, 60]"
               [scheme]="colorScheme"
@@ -672,9 +672,9 @@
         </div>
         
         <!-- Gráfico de Eficiencia -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5">
+        <div class="stats-card p-2.5">
           <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Eficiencia General (%)</h4>
-          <div class="flex justify-center">
+          <div class="flex justify-center overflow-x-auto">
             <ngx-charts-bar-horizontal
               [view]="[200, 60]"
               [scheme]="colorSchemeBlue"
@@ -697,9 +697,9 @@
         </div>
 
         <!-- Gráfico de Métricas Comparativas -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-2.5">
+        <div class="stats-card p-2.5">
           <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Métricas de Rendimiento (%)</h4>
-          <div class="flex justify-center">
+          <div class="flex justify-center overflow-x-auto">
             <ngx-charts-bar-horizontal
               [view]="[200, 110]"
               [scheme]="colorSchemePurple"
