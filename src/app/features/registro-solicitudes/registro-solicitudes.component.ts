@@ -449,7 +449,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         return fechaB - fechaA;
       }
 
-      return b.id - a.id;
+      return Math.abs(Number(b.id || 0)) - Math.abs(Number(a.id || 0));
     });
   }
 
@@ -748,8 +748,62 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   private getTimelineNodeSortValue(nodo: FlujoNodo): number {
-    const fecha = this.toDate(nodo.fechaCambioEstado || nodo.fechaInicio)?.getTime();
+    const fecha = this.getTimelineDateValue(nodo.fechaCambioEstado || nodo.fechaInicio);
     if (fecha && !Number.isNaN(fecha)) return fecha;
     return Math.abs(Number(nodo.id || 0));
+  }
+
+  private getTimelineDateValue(value?: Date | string): number {
+    if (!value) return 0;
+
+    if (value instanceof Date) {
+      const time = value.getTime();
+      return Number.isNaN(time) ? 0 : time;
+    }
+
+    const raw = String(value).trim();
+    if (!raw) return 0;
+
+    const yyyyMmDd = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (yyyyMmDd) {
+      const [, y, m, d] = yyyyMmDd;
+      const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+      const time = localDate.getTime();
+      return Number.isNaN(time) ? 0 : time;
+    }
+
+    const ddMmYyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (ddMmYyyy) {
+      const [, d, m, y, hh, mm, ss] = ddMmYyyy;
+      const localDate = new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        Number(hh || '0'),
+        Number(mm || '0'),
+        Number(ss || '0')
+      );
+      const time = localDate.getTime();
+      return Number.isNaN(time) ? 0 : time;
+    }
+
+    const yyyyMmDdLocalTime = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (yyyyMmDdLocalTime) {
+      const [, y, m, d, hh, mm, ss] = yyyyMmDdLocalTime;
+      const localDate = new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        Number(hh),
+        Number(mm),
+        Number(ss || '0')
+      );
+      const time = localDate.getTime();
+      return Number.isNaN(time) ? 0 : time;
+    }
+
+    const date = new Date(raw);
+    const time = date.getTime();
+    return Number.isNaN(time) ? 0 : time;
   }
 }
