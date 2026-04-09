@@ -230,10 +230,13 @@
       }
 
     </div>
+  </div>
 
+  <div class="mt-2">
     <app-paginacion
       [config]="paginacion"
       [opcionesPorPagina]="opcionesPorPagina"
+      [integradoEnTabla]="false"
       (cambioPagina)="onCambioPagina($event)"
       (cambioTamano)="onCambioTamano($event)">
     </app-paginacion>

@@ -249,9 +249,11 @@
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- Paginación -->
-    <app-paginacion [config]="paginacion" [opcionesPorPagina]="[100, 500, 1000]"
+  <!-- Paginación -->
+  <div class="mt-2">
+    <app-paginacion [config]="paginacion" [opcionesPorPagina]="[100, 500, 1000]" [integradoEnTabla]="false"
       (cambioPagina)="onCambioPagina($event)">
     </app-paginacion>
   </div>

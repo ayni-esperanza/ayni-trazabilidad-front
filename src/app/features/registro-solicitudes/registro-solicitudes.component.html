@@ -360,10 +360,13 @@
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- Paginación -->
+  <!-- Paginación -->
+  <div class="mt-2">
     <app-paginacion
       [config]="paginacionConfig"
+      [integradoEnTabla]="false"
       (cambioPagina)="onCambioPagina($event)"
       (cambioTamano)="onCambioTamano($event)">
     </app-paginacion>

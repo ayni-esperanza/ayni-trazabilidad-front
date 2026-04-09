@@ -33,6 +33,7 @@ export class PaginacionComponent {
   @Input() mostrarInfo = true;
   @Input() mostrarSelector = true;
   @Input() mostrarNavegacion = true;
+  @Input() integradoEnTabla = true;
   
   @Output() cambioPagina = new EventEmitter<CambioPaginaEvent>();
   @Output() cambioTamano = new EventEmitter<number>();

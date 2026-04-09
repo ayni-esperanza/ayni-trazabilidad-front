@@ -5,12 +5,14 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto, OrdenCompra } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
+import { PaginacionComponent } from '../../../../../../shared/components/paginacion/paginacion.component';
+import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy {
@@ -36,6 +38,13 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   ordenRecientePrimero = true;
+  paginacionTablaFlujo: PaginacionConfig = {
+    paginaActual: 0,
+    porPagina: 20,
+    totalElementos: 0,
+    totalPaginas: 0
+  };
+  readonly opcionesPorPaginaTablaFlujo = [20, 50, 100, 200];
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
   private readonly maxImagenBytes = 5 * 1024 * 1024;
@@ -107,6 +116,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
+    if (changes['flujoNodos'] || changes['ordenesCompra']) {
+      this.actualizarPaginacionTablaFlujo();
+    }
+
     if (!this.bpmnModeler) return;
     if (changes['flujoNodos']) {
       await this.renderBpmn();
@@ -155,10 +168,64 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   cambiarVistaFlujo(vista: 'timeline' | 'tabla'): void {
     this.vistaFlujo = vista;
+    if (vista === 'tabla') {
+      this.actualizarPaginacionTablaFlujo();
+    }
   }
 
   alternarOrdenFlujo(): void {
     this.ordenRecientePrimero = !this.ordenRecientePrimero;
+    if (this.vistaFlujo === 'tabla') {
+      this.actualizarPaginacionTablaFlujo();
+    }
+  }
+
+  get flujoTablaPaginada(): FlujoNodo[] {
+    const nodos = this.flujoTimeline;
+    const totalPaginas = Math.ceil(nodos.length / this.paginacionTablaFlujo.porPagina);
+    const paginaMaxima = Math.max(totalPaginas - 1, 0);
+
+    if (this.paginacionTablaFlujo.paginaActual > paginaMaxima) {
+      this.paginacionTablaFlujo = {
+        ...this.paginacionTablaFlujo,
+        paginaActual: paginaMaxima
+      };
+    }
+
+    const inicio = this.paginacionTablaFlujo.paginaActual * this.paginacionTablaFlujo.porPagina;
+    const fin = inicio + this.paginacionTablaFlujo.porPagina;
+    return nodos.slice(inicio, fin);
+  }
+
+  onCambioPaginaTablaFlujo(event: CambioPaginaEvent): void {
+    this.paginacionTablaFlujo = {
+      ...this.paginacionTablaFlujo,
+      paginaActual: event.pagina,
+      porPagina: event.porPagina
+    };
+    this.actualizarPaginacionTablaFlujo();
+  }
+
+  onCambioTamanoTablaFlujo(nuevoTamano: number): void {
+    this.paginacionTablaFlujo = {
+      ...this.paginacionTablaFlujo,
+      porPagina: nuevoTamano,
+      paginaActual: 0
+    };
+    this.actualizarPaginacionTablaFlujo();
+  }
+
+  private actualizarPaginacionTablaFlujo(): void {
+    const totalElementos = this.flujoTimeline.length;
+    const totalPaginas = Math.ceil(totalElementos / this.paginacionTablaFlujo.porPagina);
+    const paginaActual = Math.min(this.paginacionTablaFlujo.paginaActual, Math.max(totalPaginas - 1, 0));
+
+    this.paginacionTablaFlujo = {
+      ...this.paginacionTablaFlujo,
+      totalElementos,
+      totalPaginas,
+      paginaActual
+    };
   }
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
