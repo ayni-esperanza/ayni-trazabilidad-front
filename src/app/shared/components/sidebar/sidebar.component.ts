@@ -122,9 +122,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   toggleTheme(): void {
-    console.log('Toggle theme clicked!', 'Current dark mode:', this.themeService.isDarkMode());
     this.themeService.toggleTheme();
-    console.log('After toggle:', this.themeService.isDarkMode());
   }
 
   toggleUserMenu(): void {

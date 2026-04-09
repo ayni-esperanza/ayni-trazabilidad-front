@@ -7,6 +7,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="logoayni.png">
   <script src="env.js"></script>
+  <script>
+    (function () {
+      try {
+        var storageTheme = localStorage.getItem('theme');
+        var isDark = storageTheme
+          ? storageTheme === 'dark'
+          : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          if (document.body) document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          if (document.body) document.body.classList.remove('dark');
+        }
+      } catch (_) {
+        // No-op: si falla localStorage o matchMedia, se mantiene tema por defecto.
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

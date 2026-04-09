@@ -248,7 +248,10 @@
                     <div class="relative pl-5">
                       <div class="absolute left-2.5 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
                       <div class="space-y-2">
-                        @for (nodo of getFlujoTimeline(solicitud.id); track nodo.id) {
+                        @for (nodo of getFlujoTimeline(solicitud.id); track nodo.id; let idx = $index) {
+                          @if (mostrarSeparadorActividadesSeguimientoTimeline(solicitud.id, nodo, idx, getFlujoTimeline(solicitud.id))) {
+                            <div class="ml-2 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+                          }
                           <article class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2 ml-2 timeline-node-item">
                             <div class="absolute -left-[14px] top-3 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900"
                               [ngClass]="esNodoOrdenCompraTimeline(nodo) ? 'bg-amber-500' : (nodo.tipo === 'inicio' ? 'bg-green-500' : 'bg-blue-500')"></div>
@@ -317,7 +320,11 @@
                             @if (getComentariosActividadTimeline(solicitud.id, nodo.id).length > 0) {
                               <div class="mt-2 space-y-1.5 border-t border-gray-200 dark:border-gray-700 pt-1.5">
                                 <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">Comentarios</p>
-                                @for (comentario of getComentariosActividadTimeline(solicitud.id, nodo.id); track comentario.id + ($index || 0)) {
+
+                                @for (comentario of getComentariosActividadTimeline(solicitud.id, nodo.id); track comentario.id + ($index || 0); let cIdx = $index) {
+                                  @if (mostrarDivisorSeguimientoComentarioTimeline(solicitud.id, nodo, cIdx)) {
+                                    <div class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+                                  }
                                   <div class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 px-1.5 py-1">
                                     <p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
                                     @if ((comentario.adjuntos || []).length > 0) {

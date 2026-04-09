@@ -484,6 +484,44 @@ export class RegistroSolicitudesComponent implements OnInit {
       });
   }
 
+  getComentariosPreviosActividadTimeline(solicitudId: number | undefined, actividadId: number): ComentarioAdicionalActividad[] {
+    const comentarios = this.getComentariosActividadTimeline(solicitudId, actividadId);
+    if (!this.esProyectoCompletadoTimeline(solicitudId)) {
+      return comentarios;
+    }
+
+    return this.esActividadSeguimientoTimelinePorId(solicitudId, actividadId) ? [] : comentarios;
+  }
+
+  getComentariosSeguimientoActividadTimeline(solicitudId: number | undefined, actividadId: number): ComentarioAdicionalActividad[] {
+    if (!this.esProyectoCompletadoTimeline(solicitudId)) {
+      return [];
+    }
+
+    return this.esActividadSeguimientoTimelinePorId(solicitudId, actividadId)
+      ? this.getComentariosActividadTimeline(solicitudId, actividadId)
+      : [];
+  }
+
+  esComentarioSeguimientoActividadTimeline(solicitudId: number | undefined, comentario: ComentarioAdicionalActividad): boolean {
+    return this.esActividadSeguimientoTimelinePorId(solicitudId, Number(comentario?.actividadId));
+  }
+
+  mostrarDivisorSeguimientoComentarioTimeline(
+    solicitudId: number | undefined,
+    nodo: FlujoNodo,
+    index: number
+  ): boolean {
+    if (!this.esProyectoCompletadoTimeline(solicitudId)) return false;
+    return this.esActividadSeguimientoTimeline(solicitudId, nodo) && index === 0;
+  }
+
+  esProyectoCompletadoTimeline(solicitudId: number | undefined): boolean {
+    if (!solicitudId) return false;
+    const proyecto = this.proyectos.find((item) => item.solicitudId === solicitudId);
+    return proyecto?.estado === 'Completado';
+  }
+
   getAdjuntoUrl(adjunto: FlujoAdjunto): string | null {
     const fuente = ((adjunto?.dataUrl || (adjunto as any)?.url || '') as string).trim();
     if (!fuente) return null;
@@ -515,6 +553,38 @@ export class RegistroSolicitudesComponent implements OnInit {
     }
     if (inicio) return inicio;
     return 'Sin fecha asignada';
+  }
+
+  esActividadSeguimientoTimeline(solicitudId: number | undefined, nodo: FlujoNodo): boolean {
+    if (!solicitudId || this.esNodoOrdenCompraTimeline(nodo)) return false;
+    if (!this.esProyectoCompletadoTimeline(solicitudId)) return false;
+    return this.esTipoActividadSeguimiento(nodo?.tipo);
+  }
+
+  mostrarSeparadorActividadesSeguimientoTimeline(
+    solicitudId: number | undefined,
+    nodo: FlujoNodo,
+    index: number,
+    lista: FlujoNodo[]
+  ): boolean {
+    if (!this.esActividadSeguimientoTimeline(solicitudId, nodo)) return false;
+    if (index === 0) return true;
+
+    const anterior = lista[index - 1];
+    return !this.esActividadSeguimientoTimeline(solicitudId, anterior);
+  }
+
+  private esActividadSeguimientoTimelinePorId(solicitudId: number | undefined, actividadId: number): boolean {
+    if (!solicitudId) return false;
+    const nodo = this.getFlujoNodos(solicitudId).find((item) => Number(item.id) === Number(actividadId));
+    if (!nodo) return false;
+    return this.esActividadSeguimientoTimeline(solicitudId, nodo);
+  }
+
+  private esTipoActividadSeguimiento(tipo?: string): boolean {
+    const valor = String(tipo || '').trim().toLowerCase();
+    if (!valor) return false;
+    return valor.includes('seguimiento');
   }
 
   getResponsableNombre(responsableId: number): string {

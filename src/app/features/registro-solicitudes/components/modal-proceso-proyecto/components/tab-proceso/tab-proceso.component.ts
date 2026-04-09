@@ -156,7 +156,6 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   puedeAbrirNodo(nodo: FlujoNodo): boolean {
     return nodo.tipo === 'tarea'
       && !this.esNodoOrdenCompra(nodo)
-      && !this.proyectoFinalizado
       && !this.proyectoCancelado
       && !this.actividadModalAbierta;
   }
@@ -239,7 +238,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   onCambiarEstadoActividad(nodo: FlujoNodo, cambio: EstadoTarea | Event): void {
-    if (nodo.tipo !== 'tarea' || this.esNodoOrdenCompra(nodo) || this.proyectoFinalizado || this.proyectoCancelado) return;
+    if (nodo.tipo !== 'tarea' || this.esNodoOrdenCompra(nodo) || this.proyectoCancelado) return;
 
     const nuevoEstado = typeof cambio === 'string'
       ? cambio
@@ -602,8 +601,54 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       .map((item) => item.comentario);
   }
 
+  getComentariosPreviosActividad(nodoId: number): ComentarioAdicionalActividad[] {
+    const comentarios = this.getComentariosActividad(nodoId);
+    if (!this.proyectoFinalizado) {
+      return comentarios;
+    }
+    const esSeguimiento = this.esActividadSeguimientoPorId(nodoId);
+    return esSeguimiento ? [] : comentarios;
+  }
+
+  getComentariosSeguimientoActividad(nodoId: number): ComentarioAdicionalActividad[] {
+    if (!this.proyectoFinalizado) {
+      return [];
+    }
+    return this.esActividadSeguimientoPorId(nodoId) ? this.getComentariosActividad(nodoId) : [];
+  }
+
+  esComentarioDeSeguimiento(comentario: ComentarioAdicionalActividad): boolean {
+    return this.esActividadSeguimientoPorId(Number(comentario?.actividadId));
+  }
+
+  mostrarDivisorSeguimientoComentario(
+    nodo: FlujoNodo,
+    index: number
+  ): boolean {
+    if (!this.proyectoFinalizado) return false;
+    return this.esActividadSeguimiento(nodo) && index === 0;
+  }
+
+  puedeEditarComentario(comentario: ComentarioAdicionalActividad): boolean {
+    if (this.proyectoCancelado || this.actividadModalAbierta) {
+      return false;
+    }
+    if (!this.proyectoFinalizado) {
+      return true;
+    }
+    return this.esActividadSeguimientoPorId(Number(comentario?.actividadId));
+  }
+
+  puedeEliminarComentario(comentario: ComentarioAdicionalActividad): boolean {
+    return this.puedeEditarComentario(comentario);
+  }
+
+  puedeModificarComentario(comentario: ComentarioAdicionalActividad): boolean {
+    return this.puedeEditarComentario(comentario);
+  }
+
   agregarComentarioActividad(nodo: FlujoNodo): void {
-    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta || this.hayComentariosEnEdicion || nodo.tipo !== 'tarea') return;
+    if (this.proyectoCancelado || this.actividadModalAbierta || this.hayComentariosEnEdicion || nodo.tipo !== 'tarea') return;
 
     const comentario: ComentarioAdicionalActividad = {
       id: this.obtenerSiguienteComentarioId(),
@@ -623,7 +668,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   eliminarComentarioActividad(comentarioId: number): void {
-    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+    if (this.proyectoCancelado || this.actividadModalAbierta || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     if (!this.proyecto?.id || comentarioId <= 0) {
       this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
@@ -651,7 +696,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   editarComentarioActividad(comentarioId: number): void {
-    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+    if (this.proyectoCancelado || this.actividadModalAbierta || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     if (!this.comentarioEdicionBackup.has(comentarioId)) {
       const comentario = (this.comentariosAdicionalesActividad || []).find(c => c.id === comentarioId);
@@ -716,7 +761,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   async guardarComentarioActividad(comentarioId: number): Promise<void> {
-    if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+    if (this.proyectoCancelado || this.actividadModalAbierta || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
     if (index < 0) return;
@@ -805,7 +850,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   async onSeleccionarAdjuntosComentario(event: Event, comentarioId: number): Promise<void> {
-    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+    if (this.proyectoCancelado || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     const input = event.target as HTMLInputElement;
     const files = input.files;
@@ -819,7 +864,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   async onPegarImagenComentario(event: ClipboardEvent, comentarioId: number): Promise<void> {
-    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+    if (this.proyectoCancelado || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     const clipboardItems = event.clipboardData?.items;
     if (!clipboardItems?.length) return;
@@ -839,7 +884,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   eliminarAdjuntoComentario(comentarioId: number, adjuntoIndex: number): void {
-    if (this.proyectoFinalizado || this.proyectoCancelado) return;
+    if (this.proyectoCancelado || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     const index = (this.comentariosAdicionalesActividad || []).findIndex(c => c.id === comentarioId);
     if (index < 0) return;
@@ -913,6 +958,19 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     }
   }
 
+  esActividadSeguimiento(nodo: FlujoNodo): boolean {
+    if (!this.proyectoFinalizado || this.esNodoOrdenCompra(nodo)) return false;
+    return this.esTipoActividadSeguimiento(nodo?.tipo);
+  }
+
+  mostrarSeparadorActividadesSeguimiento(nodo: FlujoNodo, index: number, lista: FlujoNodo[]): boolean {
+    if (!this.esActividadSeguimiento(nodo)) return false;
+    if (index === 0) return true;
+
+    const anterior = lista[index - 1];
+    return !this.esActividadSeguimiento(anterior);
+  }
+
   private parseFechaComentario(value?: string): number {
     if (!value) return 0;
     const raw = String(value).trim();
@@ -943,6 +1001,27 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const date = new Date(raw);
     const time = date.getTime();
     return Number.isNaN(time) ? 0 : time;
+  }
+
+  private puedeModificarComentarioPorId(comentarioId: number): boolean {
+    if (!this.proyectoFinalizado) return true;
+
+    const comentario = (this.comentariosAdicionalesActividad || []).find((item) => item.id === comentarioId);
+    if (!comentario) return false;
+
+    return this.esActividadSeguimientoPorId(Number(comentario.actividadId));
+  }
+
+  private esActividadSeguimientoPorId(actividadId: number): boolean {
+    const nodo = (this.flujoNodos || []).find((item) => Number(item.id) === Number(actividadId));
+    if (!nodo) return false;
+    return this.esActividadSeguimiento(nodo);
+  }
+
+  private esTipoActividadSeguimiento(tipo?: string): boolean {
+    const valor = String(tipo || '').trim().toLowerCase();
+    if (!valor) return false;
+    return valor.includes('seguimiento');
   }
 
   private mapearOrdenesCompraANodos(): FlujoNodo[] {

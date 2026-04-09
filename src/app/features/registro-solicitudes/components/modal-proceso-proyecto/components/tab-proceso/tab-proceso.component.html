@@ -52,12 +52,16 @@
     <button
       type="button"
       (click)="crearNuevaActividad()"
-      [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
+      [disabled]="proyectoCancelado || hayComentariosEnEdicion"
       class="px-2.5 py-1 text-[10px] font-semibold rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
       Nueva actividad
     </button>
   </div>
 </div>
+
+<p *ngIf="proyectoFinalizado" class="mb-2 text-[11px] text-emerald-700 dark:text-emerald-300">
+              Proyecto completado: puedes registrar nuevas actividades y comentarios; el seguimiento se marca con una division horizontal dentro del mismo flujo.
+</p>
 
 <p *ngIf="hayComentariosEnEdicion" class="mb-2 text-[11px] text-amber-700 dark:text-amber-300">
   Termina de guardar o cancelar la edición del comentario antes de crear o editar una actividad.
@@ -71,7 +75,9 @@
   <div class="relative pl-7">
     <div class="absolute left-3 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
     <div class="space-y-3">
-      <article *ngFor="let nodo of flujoTimeline"
+      <ng-container *ngFor="let nodo of flujoTimeline; let idx = index">
+      <div *ngIf="mostrarSeparadorActividadesSeguimiento(nodo, idx, flujoTimeline)" class="my-2 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+      <article
         class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60"
         [ngClass]="{
           'cursor-default': !puedeAbrirNodo(nodo),
@@ -96,7 +102,7 @@
               (blur)="onEstadoDropdownClose(nodo.id)"
               (keydown.enter)="onEstadoDropdownOpen(nodo.id)"
               (keydown.escape)="onEstadoDropdownClose(nodo.id)"
-              [disabled]="proyectoFinalizado || proyectoCancelado"
+              [disabled]="proyectoCancelado"
               style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
               class="text-[10px] pl-2 pr-6 py-0.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
               <option *ngFor="let estado of estadosActividad" [value]="estado">{{ estado }}</option>
@@ -153,7 +159,7 @@
                 <button
                   type="button"
                   (click)="agregarComentarioActividad(nodo); $event.stopPropagation()"
-                  [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
+                  [disabled]="proyectoCancelado || hayComentariosEnEdicion"
                   class="px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
                   Agregar
                 </button>
@@ -164,21 +170,24 @@
             </div>
 
             <div *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividadTimeline" class="space-y-2">
-              <article *ngFor="let comentario of getComentariosActividad(nodo.id); trackBy: trackByComentarioId"
+              <ng-container *ngIf="getComentariosActividad(nodo.id) as comentariosActividad">
+              <ng-container *ngFor="let comentario of comentariosActividad; let cIdx = index; trackBy: trackByComentarioId">
+              <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdx)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+              <article
                 class="relative rounded border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 p-2.5"
-                [ngClass]="{ 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600': !isComentarioEnEdicion(comentario.id) && !proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta }"
-                (click)="$event.stopPropagation(); !proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta && editarComentarioActividad(comentario.id)">
+                [ngClass]="{ 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600': !isComentarioEnEdicion(comentario.id) && puedeEditarComentario(comentario) }"
+                (click)="$event.stopPropagation(); puedeEditarComentario(comentario) && editarComentarioActividad(comentario.id)">
                 <span class="absolute -left-3 top-3 h-px w-3 bg-gray-300 dark:bg-gray-600"></span>
                 <span class="absolute -left-[13px] top-[10px] h-1.5 w-1.5 rounded-full bg-blue-400 dark:bg-blue-500"></span>
 
-                <ng-container *ngIf="isComentarioEnEdicion(comentario.id); else comentarioTimelineResumen">
+                <ng-container *ngIf="isComentarioEnEdicion(comentario.id) && puedeEditarComentario(comentario); else comentarioTimelineResumen">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-2" (click)="$event.stopPropagation()">
                     <div>
                       <label class="block mb-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">Responsable</label>
                       <select
                         [ngModel]="comentario.responsableId"
                         (ngModelChange)="actualizarResponsableComentario(comentario.id, $event)"
-                        [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                        [disabled]="!puedeModificarComentario(comentario)"
                         class="w-full h-6 px-2 py-0.5 text-[10px] leading-tight border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-60">
                         <option [ngValue]="undefined">Sin asignar</option>
                         <option *ngFor="let resp of responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
@@ -200,7 +209,7 @@
                       [ngModel]="comentario.texto"
                       (ngModelChange)="actualizarTextoComentario(comentario.id, $event)"
                       (paste)="onPegarImagenComentario($event, comentario.id)"
-                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      [disabled]="!puedeModificarComentario(comentario)"
                       class="w-full px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
                   </div>
 
@@ -208,21 +217,21 @@
                     <button
                       type="button"
                       (click)="guardarComentarioActividad(comentario.id); $event.stopPropagation()"
-                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
+                      [disabled]="!puedeModificarComentario(comentario) || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
                       class="px-2 py-1 text-[10px] rounded border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30">
                       Guardar
                     </button>
                     <button
                       type="button"
                       (click)="cancelarEdicionComentario(comentario.id); $event.stopPropagation()"
-                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      [disabled]="!puedeModificarComentario(comentario)"
                       class="px-2 py-1 text-[10px] rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                       Cancelar
                     </button>
                     <button
                       type="button"
                       (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
-                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      [disabled]="!puedeEliminarComentario(comentario)"
                       class="px-2 py-1 text-[10px] rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
                       Eliminar
                     </button>
@@ -268,18 +277,20 @@
                       </div>
                     </div>
                   </div>
-                  <p *ngIf="!proyectoFinalizado && !proyectoCancelado && !actividadModalAbierta" class="mt-1 text-[10px] text-blue-600 dark:text-blue-400">Click para editar comentario</p>
+                  <p *ngIf="puedeEditarComentario(comentario)" class="mt-1 text-[10px] text-blue-600 dark:text-blue-400">Click para editar comentario</p>
                   <div class="mt-2 flex justify-end" (click)="$event.stopPropagation()">
                     <button
                       type="button"
                       (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
-                      [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                      [disabled]="!puedeEliminarComentario(comentario)"
                       class="px-2 py-1 text-[10px] rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
                       Eliminar
                     </button>
                   </div>
                 </ng-template>
               </article>
+              </ng-container>
+              </ng-container>
             </div>
 
             <ng-template #sinComentariosActividadTimeline>
@@ -291,6 +302,7 @@
           </div>
         </div>
       </article>
+      </ng-container>
       <div *ngIf="totalActividadesFlujo === 0" class="text-center py-6 text-xs text-gray-500 dark:text-gray-400">
         No hay actividades en el flujo
       </div>
@@ -312,7 +324,13 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
-        <tr *ngFor="let nodo of flujoTablaPaginada"
+        <ng-container *ngFor="let nodo of flujoTablaPaginada; let rowIdx = index">
+        <tr *ngIf="mostrarSeparadorActividadesSeguimiento(nodo, rowIdx, flujoTablaPaginada)">
+          <td colspan="6" class="py-1 px-2">
+            <div class="border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+          </td>
+        </tr>
+        <tr
           (click)="abrirNodo(nodo)"
           [ngClass]="{
             'cursor-pointer hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)]': puedeAbrirNodo(nodo),
@@ -376,7 +394,7 @@
                         <button
                           type="button"
                           (click)="agregarComentarioActividad(nodo); $event.stopPropagation()"
-                          [disabled]="proyectoFinalizado || proyectoCancelado || hayComentariosEnEdicion"
+                          [disabled]="proyectoCancelado || hayComentariosEnEdicion"
                           class="px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
                           Agregar comentario
                         </button>
@@ -389,7 +407,10 @@
                     </div>
 
                     <div class="space-y-2" *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividad">
-                      <article *ngFor="let comentario of getComentariosActividad(nodo.id); trackBy: trackByComentarioId" class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]">
+                      <ng-container *ngIf="getComentariosActividad(nodo.id) as comentariosActividadTabla">
+                      <ng-container *ngFor="let comentario of comentariosActividadTabla; let cIdxTabla = index; trackBy: trackByComentarioId">
+                      <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdxTabla)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+                      <article class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]">
                         <ng-container *ngIf="isComentarioEnEdicion(comentario.id); else comentarioDescripcion">
                           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                             <div>
@@ -397,7 +418,7 @@
                               <select
                                 [ngModel]="comentario.responsableId"
                                 (ngModelChange)="actualizarResponsableComentario(comentario.id, $event)"
-                                [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                [disabled]="!puedeModificarComentario(comentario)"
                                 class="w-full h-6 px-2 py-0.5 text-[10px] leading-tight border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-60">
                                 <option [ngValue]="undefined">Sin asignar</option>
                                 <option *ngFor="let resp of responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
@@ -426,7 +447,7 @@
                               [ngModel]="comentario.texto"
                               (ngModelChange)="actualizarTextoComentario(comentario.id, $event)"
                               (paste)="onPegarImagenComentario($event, comentario.id)"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              [disabled]="!puedeModificarComentario(comentario)"
                               class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
                           </div>
 
@@ -434,14 +455,14 @@
                               <div class="flex items-center justify-between gap-2 mb-1">
                                 <label class="block font-medium">Adjuntos</label>
                               <label
-                                [ngClass]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+                                [ngClass]="!puedeModificarComentario(comentario) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
                                 class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
                                 Adjuntar
                                 <input
                                   type="file"
                                   class="hidden"
                                   [accept]="acceptTiposArchivo"
-                                  [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                  [disabled]="!puedeModificarComentario(comentario)"
                                   multiple
                                   (change)="onSeleccionarAdjuntosComentario($event, comentario.id)">
                               </label>
@@ -477,7 +498,7 @@
                                   <button
                                     type="button"
                                     (click)="eliminarAdjuntoComentario(comentario.id, adjIdx); $event.stopPropagation()"
-                                    [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                                    [disabled]="!puedeModificarComentario(comentario)"
                                     class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-900/30 dark:text-red-300">
                                     Quitar
                                   </button>
@@ -493,21 +514,21 @@
                             <button
                               type="button"
                               (click)="guardarComentarioActividad(comentario.id); $event.stopPropagation()"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
+                              [disabled]="!puedeModificarComentario(comentario) || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
                               class="px-2 py-1 mr-2 rounded border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30">
                               Guardar comentario
                             </button>
                             <button
                               type="button"
                               (click)="cancelarEdicionComentario(comentario.id); $event.stopPropagation()"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              [disabled]="!puedeModificarComentario(comentario)"
                               class="px-2 py-1 mr-2 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
                               Cancelar
                             </button>
                             <button
                               type="button"
                               (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              [disabled]="!puedeEliminarComentario(comentario)"
                               class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
                               Eliminar comentario
                             </button>
@@ -558,20 +579,22 @@
                             <button
                               type="button"
                               (click)="editarComentarioActividad(comentario.id); $event.stopPropagation()"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              [disabled]="!puedeEditarComentario(comentario)"
                               class="px-2 py-1 mr-2 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30">
                               Editar
                             </button>
                             <button
                               type="button"
                               (click)="eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
-                              [disabled]="proyectoFinalizado || proyectoCancelado || actividadModalAbierta"
+                              [disabled]="!puedeEliminarComentario(comentario)"
                               class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
                               Eliminar comentario
                             </button>
                           </div>
                         </ng-template>
                       </article>
+                      </ng-container>
+                      </ng-container>
                     </div>
 
                     <ng-template #sinComentariosActividad>
@@ -600,7 +623,7 @@
                   (blur)="onEstadoDropdownClose(nodo.id)"
                   (keydown.enter)="onEstadoDropdownOpen(nodo.id)"
                   (keydown.escape)="onEstadoDropdownClose(nodo.id)"
-                  [disabled]="proyectoFinalizado || proyectoCancelado"
+                  [disabled]="proyectoCancelado"
                   style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
                   class="text-[11px] pl-2 pr-7 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
                   <option *ngFor="let estado of estadosActividad" [value]="estado">{{ estado }}</option>
@@ -613,6 +636,7 @@
             </div>
           </td>
         </tr>
+        </ng-container>
         <tr *ngIf="totalActividadesFlujo === 0">
           <td colspan="6" class="py-5 text-center text-gray-500 dark:text-gray-400">No hay actividades en el flujo</td>
         </tr>
