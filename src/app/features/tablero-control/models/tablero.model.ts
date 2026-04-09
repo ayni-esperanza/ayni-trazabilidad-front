@@ -10,8 +10,13 @@ export interface ProyectoEnCurso {
   etapa: string;
   fechas: string;
   estado: EstadoProyecto;
-  mes: string; // Ene, Feb, Mar, etc.
+  mes: string;
+  mesActivo?: string;
+  mesFinalizado?: string;
   fechaCreacion: Date;
+  fechaInicio?: Date;
+  fechaFinalizacion?: Date;
+  fechaRegistro?: Date;
   gastoTotal?: number; // Para vista de gastos
   lugar?: string;      // Ubicación/ciudad del proyecto
   area?: string;       // Área principal del proyecto
@@ -37,6 +42,7 @@ export interface GastoProyecto {
   descripcion: string;
   monto: number;
   fecha: Date | string;
+  mes?: string;
   responsable?: string;
 }
 

@@ -16,6 +16,7 @@ export interface ArchivoAdjuntoActividad {
   objectKey?: string;
   archivo?: File;
   dataUrl?: string;
+  url?: string;
 }
 
 export interface Tarea {

@@ -863,7 +863,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tipo: orden.tipo,
       numeroLicitacion: orden.numeroLicitacion,
       numeroSolicitud: orden.numeroSolicitud,
-      total: Number(orden.total || 0)
+      total: Number(orden.total || 0),
+      adjuntos: (orden.adjuntos || []).map((adjunto) => ({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        tamano: Number(adjunto.tamano || 0),
+        objectKey: adjunto.objectKey,
+        dataUrl: adjunto.objectKey ? undefined : (adjunto.dataUrl || adjunto.url)
+      }))
     }));
 
     return this.registroSolicitudesService.reemplazarOrdenesCompra(this.proyecto.id, payload).pipe(
@@ -874,7 +881,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tipo: this.normalizarTipoOrdenCompra(orden.tipo),
         numeroLicitacion: orden.numeroLicitacion || '',
         numeroSolicitud: orden.numeroSolicitud || '',
-        total: Number(orden.total || 0)
+        total: Number(orden.total || 0),
+        adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
       })))
     );
   }
@@ -905,7 +913,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           tipo,
           numeroLicitacion,
           numeroSolicitud,
-          total
+          total,
+          adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
         });
       }
     }
@@ -1023,6 +1032,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tamano: adjunto.tamano,
       objectKey: adjunto.objectKey,
       dataUrl: adjunto.dataUrl,
+      url: adjunto.dataUrl,
       archivo: adjunto.archivo
     }));
   }
@@ -1054,11 +1064,61 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           tipo: adjunto.tipo,
           tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
           objectKey: subida.objectKey,
-          dataUrl: adjunto.dataUrl || subida.publicUrl
+          dataUrl: adjunto.dataUrl || subida.publicUrl,
+          url: subida.publicUrl
         });
       }
     } catch (error) {
       console.error('Error subiendo adjuntos de actividad:', error);
+      return null;
+    }
+
+    return resultado;
+  }
+
+  private async subirAdjuntosPendientesOrdenesCompra(ordenes: OrdenCompra[]): Promise<OrdenCompra[] | null> {
+    if (!this.proyecto?.id) {
+      return ordenes || [];
+    }
+
+    const resultado: OrdenCompra[] = [];
+
+    try {
+      for (const orden of ordenes || []) {
+        const adjuntosSubidos: FlujoAdjunto[] = [];
+
+        for (const adjunto of orden.adjuntos || []) {
+          if (!adjunto.archivo || adjunto.objectKey) {
+            adjuntosSubidos.push({ ...adjunto });
+            continue;
+          }
+
+          const subida = await firstValueFrom(
+            this.registroSolicitudesService.subirAdjuntoActividad(
+              adjunto.archivo,
+              this.proyecto.id,
+              undefined,
+              'orden-compra'
+            )
+          );
+
+          adjuntosSubidos.push({
+            nombre: adjunto.nombre,
+            tipo: adjunto.tipo,
+            tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+            objectKey: subida.objectKey,
+            dataUrl: adjunto.dataUrl || subida.publicUrl,
+            url: subida.publicUrl
+          });
+        }
+
+        resultado.push({
+          ...orden,
+          adjuntos: adjuntosSubidos
+        });
+      }
+    } catch (error) {
+      console.error('Error subiendo adjuntos de orden de compra:', error);
       return null;
     }
 
@@ -1070,13 +1130,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return Math.max(...this.flujoNodos.map(n => n.id)) + 1;
   }
 
-  guardarInfoProyecto(): void {
+  async guardarInfoProyecto(): Promise<void> {
     if (!this.proyecto || this.modoSoloLectura || this.guardandoInfo) return;
 
     this.guardandoInfo = true;
 
-    const ordenesActualizadas = this.normalizarOrdenesCompraLocales(this.proyectoInfoForm.ordenesCompra || []);
-    const indiceAdjuntos = this.crearIndiceAdjuntosOrdenCompra(ordenesActualizadas);
+    const ordenesSubidas = await this.subirAdjuntosPendientesOrdenesCompra(this.proyectoInfoForm.ordenesCompra || []);
+    if (ordenesSubidas === null) {
+      this.guardandoInfo = false;
+      return;
+    }
+
+    const ordenesActualizadas = this.normalizarOrdenesCompraLocales(ordenesSubidas);
 
     this.proyecto.nombreProyecto = this.proyectoInfoForm.nombreProyecto;
     this.proyecto.cliente = this.proyectoInfoForm.cliente;
@@ -1098,15 +1163,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.proyecto.fechaFinalizacion = this.proyectoInfoForm.fechaFinalizacion || this.proyecto.fechaFinalizacion;
     this.proyecto.ubicacion = this.proyectoInfoForm.ubicacion;
     this.proyecto.descripcion = this.proyectoInfoForm.descripcion;
+    this.proyectoInfoForm.ordenesCompra = [...ordenesActualizadas];
     this.sincronizarOrdenesCompraProyecto(ordenesActualizadas).subscribe({
       next: (ordenesPersistidas) => {
-        const ordenesConAdjuntos = ordenesPersistidas.map((orden) => ({
-          ...orden,
-          adjuntos: (indiceAdjuntos.get(this.generarClaveOrdenCompra(orden)) || []).map((adjunto) => ({ ...adjunto }))
-        }));
-
-        this.proyectoInfoForm.ordenesCompra = ordenesConAdjuntos;
-        this.proyecto!.ordenesCompra = [...ordenesConAdjuntos];
+        this.proyectoInfoForm.ordenesCompra = [...ordenesPersistidas];
+        this.proyecto!.ordenesCompra = [...ordenesPersistidas];
         this.snapshotInfoBase = this.crearSnapshotInformacionActual();
         this.marcarActualizacionProyecto();
         this.infoActualizada.emit({
@@ -1866,7 +1927,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         numeroLicitacion: (o.numeroLicitacion || '').trim(),
         numeroSolicitud: (o.numeroSolicitud || '').trim(),
-        total: Number(o.total || 0)
+        total: Number(o.total || 0),
+        adjuntos: (o.adjuntos || []).map((adjunto) => ({
+          nombre: (adjunto.nombre || '').trim(),
+          tipo: (adjunto.tipo || '').trim(),
+          tamano: Number(adjunto.tamano || 0),
+          objectKey: (adjunto.objectKey || '').trim(),
+          dataUrl: adjunto.objectKey ? '' : ((adjunto.dataUrl || adjunto.url || '') as string).trim()
+        }))
       }));
 
     const payload = {

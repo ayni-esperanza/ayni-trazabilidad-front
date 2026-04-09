@@ -206,10 +206,29 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   /** Auxiliar: comprueba si un proyecto corresponde a la métrica seleccionada */
   private matchMetrica(p: ProyectoEnCurso): boolean {
     if (this.metricaSeleccionada === 'finalizados')
-      return p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado';
+      return p.estado === 'Completado';
     if (this.metricaSeleccionada === 'activos')
       return p.estado === 'En Proceso' || p.estado === 'Pendiente';
     return true; // gastos: todos
+  }
+
+  private obtenerMesProyecto(proyecto: ProyectoEnCurso): string {
+    if (this.metricaSeleccionada === 'finalizados') {
+      return proyecto.mesFinalizado || proyecto.mes || '';
+    }
+    return proyecto.mesActivo || proyecto.mes || '';
+  }
+
+  private obtenerMesGasto(gasto: GastoProyecto): string {
+    if (gasto.mes) return gasto.mes;
+    const fecha = new Date(gasto.fecha);
+    if (Number.isNaN(fecha.getTime())) return '';
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[fecha.getMonth()] || '';
+  }
+
+  private obtenerFechaBaseProyecto(proyecto: ProyectoEnCurso): Date {
+    return proyecto.fechaRegistro || proyecto.fechaInicio || proyecto.fechaCreacion;
   }
 
   // Filtros de selección
@@ -290,7 +309,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
           
           // Tablas - ordenar por fecha de creación (más nuevo primero)
           this.proyectosEnCurso = resumen.proyectosEnCurso.sort((a, b) => 
-            new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+            new Date(this.obtenerFechaBaseProyecto(b)).getTime() - new Date(this.obtenerFechaBaseProyecto(a)).getTime()
           );
           this.tareasEncargados = resumen.tareasEncargados;
           this.gastosProyectos = resumen.gastosProyectos || [];
@@ -514,7 +533,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     // Filtrar por estado según la métrica seleccionada
     if (this.metricaSeleccionada === 'finalizados') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
-        p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado'
+        p.estado === 'Completado'
       );
     } else if (this.metricaSeleccionada === 'activos') {
       proyectosFiltrados = proyectosFiltrados.filter(p => 
@@ -525,7 +544,14 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     
     // Filtrar por mes si está seleccionado
     if (this.mesSeleccionado) {
-      proyectosFiltrados = proyectosFiltrados.filter(p => p.mes === this.mesSeleccionado);
+      if (this.metricaSeleccionada === 'gastos') {
+        const idsProyectosMes = this.gastosProyectos
+          .filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado)
+          .map(g => g.proyectoId);
+        proyectosFiltrados = proyectosFiltrados.filter(p => idsProyectosMes.includes(p.id));
+      } else {
+        proyectosFiltrados = proyectosFiltrados.filter(p => this.obtenerMesProyecto(p) === this.mesSeleccionado);
+      }
     }
     
     // Filtrar por empresa si está seleccionada
@@ -545,17 +571,17 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     }
     if (this.fechaDesde) {
       const desde = new Date(this.fechaDesde);
-      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(p.fechaCreacion) >= desde);
+      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(this.obtenerFechaBaseProyecto(p)) >= desde);
     }
     if (this.fechaHasta) {
       const hasta = new Date(this.fechaHasta);
       hasta.setHours(23, 59, 59, 999);
-      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(p.fechaCreacion) <= hasta);
+      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(this.obtenerFechaBaseProyecto(p)) <= hasta);
     }
     
     // Ordenar del más nuevo al más viejo
     this.proyectosEnCursoFiltrados = proyectosFiltrados.sort((a, b) => 
-      new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+      new Date(this.obtenerFechaBaseProyecto(b)).getTime() - new Date(this.obtenerFechaBaseProyecto(a)).getTime()
     );
     
     // Filtrar tareas o gastos por proyecto según la métrica
@@ -571,9 +597,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       if (this.proyectoSeleccionado) {
         this.gastosFiltrados = gastosTemp.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
       } else if (this.mesSeleccionado) {
-        // Filtrar gastos de proyectos del mes seleccionado
-        const idsProyectosMes = this.proyectosEnCursoFiltrados.map(p => p.id);
-        this.gastosFiltrados = gastosTemp.filter(g => idsProyectosMes.includes(g.proyectoId));
+        this.gastosFiltrados = gastosTemp.filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado);
       } else {
         this.gastosFiltrados = gastosTemp;
       }
@@ -655,10 +679,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     if (this.proyectoSeleccionado) {
       gastos = gastos.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
     } else if (this.mesSeleccionado) {
-      const idsProyectosMes = this.proyectosEnCurso
-        .filter(p => p.mes === this.mesSeleccionado)
-        .map(p => p.id);
-      gastos = gastos.filter(g => idsProyectosMes.includes(g.proyectoId));
+      gastos = gastos.filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado);
     }
     
     return gastos

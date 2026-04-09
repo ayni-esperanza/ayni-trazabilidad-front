@@ -19,6 +19,7 @@ export interface FlujoAdjunto {
   objectKey?: string;
   archivo?: File;
   dataUrl?: string;
+  url?: string;
 }
 
 

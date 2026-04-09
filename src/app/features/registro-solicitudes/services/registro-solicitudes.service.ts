@@ -37,6 +37,7 @@ type OrdenCompraApi = {
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  adjuntos?: FlujoAdjuntoApi[];
 };
 
 type FlujoAdjuntoApi = {
@@ -603,7 +604,8 @@ export class RegistroSolicitudesService {
         tipo: orden.tipo,
         numeroLicitacion: orden.numeroLicitacion,
         numeroSolicitud: orden.numeroSolicitud,
-        total: Number(orden.total || 0)
+        total: Number(orden.total || 0),
+        adjuntos: (orden.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto))
       })),
       responsableId: item.responsableId,
       responsableNombre: item.responsableNombre,
@@ -638,13 +640,7 @@ export class RegistroSolicitudesService {
       fechaInicio: comentario.fechaInicio,
       fechaFin: comentario.fechaFin,
       descripcion: comentario.descripcion,
-      adjuntos: (comentario.adjuntos || []).map((adjunto) => ({
-        nombre: adjunto.nombre,
-        tipo: adjunto.tipo,
-        tamano: Number(adjunto.tamano || 0),
-        objectKey: adjunto.objectKey,
-        dataUrl: adjunto.dataUrl || adjunto.url
-      }))
+      adjuntos: (comentario.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto))
     };
   }
 
@@ -663,15 +659,20 @@ export class RegistroSolicitudesService {
         fechaInicio: nodo.fechaInicio,
         fechaFin: nodo.fechaFin,
         descripcion: nodo.descripcion,
-        adjuntos: (nodo.adjuntos || []).map((adjunto) => ({
-          nombre: adjunto.nombre,
-          tipo: adjunto.tipo,
-          tamano: Number(adjunto.tamano || 0),
-          objectKey: adjunto.objectKey,
-          dataUrl: adjunto.dataUrl || adjunto.url
-        })),
+        adjuntos: (nodo.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto)),
         siguientesIds: nodo.siguientesIds || []
       }))
+    };
+  }
+
+  private mapAdjunto(adjunto: FlujoAdjuntoApi) {
+    return {
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      tamano: Number(adjunto.tamano || 0),
+      objectKey: adjunto.objectKey,
+      dataUrl: adjunto.dataUrl || adjunto.url,
+      url: adjunto.url || adjunto.dataUrl
     };
   }
 

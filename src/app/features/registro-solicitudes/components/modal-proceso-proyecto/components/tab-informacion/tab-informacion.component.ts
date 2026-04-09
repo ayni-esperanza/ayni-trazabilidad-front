@@ -330,6 +330,7 @@ export class TabInformacionComponent implements OnInit {
 
   private obtenerUrlAdjunto(adjunto: FlujoAdjunto): string | null {
     if (adjunto.dataUrl) return adjunto.dataUrl;
+    if (adjunto.url) return adjunto.url;
     if (adjunto.archivo && this.isBrowser) {
       return window.URL.createObjectURL(adjunto.archivo);
     }

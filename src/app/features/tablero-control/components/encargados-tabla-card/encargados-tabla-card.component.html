@@ -132,7 +132,7 @@
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
           @for (gasto of gastosFiltrados; track gasto.id) {
             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-              <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha }}</td>
+              <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha | date:'dd/MM/yyyy' }}</td>
               <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
               <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.responsable }}</td>
               <td class="py-1.5 px-2">
