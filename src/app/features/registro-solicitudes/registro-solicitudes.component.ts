@@ -35,6 +35,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   empresaFiltro = '';
   fechaDesdeFiltro = '';
   fechaHastaFiltro = '';
+  mostrarFiltroFechas = false;
 
   // Paginación
   paginacionConfig: PaginacionConfig = {
@@ -267,6 +268,10 @@ export class RegistroSolicitudesComponent implements OnInit {
   onFiltrarRangoFechas(): void {
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
+  }
+
+  toggleFiltroFechas(): void {
+    this.mostrarFiltroFechas = !this.mostrarFiltroFechas;
   }
 
   limpiarFiltroFechas(): void {
