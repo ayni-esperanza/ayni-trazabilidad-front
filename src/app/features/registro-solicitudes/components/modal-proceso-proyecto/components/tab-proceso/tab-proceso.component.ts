@@ -86,6 +86,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private ultimoSnapshotFlujo = '';
   private tareasExternasPendientes = new Set<string>();
   private readonly comentariosEnEdicion = new Set<number>();
+  private readonly comentarioEdicionBackup = new Map<number, ComentarioAdicionalActividad>();
   private readonly estadoDropdownAbierto: Record<number, boolean> = {};
 
   constructor(
@@ -560,6 +561,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     if (!this.proyecto?.id || comentarioId <= 0) {
       this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
       this.comentariosEnEdicion.delete(comentarioId);
+      this.comentarioEdicionBackup.delete(comentarioId);
       this.notificarBloqueoEdicionActividades();
       this.emitirComentariosActualizados();
       return;
@@ -569,6 +571,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       next: () => {
         this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
         this.comentariosEnEdicion.delete(comentarioId);
+        this.comentarioEdicionBackup.delete(comentarioId);
         this.notificarBloqueoEdicionActividades();
         this.emitirComentariosActualizados();
       },
@@ -582,12 +585,45 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   editarComentarioActividad(comentarioId: number): void {
     if (this.proyectoFinalizado || this.proyectoCancelado || this.actividadModalAbierta) return;
+
+    if (!this.comentarioEdicionBackup.has(comentarioId)) {
+      const comentario = (this.comentariosAdicionalesActividad || []).find(c => c.id === comentarioId);
+      if (comentario) {
+        this.comentarioEdicionBackup.set(comentarioId, this.clonarComentario(comentario));
+      }
+    }
+
     this.comentariosEnEdicion.add(comentarioId);
     this.notificarBloqueoEdicionActividades();
   }
 
   cancelarEdicionComentario(comentarioId: number): void {
     if (this.actividadModalAbierta) return;
+
+    const comentarios = [...(this.comentariosAdicionalesActividad || [])];
+    const index = comentarios.findIndex(c => c.id === comentarioId);
+    if (index >= 0) {
+      const comentarioActual = comentarios[index];
+
+      // If comment was created in UI and not saved yet, cancel should remove it entirely.
+      if (!comentarioActual.guardado || comentarioId <= 0) {
+        this.comentariosAdicionalesActividad = comentarios.filter(c => c.id !== comentarioId);
+        this.comentarioEdicionBackup.delete(comentarioId);
+        this.comentariosEnEdicion.delete(comentarioId);
+        this.notificarBloqueoEdicionActividades();
+        this.emitirComentariosActualizados();
+        return;
+      }
+
+      const backup = this.comentarioEdicionBackup.get(comentarioId);
+      if (backup) {
+        comentarios[index] = this.clonarComentario(backup);
+        this.comentariosAdicionalesActividad = comentarios;
+        this.emitirComentariosActualizados();
+      }
+    }
+
+    this.comentarioEdicionBackup.delete(comentarioId);
     this.comentariosEnEdicion.delete(comentarioId);
     this.notificarBloqueoEdicionActividades();
   }
@@ -634,6 +670,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
     if (!this.proyecto?.id) {
       this.comentariosAdicionalesActividad = actualizados;
+      this.comentarioEdicionBackup.delete(comentarioId);
       this.comentariosEnEdicion.delete(comentarioId);
       this.notificarBloqueoEdicionActividades();
       this.emitirComentariosActualizados();
@@ -662,6 +699,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
         }
 
         this.comentariosAdicionalesActividad = lista;
+        this.comentarioEdicionBackup.delete(comentarioId);
         this.comentariosEnEdicion.delete(comentarioId);
         this.notificarBloqueoEdicionActividades();
         this.emitirComentariosActualizados();
@@ -682,6 +720,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       if (this.comentariosEnEdicion.delete(comentario.id)) {
         huboCambios = true;
       }
+      this.comentarioEdicionBackup.delete(comentario.id);
     }
 
     const cantidadAntes = (this.comentariosAdicionalesActividad || []).length;
@@ -810,6 +849,22 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private parseFechaComentario(value?: string): number {
     if (!value) return 0;
     const raw = String(value).trim();
+
+    const localDateTime = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (localDateTime) {
+      const [, y, m, d, hh, mi, ss] = localDateTime;
+      const localDate = new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        Number(hh),
+        Number(mi),
+        Number(ss || '0')
+      );
+      const localTime = localDate.getTime();
+      return Number.isNaN(localTime) ? 0 : localTime;
+    }
+
     const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (dateOnly) {
       const [, y, m, d] = dateOnly;
@@ -987,6 +1042,13 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  private clonarComentario(comentario: ComentarioAdicionalActividad): ComentarioAdicionalActividad {
+    return {
+      ...comentario,
+      adjuntos: (comentario.adjuntos || []).map((adjunto) => ({ ...adjunto }))
+    };
+  }
+
   private formatearFechaComentario(date: Date): string {
     return date.toLocaleString('es-PE', {
       day: '2-digit',
@@ -1004,7 +1066,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const hh = String(date.getHours()).padStart(2, '0');
     const mi = String(date.getMinutes()).padStart(2, '0');
     const ss = String(date.getSeconds()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
   }
 
   private obtenerNombreCuentaActual(): string {
