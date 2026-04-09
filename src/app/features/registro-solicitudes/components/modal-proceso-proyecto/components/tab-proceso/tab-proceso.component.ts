@@ -181,7 +181,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const estadoActual = this.getEstadoActividad(nodo);
     if (estadoActual === nuevoEstado && nodo.fechaCambioEstado) return;
 
-    const fechaCambioEstado = new Date().toISOString();
+    const fechaCambioEstado = this.formatearFechaIsoLocal(new Date());
     const indiceObjetivo = this.obtenerIndiceNodoObjetivo(nodo);
     if (indiceObjetivo < 0) return;
 
@@ -809,7 +809,16 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   private parseFechaComentario(value?: string): number {
     if (!value) return 0;
-    const date = new Date(value);
+    const raw = String(value).trim();
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      const [, y, m, d] = dateOnly;
+      const localDate = new Date(Number(y), Number(m) - 1, Number(d));
+      const localTime = localDate.getTime();
+      return Number.isNaN(localTime) ? 0 : localTime;
+    }
+
+    const date = new Date(raw);
     const time = date.getTime();
     return Number.isNaN(time) ? 0 : time;
   }
@@ -907,7 +916,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       nombre: nodo?.nombre,
       texto: (comentario.texto || '').trim(),
       autorCuenta: comentario.autorCuenta || this.obtenerNombreCuentaActual(),
-      fechaComentario: new Date().toISOString(),
+      fechaComentario: this.formatearFechaIsoLocal(new Date()),
       estadoActividad: nodo?.estadoActividad,
       responsableId: comentario.responsableId,
       fechaInicio: nodo?.fechaInicio,
@@ -986,6 +995,16 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  private formatearFechaIsoLocal(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
   }
 
   private obtenerNombreCuentaActual(): string {

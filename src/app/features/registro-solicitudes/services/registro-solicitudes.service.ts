@@ -722,18 +722,51 @@ export class RegistroSolicitudesService {
 
   private toDate(value?: string): Date | undefined {
     if (!value) return undefined;
-    const date = new Date(value);
+    const raw = String(value).trim();
+    if (!raw) return undefined;
+
+    // Preserve date-only values as local calendar dates to avoid UTC day-shift.
+    const localDateOnly = this.parseLocalDateOnly(raw);
+    if (localDateOnly) return localDateOnly;
+
+    const date = new Date(raw);
     if (Number.isNaN(date.getTime())) return undefined;
     return date;
   }
 
   private toIsoDate(value?: Date | string): string | null {
     if (!value) return null;
+
+    const raw = typeof value === 'string' ? value.trim() : '';
+    if (raw) {
+      const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (match) {
+        // Keep explicit yyyy-MM-dd values untouched.
+        return `${match[1]}-${match[2]}-${match[3]}`;
+      }
+    }
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return null;
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private parseLocalDateOnly(value: string): Date | undefined {
+    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      const [, year, month, day] = dateOnlyMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    const midnightUtcMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})T00:00(?::00(?:\.\d{1,3})?)?(?:Z|[+\-]00:00)?$/);
+    if (midnightUtcMatch) {
+      const [, year, month, day] = midnightUtcMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    return undefined;
   }
 }

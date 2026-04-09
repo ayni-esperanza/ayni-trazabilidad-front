@@ -629,7 +629,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   async onGuardarActividad(actividad: Tarea): Promise<void> {
     if (!this.proyecto) return;
 
-    const fechaActualizacion = new Date().toISOString();
+    const fechaActualizacion = this.formatLocalDateTime(new Date());
     const responsableId = actividad.responsableId ? Number(actividad.responsableId) : undefined;
     const responsableNombre = this.resolveResponsableNombre(responsableId);
 
@@ -646,7 +646,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nombre: actividad.nombre,
         tipo: 'tarea',
         estadoActividad: nodoActual.estadoActividad || 'Pendiente',
-        fechaCambioEstado: nodoActual.fechaCambioEstado || new Date().toISOString(),
+        fechaCambioEstado: nodoActual.fechaCambioEstado || this.formatLocalDateTime(new Date()),
         responsableId,
         responsableNombre,
         fechaInicio: this.toApiDateTime(actividad.fechaInicio) || this.toApiDateTime(nodoActual.fechaInicio) || fechaActualizacion,
@@ -678,7 +678,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         posicionX: posicionInicial.x,
         posicionY: posicionInicial.y,
         estadoActividad: 'Pendiente',
-        fechaCambioEstado: new Date().toISOString(),
+        fechaCambioEstado: this.formatLocalDateTime(new Date()),
         responsableId,
         responsableNombre,
         fechaInicio: this.toApiDateTime(actividad.fechaInicio) || fechaActualizacion,
@@ -844,7 +844,17 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       return undefined;
     }
 
-    return date.toISOString().slice(0, 19);
+    return this.formatLocalDateTime(date);
+  }
+
+  private formatLocalDateTime(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`;
   }
 
   private resolveResponsableNombre(responsableId?: number): string | undefined {
