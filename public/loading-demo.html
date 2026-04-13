@@ -79,19 +79,33 @@
       height: auto;
     }
 
-    /* Animación del logo */
+    /* Animación trazo (stroke draw) */
     .logo-path {
-      animation: fadeInScale 2s ease-in-out infinite;
+      fill: transparent;
+      stroke: #009D45;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1800;
+      stroke-dashoffset: 1800;
+      animation: logoStrokeDraw 2.4s ease-in-out infinite;
     }
 
-    @keyframes fadeInScale {
-      0%, 100% {
-        opacity: 0.8;
-        transform: scale(0.98);
+    @keyframes logoStrokeDraw {
+      0% {
+        stroke-dashoffset: 1800;
+        opacity: 0.2;
       }
-      50% {
+      25% {
         opacity: 1;
-        transform: scale(1);
+      }
+      75% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+      100% {
+        stroke-dashoffset: 0;
+        opacity: 0.3;
       }
     }
 

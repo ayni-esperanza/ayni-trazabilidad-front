@@ -576,7 +576,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   crearNuevaActividad(): void {
     if (this.actividadModalAbierta) return;
-    this.crearActividadDesdeBpmnEvt.emit({ nombre: 'Nueva actividad' });
+    this.crearActividadDesdeBpmnEvt.emit({ nombre: '' });
   }
 
   get hayComentariosEnEdicion(): boolean {
@@ -1539,7 +1539,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
         return;
       }
 
-      const nombre = shape.businessObject?.name?.trim() || 'Nueva actividad';
+      const nombre = shape.businessObject?.name?.trim() || '';
       let nodoOrigenId: number | undefined;
 
       const incoming = shape.businessObject?.incoming;

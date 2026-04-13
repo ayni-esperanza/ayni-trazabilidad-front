@@ -144,7 +144,7 @@
     </div>
 
     <!-- Body -->
-    <div [ngClass]="embedded ? 'pt-4 overflow-y-auto flex-1' : 'p-4 overflow-y-auto flex-1'">
+    <div [ngClass]="embedded ? 'pt-4 flex-1 min-h-0' : 'p-4 overflow-y-auto flex-1'">
 
       <!-- ========== TAB TABLERO GENERAL ========== -->
       <div *ngIf="tabActiva === 'tablero'" class="grid grid-cols-1 xl:grid-cols-12 gap-4 animate-ui-in">

@@ -597,7 +597,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.nodoPadreParaNuevoId = nodoBase.id;
     this.posicionInicialNuevaActividad = this.calcularPosicionNuevoNodo(nodoBase.id);
     this.actividadParaEditar = {
-      nombre: 'Nueva actividad',
+      nombre: '',
       responsableId: '',
       fechaInicio: '',
       fechaFin: undefined,
@@ -614,8 +614,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     // No crear nodo aún: la actividad se agrega al flujo recién al guardar en la modal.
     this.nodoPadreParaNuevoId = typeof payload.nodoOrigenId === 'number' ? payload.nodoOrigenId : null;
     this.posicionInicialNuevaActividad = this.calcularPosicionNuevoNodo(this.nodoPadreParaNuevoId ?? undefined);
+    const nombreInicial = (payload.nombre || '').trim();
     this.actividadParaEditar = {
-      nombre: payload.nombre || 'Nueva actividad',
+      nombre: /^nueva actividad$/i.test(nombreInicial) ? '' : nombreInicial,
       responsableId: '',
       fechaInicio: '',
       fechaFin: undefined,

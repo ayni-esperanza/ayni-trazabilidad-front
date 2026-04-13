@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 })
 export class LoadingLogoComponent {
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() mode: 'stroke' | 'stroke-fill' = 'stroke-fill';
   @Input() text: string = 'Cargando...';
   @Input() showText: boolean = true;
 }

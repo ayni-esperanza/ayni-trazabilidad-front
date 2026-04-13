@@ -30,44 +30,85 @@
   height: auto;
 }
 
-/* Animación del logo completo */
-.logo-path {
-  animation: fadeInScale 2s ease-in-out infinite;
+/* Trazado animado + relleno */
+.logo-base {
+  opacity: 0.2;
 }
 
-@keyframes fadeInScale {
-  0%, 100% {
-    opacity: 0.8;
-    transform: scale(0.98);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.logo-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: logoDraw 2.2s ease-in-out infinite;
 }
 
-/* Efecto de brillo que pasa por encima */
-.shine-effect {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  animation: shine 2s ease-in-out infinite;
+.logo-fill {
+  opacity: 0;
+  animation: logoFill 2.2s ease-in-out infinite;
 }
 
-@keyframes shine {
+.mode-stroke .logo-base,
+.mode-stroke .logo-fill {
+  display: none;
+}
+
+.mode-stroke .logo-draw {
+  animation: logoDrawOnly 2s ease-in-out infinite;
+}
+
+.mode-stroke-fill .logo-base,
+.mode-stroke-fill .logo-fill,
+.mode-stroke-fill .logo-draw {
+  display: initial;
+}
+
+@keyframes logoDraw {
   0% {
-    left: -100%;
+    stroke-dashoffset: 100;
+    opacity: 0.25;
   }
-  50%, 100% {
-    left: 100%;
+  20% {
+    opacity: 1;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes logoFill {
+  0%, 40% {
+    opacity: 0;
+  }
+  68% {
+    opacity: 0.95;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes logoDrawOnly {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 1;
+  }
+  75% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.35;
   }
 }
 
