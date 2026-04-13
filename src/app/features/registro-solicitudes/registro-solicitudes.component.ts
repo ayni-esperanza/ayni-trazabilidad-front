@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
+import { AdjuntosPreviewService } from '../../shared/services/adjuntos-preview.service';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
@@ -63,8 +65,20 @@ export class RegistroSolicitudesComponent implements OnInit {
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
   private readonly proyectosConFlujoSolicitado = new Set<number>();
+  mostrarVistaPreviaAdjuntoTimeline = false;
+  adjuntoVistaPreviaTimelineNombre = '';
+  fuenteVistaPreviaAdjuntoTimeline = '';
+  htmlVistaPreviaAdjuntoTimeline: SafeHtml | null = null;
+  cargandoVistaPreviaAdjuntoTimeline = false;
+  private fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
+  private adjuntoVistaPreviaTimelineEsPdf = false;
+  private adjuntoVistaPreviaTimelineEsOffice = false;
 
-  constructor(private solicitudesService: RegistroSolicitudesService) {}
+  constructor(
+    private solicitudesService: RegistroSolicitudesService,
+    private readonly sanitizer: DomSanitizer,
+    private readonly adjuntosPreviewService: AdjuntosPreviewService
+  ) {}
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
@@ -523,9 +537,113 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   getAdjuntoUrl(adjunto: FlujoAdjunto): string | null {
-    const fuente = ((adjunto?.dataUrl || (adjunto as any)?.url || '') as string).trim();
-    if (!fuente) return null;
-    return fuente;
+    return this.adjuntosPreviewService.getAdjuntoUrl({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+  }
+
+  puedeVistaPreviaAdjuntoTimeline(adjunto: FlujoAdjunto): boolean {
+    return this.adjuntosPreviewService.puedeVistaPrevia({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+  }
+
+  async verAdjuntoTimeline(adjunto: FlujoAdjunto): Promise<void> {
+    if (!this.puedeVistaPreviaAdjuntoTimeline(adjunto)) return;
+
+    this.cerrarVistaPreviaAdjuntoTimeline();
+    this.cargandoVistaPreviaAdjuntoTimeline = false;
+    this.htmlVistaPreviaAdjuntoTimeline = null;
+
+    const fuente = this.getAdjuntoUrl(adjunto);
+    if (!fuente) return;
+
+    this.adjuntoVistaPreviaTimelineNombre = this.adjuntosPreviewService.getNombre({
+      nombre: adjunto?.nombre,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+
+    if (this.esAdjuntoOfficeTimeline(adjunto)) {
+      this.adjuntoVistaPreviaTimelineEsOffice = true;
+      this.mostrarVistaPreviaAdjuntoTimeline = true;
+      this.cargandoVistaPreviaAdjuntoTimeline = true;
+
+      try {
+        const html = await this.adjuntosPreviewService.generarHtmlPreviewOffice({
+          nombre: adjunto?.nombre,
+          tipo: (adjunto as any)?.tipo,
+          dataUrl: adjunto?.dataUrl,
+          url: (adjunto as any)?.url
+        });
+        this.htmlVistaPreviaAdjuntoTimeline = this.sanitizer.bypassSecurityTrustHtml(html);
+      } catch (error) {
+        console.error('Error generando vista previa Office en timeline:', error);
+        this.htmlVistaPreviaAdjuntoTimeline = this.sanitizer.bypassSecurityTrustHtml(
+          this.adjuntosPreviewService.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.')
+        );
+      } finally {
+        this.cargandoVistaPreviaAdjuntoTimeline = false;
+      }
+      return;
+    }
+
+    this.fuenteVistaPreviaAdjuntoTimeline = fuente;
+    this.adjuntoVistaPreviaTimelineEsPdf = this.esAdjuntoPdfTimeline(adjunto);
+    this.adjuntoVistaPreviaTimelineEsOffice = false;
+    this.fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
+    this.mostrarVistaPreviaAdjuntoTimeline = true;
+  }
+
+  async descargarAdjuntoTimeline(adjunto: FlujoAdjunto): Promise<void> {
+    await this.adjuntosPreviewService.descargarAdjunto({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+  }
+
+  obtenerFuenteVistaPreviaAdjuntoTimelinePdf(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaAdjuntoTimeline);
+  }
+
+  obtenerFuenteVistaPreviaAdjuntoTimelineImagen(): string {
+    return this.fuenteVistaPreviaAdjuntoTimeline;
+  }
+
+  obtenerHtmlVistaPreviaAdjuntoTimeline(): SafeHtml {
+    return this.htmlVistaPreviaAdjuntoTimeline || this.sanitizer.bypassSecurityTrustHtml(
+      this.adjuntosPreviewService.generarMensajePreviewHtml('Sin contenido para vista previa.')
+    );
+  }
+
+  esPdfVistaPreviaAdjuntoTimeline(): boolean {
+    return this.adjuntoVistaPreviaTimelineEsPdf;
+  }
+
+  esOfficeVistaPreviaAdjuntoTimeline(): boolean {
+    return this.adjuntoVistaPreviaTimelineEsOffice;
+  }
+
+  cerrarVistaPreviaAdjuntoTimeline(): void {
+    if (this.fuenteVistaPreviaAdjuntoTimelineEsBlob && this.fuenteVistaPreviaAdjuntoTimeline) {
+      URL.revokeObjectURL(this.fuenteVistaPreviaAdjuntoTimeline);
+    }
+    this.mostrarVistaPreviaAdjuntoTimeline = false;
+    this.adjuntoVistaPreviaTimelineNombre = '';
+    this.fuenteVistaPreviaAdjuntoTimeline = '';
+    this.htmlVistaPreviaAdjuntoTimeline = null;
+    this.cargandoVistaPreviaAdjuntoTimeline = false;
+    this.fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
+    this.adjuntoVistaPreviaTimelineEsPdf = false;
+    this.adjuntoVistaPreviaTimelineEsOffice = false;
   }
 
   getEstadoTareaTimeline(nodo: FlujoNodo): EstadoTarea {
@@ -805,5 +923,32 @@ export class RegistroSolicitudesComponent implements OnInit {
     const date = new Date(raw);
     const time = date.getTime();
     return Number.isNaN(time) ? 0 : time;
+  }
+
+  private esAdjuntoPdfTimeline(adjunto: FlujoAdjunto): boolean {
+    return this.adjuntosPreviewService.esPdf({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+  }
+
+  private esAdjuntoImagenTimeline(adjunto: FlujoAdjunto): boolean {
+    return this.adjuntosPreviewService.esImagen({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
+  }
+
+  private esAdjuntoOfficeTimeline(adjunto: FlujoAdjunto): boolean {
+    return this.adjuntosPreviewService.esOffice({
+      nombre: adjunto?.nombre,
+      tipo: (adjunto as any)?.tipo,
+      dataUrl: adjunto?.dataUrl,
+      url: (adjunto as any)?.url
+    });
   }
 }

@@ -8,8 +8,11 @@ import { ModalDismissDirective } from '../../../../shared/directives/modal-dismi
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TareaFormModalComponent, Tarea } from '../../../../shared/components/tarea-form-modal/tarea-form-modal.component';
 import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
+import { TabTableroGeneralComponent } from './components/tab-tablerogeneral/tab-tablerogeneral.component';
 import { TabInformacionComponent } from './components/tab-informacion/tab-informacion.component';
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
+import { AdjuntosPreviewService } from '../../../../shared/services/adjuntos-preview.service';
+import { DocumentoResumen } from './models/documento-resumen.model';
 import { CostoCategoriaAdicionalApi, RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
 import { HttpService } from '../../../../core/services/http.service';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -63,18 +66,10 @@ export interface TablaCostoExtra {
   expandida: boolean;
 }
 
-type DocumentoResumen = {
-  actividad: string;
-  origen: string;
-  nombre: string;
-  tipo: string;
-  adjunto: FlujoAdjunto;
-};
-
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, TareaFormModalComponent, TabProcesoComponent, TabInformacionComponent, TabCostosComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, TareaFormModalComponent, TabProcesoComponent, TabTableroGeneralComponent, TabInformacionComponent, TabCostosComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -83,6 +78,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
   private readonly httpClient = inject(HttpClient);
   private readonly httpService = inject(HttpService);
+  private readonly adjuntosPreviewService = inject(AdjuntosPreviewService);
 
   @Input() visible = false;
   @Input() embedded = false;
@@ -1312,20 +1308,27 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   puedeDescargarDocumento(doc: DocumentoResumen): boolean {
-    const fuenteAlterna = (doc?.adjunto as any)?.url;
-    return !!doc?.adjunto?.archivo || !!doc?.adjunto?.dataUrl || !!fuenteAlterna || !!doc?.adjunto?.objectKey;
+    return !!doc?.adjunto?.objectKey || !!this.adjuntosPreviewService.getAdjuntoUrl(this.mapearDocumentoAdjunto(doc));
   }
 
   async descargarDocumento(doc: DocumentoResumen): Promise<void> {
+    const blobAdjunto = await this.resolverBlobAdjunto(doc.adjunto);
+    if (blobAdjunto) {
+      await this.adjuntosPreviewService.descargarAdjunto({
+        nombre: doc.nombre,
+        tipo: doc.tipo,
+        archivo: new File([blobAdjunto], doc.nombre || 'documento', { type: doc.tipo || blobAdjunto.type || 'application/octet-stream' })
+      });
+      return;
+    }
+
     const fuente = await this.resolverFuenteAdjunto(doc.adjunto);
     if (fuente) {
-      const enlace = document.createElement('a');
-      enlace.href = fuente.url;
-      enlace.download = doc.adjunto.nombre || 'documento';
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-
+      await this.adjuntosPreviewService.descargarAdjunto({
+        nombre: doc.nombre,
+        tipo: doc.tipo,
+        url: fuente.url
+      });
       if (fuente.revokeObjectUrl) {
         window.URL.revokeObjectURL(fuente.url);
       }
@@ -1341,9 +1344,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       '',
       'Vuelve a adjuntar este archivo para habilitar descarga real y vista previa completa.'
     ].join('\n');
-    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    const blobInfo = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
     const enlace = document.createElement('a');
-    const url = window.URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blobInfo);
     enlace.href = url;
     enlace.download = `${(doc.nombre || 'documento').replace(/\.[^.]+$/, '')}-info.txt`;
     document.body.appendChild(enlace);
@@ -1354,50 +1357,23 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   esVistaPreviaSoportadaDocumento(doc: DocumentoResumen): boolean {
     if (!this.puedeDescargarDocumento(doc)) return false;
-
-    if (this.esDocumentoOffice(doc)) return true;
-
-    const mime = (doc.tipo || '').toLowerCase();
-    if (mime.startsWith('image/') || mime === 'application/pdf') return true;
-
-    const nombre = (doc.nombre || '').toLowerCase();
-    return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+    if (doc.adjunto?.objectKey) return true;
+    return this.adjuntosPreviewService.puedeVistaPrevia(this.mapearDocumentoAdjunto(doc));
   }
 
   esPdfDocumento(doc: DocumentoResumen | null): boolean {
     if (!doc) return false;
-    const mime = (doc.tipo || '').toLowerCase();
-    if (mime === 'application/pdf') return true;
-    return (doc.nombre || '').toLowerCase().endsWith('.pdf');
+    return this.adjuntosPreviewService.esPdf(this.mapearDocumentoAdjunto(doc));
   }
 
   esImagenDocumento(doc: DocumentoResumen | null): boolean {
     if (!doc) return false;
-    const mime = (doc.tipo || '').toLowerCase();
-    if (mime.startsWith('image/')) return true;
-    const nombre = (doc.nombre || '').toLowerCase();
-    return nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+    return this.adjuntosPreviewService.esImagen(this.mapearDocumentoAdjunto(doc));
   }
 
   esDocumentoOffice(doc: DocumentoResumen | null): boolean {
     if (!doc) return false;
-    return this.esDocumentoWord(doc) || this.esDocumentoExcel(doc);
-  }
-
-  private esDocumentoWord(doc: DocumentoResumen | null): boolean {
-    if (!doc) return false;
-    const mime = (doc.tipo || '').toLowerCase();
-    if (mime.includes('wordprocessingml') || mime.includes('msword')) return true;
-    const nombre = (doc.nombre || '').toLowerCase();
-    return nombre.endsWith('.docx') || nombre.endsWith('.doc');
-  }
-
-  private esDocumentoExcel(doc: DocumentoResumen | null): boolean {
-    if (!doc) return false;
-    const mime = (doc.tipo || '').toLowerCase();
-    if (mime.includes('spreadsheetml') || mime.includes('ms-excel')) return true;
-    const nombre = (doc.nombre || '').toLowerCase();
-    return nombre.endsWith('.xlsx') || nombre.endsWith('.xls');
+    return this.adjuntosPreviewService.esOffice(this.mapearDocumentoAdjunto(doc));
   }
 
   async abrirVistaPreviaDocumento(doc: DocumentoResumen): Promise<void> {
@@ -1415,18 +1391,24 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       try {
         const blob = await this.resolverBlobAdjunto(doc.adjunto);
         if (!blob) {
-          this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.'));
+          this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(
+            this.adjuntosPreviewService.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.')
+          );
           return;
         }
 
-        const html = this.esDocumentoExcel(doc)
-          ? await this.generarVistaPreviaExcel(blob)
-          : await this.generarVistaPreviaWord(blob, doc.nombre);
+        const html = await this.adjuntosPreviewService.generarHtmlPreviewOffice({
+          nombre: doc.nombre,
+          tipo: doc.tipo,
+          archivo: new File([blob], doc.nombre || 'documento', { type: doc.tipo || blob.type || 'application/octet-stream' })
+        });
 
         this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(html);
       } catch (error) {
         console.error('Error generando vista previa Office:', error);
-        this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.'));
+        this.htmlVistaPreviaDocumento = this.sanitizer.bypassSecurityTrustHtml(
+          this.adjuntosPreviewService.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.')
+        );
       } finally {
         this.cargandoVistaPreviaDocumento = false;
       }
@@ -1465,6 +1447,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarVistaPreviaDocumento = true;
   }
 
+  async abrirVistaPreviaAdjuntoFlujo(adjunto: FlujoAdjunto): Promise<void> {
+    const doc: DocumentoResumen = {
+      actividad: 'Flujo de proyecto',
+      origen: 'Actividad',
+      nombre: adjunto?.nombre || 'Documento adjunto',
+      tipo: adjunto?.tipo || 'Archivo',
+      adjunto
+    };
+
+    await this.abrirVistaPreviaDocumento(doc);
+  }
+
   cerrarVistaPreviaDocumento(): void {
     this.liberarFuenteVistaPreviaDocumento();
     this.fuenteVistaPreviaDocumento = '';
@@ -1484,7 +1478,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   obtenerHtmlVistaPreviaDocumento(): SafeHtml {
-    return this.htmlVistaPreviaDocumento || this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('Sin contenido para vista previa.'));
+    return this.htmlVistaPreviaDocumento || this.sanitizer.bypassSecurityTrustHtml(
+      this.adjuntosPreviewService.generarMensajePreviewHtml('Sin contenido para vista previa.')
+    );
   }
 
   async descargarTodosDocumentosResumen(): Promise<void> {
@@ -1495,21 +1491,29 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     for (const doc of this.documentosActividadResumen) {
       const { adjunto } = doc;
-      const fuente = await this.resolverFuenteAdjunto(adjunto);
-      if (fuente) {
-        const enlace = document.createElement('a');
-        enlace.href = fuente.url;
-        enlace.download = adjunto.nombre || 'documento';
-        document.body.appendChild(enlace);
-        enlace.click();
-        document.body.removeChild(enlace);
-
-        if (fuente.revokeObjectUrl) {
-          window.URL.revokeObjectURL(fuente.url);
-        }
+      const blob = await this.resolverBlobAdjunto(adjunto);
+      if (blob) {
+        await this.adjuntosPreviewService.descargarAdjunto({
+          nombre: adjunto.nombre,
+          tipo: adjunto.tipo,
+          archivo: new File([blob], adjunto.nombre || 'documento', { type: adjunto.tipo || blob.type || 'application/octet-stream' })
+        });
         descargados += 1;
       } else {
-        sinContenido.push(`${adjunto.nombre || 'documento'} | ${doc.origen} | Actividad: ${doc.actividad}`);
+        const fuente = await this.resolverFuenteAdjunto(adjunto);
+        if (fuente) {
+          await this.adjuntosPreviewService.descargarAdjunto({
+            nombre: adjunto.nombre,
+            tipo: adjunto.tipo,
+            url: fuente.url
+          });
+          if (fuente.revokeObjectUrl) {
+            window.URL.revokeObjectURL(fuente.url);
+          }
+          descargados += 1;
+        } else {
+          sinContenido.push(`${adjunto.nombre || 'documento'} | ${doc.origen} | Actividad: ${doc.actividad}`);
+        }
       }
     }
 
@@ -2037,7 +2041,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       };
     }
 
-    const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
+    const fuente = this.adjuntosPreviewService.getAdjuntoUrl({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      dataUrl: adjunto.dataUrl,
+      url: (adjunto as any).url
+    }) || '';
     if (!fuente) {
       if (adjunto.objectKey) {
         const blob = await this.resolverBlobPorObjectKey(adjunto.objectKey);
@@ -2051,7 +2060,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       return null;
     }
 
-    if (this.esDataUrl(fuente) || fuente.startsWith('blob:')) {
+    if (/^data:/i.test(fuente) || fuente.startsWith('blob:')) {
       return { url: fuente, revokeObjectUrl: false };
     }
 
@@ -2071,24 +2080,19 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   private async resolverBlobAdjunto(adjunto: FlujoAdjunto): Promise<Blob | null> {
-    if (adjunto.archivo instanceof Blob) {
-      return adjunto.archivo;
-    }
-
-    const fuente = ((adjunto.dataUrl || (adjunto as any).url || '') as string).trim();
-    if (!fuente) {
-      if (adjunto.objectKey) {
-        return this.resolverBlobPorObjectKey(adjunto.objectKey);
-      }
-      return null;
-    }
-
-    if (this.esDataUrl(fuente)) {
-      return this.dataUrlABlob(fuente);
+    if (adjunto.objectKey) {
+      const desdeObjectKey = await this.resolverBlobPorObjectKey(adjunto.objectKey);
+      if (desdeObjectKey) return desdeObjectKey;
     }
 
     try {
-      return await firstValueFrom(this.httpClient.get(fuente, { responseType: 'blob' }));
+      return await this.adjuntosPreviewService.obtenerBlob({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        archivo: adjunto.archivo,
+        dataUrl: adjunto.dataUrl,
+        url: (adjunto as any).url
+      });
     } catch (error) {
       console.error('No se pudo descargar el adjunto como blob:', error);
       return null;
@@ -2118,88 +2122,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return null;
   }
 
-  private dataUrlABlob(dataUrl: string): Blob | null {
-    const partes = dataUrl.split(',');
-    if (partes.length !== 2) return null;
+  private mapearDocumentoAdjunto(doc: DocumentoResumen | null): { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string; url?: string } {
+    if (!doc) return {};
 
-    const encabezado = partes[0];
-    const base64 = partes[1];
-    const mimeMatch = encabezado.match(/data:([^;]+);base64/);
-    const mime = mimeMatch?.[1] || 'application/octet-stream';
-
-    try {
-      const binario = atob(base64);
-      const bytes = new Uint8Array(binario.length);
-      for (let i = 0; i < binario.length; i++) {
-        bytes[i] = binario.charCodeAt(i);
-      }
-      return new Blob([bytes], { type: mime });
-    } catch {
-      return null;
-    }
-  }
-
-  private async generarVistaPreviaExcel(blob: Blob): Promise<string> {
-    const XLSX: any = await import('xlsx');
-    const arrayBuffer = await blob.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const primeraHoja = workbook.SheetNames?.[0];
-
-    if (!primeraHoja) {
-      return this.generarMensajePreviewHtml('El archivo Excel no contiene hojas para mostrar.');
-    }
-
-    const hoja = workbook.Sheets[primeraHoja];
-    const tablaHtml = XLSX.utils.sheet_to_html(hoja, { editable: false });
-
-    return `
-      <div style="padding: 12px; font-family: Segoe UI, Arial, sans-serif; color: #111827;">
-        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4b5563;"><strong>Hoja:</strong> ${primeraHoja}</p>
-        <div style="overflow:auto; max-height:68vh; border:1px solid #e5e7eb; border-radius:8px; background:#fff; padding:8px;">
-          ${tablaHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  private async generarVistaPreviaWord(blob: Blob, nombreArchivo?: string): Promise<string> {
-    const nombre = (nombreArchivo || '').toLowerCase();
-    if (nombre.endsWith('.doc') && !nombre.endsWith('.docx')) {
-      return this.generarMensajePreviewHtml('La vista previa de .doc no esta soportada. Usa .docx para vista previa o descarga el archivo.');
-    }
-
-    let mammoth: any;
-    try {
-      mammoth = await import('mammoth/mammoth.browser');
-    } catch {
-      mammoth = await import('mammoth');
-    }
-
-    const arrayBuffer = await blob.arrayBuffer();
-    const resultado = await mammoth.convertToHtml({ arrayBuffer });
-    const contenido = (resultado?.value || '').trim();
-
-    if (!contenido) {
-      return this.generarMensajePreviewHtml('El documento Word no contiene texto renderizable para vista previa.');
-    }
-
-    return `
-      <div style="padding: 16px; max-height: 72vh; overflow:auto; font-family: Segoe UI, Arial, sans-serif; color:#111827; background:#fff;">
-        ${contenido}
-      </div>
-    `;
-  }
-
-  private generarMensajePreviewHtml(mensaje: string): string {
-    return `
-      <div style="display:flex;align-items:center;justify-content:center;min-height:52vh;padding:24px;background:#f9fafb;color:#374151;font-family:Segoe UI,Arial,sans-serif;">
-        <p style="text-align:center;max-width:760px;font-size:14px;line-height:1.5;margin:0;">${mensaje}</p>
-      </div>
-    `;
-  }
-
-  private esDataUrl(value: string): boolean {
-    return value.startsWith('data:');
+    return {
+      nombre: doc.nombre,
+      tipo: doc.tipo,
+      archivo: doc.adjunto?.archivo,
+      dataUrl: doc.adjunto?.dataUrl,
+      url: (doc.adjunto as any)?.url
+    };
   }
 
   private marcarActualizacionProyecto(): void {

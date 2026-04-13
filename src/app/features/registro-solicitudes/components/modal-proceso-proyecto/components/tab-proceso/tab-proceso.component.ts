@@ -6,6 +6,7 @@ import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActiv
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
 import { PaginacionComponent } from '../../../../../../shared/components/paginacion/paginacion.component';
+import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
 import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
 import { firstValueFrom } from 'rxjs';
 
@@ -18,6 +19,7 @@ import { firstValueFrom } from 'rxjs';
 export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
+  private readonly adjuntosPreviewService = inject(AdjuntosPreviewService);
   @Input() proyecto: Proyecto | null = null;
   @Input() responsables: Responsable[] = [];
   @Input() proyectoFinalizado = false;
@@ -35,6 +37,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   @Output() flujoActualizadoEvt = new EventEmitter<FlujoNodo[]>();
   @Output() comentariosAdicionalesActividadChange = new EventEmitter<ComentarioAdicionalActividad[]>();
   @Output() bloqueoEdicionActividadesChange = new EventEmitter<boolean>();
+  @Output() vistaPreviaAdjuntoEvt = new EventEmitter<FlujoAdjunto>();
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   ordenRecientePrimero = true;
@@ -337,75 +340,60 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   puedeVistaPreviaAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    if (!this.puedeAccionarAdjunto(adjunto)) return false;
-
-    if (this.esAdjuntoOffice(adjunto)) return true;
-
-    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
-    if (tipo.startsWith('image/') || tipo === 'application/pdf') return true;
-    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
-    return nombre.endsWith('.pdf') || nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg') || nombre.endsWith('.webp') || nombre.endsWith('.gif');
+    return this.adjuntosPreviewService.puedeVistaPrevia(adjunto);
   }
 
   async verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): Promise<void> {
     if (!this.puedeVistaPreviaAdjunto(adjunto)) return;
 
+    if ((this.vistaPreviaAdjuntoEvt as any).observers?.length) {
+      this.vistaPreviaAdjuntoEvt.emit({
+        nombre: adjunto.nombre || 'Documento adjunto',
+        tipo: adjunto.tipo,
+        archivo: adjunto.archivo,
+        dataUrl: adjunto.dataUrl
+      } as FlujoAdjunto);
+      return;
+    }
+
     this.cerrarVistaPreviaAdjunto();
     this.htmlVistaPreviaAdjunto = null;
     this.cargandoVistaPreviaAdjunto = false;
 
+    this.adjuntoVistaPreviaNombre = this.adjuntosPreviewService.getNombre(adjunto, 'Documento adjunto');
+
     if (this.esAdjuntoOffice(adjunto)) {
-      this.adjuntoVistaPreviaNombre = adjunto.nombre || 'Documento adjunto';
       this.adjuntoVistaPreviaEsOffice = true;
       this.mostrarVistaPreviaAdjunto = true;
       this.cargandoVistaPreviaAdjunto = true;
 
       try {
-        const blob = this.obtenerBlobAdjunto(adjunto);
-        if (!blob) {
-          this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.'));
-          return;
-        }
-
-        const html = this.esAdjuntoExcel(adjunto)
-          ? await this.generarVistaPreviaExcel(blob)
-          : await this.generarVistaPreviaWord(blob, adjunto.nombre);
+        const html = await this.adjuntosPreviewService.generarHtmlPreviewOffice(adjunto);
 
         this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(html);
       } catch (error) {
         console.error('Error generando vista previa Office:', error);
-        this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.'));
+        this.htmlVistaPreviaAdjunto = this.sanitizer.bypassSecurityTrustHtml(
+          this.adjuntosPreviewService.generarMensajePreviewHtml('No se pudo generar la vista previa del archivo.')
+        );
       } finally {
         this.cargandoVistaPreviaAdjunto = false;
       }
       return;
     }
 
-    const url = this.obtenerUrlAdjunto(adjunto);
+    const url = this.adjuntosPreviewService.getAdjuntoUrl(adjunto);
     if (!url) return;
 
     this.fuenteVistaPreviaAdjunto = url;
     this.fuenteVistaPreviaAdjuntoEsBlob = !!adjunto.archivo && !adjunto.dataUrl;
     this.adjuntoVistaPreviaEsPdf = this.esAdjuntoPdf(adjunto);
     this.adjuntoVistaPreviaEsOffice = false;
-    this.adjuntoVistaPreviaNombre = adjunto.nombre || 'Documento adjunto';
     this.mostrarVistaPreviaAdjunto = true;
   }
 
-  descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string }): void {
-    const url = this.obtenerUrlAdjunto(adjunto);
-    if (!url) return;
-
-    const enlace = document.createElement('a');
-    enlace.href = url;
-    enlace.download = adjunto.nombre || 'documento';
-    document.body.appendChild(enlace);
-    enlace.click();
-    document.body.removeChild(enlace);
-
-    if (adjunto.archivo instanceof Blob && !adjunto.dataUrl) {
-      URL.revokeObjectURL(url);
-    }
+  async descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string }): Promise<void> {
+    await this.adjuntosPreviewService.descargarAdjunto(adjunto);
   }
 
   private decodificarEntidades(valor: string): string {
@@ -416,20 +404,6 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     const textarea = document.createElement('textarea');
     textarea.innerHTML = valor;
     return textarea.value;
-  }
-
-  private obtenerUrlAdjunto(adjunto: { archivo?: File; dataUrl?: string }): string | null {
-    if (adjunto.dataUrl) return adjunto.dataUrl;
-    if (adjunto.archivo instanceof Blob) return URL.createObjectURL(adjunto.archivo);
-    return null;
-  }
-
-  private obtenerBlobAdjunto(adjunto: { archivo?: File; dataUrl?: string }): Blob | null {
-    if (adjunto.archivo instanceof Blob) return adjunto.archivo;
-    if (adjunto.dataUrl && this.esDataUrl(adjunto.dataUrl)) {
-      return this.dataUrlABlob(adjunto.dataUrl);
-    }
-    return null;
   }
 
   obtenerFuenteVistaPreviaAdjuntoPdf(): SafeResourceUrl {
@@ -449,7 +423,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   obtenerHtmlVistaPreviaAdjunto(): SafeHtml {
-    return this.htmlVistaPreviaAdjunto || this.sanitizer.bypassSecurityTrustHtml(this.generarMensajePreviewHtml('Sin contenido para vista previa.'));
+    return this.htmlVistaPreviaAdjunto || this.sanitizer.bypassSecurityTrustHtml(
+      this.adjuntosPreviewService.generarMensajePreviewHtml('Sin contenido para vista previa.')
+    );
   }
 
   cerrarVistaPreviaAdjunto(): void {
@@ -467,113 +443,11 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   private esAdjuntoPdf(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
-    if (tipo === 'application/pdf') return true;
-    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
-    if (nombre.endsWith('.pdf')) return true;
-    return !!adjunto.dataUrl?.startsWith('data:application/pdf');
+    return this.adjuntosPreviewService.esPdf(adjunto);
   }
 
   private esAdjuntoOffice(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    return this.esAdjuntoWord(adjunto) || this.esAdjuntoExcel(adjunto);
-  }
-
-  private esAdjuntoWord(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
-    if (tipo.includes('wordprocessingml') || tipo.includes('msword')) return true;
-    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
-    return nombre.endsWith('.docx') || nombre.endsWith('.doc');
-  }
-
-  private esAdjuntoExcel(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    const tipo = (adjunto.tipo || adjunto.archivo?.type || '').toLowerCase();
-    if (tipo.includes('spreadsheetml') || tipo.includes('ms-excel')) return true;
-    const nombre = (adjunto.nombre || adjunto.archivo?.name || '').toLowerCase();
-    return nombre.endsWith('.xlsx') || nombre.endsWith('.xls');
-  }
-
-  private async generarVistaPreviaExcel(blob: Blob): Promise<string> {
-    const XLSX: any = await import('xlsx');
-    const arrayBuffer = await blob.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const primeraHoja = workbook.SheetNames?.[0];
-
-    if (!primeraHoja) {
-      return this.generarMensajePreviewHtml('El archivo Excel no contiene hojas para mostrar.');
-    }
-
-    const hoja = workbook.Sheets[primeraHoja];
-    const tablaHtml = XLSX.utils.sheet_to_html(hoja, { editable: false });
-
-    return `
-      <div style="padding: 12px; font-family: Segoe UI, Arial, sans-serif; color: #111827;">
-        <p style="margin: 0 0 8px 0; font-size: 12px; color: #4b5563;"><strong>Hoja:</strong> ${primeraHoja}</p>
-        <div style="overflow:auto; max-height:68vh; border:1px solid #e5e7eb; border-radius:8px; background:#fff; padding:8px;">
-          ${tablaHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  private async generarVistaPreviaWord(blob: Blob, nombreArchivo?: string): Promise<string> {
-    const nombre = (nombreArchivo || '').toLowerCase();
-    if (nombre.endsWith('.doc') && !nombre.endsWith('.docx')) {
-      return this.generarMensajePreviewHtml('La vista previa de .doc no esta soportada. Usa .docx para vista previa o descarga el archivo.');
-    }
-
-    let mammoth: any;
-    try {
-      mammoth = await import('mammoth/mammoth.browser');
-    } catch {
-      mammoth = await import('mammoth');
-    }
-
-    const arrayBuffer = await blob.arrayBuffer();
-    const resultado = await mammoth.convertToHtml({ arrayBuffer });
-    const contenido = (resultado?.value || '').trim();
-
-    if (!contenido) {
-      return this.generarMensajePreviewHtml('El documento Word no contiene texto renderizable para vista previa.');
-    }
-
-    return `
-      <div style="padding: 16px; max-height: 72vh; overflow:auto; font-family: Segoe UI, Arial, sans-serif; color:#111827; background:#fff;">
-        ${contenido}
-      </div>
-    `;
-  }
-
-  private generarMensajePreviewHtml(mensaje: string): string {
-    return `
-      <div style="display:flex;align-items:center;justify-content:center;min-height:52vh;padding:24px;background:#f9fafb;color:#374151;font-family:Segoe UI,Arial,sans-serif;">
-        <p style="text-align:center;max-width:760px;font-size:14px;line-height:1.5;margin:0;">${mensaje}</p>
-      </div>
-    `;
-  }
-
-  private dataUrlABlob(dataUrl: string): Blob | null {
-    const partes = dataUrl.split(',');
-    if (partes.length !== 2) return null;
-
-    const encabezado = partes[0];
-    const base64 = partes[1];
-    const mimeMatch = encabezado.match(/data:([^;]+);base64/);
-    const mime = mimeMatch?.[1] || 'application/octet-stream';
-
-    try {
-      const binario = atob(base64);
-      const bytes = new Uint8Array(binario.length);
-      for (let i = 0; i < binario.length; i++) {
-        bytes[i] = binario.charCodeAt(i);
-      }
-      return new Blob([bytes], { type: mime });
-    } catch {
-      return null;
-    }
-  }
-
-  private esDataUrl(valor: string): boolean {
-    return valor.startsWith('data:');
+    return this.adjuntosPreviewService.esOffice(adjunto);
   }
 
   crearNuevaActividad(): void {
@@ -920,20 +794,14 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.emitirComentariosActualizados();
   }
 
-  descargarAdjuntoComentario(adjunto: FlujoAdjunto): void {
-    const url = adjunto.dataUrl || (adjunto.archivo ? URL.createObjectURL(adjunto.archivo) : null);
-    if (!url) return;
-
-    const enlace = document.createElement('a');
-    enlace.href = url;
-    enlace.download = adjunto.nombre || 'adjunto';
-    document.body.appendChild(enlace);
-    enlace.click();
-    document.body.removeChild(enlace);
-
-    if (adjunto.archivo && !adjunto.dataUrl) {
-      URL.revokeObjectURL(url);
-    }
+  async descargarAdjuntoComentario(adjunto: FlujoAdjunto): Promise<void> {
+    await this.adjuntosPreviewService.descargarAdjunto({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      archivo: adjunto.archivo,
+      dataUrl: adjunto.dataUrl,
+      url: (adjunto as any).url
+    }, 'adjunto');
   }
 
   formatBytes(size?: number): string {

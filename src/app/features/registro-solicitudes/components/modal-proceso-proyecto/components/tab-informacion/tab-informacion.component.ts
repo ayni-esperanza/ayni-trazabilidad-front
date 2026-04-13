@@ -6,6 +6,7 @@ import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, Flujo
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { ResponsableSelectComponent } from '../../../../../../shared/components/responsable-select/responsable-select.component';
+import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
 
 export type ProyectoInfoFormData = {
   nombreProyecto: string;
@@ -59,6 +60,7 @@ export class TabInformacionComponent implements OnInit {
 
   constructor(
     private cdr: ChangeDetectorRef,
+    private readonly adjuntosPreviewService: AdjuntosPreviewService,
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -146,19 +148,15 @@ export class TabInformacionComponent implements OnInit {
     }
   }
 
-  descargarAdjuntoOrdenCompra(adjunto: FlujoAdjunto): void {
+  async descargarAdjuntoOrdenCompra(adjunto: FlujoAdjunto): Promise<void> {
     if (!this.isBrowser) return;
-    const url = this.obtenerUrlAdjunto(adjunto);
-    if (!url) return;
-
-    const enlace = document.createElement('a');
-    enlace.href = url;
-    enlace.download = adjunto.nombre || 'adjunto';
-    enlace.click();
-
-    if (adjunto.archivo && !adjunto.dataUrl) {
-      window.URL.revokeObjectURL(url);
-    }
+    await this.adjuntosPreviewService.descargarAdjunto({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      archivo: adjunto.archivo,
+      dataUrl: adjunto.dataUrl,
+      url: adjunto.url
+    }, 'adjunto');
   }
 
   getResponsableNombre(responsableId: number): string {
@@ -271,25 +269,15 @@ export class TabInformacionComponent implements OnInit {
     comentario.adjuntos = comentario.adjuntos.filter((_, i) => i !== adjuntoIndex);
   }
 
-  descargarAdjuntoComentario(adjunto: FlujoAdjunto): void {
+  async descargarAdjuntoComentario(adjunto: FlujoAdjunto): Promise<void> {
     if (!this.isBrowser) return;
-
-    if (adjunto.archivo) {
-      const enlace = document.createElement('a');
-      const url = window.URL.createObjectURL(adjunto.archivo);
-      enlace.href = url;
-      enlace.download = adjunto.nombre || 'adjunto';
-      enlace.click();
-      window.URL.revokeObjectURL(url);
-      return;
-    }
-
-    if (adjunto.dataUrl) {
-      const enlace = document.createElement('a');
-      enlace.href = adjunto.dataUrl;
-      enlace.download = adjunto.nombre || 'adjunto';
-      enlace.click();
-    }
+    await this.adjuntosPreviewService.descargarAdjunto({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      archivo: adjunto.archivo,
+      dataUrl: adjunto.dataUrl,
+      url: adjunto.url
+    }, 'adjunto');
   }
 
   getNombreActividad(actividadId: number): string {
@@ -329,12 +317,13 @@ export class TabInformacionComponent implements OnInit {
   }
 
   private obtenerUrlAdjunto(adjunto: FlujoAdjunto): string | null {
-    if (adjunto.dataUrl) return adjunto.dataUrl;
-    if (adjunto.url) return adjunto.url;
-    if (adjunto.archivo && this.isBrowser) {
-      return window.URL.createObjectURL(adjunto.archivo);
-    }
-    return null;
+    return this.adjuntosPreviewService.getAdjuntoUrl({
+      nombre: adjunto.nombre,
+      tipo: adjunto.tipo,
+      archivo: adjunto.archivo,
+      dataUrl: adjunto.dataUrl,
+      url: adjunto.url
+    });
   }
 
 }

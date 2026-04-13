@@ -440,12 +440,12 @@
                   class="overflow-hidden transition-all duration-300 ease-in-out"
                   [ngClass]="isDetalleActividadAbierto(nodo.id) ? 'opacity-100 max-h-[200rem]' : 'opacity-0 max-h-0'">
                   <div class="mt-1.5 p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-600 dark:text-gray-300 space-y-2">
-                  <div *ngIf="!esNodoOrdenCompra(nodo)">
+                  <ng-container *ngIf="!esNodoOrdenCompra(nodo); else detalleOrdenCompra">
                     <p>
                       <span class="font-semibold">Costo de dependencia:</span>
                       S/ {{ getCostoDependenciaActividad(nodo.id) | number:'1.2-2' }}
                     </p>
-                  </div>
+                  </ng-container>
                   <div>
                     <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="formatearDescripcionDetalle(nodo.descripcion)"></div>
                   </div>
@@ -481,6 +481,28 @@
                       </button>
                     </div>
                   </div>
+                  <ng-template #detalleOrdenCompra>
+                    <div class="mb-2">
+                      <span class="font-semibold">Opciones de orden de compra:</span>
+                      <ng-container *ngFor="let adj of nodo.adjuntos">
+                        <button
+                          type="button"
+                          class="ml-2 px-2 py-1 text-[10px] rounded bg-blue-600 text-white hover:bg-blue-700"
+                          (click)="verAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!puedeVistaPreviaAdjunto(adj)">
+                          Visualizar {{ adj.nombre }}
+                        </button>
+                        <button
+                          type="button"
+                          class="ml-1 px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700"
+                          (click)="descargarAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!puedeAccionarAdjunto(adj)">
+                          Descargar {{ adj.nombre }}
+                        </button>
+                      </ng-container>
+                      <span *ngIf="!nodo.adjuntos?.length" class="ml-2 text-gray-400">Sin archivos adjuntos</span>
+                    </div>
+                  </ng-template>
 
                   <div *ngIf="nodo.tipo !== 'inicio' && !esNodoOrdenCompra(nodo)" class="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-2 mb-2">
@@ -781,40 +803,3 @@
   </div>
 }
 
-@if (mostrarVistaPreviaAdjunto) {
-  <div
-    class="fixed inset-0 z-[85] flex items-center justify-center p-4"
-    [ngClass]="(esPdfVistaPreviaAdjunto() || esOfficeVistaPreviaAdjunto()) ? 'bg-black/70' : 'bg-transparent'"
-    (click)="cerrarVistaPreviaAdjunto()">
-    <div
-      [ngClass]="(esPdfVistaPreviaAdjunto() || esOfficeVistaPreviaAdjunto())
-        ? 'w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'
-        : 'w-auto max-w-[92vw] max-h-[92vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'"
-      (click)="$event.stopPropagation()">
-      <div class="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ adjuntoVistaPreviaNombre }}</h3>
-        <button type="button" (click)="cerrarVistaPreviaAdjunto()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      @if (cargandoVistaPreviaAdjunto) {
-        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
-          <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300"></div>
-          <p class="text-sm">Generando vista previa...</p>
-        </div>
-      } @else if (esOfficeVistaPreviaAdjunto()) {
-        <div class="h-[78vh] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPreviaAdjunto()"></div>
-      } @else if (esPdfVistaPreviaAdjunto()) {
-        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
-          <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaAdjuntoPdf()"></iframe>
-        </div>
-      } @else {
-        <div class="bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
-          <img class="block w-auto h-auto max-w-[88vw] max-h-[78vh] object-contain" [src]="obtenerFuenteVistaPreviaAdjuntoImagen()" [alt]="adjuntoVistaPreviaNombre" />
-        </div>
-      }
-    </div>
-  </div>
-}
