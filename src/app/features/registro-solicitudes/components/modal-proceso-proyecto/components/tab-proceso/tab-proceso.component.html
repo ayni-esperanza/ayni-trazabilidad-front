@@ -175,7 +175,13 @@
               <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdx)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
               <article
                 class="relative rounded border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 p-2.5"
-                [ngClass]="{ 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600': !isComentarioEnEdicion(comentario.id) && puedeEditarComentario(comentario) }"
+                [ngClass]="{
+                  'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600': !isComentarioEnEdicion(comentario.id) && puedeEditarComentario(comentario),
+                  'transition-all duration-300 ease-out origin-top overflow-hidden': true,
+                  'animate-ui-in': isComentarioEntrando(comentario.id),
+                  'opacity-0 -translate-y-1 scale-[0.98] max-h-0 py-0 border-transparent': isComentarioSaliendo(comentario.id),
+                  'opacity-100 translate-y-0 scale-100 max-h-[900px]': !isComentarioSaliendo(comentario.id)
+                }"
                 (click)="$event.stopPropagation(); puedeEditarComentario(comentario) && editarComentarioActividad(comentario.id)">
                 <span class="absolute -left-3 top-3 h-px w-3 bg-gray-300 dark:bg-gray-600"></span>
                 <span class="absolute -left-[13px] top-[10px] h-1.5 w-1.5 rounded-full bg-blue-400 dark:bg-blue-500"></span>
@@ -211,6 +217,82 @@
                       (paste)="onPegarImagenComentario($event, comentario.id)"
                       [disabled]="!puedeModificarComentario(comentario)"
                       class="w-full px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
+                  </div>
+
+                  <div class="mt-2" (click)="$event.stopPropagation()">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                      <div class="flex items-center gap-1.5">
+                        <label class="block text-[10px] font-medium text-gray-600 dark:text-gray-300">Adjuntos</label>
+                        <div class="relative">
+                          <button
+                            type="button"
+                            aria-label="Informacion de archivos permitidos"
+                            class="peer inline-flex h-4.5 w-4.5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
+                            </svg>
+                          </button>
+                          <div
+                            class="hidden pointer-events-none absolute left-0 bottom-full mb-3 z-20 w-80 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-lg peer-hover:block">
+                            <p class="text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
+                              Archivos permitidos: xlsx, xls, pdf, docx, doc, pptx, ppt, txt, csv, zip, rar e imagenes. Limite maximo: 25MB para documentos y 5MB para imagenes. Audio y video no estan permitidos. Las imagenes se comprimen automaticamente.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <label
+                        [ngClass]="!puedeModificarComentario(comentario) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+                        class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-[10px]">
+                        Adjuntar
+                        <input
+                          type="file"
+                          class="hidden"
+                          [accept]="acceptTiposArchivo"
+                          [disabled]="!puedeModificarComentario(comentario)"
+                          multiple
+                          (change)="onSeleccionarAdjuntosComentario($event, comentario.id)">
+                      </label>
+                    </div>
+                    <p *ngIf="erroresAdjuntosComentario[comentario.id]" class="text-[10px] text-red-600 dark:text-red-400 mb-1">{{ erroresAdjuntosComentario[comentario.id] }}</p>
+
+                    <div class="space-y-1" *ngIf="(comentario.adjuntos || []).length > 0; else sinAdjuntosComentarioTimeline">
+                      <div *ngFor="let adjunto of comentario.adjuntos; let adjIdx = index" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+                        <div class="min-w-0">
+                          <p class="truncate text-[10px] text-gray-700 dark:text-gray-200">{{ adjunto.nombre }}</p>
+                          <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ formatBytes(adjunto.tamano) }}</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <button
+                            type="button"
+                            (click)="verAdjunto(adjunto); $event.stopPropagation()"
+                            [disabled]="!puedeVistaPreviaAdjunto(adjunto)"
+                            title="Ver archivo"
+                            aria-label="Ver archivo"
+                            class="p-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                          </button>
+                          <button type="button" (click)="descargarAdjuntoComentario(adjunto); $event.stopPropagation()" title="Descargar archivo" aria-label="Descargar archivo" class="p-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="eliminarAdjuntoComentario(comentario.id, adjIdx); $event.stopPropagation()"
+                            [disabled]="!puedeModificarComentario(comentario)"
+                            class="px-1.5 py-0.5 text-[10px] rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-900/30 dark:text-red-300">
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <ng-template #sinAdjuntosComentarioTimeline>
+                      <p class="text-[10px] text-gray-500 dark:text-gray-400 italic">Sin adjuntos</p>
+                    </ng-template>
                   </div>
 
                   <div class="mt-2 flex justify-end gap-1" (click)="$event.stopPropagation()">
@@ -339,11 +421,25 @@
           <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
             <div class="flex flex-col gap-1">
               <span>{{ nodo.nombre }}</span>
-              <details class="group" (click)="$event.stopPropagation()" (toggle)="onToggleDetalleActividad(nodo.id, $event)">
-                <summary class="text-[10px] text-blue-600 dark:text-blue-400 cursor-pointer select-none hover:underline">
-                  Ver detalle
-                </summary>
-                <div class="mt-1.5 p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-600 dark:text-gray-300 space-y-2">
+              <div class="group" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  (click)="toggleDetalleActividad(nodo.id); $event.stopPropagation()"
+                  class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 cursor-pointer select-none hover:underline">
+                  <span>Ver detalle</span>
+                  <svg
+                    class="w-3 h-3 transition-transform duration-300"
+                    [ngClass]="isDetalleActividadAbierto(nodo.id) ? 'rotate-180' : ''"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <div
+                  class="overflow-hidden transition-all duration-300 ease-in-out"
+                  [ngClass]="isDetalleActividadAbierto(nodo.id) ? 'opacity-100 max-h-[200rem]' : 'opacity-0 max-h-0'">
+                  <div class="mt-1.5 p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-600 dark:text-gray-300 space-y-2">
                   <div *ngIf="!esNodoOrdenCompra(nodo)">
                     <p>
                       <span class="font-semibold">Costo de dependencia:</span>
@@ -351,7 +447,6 @@
                     </p>
                   </div>
                   <div>
-                    <p class="font-semibold">Descripcion:</p>
                     <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="formatearDescripcionDetalle(nodo.descripcion)"></div>
                   </div>
                   <div>
@@ -410,7 +505,14 @@
                       <ng-container *ngIf="getComentariosActividad(nodo.id) as comentariosActividadTabla">
                       <ng-container *ngFor="let comentario of comentariosActividadTabla; let cIdxTabla = index; trackBy: trackByComentarioId">
                       <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdxTabla)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
-                      <article class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]">
+                      <article
+                        class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]"
+                        [ngClass]="{
+                          'transition-all duration-300 ease-out origin-top overflow-hidden': true,
+                          'animate-ui-in': isComentarioEntrando(comentario.id),
+                          'opacity-0 -translate-y-1 scale-[0.98] max-h-0 py-0 border-transparent': isComentarioSaliendo(comentario.id),
+                          'opacity-100 translate-y-0 scale-100 max-h-[900px]': !isComentarioSaliendo(comentario.id)
+                        }">
                         <ng-container *ngIf="isComentarioEnEdicion(comentario.id); else comentarioDescripcion">
                           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                             <div>
@@ -453,7 +555,25 @@
 
                             <div class="mt-2">
                               <div class="flex items-center justify-between gap-2 mb-1">
-                                <label class="block font-medium">Adjuntos</label>
+                                <div class="flex items-center gap-1.5">
+                                  <label class="block font-medium">Adjuntos</label>
+                                  <div class="relative z-50">
+                                    <button
+                                      type="button"
+                                      aria-label="Informacion de archivos permitidos"
+                                      class="peer inline-flex h-4.5 w-4.5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400">
+                                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
+                                      </svg>
+                                    </button>
+                                    <div
+                                      class="hidden pointer-events-none absolute left-0 bottom-full mb-3 z-50 w-80 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-lg peer-hover:block">
+                                      <p class="text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
+                                        Archivos permitidos: xlsx, xls, pdf, docx, doc, pptx, ppt, txt, csv, zip, rar e imagenes. Limite maximo: 25MB para documentos y 5MB para imagenes. Audio y video no estan permitidos. Las imagenes se comprimen automaticamente.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
                               <label
                                 [ngClass]="!puedeModificarComentario(comentario) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
                                 class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -467,7 +587,6 @@
                                   (change)="onSeleccionarAdjuntosComentario($event, comentario.id)">
                               </label>
                             </div>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-1">Limite 25MB para documentos y 5MB para imagenes. Audio/video no permitido. Las imagenes se comprimen automaticamente.</p>
                             <p *ngIf="erroresAdjuntosComentario[comentario.id]" class="text-[11px] text-red-600 dark:text-red-400 mb-1">{{ erroresAdjuntosComentario[comentario.id] }}</p>
 
                             <div class="space-y-1" *ngIf="(comentario.adjuntos || []).length > 0; else sinAdjuntosComentario">
@@ -602,7 +721,8 @@
                     </ng-template>
                   </div>
                 </div>
-              </details>
+              </div>
+              </div>
             </div>
           </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">

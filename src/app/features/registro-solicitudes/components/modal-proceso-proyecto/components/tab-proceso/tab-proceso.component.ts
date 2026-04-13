@@ -96,6 +96,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private tareasExternasPendientes = new Set<string>();
   private readonly comentariosEnEdicion = new Set<number>();
   private readonly comentarioEdicionBackup = new Map<number, ComentarioAdicionalActividad>();
+  private readonly comentariosEntrando = new Set<number>();
+  private readonly comentariosSaliendo = new Set<number>();
+  private readonly detallesActividadAbiertos = new Set<number>();
   private readonly estadoDropdownAbierto: Record<number, boolean> = {};
 
   constructor(
@@ -662,6 +665,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     };
 
     this.comentariosAdicionalesActividad = [...(this.comentariosAdicionalesActividad || []), comentario];
+    this.marcarComentarioEntrando(comentario.id);
     this.comentariosEnEdicion.add(comentario.id);
     this.notificarBloqueoEdicionActividades();
     this.emitirComentariosActualizados();
@@ -719,11 +723,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
       // If comment was created in UI and not saved yet, cancel should remove it entirely.
       if (!comentarioActual.guardado || comentarioId <= 0) {
-        this.comentariosAdicionalesActividad = comentarios.filter(c => c.id !== comentarioId);
-        this.comentarioEdicionBackup.delete(comentarioId);
-        this.comentariosEnEdicion.delete(comentarioId);
-        this.notificarBloqueoEdicionActividades();
-        this.emitirComentariosActualizados();
+        this.marcarComentarioSaliendo(comentarioId);
         return;
       }
 
@@ -820,9 +820,28 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     });
   }
 
+  toggleDetalleActividad(actividadId: number): void {
+    if (this.detallesActividadAbiertos.has(actividadId)) {
+      this.detallesActividadAbiertos.delete(actividadId);
+      this.limpiarEdicionComentariosActividad(actividadId);
+      return;
+    }
+
+    this.detallesActividadAbiertos.add(actividadId);
+  }
+
   onToggleDetalleActividad(actividadId: number, event: Event): void {
     const details = event.target as HTMLDetailsElement;
-    if (details?.open) return;
+    if (details?.open) {
+      this.detallesActividadAbiertos.add(actividadId);
+      return;
+    }
+
+    this.detallesActividadAbiertos.delete(actividadId);
+    this.limpiarEdicionComentariosActividad(actividadId);
+  }
+
+  private limpiarEdicionComentariosActividad(actividadId: number): void {
 
     const comentariosActividad = (this.comentariosAdicionalesActividad || [])
       .filter(c => c.actividadId === actividadId);
@@ -847,6 +866,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     if (huboCambios) {
       this.notificarBloqueoEdicionActividades();
     }
+  }
+
+  isDetalleActividadAbierto(actividadId: number): boolean {
+    return this.detallesActividadAbiertos.has(actividadId);
   }
 
   async onSeleccionarAdjuntosComentario(event: Event, comentarioId: number): Promise<void> {
@@ -929,6 +952,14 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   trackByComentarioId(_index: number, comentario: ComentarioAdicionalActividad): number {
     return comentario.id;
+  }
+
+  isComentarioEntrando(comentarioId: number): boolean {
+    return this.comentariosEntrando.has(comentarioId);
+  }
+
+  isComentarioSaliendo(comentarioId: number): boolean {
+    return this.comentariosSaliendo.has(comentarioId);
   }
 
   esNodoOrdenCompra(nodo: FlujoNodo): boolean {
@@ -1105,6 +1136,25 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       .map(comentario => comentario.id)
       .filter((id): id is number => typeof id === 'number' && id <= 0);
     return ids.length ? Math.min(...ids) - 1 : -1;
+  }
+
+  private marcarComentarioEntrando(comentarioId: number): void {
+    this.comentariosEntrando.add(comentarioId);
+    setTimeout(() => {
+      this.comentariosEntrando.delete(comentarioId);
+    }, 340);
+  }
+
+  private marcarComentarioSaliendo(comentarioId: number): void {
+    this.comentariosSaliendo.add(comentarioId);
+    setTimeout(() => {
+      this.comentariosSaliendo.delete(comentarioId);
+      this.comentariosAdicionalesActividad = (this.comentariosAdicionalesActividad || []).filter(c => c.id !== comentarioId);
+      this.comentarioEdicionBackup.delete(comentarioId);
+      this.comentariosEnEdicion.delete(comentarioId);
+      this.notificarBloqueoEdicionActividades();
+      this.emitirComentariosActualizados();
+    }, 260);
   }
 
   private mapComentarioPayload(comentario: ComentarioAdicionalActividad): ComentarioActividadPayloadApi | null {
