@@ -1,10 +1,10 @@
 @if (visible) {
   <div
-    class="modal-backdrop fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="modal-backdrop animate-overlay-in fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     appModalDismiss
     [enabled]="visible"
     (dismissed)="onCerrar()">
-    <div data-modal-content class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg transform transition-all max-h-[90vh] overflow-y-auto">
+    <div data-modal-content class="animate-modal-in bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg transform transition-all max-h-[90vh] overflow-y-auto">
       <!-- Header -->
       <div class="bg-green-500 px-5 py-3 flex items-center justify-between rounded-t-xl sticky top-0 z-10">
         <h2 class="text-base font-bold text-white">{{ titulo }}</h2>
