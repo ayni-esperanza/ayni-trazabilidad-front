@@ -159,8 +159,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   puedeAbrirNodo(nodo: FlujoNodo): boolean {
     return nodo.tipo === 'tarea'
       && !this.esNodoOrdenCompra(nodo)
-      && !this.proyectoCancelado
-      && !this.actividadModalAbierta;
+      && !this.proyectoCancelado;
   }
 
   abrirNodo(nodo: FlujoNodo): void {
@@ -578,7 +577,6 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   crearNuevaActividad(): void {
-    if (this.actividadModalAbierta) return;
     this.crearActividadDesdeBpmnEvt.emit({ nombre: '' });
   }
 
