@@ -3,6 +3,7 @@
 :host {
   display: block;
   height: 100vh;
+  flex-shrink: 0;
 }
 
 /* Scrollbar personalizado */

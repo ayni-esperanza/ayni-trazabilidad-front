@@ -1,7 +1,7 @@
 <div class="flex h-screen bg-gray-50 dark:bg-gray-800">
   <!-- Sidebar (solo visible cuando no es login) -->
   @if (showSidebar) {
-    <app-sidebar></app-sidebar>
+    <app-sidebar ngSkipHydration></app-sidebar>
   }
   
   <!-- Main Content -->

@@ -49,6 +49,7 @@ interface MenuItem {
   ]
 })
 export class SidebarComponent implements OnInit, OnDestroy {
+  private readonly SIDEBAR_STATE_KEY = 'ayni:ui:sidebar-expanded';
   protected themeService = inject(ThemeService);
   protected authService = inject(AuthService);
   private alertasService = inject(AlertasActividadesService);
@@ -56,7 +57,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
   
-  isExpanded = signal(true);
+  private getInitialSidebarState(): boolean {
+    if (typeof window !== 'undefined') {
+      const valorGuardado = window.localStorage.getItem(this.SIDEBAR_STATE_KEY);
+      if (valorGuardado !== null) return valorGuardado === 'true';
+    }
+    return true;
+  }
+
+  isExpanded = signal<boolean>(this.getInitialSidebarState());
   showUserMenu = signal(false);
   currentRoute = signal('');
   animationState = signal<Record<string, string>>({});
@@ -118,7 +127,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ];
 
   toggleSidebar(): void {
-    this.isExpanded.update(v => !v);
+    this.isExpanded.update(v => {
+      const nuevoEstado = !v;
+      this.persistirEstadoSidebar(nuevoEstado);
+      return nuevoEstado;
+    });
   }
 
   toggleTheme(): void {
@@ -126,7 +139,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   toggleUserMenu(): void {
-    this.showUserMenu.update(v => !v);
+    const nuevoEstado = !this.showUserMenu();
+    if (nuevoEstado) {
+      this.mostrarModalAlertas.set(false);
+    }
+    this.showUserMenu.set(nuevoEstado);
   }
 
   logout(): void {
@@ -156,6 +173,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   toggleModalAlertas(event: MouseEvent): void {
     event.stopPropagation();
     const nuevoEstado = !this.mostrarModalAlertas();
+    if (nuevoEstado) {
+      this.showUserMenu.set(false);
+    }
     this.mostrarModalAlertas.set(nuevoEstado);
     if (nuevoEstado) {
       this.actualizarAlertasRecientes();
@@ -178,6 +198,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       next: (alertas) => this.alertasRecientes.set(alertas.slice(0, 5)),
       error: () => this.alertasRecientes.set(this.alertasService.obtenerAlertas().slice(0, 5)),
     });
+  }
+
+  private persistirEstadoSidebar(expandido: boolean): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(this.SIDEBAR_STATE_KEY, String(expandido));
   }
 
   // Cerrar el menú al hacer clic fuera
