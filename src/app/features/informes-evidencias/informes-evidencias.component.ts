@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { InformesEvidenciasService } from './services/informes-evidencias.service';
 import {
   CambioPaginaEvent,
@@ -43,6 +43,8 @@ const STORAGE_KEY_MODO_VISUALIZACION = 'informes_modo_visualizacion';
   styleUrls: ['./informes-evidencias.component.css']
 })
 export class InformesEvidenciasComponent implements OnInit {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   protected readonly opcionesPorPagina = [100, 500, 1000];
 
@@ -80,6 +82,10 @@ export class InformesEvidenciasComponent implements OnInit {
   }
 
   private cargarModoVisualizacion(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const guardado = localStorage.getItem(STORAGE_KEY_MODO_VISUALIZACION);
     if (guardado && ['lista', 'iconos-medianos', 'iconos-grandes'].includes(guardado)) {
       this.modoVisualizacion = guardado as ModoVisualizacion;
@@ -132,7 +138,7 @@ export class InformesEvidenciasComponent implements OnInit {
   }
 
   protected descargarPDFfirmado(informe: InformeItem): void {
-    if (!informe.pdfBytes) {
+    if (!this.isBrowser || !informe.pdfBytes) {
       return;
     }
 
@@ -291,6 +297,10 @@ export class InformesEvidenciasComponent implements OnInit {
   protected cambiarModoVisualizacion(modo: ModoVisualizacion): void {
     this.modoVisualizacion = modo;
     this.mostrarMenuVisualizacion = false;
+    if (!this.isBrowser) {
+      return;
+    }
+
     localStorage.setItem(STORAGE_KEY_MODO_VISUALIZACION, modo);
   }
 
@@ -423,6 +433,13 @@ export class InformesEvidenciasComponent implements OnInit {
    * Elimina etiquetas HTML y retorna solo texto plano
    */
   private stripHtml(html: string): string {
+    if (!this.isBrowser) {
+      return String(html || '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     const tmp = document.createElement('div');
     tmp.innerHTML = html || '';
     return (tmp.textContent || tmp.innerText || '').trim();
@@ -438,6 +455,10 @@ export class InformesEvidenciasComponent implements OnInit {
   }
 
   private async generarPreviewDesdePDF(pdfBytes: Uint8Array): Promise<string> {
+    if (!this.isBrowser) {
+      throw new Error('La previsualizacion de PDF solo esta disponible en el navegador');
+    }
+
     try {
       // Importar PDF.js dinámicamente
       const pdfjs = await import('pdfjs-dist');

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 
 declare global {
   interface Window {
@@ -11,12 +12,15 @@ declare global {
   providedIn: 'root',
 })
 export class PdfExportService {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private librariesLoaded = false;
   private librariesPromise: Promise<{ html2canvas: any; jsPDF: any }> | null = null;
 
   constructor() {
-    // Pre-cargar librerías inmediatamente al instanciar el servicio
-    this.preloadLibraries();
+    if (this.isBrowser) {
+      this.preloadLibraries();
+    }
   }
 
   /**
@@ -32,6 +36,10 @@ export class PdfExportService {
    * Carga un script externo de forma dinámica.
    */
   private loadScript(src: string): Promise<void> {
+    if (!this.isBrowser) {
+      return Promise.reject(new Error('La carga de scripts externos no esta disponible durante SSR'));
+    }
+
     return new Promise((resolve, reject) => {
       // Verificar si ya existe el script
       if (document.querySelector(`script[src="${src}"]`)) {
@@ -52,6 +60,10 @@ export class PdfExportService {
    * Carga las librerías desde CDN internamente.
    */
   private async loadLibrariesInternal(): Promise<{ html2canvas: any; jsPDF: any }> {
+    if (!this.isBrowser) {
+      throw new Error('La exportacion de PDF solo esta disponible en el navegador');
+    }
+
     if (!this.librariesLoaded) {
       // Cargar ambas librerías desde CDN en paralelo
       await Promise.all([
@@ -92,6 +104,10 @@ export class PdfExportService {
       imageQuality?: number;
     }
   ): Promise<void> {
+    if (!this.isBrowser) {
+      throw new Error('La exportacion de PDF solo esta disponible en el navegador');
+    }
+
     if (!pages.length) {
       throw new Error('No hay páginas para exportar');
     }
