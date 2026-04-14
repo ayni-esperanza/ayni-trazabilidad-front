@@ -228,6 +228,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private obtenerFechaBaseProyecto(proyecto: ProyectoEnCurso): Date {
+    if (this.metricaSeleccionada === 'finalizados') {
+      return proyecto.fechaFinalizacion || proyecto.fechaRegistro || proyecto.fechaInicio || proyecto.fechaCreacion;
+    }
+
     return proyecto.fechaRegistro || proyecto.fechaInicio || proyecto.fechaCreacion;
   }
 

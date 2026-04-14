@@ -7,6 +7,7 @@ export type NivelAlertaActividad = 'media' | 'alta';
 
 export interface AlertaActividadGlobal {
   proyectoId: number;
+  proyectoNombre?: string;
   nodoId: number;
   nombreActividad: string;
   estado: EstadoTarea;
@@ -14,6 +15,11 @@ export interface AlertaActividadGlobal {
   horasSinCambio: number;
   mensaje: string;
 }
+
+type AlertaActividadApi = AlertaActividadGlobal & {
+  proyecto?: string;
+  nombreProyecto?: string;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -37,9 +43,10 @@ export class AlertasActividadesService {
   }
 
   refrescarAlertas(): Observable<AlertaActividadGlobal[]> {
-    return this.http.get<AlertaActividadGlobal[]>(this.endpoint).pipe(
+    return this.http.get<AlertaActividadApi[]>(this.endpoint).pipe(
       map((items) => (items || []).map((item) => ({
         ...item,
+        proyectoNombre: (item.nombreProyecto || item.proyecto || '').trim() || undefined,
         estado: this.normalizarEstado(item.estado),
       }))),
       tap((items) => {
@@ -116,6 +123,7 @@ export class AlertasActividadesService {
 
     return {
       proyectoId,
+      proyectoNombre: undefined,
       nodoId: nodo.id,
       nombreActividad: nodo.nombre || 'Actividad sin nombre',
       estado,

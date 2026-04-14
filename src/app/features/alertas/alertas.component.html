@@ -32,7 +32,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
           <tr *ngFor="let alerta of alertas">
-            <td class="px-3 py-2 text-gray-700 dark:text-gray-200">#{{ alerta.proyectoId }}</td>
+            <td class="px-3 py-2 text-gray-700 dark:text-gray-200">{{ alerta.proyectoNombre || ('#' + alerta.proyectoId) }}</td>
             <td class="px-3 py-2 text-gray-700 dark:text-gray-200 font-medium">{{ alerta.nombreActividad }}</td>
             <td class="px-3 py-2 text-gray-700 dark:text-gray-200">{{ alerta.estado }}</td>
             <td class="px-3 py-2">
