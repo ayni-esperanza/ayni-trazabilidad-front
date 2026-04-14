@@ -24,7 +24,7 @@
 </div>
 <div *ngIf="visible"
   [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
-  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar"
+  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
     [ngClass]="embedded
@@ -60,7 +60,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          Dar proyecto como terminado
+          Finalizar Proyecto
         </button>
         <button
           *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
@@ -271,7 +271,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          Dar proyecto como terminado
+          Finalizar Proyecto
         </button>
       </div>
     </div>
@@ -355,3 +355,12 @@
   (confirmar)="confirmarCancelacion()"
   (cancelar)="onCancelarConfirmacionCancelar()">
 </app-confirm-delete-modal>
+
+<!-- Modal de confirmación de finalización (sobremodal) -->
+<app-confirm-finalize-modal
+  [visible]="mostrarConfirmacionFinalizar"
+  [loading]="cargandoFinalizacion"
+  [config]="configFinalizarModal"
+  (confirmar)="confirmarFinalizacion()"
+  (cancelar)="onCancelarConfirmacionFinalizar()">
+</app-confirm-finalize-modal>

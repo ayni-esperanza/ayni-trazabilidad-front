@@ -6,6 +6,7 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { ConfirmFinalizeModalComponent, ConfirmFinalizeConfig } from '../../../../shared/components/confirm-finalize-modal/confirm-finalize-modal.component';
 import { TareaFormModalComponent, Tarea } from '../../../../shared/components/tarea-form-modal/tarea-form-modal.component';
 import { TabProcesoComponent } from './components/tab-proceso/tab-proceso.component';
 import { TabTableroGeneralComponent } from './components/tab-tablerogeneral/tab-tablerogeneral.component';
@@ -69,7 +70,7 @@ export interface TablaCostoExtra {
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, TareaFormModalComponent, TabProcesoComponent, TabTableroGeneralComponent, TabInformacionComponent, TabCostosComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, ConfirmDeleteModalComponent, ConfirmFinalizeModalComponent, TareaFormModalComponent, TabProcesoComponent, TabTableroGeneralComponent, TabInformacionComponent, TabCostosComponent],
   templateUrl: './modal-proceso-proyecto.component.html',
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
@@ -114,6 +115,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarConfirmacionCancelar = false;
   cargandoCancelacion = false;
   configCancelarModal: ConfirmDeleteConfig = {};
+
+  // Modal de confirmación de finalización
+  mostrarConfirmacionFinalizar = false;
+  cargandoFinalizacion = false;
+  configFinalizarModal: ConfirmFinalizeConfig = {};
 
   // Vista previa de documentos
   mostrarVistaPreviaDocumento = false;
@@ -460,7 +466,22 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onFinalizarProyecto(): void {
-    if (this.proyecto && !this.proyectoFinalizado && !this.proyectoCancelado) {
+    if (!this.proyecto || this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    this.configFinalizarModal = {
+      titulo: 'Finalizar proyecto',
+      mensaje: `¿Está seguro de finalizar el proyecto "${this.proyecto.nombreProyecto}"? Esta acción marcará el proyecto como completado.`,
+      textoConfirmar: 'Sí, finalizar proyecto'
+    };
+
+    this.mostrarConfirmacionFinalizar = true;
+  }
+
+  confirmarFinalizacion(): void {
+    if (!this.proyecto || this.proyectoFinalizado || this.proyectoCancelado) return;
+
+    this.cargandoFinalizacion = true;
+    try {
       this.proyecto.estado = 'Completado';
       this.proyectoFinalizado = true;
       // Guardar etapas en el proyecto antes de emitir
@@ -468,7 +489,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.marcarActualizacionProyecto();
       this.lanzarConfeti();
       this.finalizarProy.emit(this.proyecto);
+      this.mostrarConfirmacionFinalizar = false;
+    } finally {
+      this.cargandoFinalizacion = false;
     }
+  }
+
+  onCancelarConfirmacionFinalizar(): void {
+    this.mostrarConfirmacionFinalizar = false;
   }
 
   private guardarEtapasEnProyecto(): void {
