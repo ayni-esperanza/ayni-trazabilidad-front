@@ -75,12 +75,18 @@ export class TabTableroGeneralComponent {
 
   formatDateResumen(value?: string | Date): string {
     if (!value) return '-';
+    // Verificar si ya tiene formato dd-mm-yyyy o dd/mm/yyyy
+    if (typeof value === 'string' && /^\d{2}[-/]\d{2}[-/]\d{4}/.test(value)) {
+      return value.replace(/\//g, '-');
+    }
+    
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return String(value);
-    return date.toLocaleDateString('es-PE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
   }
 }

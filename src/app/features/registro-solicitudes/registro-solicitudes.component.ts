@@ -664,12 +664,40 @@ export class RegistroSolicitudesComponent implements OnInit {
     return clases[estado] || clases.Pendiente;
   }
 
+  formatDateStandar(value?: string | Date): string {
+    if (!value) return '';
+    if (typeof value === 'string' && /^\d{2}[-/]\d{2}[-/]\d{4}/.test(value)) {
+      return value.replace(/\//g, '-');
+    }
+    
+    let date: Date;
+    if (typeof value === 'string') {
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+      if (isDateOnly) {
+        const parts = value.split('-');
+        date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      } else {
+        date = new Date(value);
+      }
+    } else {
+      date = value;
+    }
+    
+    if (Number.isNaN(date.getTime())) return String(value);
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  }
+
   getRangoFechasTareaTimeline(nodo: FlujoNodo): string {
     const inicio = (nodo.fechaInicio || '').toString().trim();
     if (this.esNodoOrdenCompraTimeline(nodo)) {
-      return inicio ? `Fecha OC: ${inicio}` : 'Fecha OC no registrada';
+      return inicio ? `Fecha OC: ${this.formatDateStandar(inicio)}` : 'Fecha OC no registrada';
     }
-    if (inicio) return inicio;
+    if (inicio) return this.formatDateStandar(inicio);
     return 'Sin fecha asignada';
   }
 

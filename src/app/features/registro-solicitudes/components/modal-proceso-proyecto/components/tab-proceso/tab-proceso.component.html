@@ -99,7 +99,7 @@
         <div class="mt-1 flex items-center gap-2 flex-wrap text-[10px] text-gray-500 dark:text-gray-400" (click)="$event.stopPropagation()">
           <span class="truncate">{{ esNodoOrdenCompra(nodo) ? 'Compras' : (nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}</span>
           <span>•</span>
-          <span class="truncate">{{ esNodoOrdenCompra(nodo) ? (nodo.fechaInicio || 'Sin fecha') : ((nodo.fechaInicio || '—') + ' - ' + (nodo.fechaFin || '—')) }}</span>
+          <span class="truncate">{{ esNodoOrdenCompra(nodo) ? (formatDateStandar(nodo.fechaInicio) || 'Sin fecha') : ((formatDateStandar(nodo.fechaInicio) || '—') + ' - ' + (formatDateStandar(nodo.fechaFin) || '—')) }}</span>
           <div *ngIf="nodo.tipo !== 'inicio' && !esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group">
             <select
               [ngModel]="getEstadoActividad(nodo)"
@@ -208,7 +208,7 @@
                     <div>
                       <label class="block mb-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">Fecha</label>
                       <p class="px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                        {{ comentario.fechaComentario || 'Pendiente de guardar' }}
+                        {{ formatDateStandar(comentario.fechaComentario) || 'Pendiente de guardar' }}
                       </p>
                     </div>
                   </div>
@@ -328,7 +328,7 @@
                 <ng-template #comentarioTimelineResumen>
                   <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500 dark:text-gray-400 mb-1">
                     <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
-                    <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ comentario.fechaComentario || '—' }}</span>
+                    <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ formatDateStandar(comentario.fechaComentario) || '—' }}</span>
                   </div>
                   <p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
                   <div class="mt-1.5" *ngIf="(comentario.adjuntos || []).length > 0" (click)="$event.stopPropagation()">
@@ -690,7 +690,7 @@
                           <div class="rounded bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-2">
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1 text-[10px] text-gray-500 dark:text-gray-400">
                               <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
-                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ comentario.fechaComentario || '—' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ formatDateStandar(comentario.fechaComentario) || '—' }}</span>
                               <span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ getNombreCuentaComentario(comentario) }}</span>
                             </div>
                             <p class="text-[11px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
@@ -763,8 +763,8 @@
             <span *ngIf="esNodoOrdenCompra(nodo)" class="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Orden de compra</span>
           </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ esNodoOrdenCompra(nodo) ? 'Compras' : (nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}</td>
-          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ nodo.fechaInicio || '—' }}</td>
-          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ esNodoOrdenCompra(nodo) ? (nodo.fechaInicio || '—') : (nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'yyyy-MM-dd HH:mm') : '—') }}</td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ formatDateStandar(nodo.fechaInicio) || '—' }}</td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ esNodoOrdenCompra(nodo) ? (formatDateStandar(nodo.fechaInicio) || '—') : (nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'dd-MM-yyyy HH:mm') : '—') }}</td>
           <td class="py-2 px-2">
             <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
               <div *ngIf="nodo.tipo !== 'inicio' && !esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group">

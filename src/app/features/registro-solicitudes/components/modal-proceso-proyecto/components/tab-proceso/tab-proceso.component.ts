@@ -740,6 +740,34 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     }
   }
 
+  formatDateStandar(value?: string | Date): string {
+    if (!value) return '';
+    if (typeof value === 'string' && /^\d{2}[-/]\d{2}[-/]\d{4}/.test(value)) {
+      return value.replace(/\//g, '-');
+    }
+    
+    let date: Date;
+    if (typeof value === 'string') {
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
+      if (isDateOnly) {
+        const parts = value.split('-');
+        date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      } else {
+        date = new Date(value);
+      }
+    } else {
+      date = value;
+    }
+    
+    if (Number.isNaN(date.getTime())) return String(value);
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  }
+
   isDetalleActividadAbierto(actividadId: number): boolean {
     return this.detallesActividadAbiertos.has(actividadId);
   }
