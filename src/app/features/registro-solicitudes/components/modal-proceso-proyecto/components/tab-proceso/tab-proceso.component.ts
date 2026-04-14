@@ -761,18 +761,24 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   async onPegarImagenComentario(event: ClipboardEvent, comentarioId: number): Promise<void> {
     if (this.proyectoCancelado || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
-    const clipboardItems = event.clipboardData?.items;
-    if (!clipboardItems?.length) return;
+    const clipboardItems = Array.from(event.clipboardData?.items || []);
+    if (!clipboardItems.length) return;
 
-    const imagenes: File[] = [];
-    for (const item of Array.from(clipboardItems)) {
-      if (item.kind !== 'file') continue;
-      if (!item.type?.startsWith('image/')) continue;
-      const file = item.getAsFile();
-      if (file) imagenes.push(file);
-    }
+    const imagenesDesdeItems = clipboardItems
+      .filter((item) => item.kind === 'file' && item.type?.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => file instanceof File);
+
+    const imagenesDesdeFiles = Array.from(event.clipboardData?.files || [])
+      .filter((file) => file.type?.startsWith('image/'));
+
+    const imagenes = imagenesDesdeItems.length ? imagenesDesdeItems : imagenesDesdeFiles;
 
     if (!imagenes.length) return;
+
+    if (this.debePrevenirPegadoPorImagen(event, clipboardItems)) {
+      event.preventDefault();
+    }
 
     const normalizadas = imagenes.map((file, index) => this.normalizarNombreArchivoPegado(file, index));
     await this.agregarAdjuntosComentario(comentarioId, normalizadas);
@@ -1374,6 +1380,16 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       : nombreLimpio;
 
     return new File([file], nombreFinal, { type: file.type || 'image/png' });
+  }
+
+  private debePrevenirPegadoPorImagen(event: ClipboardEvent, items: DataTransferItem[]): boolean {
+    if (!event.target || !(event.target instanceof Element)) return false;
+
+    const target = event.target as Element;
+    const pegandoEnInputTexto = target.closest('input[type="text"], input[type="search"], input[type="email"], textarea, [contenteditable="true"], .ck-editor__editable');
+    const tieneContenidoNoImagen = items.some(item => item.kind === 'string');
+
+    return !!pegandoEnInputTexto && !tieneContenidoNoImagen;
   }
 
   private async renderBpmn(): Promise<void> {
