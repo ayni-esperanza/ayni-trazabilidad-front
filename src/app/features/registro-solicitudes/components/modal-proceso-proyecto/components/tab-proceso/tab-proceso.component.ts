@@ -857,7 +857,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   esActividadSeguimiento(nodo: FlujoNodo): boolean {
     if (!this.proyectoFinalizado || this.esNodoOrdenCompra(nodo)) return false;
-    return this.esTipoActividadSeguimiento(nodo?.tipo);
+    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
   mostrarSeparadorActividadesSeguimiento(nodo: FlujoNodo, index: number, lista: FlujoNodo[]): boolean {
@@ -916,9 +916,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   private esTipoActividadSeguimiento(tipo?: string): boolean {
-    const valor = String(tipo || '').trim().toLowerCase();
-    if (!valor) return false;
-    return valor.includes('seguimiento');
+    return String(tipo || '').trim().toUpperCase() === 'SEGUIMIENTO';
   }
 
   private mapearOrdenesCompraANodos(): FlujoNodo[] {

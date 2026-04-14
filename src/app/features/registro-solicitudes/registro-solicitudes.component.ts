@@ -533,7 +533,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   esProyectoCompletadoTimeline(solicitudId: number | undefined): boolean {
     if (!solicitudId) return false;
     const proyecto = this.proyectos.find((item) => item.solicitudId === solicitudId);
-    return proyecto?.estado === 'Completado';
+    return proyecto?.estado === 'Completado' || proyecto?.estado === 'Finalizado';
   }
 
   getAdjuntoUrl(adjunto: FlujoAdjunto): string | null {
@@ -676,7 +676,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   esActividadSeguimientoTimeline(solicitudId: number | undefined, nodo: FlujoNodo): boolean {
     if (!solicitudId || this.esNodoOrdenCompraTimeline(nodo)) return false;
     if (!this.esProyectoCompletadoTimeline(solicitudId)) return false;
-    return this.esTipoActividadSeguimiento(nodo?.tipo);
+    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
   mostrarSeparadorActividadesSeguimientoTimeline(
@@ -700,9 +700,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   private esTipoActividadSeguimiento(tipo?: string): boolean {
-    const valor = String(tipo || '').trim().toLowerCase();
-    if (!valor) return false;
-    return valor.includes('seguimiento');
+    return String(tipo || '').trim().toUpperCase() === 'SEGUIMIENTO';
   }
 
   getResponsableNombre(responsableId: number): string {
@@ -763,7 +761,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         descripcion: proyectoActualizado.descripcion,
         fechaInicio: proyectoActualizado.fechaInicio || solicitud.fechaInicio,
         fechaFin: proyectoActualizado.fechaFinalizacion || solicitud.fechaFin,
-        estado: proyectoActualizado.estado,
+        estado: this.mapEstadoProyectoASolicitud(proyectoActualizado.estado),
         fechaActualizacion: this.toDate(proyectoActualizado.fechaActualizacion)
       };
       this.solicitudActual = this.solicitudes[indexSolicitud];
@@ -802,6 +800,12 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.proyectosConFlujoSolicitado.delete(proyectoId);
       }
     });
+  }
+
+  private mapEstadoProyectoASolicitud(estado: Proyecto['estado']): Solicitud['estado'] {
+    if (estado === 'Cancelado') return 'Cancelado';
+    if (estado === 'Completado' || estado === 'Finalizado') return 'Completado';
+    return 'En Proceso';
   }
 
   private parseDateAtStart(dateInput: string): Date {

@@ -60,6 +60,7 @@ type FlujoNodoApi = {
   id: number;
   nombre: string;
   tipo: 'inicio' | 'tarea';
+  tipoActividad?: string;
   posicionX?: number;
   posicionY?: number;
   estadoActividad?: string;
@@ -616,7 +617,7 @@ export class RegistroSolicitudesService {
       fechaFinalizacion: this.toDate(item.fechaFinalizacion) || item.fechaFinalizacion,
       procesoId: Number(item.procesoId || 0),
       procesoNombre: item.procesoNombre,
-      estado: this.mapEstadoSolicitud(item.estado),
+      estado: this.mapEstadoProyecto(item.estado),
       etapaActual: item.etapaActual,
       motivoCancelacion: item.motivoCancelacion,
       etapas: (item.etapasProyecto || []).map((etapa) => this.mapEtapa(etapa, item.id)),
@@ -650,6 +651,7 @@ export class RegistroSolicitudesService {
         id: nodo.id,
         nombre: nodo.nombre,
         tipo: nodo.tipo,
+        tipoActividad: this.mapTipoActividad(nodo.tipoActividad),
         posicionX: nodo.posicionX,
         posicionY: nodo.posicionY,
         estadoActividad: this.mapEstadoTarea(nodo.estadoActividad),
@@ -701,6 +703,16 @@ export class RegistroSolicitudesService {
     return 'En Proceso';
   }
 
+  private mapEstadoProyecto(value?: string): Proyecto['estado'] {
+    if (!value) return 'En Proceso';
+    const clean = value.trim().toLowerCase().replace(/_/g, ' ');
+    if (clean.includes('finaliz')) return 'Finalizado';
+    if (clean.includes('complet')) return 'Completado';
+    if (clean.includes('cancel')) return 'Cancelado';
+    if (clean.includes('pend')) return 'Pendiente';
+    return 'En Proceso';
+  }
+
   private mapEstadoEtapa(value?: string): EtapaProyecto['estado'] {
     if (!value) return 'Pendiente';
     const clean = value.trim().toLowerCase().replace(/_/g, ' ');
@@ -718,6 +730,14 @@ export class RegistroSolicitudesService {
     if (clean.includes('retras')) return 'Retrasado';
     if (clean.includes('proceso')) return 'En Proceso';
     return 'Pendiente';
+  }
+
+  private mapTipoActividad(value?: string): FlujoNodo['tipoActividad'] {
+    if (!value) return undefined;
+    const clean = value.trim().toLowerCase();
+    if (clean.includes('seguimiento')) return 'SEGUIMIENTO';
+    if (clean.includes('desarrollo')) return 'DESARROLLO';
+    return undefined;
   }
 
   private toDate(value?: string): Date | undefined {

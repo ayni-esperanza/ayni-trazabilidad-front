@@ -1,5 +1,7 @@
 export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
+export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
+export type TipoActividadInterna = 'DESARROLLO' | 'SEGUIMIENTO';
 
 export interface OrdenCompra {
   id?: number;
@@ -27,6 +29,7 @@ export interface FlujoNodo {
   id: number;
   nombre: string;
   tipo: 'inicio' | 'tarea';
+  tipoActividad?: TipoActividadInterna;
   posicionX?: number;
   posicionY?: number;
   estadoActividad?: EstadoTarea;
@@ -96,7 +99,7 @@ export interface Proyecto {
   fechaFinalizacion: Date | string;
   procesoId: number;
   procesoNombre?: string;
-  estado: EstadoSolicitud;
+  estado: EstadoProyecto;
   etapaActual?: number;
   motivoCancelacion?: string;
   etapas?: EtapaProyecto[];
