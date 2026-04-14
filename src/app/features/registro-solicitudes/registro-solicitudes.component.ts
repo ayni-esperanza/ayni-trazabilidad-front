@@ -675,7 +675,6 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   esActividadSeguimientoTimeline(solicitudId: number | undefined, nodo: FlujoNodo): boolean {
     if (!solicitudId || this.esNodoOrdenCompraTimeline(nodo)) return false;
-    if (!this.esProyectoCompletadoTimeline(solicitudId)) return false;
     return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
@@ -685,11 +684,12 @@ export class RegistroSolicitudesComponent implements OnInit {
     index: number,
     lista: FlujoNodo[]
   ): boolean {
-    if (!this.esActividadSeguimientoTimeline(solicitudId, nodo)) return false;
-    if (index === 0) return true;
+    // La lista está ordenada de más reciente a más antiguo
+    if (this.esActividadSeguimientoTimeline(solicitudId, nodo)) return false;
+    if (index === 0) return false;
 
     const anterior = lista[index - 1];
-    return !this.esActividadSeguimientoTimeline(solicitudId, anterior);
+    return this.esActividadSeguimientoTimeline(solicitudId, anterior);
   }
 
   private esActividadSeguimientoTimelinePorId(solicitudId: number | undefined, actividadId: number): boolean {

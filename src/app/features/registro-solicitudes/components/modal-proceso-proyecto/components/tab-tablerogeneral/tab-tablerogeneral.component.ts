@@ -30,6 +30,16 @@ export class TabTableroGeneralComponent {
     return this.documentosActividadResumen.length;
   }
 
+  esPrimeraDeSeguimiento(index: number): boolean {
+    if (!this.flujoTimelineResumen || index < 0 || index >= this.flujoTimelineResumen.length) return false;
+    const actual = this.flujoTimelineResumen[index];
+    const tipo = actual.tipoActividad?.toUpperCase() || '';
+    if (tipo !== 'SEGUIMIENTO') return false;
+    if (index === 0) return true;
+    const anterior = this.flujoTimelineResumen[index - 1];
+    return (anterior.tipoActividad?.toUpperCase() || '') !== 'SEGUIMIENTO';
+  }
+
   getResponsableNombre(responsableId: number): string {
     const resp = this.responsables.find(r => r.id === responsableId);
     return resp?.nombre || 'Sin asignar';

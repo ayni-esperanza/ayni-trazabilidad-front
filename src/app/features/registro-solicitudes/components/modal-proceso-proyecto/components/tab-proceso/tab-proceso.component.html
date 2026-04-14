@@ -76,7 +76,13 @@
     <div class="absolute left-3 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
     <div class="space-y-3">
       <ng-container *ngFor="let nodo of flujoTimeline; let idx = index">
-      <div *ngIf="mostrarSeparadorActividadesSeguimiento(nodo, idx, flujoTimeline)" class="my-2 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+      <div *ngIf="mostrarSeparadorActividadesSeguimiento(nodo, idx, flujoTimeline)" class="relative z-10 flex items-center py-2 my-2 w-full -ml-[2px]">
+        <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+        <span class="flex-shrink-0 mx-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-gray-800 px-2 rounded-full border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
+          Seguimiento de Proyecto
+        </span>
+        <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+      </div>
       <article
         class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60"
         [ngClass]="{
@@ -172,7 +178,6 @@
             <div *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividadTimeline" class="space-y-2">
               <ng-container *ngIf="getComentariosActividad(nodo.id) as comentariosActividad">
               <ng-container *ngFor="let comentario of comentariosActividad; let cIdx = index; trackBy: trackByComentarioId">
-              <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdx)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
               <article
                 class="relative rounded border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/40 p-2.5"
                 [ngClass]="{
@@ -408,8 +413,14 @@
       <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
         <ng-container *ngFor="let nodo of flujoTablaPaginada; let rowIdx = index">
         <tr *ngIf="mostrarSeparadorActividadesSeguimiento(nodo, rowIdx, flujoTablaPaginada)">
-          <td colspan="6" class="py-1 px-2">
-            <div class="border-t-2 border-emerald-600 dark:border-emerald-400"></div>
+          <td colspan="6" class="py-2 px-2">
+            <div class="relative z-10 flex items-center py-2 w-full">
+              <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+              <span class="flex-shrink-0 mx-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-gray-800 px-2 rounded-full border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
+                Seguimiento de Proyecto
+              </span>
+              <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+            </div>
           </td>
         </tr>
         <tr
@@ -526,7 +537,6 @@
                     <div class="space-y-2" *ngIf="getComentariosActividad(nodo.id).length > 0; else sinComentariosActividad">
                       <ng-container *ngIf="getComentariosActividad(nodo.id) as comentariosActividadTabla">
                       <ng-container *ngFor="let comentario of comentariosActividadTabla; let cIdxTabla = index; trackBy: trackByComentarioId">
-                      <div *ngIf="mostrarDivisorSeguimientoComentario(nodo, cIdxTabla)" class="my-1.5 border-t-2 border-emerald-600 dark:border-emerald-400"></div>
                       <article
                         class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]"
                         [ngClass]="{

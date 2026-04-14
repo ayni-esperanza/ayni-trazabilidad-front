@@ -862,16 +862,22 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   esActividadSeguimiento(nodo: FlujoNodo): boolean {
-    if (!this.proyectoFinalizado || this.esNodoOrdenCompra(nodo)) return false;
+    if (this.esNodoOrdenCompra(nodo)) return false;
     return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
   mostrarSeparadorActividadesSeguimiento(nodo: FlujoNodo, index: number, lista: FlujoNodo[]): boolean {
-    if (!this.esActividadSeguimiento(nodo)) return false;
-    if (index === 0) return true;
-
-    const anterior = lista[index - 1];
-    return !this.esActividadSeguimiento(anterior);
+    if (this.ordenRecientePrimero) {
+      if (this.esActividadSeguimiento(nodo)) return false;
+      if (index === 0) return false;
+      const anterior = lista[index - 1];
+      return this.esActividadSeguimiento(anterior);
+    } else {
+      if (!this.esActividadSeguimiento(nodo)) return false;
+      if (index === 0) return true;
+      const anterior = lista[index - 1];
+      return !this.esActividadSeguimiento(anterior);
+    }
   }
 
   private parseFechaComentario(value?: string): number {
