@@ -32,6 +32,8 @@ export class ProyectosTablaCardComponent {
   @Input() estadoProyecto: string | null = null;
   @Input() fechaDesde: string | null = null;
   @Input() fechaHasta: string | null = null;
+
+  mostrarFiltrosFecha: boolean = false;
   
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() limpiarFiltros = new EventEmitter<void>();
@@ -42,6 +44,11 @@ export class ProyectosTablaCardComponent {
   @Output() estadoProyectoChange = new EventEmitter<string | null>();
   @Output() fechaDesdeChange = new EventEmitter<string | null>();
   @Output() fechaHastaChange = new EventEmitter<string | null>();
+  
+  toggleFiltrosFecha(): void {
+    // Alternar visibilidad de filtros de fecha
+    this.mostrarFiltrosFecha = !this.mostrarFiltrosFecha;
+  }
   
   onToggleTabla(): void {
     this.toggleTabla.emit();

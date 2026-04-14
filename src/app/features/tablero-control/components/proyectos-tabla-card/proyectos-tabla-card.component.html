@@ -73,25 +73,35 @@
         }
       </select>
 
-      <!-- Filtro Fecha Desde -->
-      <div class="flex items-center gap-1">
-        <span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Desde:</span>
-        <input
-          type="date"
-          [ngModel]="fechaDesde ?? ''"
-          (ngModelChange)="onFechaDesdeChange($event)"
-          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500">
-      </div>
+      <!-- Alternar Filtros de Fecha -->
+      <button 
+        type="button"
+        (click)="toggleFiltrosFecha()"
+        title="Filtrar por fechas"
+        class="bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </button>
 
-      <!-- Filtro Fecha Hasta -->
-      <div class="flex items-center gap-1">
-        <span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">Hasta:</span>
-        <input
-          type="date"
-          [ngModel]="fechaHasta ?? ''"
-          (ngModelChange)="onFechaHastaChange($event)"
-          class="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500">
-      </div>
+      <!-- Filtros de Fecha: Desde y Hasta agrupados (ocultos por defecto) -->
+      @if (mostrarFiltrosFecha || fechaDesde || fechaHasta) {
+        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded px-2 py-0.5 animate-ui-in">
+          <input
+            type="date"
+            [ngModel]="fechaDesde ?? ''"
+            (ngModelChange)="onFechaDesdeChange($event)"
+            title="Desde"
+            class="text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none w-[100px] border-none p-0 cursor-pointer">
+          <span class="text-gray-300 dark:text-gray-600">-</span>
+          <input
+            type="date"
+            [ngModel]="fechaHasta ?? ''"
+            (ngModelChange)="onFechaHastaChange($event)"
+            title="Hasta"
+            class="text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none w-[100px] border-none p-0 cursor-pointer">
+        </div>
+      }
 
       <!-- Botón limpiar -->
       @if (hayFiltrosActivos) {
