@@ -1,0 +1,416 @@
+<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-hidden bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
+        <tr>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Actividad</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Tipo</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Responsable</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Fecha de registro</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Ultima actualizacion</th>
+          <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Estado</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
+        <ng-container *ngFor="let nodo of ctx.flujoTablaPaginada; let rowIdx = index">
+        <tr *ngIf="ctx.mostrarSeparadorActividadesSeguimiento(nodo, rowIdx, ctx.flujoTablaPaginada)">
+          <td colspan="6" class="py-2 px-2">
+            <div class="relative z-10 flex items-center py-2 w-full">
+              <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+              <span class="flex-shrink-0 mx-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-gray-800 px-2 rounded-full border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
+                Seguimiento de Proyecto
+              </span>
+              <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
+            </div>
+          </td>
+        </tr>
+        <tr
+          (click)="ctx.abrirNodo(nodo)"
+          [ngClass]="{
+            'cursor-pointer hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)]': ctx.puedeAbrirNodo(nodo),
+            'bg-amber-50/70 dark:bg-amber-900/20': ctx.esNodoOrdenCompra(nodo)
+          }">
+          <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
+            <div class="flex flex-col gap-1">
+              <span>{{ nodo.nombre }}</span>
+              <div class="group" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  (click)="ctx.toggleDetalleActividad(nodo.id); $event.stopPropagation()"
+                  class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 cursor-pointer select-none hover:underline">
+                  <span>Ver detalle</span>
+                  <svg
+                    class="w-3 h-3 transition-transform duration-300"
+                    [ngClass]="ctx.isDetalleActividadAbierto(nodo.id) ? 'rotate-180' : ''"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <div
+                  class="overflow-hidden transition-all duration-300 ease-in-out"
+                  [ngClass]="ctx.isDetalleActividadAbierto(nodo.id) ? 'opacity-100 max-h-[200rem]' : 'opacity-0 max-h-0'">
+                  <div class="mt-1.5 p-2 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-[10px] text-gray-600 dark:text-gray-300 space-y-2">
+                  <ng-container *ngIf="!ctx.esNodoOrdenCompra(nodo); else detalleOrdenCompra">
+                    <p>
+                      <span class="font-semibold">Costo de dependencia:</span>
+                      S/ {{ ctx.getCostoDependenciaActividad(nodo.id) | number:'1.2-2' }}
+                    </p>
+                  </ng-container>
+                  <div>
+                    <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="ctx.formatearDescripcionDetalle(nodo.descripcion)"></div>
+                  </div>
+                  <div>
+                    <p><span class="font-semibold">Adjuntos:</span> {{ nodo.adjuntos?.length || 0 }}</p>
+                  </div>
+                  <div *ngIf="(nodo.adjuntos?.length || 0) > 0" class="flex flex-wrap gap-1 pt-1">
+                    <div *ngFor="let adj of nodo.adjuntos" class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 max-w-full">
+                      <span class="truncate text-[10px] max-w-40" [title]="adj.nombre">{{ adj.nombre }}</span>
+                      <button
+                        type="button"
+                        (click)="ctx.verAdjunto(adj); $event.stopPropagation()"
+                        [disabled]="!ctx.puedeVistaPreviaAdjunto(adj)"
+                        title="Ver archivo"
+                        aria-label="Ver archivo"
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/40 dark:text-green-300">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        (click)="ctx.descargarAdjunto(adj); $event.stopPropagation()"
+                        [disabled]="!ctx.puedeAccionarAdjunto(adj)"
+                        title="Descargar archivo"
+                        aria-label="Descargar archivo"
+                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/40 dark:text-blue-300">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <ng-template #detalleOrdenCompra>
+                    <div class="mb-2">
+                      <span class="font-semibold">Opciones de orden de compra:</span>
+                      <ng-container *ngFor="let adj of nodo.adjuntos">
+                        <button
+                          type="button"
+                          class="ml-2 px-2 py-1 text-[10px] rounded bg-blue-600 text-white hover:bg-blue-700"
+                          (click)="ctx.verAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!ctx.puedeVistaPreviaAdjunto(adj)">
+                          Visualizar {{ adj.nombre }}
+                        </button>
+                        <button
+                          type="button"
+                          class="ml-1 px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700"
+                          (click)="ctx.descargarAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!ctx.puedeAccionarAdjunto(adj)">
+                          Descargar {{ adj.nombre }}
+                        </button>
+                      </ng-container>
+                      <span *ngIf="!nodo.adjuntos?.length" class="ml-2 text-gray-400">Sin archivos adjuntos</span>
+                    </div>
+                  </ng-template>
+
+                  <div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <p class="font-semibold text-[11px] text-gray-700 dark:text-gray-200">Comentarios adicionales de esta actividad</p>
+                      <ng-container *ngIf="!ctx.actividadModalAbierta; else avisoModalActividadAbierta">
+                        <button
+                          type="button"
+                          (click)="ctx.agregarComentarioActividad(nodo); $event.stopPropagation()"
+                          [disabled]="ctx.proyectoCancelado || ctx.hayComentariosEnEdicion"
+                          class="px-2 py-1 text-[10px] rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                          Agregar comentario
+                        </button>
+                      </ng-container>
+                      <ng-template #avisoModalActividadAbierta>
+                        <span class="px-2 py-1 text-[10px] rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          Cierra la modal de actividad para comentar
+                        </span>
+                      </ng-template>
+                    </div>
+
+                    <div class="space-y-2" *ngIf="ctx.getComentariosActividad(nodo.id).length > 0; else sinComentariosActividad">
+                      <ng-container *ngIf="ctx.getComentariosActividad(nodo.id) as comentariosActividadTabla">
+                      <ng-container *ngFor="let comentario of comentariosActividadTabla; let cIdxTabla = index; trackBy: ctx.trackByComentarioId">
+                      <article
+                        class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-2 text-[10px]"
+                        [ngClass]="{
+                          'transition-all duration-300 ease-out origin-top overflow-hidden': true,
+                          'animate-ui-in': ctx.isComentarioEntrando(comentario.id),
+                          'opacity-0 -translate-y-1 scale-[0.98] max-h-0 py-0 border-transparent': ctx.isComentarioSaliendo(comentario.id),
+                          'opacity-100 translate-y-0 scale-100 max-h-[900px]': !ctx.isComentarioSaliendo(comentario.id)
+                        }">
+                        <ng-container *ngIf="ctx.isComentarioEnEdicion(comentario.id); else comentarioDescripcion">
+                          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                              <label class="block mb-1 font-medium">Responsable</label>
+                              <select
+                                [ngModel]="comentario.responsableId"
+                                (ngModelChange)="ctx.actualizarResponsableComentario(comentario.id, $event)"
+                                [disabled]="!ctx.puedeModificarComentario(comentario)"
+                                class="w-full h-6 px-2 py-0.5 text-[10px] leading-tight border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-60">
+                                <option [ngValue]="undefined">Sin asignar</option>
+                                <option *ngFor="let resp of ctx.responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label class="block mb-1 font-medium">Fecha de comentario</label>
+                              <p class="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                {{ comentario.fechaComentario || 'Pendiente de guardar' }}
+                              </p>
+                            </div>
+
+                            <div>
+                              <label class="block mb-1 font-medium">Agregado por</label>
+                              <p class="px-2 py-1 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                {{ ctx.getNombreCuentaComentario(comentario) }}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div class="mt-2">
+                            <label class="block mb-1 font-medium">Comentario</label>
+                            <textarea
+                              rows="3"
+                              [ngModel]="comentario.texto"
+                              (ngModelChange)="ctx.actualizarTextoComentario(comentario.id, $event)"
+                              (paste)="ctx.onPegarImagenComentario($event, comentario.id)"
+                              [disabled]="!ctx.puedeModificarComentario(comentario)"
+                              class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100 disabled:opacity-60 resize-none"></textarea>
+                          </div>
+
+                            <div class="mt-2">
+                              <div class="flex items-center justify-between gap-2 mb-1">
+                                <div class="flex items-center gap-1.5">
+                                  <label class="block font-medium">Adjuntos</label>
+                                  <div class="relative z-50">
+                                    <button
+                                      type="button"
+                                      aria-label="Informacion de archivos permitidos"
+                                      class="peer inline-flex h-4.5 w-4.5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400">
+                                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
+                                      </svg>
+                                    </button>
+                                    <div
+                                      class="hidden pointer-events-none absolute left-0 bottom-full mb-3 z-50 w-80 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-lg peer-hover:block">
+                                      <p class="text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
+                                        Archivos permitidos: xlsx, xls, pdf, docx, doc, pptx, ppt, txt, csv, zip, rar e imagenes. Limite maximo: 25MB para documentos y 5MB para imagenes. Audio y video no estan permitidos. Las imagenes se comprimen automaticamente.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              <label
+                                [ngClass]="!ctx.puedeModificarComentario(comentario) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
+                                class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                Adjuntar
+                                <input
+                                  type="file"
+                                  class="hidden"
+                                  [accept]="ctx.acceptTiposArchivo"
+                                  [disabled]="!ctx.puedeModificarComentario(comentario)"
+                                  multiple
+                                  (change)="ctx.onSeleccionarAdjuntosComentario($event, comentario.id)">
+                              </label>
+                            </div>
+                            <p *ngIf="ctx.erroresAdjuntosComentario[comentario.id]" class="text-[11px] text-red-600 dark:text-red-400 mb-1">{{ ctx.erroresAdjuntosComentario[comentario.id] }}</p>
+
+                            <div class="space-y-1" *ngIf="(comentario.adjuntos || []).length > 0; else sinAdjuntosComentario">
+                              <div *ngFor="let adjunto of comentario.adjuntos; let adjIdx = index" class="flex items-center justify-between gap-2 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+                                <div class="min-w-0">
+                                  <p class="truncate text-gray-700 dark:text-gray-200">{{ adjunto.nombre }}</p>
+                                  <p class="text-gray-500 dark:text-gray-400">{{ ctx.formatBytes(adjunto.tamano) }}</p>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    (click)="ctx.verAdjunto(adjunto); $event.stopPropagation()"
+                                    [disabled]="!ctx.puedeVistaPreviaAdjunto(adjunto)"
+                                    title="Ver archivo"
+                                    aria-label="Ver archivo"
+                                    class="p-1 rounded bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/30 dark:text-green-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                  </button>
+                                  <button type="button" (click)="ctx.descargarAdjuntoComentario(adjunto); $event.stopPropagation()" title="Descargar archivo" aria-label="Descargar archivo" class="p-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    (click)="ctx.eliminarAdjuntoComentario(comentario.id, adjIdx); $event.stopPropagation()"
+                                    [disabled]="!ctx.puedeModificarComentario(comentario)"
+                                    class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-red-900/30 dark:text-red-300">
+                                    Quitar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <ng-template #sinAdjuntosComentario>
+                              <p class="text-gray-500 dark:text-gray-400 italic">Sin adjuntos</p>
+                            </ng-template>
+                          </div>
+
+                          <div class="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              (click)="ctx.guardarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="!ctx.puedeModificarComentario(comentario) || (!(comentario.texto || '').trim() && !(comentario.adjuntos || []).length)"
+                              class="px-2 py-1 mr-2 rounded border border-green-200 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30">
+                              Guardar comentario
+                            </button>
+                            <button
+                              type="button"
+                              (click)="ctx.cancelarEdicionComentario(comentario.id); $event.stopPropagation()"
+                              [disabled]="!ctx.puedeModificarComentario(comentario)"
+                              class="px-2 py-1 mr-2 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              (click)="ctx.eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="!ctx.puedeEliminarComentario(comentario)"
+                              class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                              Eliminar comentario
+                            </button>
+                          </div>
+                        </ng-container>
+
+                        <ng-template #comentarioDescripcion>
+                          <div class="rounded bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-2">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1 text-[10px] text-gray-500 dark:text-gray-400">
+                              <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? ctx.getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ ctx.formatDateStandar(comentario.fechaComentario) || '—' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ ctx.getNombreCuentaComentario(comentario) }}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+                            <div class="mt-2" *ngIf="(comentario.adjuntos || []).length > 0">
+                              <p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300 mb-1">Adjuntos</p>
+                              <div class="flex flex-wrap gap-1">
+                                <div *ngFor="let adjunto of comentario.adjuntos" class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 max-w-full">
+                                  <span class="truncate text-[10px] max-w-40" [title]="adjunto.nombre">{{ adjunto.nombre }}</span>
+                                  <button
+                                    type="button"
+                                    (click)="ctx.verAdjunto(adjunto); $event.stopPropagation()"
+                                    [disabled]="!ctx.puedeVistaPreviaAdjunto(adjunto)"
+                                    title="Ver archivo"
+                                    aria-label="Ver archivo"
+                                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/40 dark:text-green-300">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    (click)="ctx.descargarAdjuntoComentario(adjunto); $event.stopPropagation()"
+                                    title="Descargar archivo"
+                                    aria-label="Descargar archivo"
+                                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="mt-2 flex justify-end">
+                            <button
+                              type="button"
+                              (click)="ctx.editarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="!ctx.puedeEditarComentario(comentario)"
+                              class="px-2 py-1 mr-2 rounded border border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30">
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              (click)="ctx.eliminarComentarioActividad(comentario.id); $event.stopPropagation()"
+                              [disabled]="!ctx.puedeEliminarComentario(comentario)"
+                              class="px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30">
+                              Eliminar comentario
+                            </button>
+                          </div>
+                        </ng-template>
+                      </article>
+                      </ng-container>
+                      </ng-container>
+                    </div>
+
+                    <ng-template #sinComentariosActividad>
+                      <p class="text-gray-500 dark:text-gray-400 italic">Sin comentarios adicionales para esta actividad.</p>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">
+            <span *ngIf="nodo.tipo === 'inicio'" class="px-1.5 py-0.5 text-[10px] rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Inicio</span>
+            <span *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Actividad</span>
+            <span *ngIf="ctx.esNodoOrdenCompra(nodo)" class="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Orden de compra</span>
+          </td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.esNodoOrdenCompra(nodo) ? 'Compras' : (nodo.responsableId ? ctx.getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}</td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.formatDateStandar(nodo.fechaInicio) || '—' }}</td>
+          <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || '—') : (nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'dd-MM-yyyy HH:mm') : '—') }}</td>
+          <td class="py-2 px-2">
+            <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+              <div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group">
+                <select
+                  [ngModel]="ctx.getEstadoActividad(nodo)"
+                  (ngModelChange)="ctx.onCambiarEstadoActividad(nodo, $event); ctx.onEstadoDropdownClose(nodo.id)"
+                  (mousedown)="ctx.onEstadoDropdownOpen(nodo.id)"
+                  (blur)="ctx.onEstadoDropdownClose(nodo.id)"
+                  (keydown.enter)="ctx.onEstadoDropdownOpen(nodo.id)"
+                  (keydown.escape)="ctx.onEstadoDropdownClose(nodo.id)"
+                  [disabled]="ctx.proyectoCancelado"
+                  style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
+                  class="text-[11px] pl-2 pr-7 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <option *ngFor="let estado of ctx.estadosActividad" [value]="estado">{{ estado }}</option>
+                </select>
+                <svg class="pointer-events-none absolute right-2 w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200" [ngClass]="{ 'rotate-180': ctx.isEstadoDropdownAbierto(nodo.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
+              <span *ngIf="ctx.esNodoOrdenCompra(nodo)" class="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Registrada</span>
+            </div>
+          </td>
+        </tr>
+        </ng-container>
+        <tr *ngIf="ctx.totalActividadesFlujo === 0">
+          <td colspan="6" class="py-5 text-center text-gray-500 dark:text-gray-400">No hay actividades en el flujo</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+@if (vistaFlujo === 'tabla' && ctx.totalActividadesFlujo > 0) {
+  <div class="mt-2">
+    <app-paginacion
+      [config]="paginacionTablaFlujo"
+      [opcionesPorPagina]="opcionesPorPaginaTablaFlujo"
+      [mostrarInfo]="true"
+      [mostrarSelector]="true"
+      [mostrarNavegacion]="true"
+      [integradoEnTabla]="false"
+      (cambioPagina)="onCambioPaginaTablaFlujo($event)"
+      (cambioTamano)="onCambioTamanoTablaFlujo($event)">
+    </app-paginacion>
+  </div>
+}
+

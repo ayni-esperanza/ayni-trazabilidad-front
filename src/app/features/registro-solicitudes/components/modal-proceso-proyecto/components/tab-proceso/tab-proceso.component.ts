@@ -5,7 +5,8 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { Proyecto, Responsable, FlujoNodo, EstadoTarea, ComentarioAdicionalActividad, FlujoAdjunto, OrdenCompra } from '../../../../models/solicitud.model';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
-import { PaginacionComponent } from '../../../../../../shared/components/paginacion/paginacion.component';
+import { ProcesoTablaComponent } from './components/proceso-tabla/proceso-tabla.component';
+import { ProcesoTimelineComponent } from './components/proceso-timeline/proceso-timeline.component';
 import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
 import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
 import { firstValueFrom } from 'rxjs';
@@ -13,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginacionComponent],
+  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy {
