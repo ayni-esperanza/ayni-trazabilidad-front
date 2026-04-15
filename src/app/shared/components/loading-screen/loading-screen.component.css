@@ -1,0 +1,123 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.loading-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.75) 0%, transparent 40%),
+    linear-gradient(140deg, #eef5f0 0%, #dfe9e1 100%);
+  padding: 1.25rem;
+}
+
+:host-context(.dark) .loading-page {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+    linear-gradient(145deg, #0f172a 0%, #111827 58%, #1f2937 100%);
+}
+
+.loading-card {
+  width: min(420px, calc(100vw - 32px));
+  text-align: center;
+  padding: 1.35rem 1.2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 157, 69, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+:host-context(.dark) .loading-card {
+  border: 1px solid rgba(36, 184, 105, 0.35);
+  background: rgba(17, 24, 39, 0.78);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.45);
+}
+
+.logo-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 12px rgba(0, 90, 40, 0.12));
+}
+
+.logo-path {
+  fill: transparent;
+  stroke: #009d45;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1800;
+  stroke-dashoffset: 1800;
+  animation: logoStrokeDraw 2.4s ease-in-out infinite;
+}
+
+:host-context(.dark) .logo-path {
+  stroke: #28d17c;
+}
+
+.loading-text {
+  margin: 0.95rem 0 0;
+  color: #009d45;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: textPulse 1.5s ease-in-out infinite;
+}
+
+:host-context(.dark) .loading-text {
+  color: #7ee0ad;
+}
+
+.loading-text::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes logoStrokeDraw {
+  0% {
+    stroke-dashoffset: 1800;
+    opacity: 0.2;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+@keyframes textPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}

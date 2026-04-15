@@ -41,6 +41,7 @@ interface AuthApiResponse {
 export class AuthService {
   private readonly storageKey = 'currentUser';
   private readonly adminUsername = environment.adminUsername.trim().toLowerCase();
+  private logoutInProgress = false;
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private apiUrl = this.buildAuthUrl(environment.apiUrl);
@@ -124,11 +125,26 @@ export class AuthService {
     }
 
     this.currentUserSubject.next(user);
+    this.logoutInProgress = false;
   }
 
   logout(): void {
+    if (this.logoutInProgress) {
+      return;
+    }
+
+    this.logoutInProgress = true;
     this.clearSession();
-    this.router.navigate(['/login']);
+
+    void this.router.navigate(['/loading'], {
+      queryParams: { next: '/login', source: 'logout' },
+      replaceUrl: true,
+    }).finally(() => {
+      // Evita bucles por multiples 401 encadenados durante el cierre de sesion.
+      setTimeout(() => {
+        this.logoutInProgress = false;
+      }, 1500);
+    });
   }
 
   getAccessToken(): string | null {

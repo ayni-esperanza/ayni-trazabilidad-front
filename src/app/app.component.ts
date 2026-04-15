@@ -16,6 +16,7 @@ export class AppComponent implements OnInit {
   title = 'trazabilidad-front';
   showSidebar = false;
   private readonly isBrowser: boolean;
+  private readonly firstOpenLoaderKey = 'ayni-first-open-loader-seen-v1';
   
   constructor(
     private themeService: ThemeService,
@@ -24,7 +25,20 @@ export class AppComponent implements OnInit {
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    this.actualizarVisibilidadSidebar(this.obtenerUrlInicial());
+    const initialUrl = this.obtenerUrlInicial();
+
+    if (this.shouldRouteThroughStartupLoader(initialUrl)) {
+      this.actualizarVisibilidadSidebar('/loading');
+      void this.router.navigate(['/loading'], {
+        queryParams: {
+          next: this.normalizeNextUrl(initialUrl),
+          source: 'startup',
+        },
+        replaceUrl: true,
+      });
+    } else {
+      this.actualizarVisibilidadSidebar(initialUrl);
+    }
 
     // Escuchar cambios de ruta para mostrar/ocultar sidebar
     this.router.events.pipe(
@@ -45,7 +59,8 @@ export class AppComponent implements OnInit {
 
   private actualizarVisibilidadSidebar(url: string): void {
     const normalizada = (url || '').split('?')[0].split('#')[0];
-    this.showSidebar = !normalizada.startsWith('/login');
+    this.showSidebar =
+      !normalizada.startsWith('/login') && !normalizada.startsWith('/loading');
   }
 
   private obtenerUrlInicial(): string {
@@ -58,5 +73,37 @@ export class AppComponent implements OnInit {
     }
 
     return this.router.url || '';
+  }
+
+  private shouldRouteThroughStartupLoader(url: string): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+
+    const normalized = this.normalizeNextUrl(url);
+    if (normalized.startsWith('/loading')) {
+      return false;
+    }
+
+    try {
+      const seen = localStorage.getItem(this.firstOpenLoaderKey) === '1';
+      if (seen) {
+        return false;
+      }
+
+      localStorage.setItem(this.firstOpenLoaderKey, '1');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private normalizeNextUrl(url: string): string {
+    const value = (url || '').trim();
+    if (!value) {
+      return '/';
+    }
+
+    return value.startsWith('/') ? value : `/${value}`;
   }
 }

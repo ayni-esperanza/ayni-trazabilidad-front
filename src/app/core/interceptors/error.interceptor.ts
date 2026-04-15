@@ -30,8 +30,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error) => {
       const isUnauthorized = error.status === 401;
-      const isAuthEndpoint =
-        req.url.includes('/auth/login') || req.url.includes('/auth/refresh');
+      const isLoginEndpoint = req.url.includes('/auth/login');
+      const isRefreshEndpoint = req.url.includes('/auth/refresh');
       const alreadyRetried = req.context.get(RETRY_ONCE);
 
       if (!isUnauthorized) {
@@ -40,7 +40,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      if (isAuthEndpoint || alreadyRetried || !authService.getRefreshToken()) {
+      if (isLoginEndpoint) {
+        return throwError(() => error);
+      }
+
+      if (isRefreshEndpoint || alreadyRetried || !authService.getRefreshToken()) {
         authService.logout();
         return throwError(() => error);
       }

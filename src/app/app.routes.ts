@@ -19,6 +19,14 @@ export const routes: Routes = [
     canActivate: [noAuthGuard],
   },
   {
+    path: 'loading',
+    loadComponent: () =>
+      import('./shared/components/loading-screen/loading-screen.component').then(
+        (m) => m.LoadingScreenComponent,
+      ),
+    title: 'Cargando - AYNI Trazabilidad',
+  },
+  {
     path: 'tablero-control',
     loadComponent: () =>
       import('./features/tablero-control/tablero-control.component').then(
