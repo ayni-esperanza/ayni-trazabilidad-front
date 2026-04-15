@@ -445,7 +445,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
 
     // Datos de tareas realizadas (una sola barra)
     this.tareasRealizadasData = [
-      { name: 'Tareas Realizadas', value: this.responsableSeleccionado.tareasRealizadas }
+      { name: 'Actividades Realizadas', value: this.responsableSeleccionado.tareasRealizadas }
     ];
 
     // Datos de eficiencia (una sola barra)

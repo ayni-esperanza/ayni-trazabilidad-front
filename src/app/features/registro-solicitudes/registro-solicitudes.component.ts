@@ -886,14 +886,19 @@ export class RegistroSolicitudesComponent implements OnInit {
           `Total sin IGV: S/ ${total.toFixed(2)}`
         ].join(' | ');
 
+        let fechaTimeline = fecha;
+        if (fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+          fechaTimeline = `${fecha}T23:59:59`;
+        }
+
         return {
           id: -(100000 + identificador),
           nombre: `Orden de compra ${numero || `#${index + 1}`}`,
           tipo: 'tarea' as const,
           estadoActividad: 'Completado' as EstadoTarea,
-          fechaInicio: fecha || undefined,
-          fechaFin: fecha || undefined,
-          fechaCambioEstado: fecha || undefined,
+          fechaInicio: fechaTimeline || undefined,
+          fechaFin: fechaTimeline || undefined,
+          fechaCambioEstado: fechaTimeline || undefined,
           responsableNombre: 'Compras',
           descripcion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),

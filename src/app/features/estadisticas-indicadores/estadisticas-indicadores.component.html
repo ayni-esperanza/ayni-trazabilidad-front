@@ -143,7 +143,7 @@
           [class.h-12]="!tareasProyectoVisible"
           [class.flex-shrink-0]="!tareasProyectoVisible">
           <div class="flex items-center justify-between flex-shrink-0" [class.mb-3]="tareasProyectoVisible">
-            <h3 class="text-base font-semibold text-gray-800 dark:text-white">Tareas de los Responsables</h3>
+            <h3 class="text-base font-semibold text-gray-800 dark:text-white">Actividades de los Responsables</h3>
             <div class="flex gap-0.5">
               <button 
                 (click)="toggleTareasProyecto()"
@@ -258,7 +258,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-sm">No hay tareas para mostrar</p>
+                <p class="text-sm">No hay actividades para mostrar</p>
               </div>
             }
           </div>
@@ -509,7 +509,7 @@
           [class.flex-shrink-0]="!tareasAsignadasVisible">
           <div class="flex items-center justify-between flex-shrink-0" [class.mb-3]="tareasAsignadasVisible">
             <div class="flex items-center gap-2">
-              <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Tareas Asignadas</h3>
+              <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Actividades Asignadas</h3>
               @if (proyectoResponsableSeleccionado && tareasAsignadasVisible) {
                 <span class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400">
                   Filtrado por proyecto
@@ -631,7 +631,7 @@
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p class="text-sm">No hay tareas para mostrar</p>
+                      <p class="text-sm">No hay actividades para mostrar</p>
                     </div>
                   }
                 </div>
@@ -644,11 +644,11 @@
 
     <!-- Columna de KPIs con Gráficos (nueva fila completa) -->
     <div class="mt-4">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
-        <!-- Gráfico de Tareas Realizadas -->
+        <!-- Gráfico de Actividades Realizadas -->
         <div class="stats-card p-2.5">
-          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Tareas Realizadas</h4>
+          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Actividades Realizadas</h4>
           <div class="flex justify-center overflow-x-auto">
             <ngx-charts-bar-horizontal
               [view]="[200, 60]"
@@ -668,31 +668,6 @@
           <div class="text-center mt-2">
             <p class="text-xl font-bold text-gray-800 dark:text-white">{{ responsableSeleccionado.tareasRealizadas }}</p>
             <p class="text-[10px] text-gray-500 dark:text-gray-400">Total realizadas</p>
-          </div>
-        </div>
-        
-        <!-- Gráfico de Eficiencia -->
-        <div class="stats-card p-2.5">
-          <h4 class="text-xs font-semibold text-gray-800 dark:text-white mb-2">Eficiencia General (%)</h4>
-          <div class="flex justify-center overflow-x-auto">
-            <ngx-charts-bar-horizontal
-              [view]="[200, 60]"
-              [scheme]="colorSchemeBlue"
-              [results]="eficienciaData"
-              [xAxis]="true"
-              [yAxis]="true"
-              [legend]="false"
-              [showXAxisLabel]="false"
-              [showYAxisLabel]="false"
-              [gradient]="false"
-              [animations]="false"
-              [barPadding]="6"
-              [roundEdges]="false">
-            </ngx-charts-bar-horizontal>
-          </div>
-          <div class="text-center mt-2">
-            <p class="text-xl font-bold text-gray-800 dark:text-white">{{ responsableSeleccionado.eficienciaGeneral }}%</p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400">Promedio: {{ responsableSeleccionado.promedio }}/5</p>
           </div>
         </div>
 
