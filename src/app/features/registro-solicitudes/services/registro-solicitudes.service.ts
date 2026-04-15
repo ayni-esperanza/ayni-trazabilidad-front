@@ -106,8 +106,7 @@ export type ComentarioActividadPayloadApi = {
 type ActividadRequestApi = {
   id?: number;
   nombre: string;
-  tipo: 'inicio' | 'tarea';
-  estadoActividad?: string;
+  tipo: 'inicio' | 'tarea';  tipoActividad?: string;  estadoActividad?: string;
   fechaCambioEstado?: string;
   responsableId?: number;
   responsableNombre?: string;
@@ -372,6 +371,7 @@ export class RegistroSolicitudesService {
       id: nodo.id,
       nombre: nodo.nombre,
       tipo: nodo.tipo,
+      tipoActividad: nodo.tipoActividad,
       estadoActividad: nodo.estadoActividad,
       fechaCambioEstado: nodo.fechaCambioEstado,
       responsableId: nodo.responsableId,

@@ -875,6 +875,13 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
       return [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
         .sort((a, b) => {
+          const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
+          const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
+
+          if (esSegA !== esSegB) {
+            return (esSegA ? 1 : -1) * direction;
+          }
+
           const fechaA = this.obtenerSortFechaNodo(a);
           const fechaB = this.obtenerSortFechaNodo(b);
 

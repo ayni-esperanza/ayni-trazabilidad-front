@@ -456,6 +456,13 @@ export class RegistroSolicitudesComponent implements OnInit {
     const nodosOrdenCompra = this.mapearOrdenesCompraTimeline(proyecto?.ordenesCompra || []);
 
     return [...nodos, ...nodosOrdenCompra].sort((a, b) => {
+      const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
+      const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
+
+      if (esSegA !== esSegB) {
+        return esSegA ? -1 : 1;
+      }
+
       const fechaA = this.getTimelineNodeSortValue(a);
       const fechaB = this.getTimelineNodeSortValue(b);
 
