@@ -172,7 +172,7 @@
     </div>
     <!-- Órdenes de Compra -->
     <div class="col-span-2">
-      <ng-container *ngIf="!modoSoloLectura; else infoOrdenCompraReadonly">
+      <ng-container *ngIf="!proyectoCancelado; else infoOrdenCompraReadonly">
         <div class="flex items-center gap-2 mb-1">
           <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Órdenes de Compra</label>
           <button type="button" (click)="agregarOrdenCompra()"

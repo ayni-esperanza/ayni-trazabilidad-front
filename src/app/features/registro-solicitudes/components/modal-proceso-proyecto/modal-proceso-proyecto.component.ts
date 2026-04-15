@@ -1169,7 +1169,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   async guardarInfoProyecto(): Promise<void> {
-    if (!this.proyecto || this.modoSoloLectura || this.guardandoInfo) return;
+    if (!this.proyecto || this.proyectoCancelado || this.guardandoInfo) return;
 
     this.guardandoInfo = true;
 
