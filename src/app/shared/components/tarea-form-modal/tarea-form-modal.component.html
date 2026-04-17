@@ -8,7 +8,7 @@
     <div 
       (click)="onContentClick($event)"
       [ngClass]="embedded
-        ? 'bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-h-[calc(100vh-7rem)] flex flex-col overflow-hidden animate-modal-in'
+        ? 'bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-h-[calc(100vh-7rem)] flex flex-col overflow-hidden'
         : 'bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-modal-in'">
       
       <!-- Header -->
@@ -288,13 +288,11 @@
 
 <!-- Vista previa de adjunto -->
 @if (mostrarVistaPrevia && adjuntoVistaPrevia) {
-  <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4" (click)="cerrarVistaPrevia()">
+  <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-0" (click)="cerrarVistaPrevia()">
     <div
-      [ngClass]="(esPdf(adjuntoVistaPrevia) || esOffice(adjuntoVistaPrevia))
-        ? 'w-full max-w-5xl max-h-[88vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'
-        : 'w-auto max-w-[92vw] max-h-[92vh] bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700'"
+      class="w-screen h-screen bg-white dark:bg-gray-900 overflow-hidden"
       (click)="$event.stopPropagation()">
-      <div class="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ adjuntoVistaPrevia.nombre }}</h3>
         <button type="button" (click)="cerrarVistaPrevia()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -303,19 +301,19 @@
         </button>
       </div>
       @if (cargandoVistaPrevia) {
-        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
+        <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
           <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300"></div>
           <p class="text-sm">Generando vista previa...</p>
         </div>
       } @else if (esOffice(adjuntoVistaPrevia)) {
-        <div class="h-[78vh] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPrevia()"></div>
+        <div class="h-[calc(100vh-57px)] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPrevia()"></div>
       } @else if (esPdf(adjuntoVistaPrevia)) {
-        <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
+        <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
           <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaPdf()"></iframe>
         </div>
       } @else {
-        <div class="bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
-          <img class="block w-auto h-auto max-w-[88vw] max-h-[78vh] object-contain" [src]="obtenerFuenteVistaPreviaImagen()" [alt]="adjuntoVistaPrevia.nombre" />
+        <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
+          <img class="block w-auto h-auto max-w-[98vw] max-h-[calc(100vh-73px)] object-contain" [src]="obtenerFuenteVistaPreviaImagen()" [alt]="adjuntoVistaPrevia.nombre" />
         </div>
       }
     </div>

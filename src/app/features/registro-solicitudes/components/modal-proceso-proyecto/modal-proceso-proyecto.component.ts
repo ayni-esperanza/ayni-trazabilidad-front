@@ -1057,6 +1057,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tamano: a.tamano,
         objectKey: a.objectKey,
         dataUrl: a.dataUrl,
+        url: (a as any).url,
         archivo: (a as any).archivo
       })),
       estado: nodo.estadoActividad || 'Pendiente'
@@ -1070,7 +1071,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tamano: adjunto.tamano,
       objectKey: adjunto.objectKey,
       dataUrl: adjunto.dataUrl,
-      url: adjunto.dataUrl,
+      url: adjunto.url || adjunto.dataUrl,
       archivo: adjunto.archivo
     }));
   }
@@ -1408,8 +1409,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   async abrirVistaPreviaDocumento(doc: DocumentoResumen): Promise<void> {
-    if (!this.puedeDescargarDocumento(doc)) return;
-
     this.liberarFuenteVistaPreviaDocumento();
     this.htmlVistaPreviaDocumento = null;
     this.cargandoVistaPreviaDocumento = false;
@@ -1485,6 +1484,34 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       nombre: adjunto?.nombre || 'Documento adjunto',
       tipo: adjunto?.tipo || 'Archivo',
       adjunto
+    };
+
+    await this.abrirVistaPreviaDocumento(doc);
+  }
+
+  async abrirVistaPreviaDesdeModalActividad(adjunto: {
+    nombre: string;
+    tipo: string;
+    tamano: number;
+    objectKey?: string;
+    archivo?: File;
+    dataUrl?: string;
+    url?: string;
+  }): Promise<void> {
+    const doc: DocumentoResumen = {
+      actividad: this.actividadParaEditar?.nombre || 'Actividad',
+      origen: 'Actividad',
+      nombre: adjunto?.nombre || 'Documento adjunto',
+      tipo: adjunto?.tipo || 'Archivo',
+      adjunto: {
+        nombre: adjunto?.nombre || 'Documento adjunto',
+        tipo: adjunto?.tipo || 'application/octet-stream',
+        tamano: Number(adjunto?.tamano || 0),
+        objectKey: adjunto?.objectKey,
+        archivo: adjunto?.archivo,
+        dataUrl: adjunto?.dataUrl,
+        url: adjunto?.url
+      }
     };
 
     await this.abrirVistaPreviaDocumento(doc);

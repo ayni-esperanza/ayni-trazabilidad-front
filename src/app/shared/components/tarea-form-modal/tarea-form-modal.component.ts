@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { PLATFORM_ID } from '@angular/core';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { ResponsableSelectComponent } from '../responsable-select/responsable-select.component';
 import { AdjuntosPreviewService } from '../../services/adjuntos-preview.service';
+import { HttpService } from '../../../core/services/http.service';
 import { Responsable } from '../../../features/registro-solicitudes/models/solicitud.model';
 
 export interface ArchivoAdjuntoActividad {
@@ -48,6 +50,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   @Output() cerrar = new EventEmitter<void>();
   @Output() guardar = new EventEmitter<Tarea>();
   @Output() eliminar = new EventEmitter<number>();
+  @Output() vistaPreviaAdjuntoEvt = new EventEmitter<ArchivoAdjuntoActividad>();
 
   formData: Tarea = {
     nombre: '',
@@ -114,6 +117,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
     private readonly adjuntosPreviewService: AdjuntosPreviewService,
+    private readonly httpService: HttpService,
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -321,15 +325,41 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   puedeDescargarAdjunto(adjunto: ArchivoAdjuntoActividad): boolean {
-    return !!adjunto.archivo || !!adjunto.dataUrl || !!adjunto.url;
+    return !!adjunto.archivo || !!adjunto.dataUrl || !!adjunto.url || !!adjunto.objectKey;
   }
 
   async descargarAdjunto(adjunto: ArchivoAdjuntoActividad): Promise<void> {
+    if (!adjunto.archivo && !adjunto.dataUrl && !adjunto.url && adjunto.objectKey) {
+      const blob = await this.resolverBlobPorObjectKey(adjunto.objectKey);
+      if (!blob) return;
+
+      await this.adjuntosPreviewService.descargarAdjunto({
+        nombre: adjunto.nombre,
+        tipo: adjunto.tipo,
+        archivo: new File([blob], adjunto.nombre || 'documento', {
+          type: adjunto.tipo || blob.type || 'application/octet-stream'
+        })
+      });
+      return;
+    }
+
     await this.adjuntosPreviewService.descargarAdjunto(adjunto);
   }
 
   esVistaPreviaSoportada(adjunto: ArchivoAdjuntoActividad): boolean {
-    return this.adjuntosPreviewService.puedeVistaPrevia(adjunto);
+    if (this.adjuntosPreviewService.puedeVistaPrevia(adjunto)) {
+      return true;
+    }
+
+    if (!adjunto.objectKey) {
+      return false;
+    }
+
+    // Para adjuntos persistidos que solo tienen objectKey, usar metadatos
+    // (nombre/tipo) para habilitar botón de vista previa en la card.
+    return this.adjuntosPreviewService.esPdf(adjunto)
+      || this.adjuntosPreviewService.esImagen(adjunto)
+      || this.adjuntosPreviewService.esOffice(adjunto);
   }
 
   esPdf(adjunto: ArchivoAdjuntoActividad | null): boolean {
@@ -344,7 +374,12 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
 
   async abrirVistaPrevia(adjunto: ArchivoAdjuntoActividad): Promise<void> {
     if (!this.esVistaPreviaSoportada(adjunto)) return;
-    if (!adjunto.dataUrl && !adjunto.archivo) return;
+    if (!this.puedeDescargarAdjunto(adjunto)) return;
+
+    if (this.embedded && (this.vistaPreviaAdjuntoEvt as any).observers?.length) {
+      this.vistaPreviaAdjuntoEvt.emit(adjunto);
+      return;
+    }
 
     this.liberarFuenteVistaPrevia();
     this.htmlVistaPrevia = null;
@@ -358,7 +393,26 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       this.cargandoVistaPrevia = true;
 
       try {
-        const html = await this.adjuntosPreviewService.generarHtmlPreviewOffice(adjunto);
+        let fuenteOffice: ArchivoAdjuntoActividad = adjunto;
+
+        if (!adjunto.archivo && !adjunto.dataUrl && !adjunto.url && adjunto.objectKey) {
+          const blob = await this.resolverBlobPorObjectKey(adjunto.objectKey);
+          if (!blob) {
+            this.htmlVistaPrevia = this.sanitizer.bypassSecurityTrustHtml(
+              this.adjuntosPreviewService.generarMensajePreviewHtml('No se pudo cargar el documento para vista previa.')
+            );
+            return;
+          }
+
+          fuenteOffice = {
+            ...adjunto,
+            archivo: new File([blob], adjunto.nombre || 'documento', {
+              type: adjunto.tipo || blob.type || 'application/octet-stream'
+            })
+          };
+        }
+
+        const html = await this.adjuntosPreviewService.generarHtmlPreviewOffice(fuenteOffice);
 
         this.htmlVistaPrevia = this.sanitizer.bypassSecurityTrustHtml(html);
       } catch (error) {
@@ -372,16 +426,11 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       return;
     }
 
-    const fuente = this.adjuntosPreviewService.getAdjuntoUrl(adjunto);
-    if (!fuente) return;
+    const fuenteResuelta = await this.resolverFuenteVistaPrevia(adjunto);
+    if (!fuenteResuelta) return;
 
-    if (adjunto.archivo && !adjunto.dataUrl && !adjunto.url) {
-      this.fuenteVistaPrevia = fuente;
-      this.fuenteVistaPreviaEsBlob = true;
-    } else {
-      this.fuenteVistaPrevia = fuente;
-      this.fuenteVistaPreviaEsBlob = false;
-    }
+    this.fuenteVistaPrevia = fuenteResuelta.fuente;
+    this.fuenteVistaPreviaEsBlob = fuenteResuelta.esBlob;
 
     this.adjuntoVistaPrevia = adjunto;
     this.mostrarVistaPrevia = true;
@@ -612,6 +661,51 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     return new Promise((resolve) => {
       canvas.toBlob((blob) => resolve(blob), type, quality);
     });
+  }
+
+  private async resolverFuenteVistaPrevia(adjunto: ArchivoAdjuntoActividad): Promise<{ fuente: string; esBlob: boolean } | null> {
+    const fuenteDirecta = this.adjuntosPreviewService.getAdjuntoUrl(adjunto);
+    if (fuenteDirecta) {
+      return {
+        fuente: fuenteDirecta,
+        esBlob: (adjunto.archivo && !adjunto.dataUrl && !adjunto.url) || fuenteDirecta.startsWith('blob:')
+      };
+    }
+
+    if (adjunto.objectKey) {
+      const blob = await this.resolverBlobPorObjectKey(adjunto.objectKey);
+      if (blob) {
+        return {
+          fuente: URL.createObjectURL(blob),
+          esBlob: true
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private async resolverBlobPorObjectKey(objectKey?: string): Promise<Blob | null> {
+    const key = String(objectKey || '').trim();
+    if (!key) return null;
+
+    const encodedKey = encodeURIComponent(key);
+    const endpoints = [
+      `/v1/storage/download?objectKey=${encodedKey}`,
+      `/v1/storage/download/${encodedKey}`,
+      `/v1/storage/file/${encodedKey}`,
+      `/v1/storage/${encodedKey}`
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        return await firstValueFrom(this.httpService.downloadFile(endpoint));
+      } catch {
+        // Intentar el siguiente endpoint compatible.
+      }
+    }
+
+    return null;
   }
 
   private normalizarNombreArchivoPegado(file: File, index: number): File {

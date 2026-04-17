@@ -202,6 +202,7 @@
             [modoEdicion]="actividadParaEditar?.id != null"
             (cerrar)="onCerrarModalActividad()"
             (guardar)="onGuardarActividad($event)"
+            (vistaPreviaAdjuntoEvt)="abrirVistaPreviaDesdeModalActividad($event)"
             (eliminar)="onEliminarActividad($event)">
           </app-tarea-form-modal>
         </div>
