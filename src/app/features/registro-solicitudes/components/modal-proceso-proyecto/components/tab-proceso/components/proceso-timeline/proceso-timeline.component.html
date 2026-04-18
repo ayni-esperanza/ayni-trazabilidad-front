@@ -2,7 +2,7 @@
 	<div class="relative pl-7">
 		<div class="absolute left-3 top-1 bottom-1 w-0.5 bg-gradient-to-b from-green-300 via-blue-300 to-cyan-300 dark:from-green-700 dark:via-blue-700 dark:to-cyan-700"></div>
 		<div class="space-y-3">
-			<ng-container *ngFor="let nodo of ctx.flujoTimeline; let idx = index">
+			<ng-container *ngFor="let nodo of ctx.flujoTimeline; let idx = index; trackBy: ctx.trackByNodoId">
 			<div *ngIf="ctx.mostrarSeparadorActividadesSeguimiento(nodo, idx, ctx.flujoTimeline)" class="relative z-10 flex items-center py-2 my-2 w-full -ml-[2px]">
 				<div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
 				<span class="flex-shrink-0 mx-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-gray-800 px-2 rounded-full border border-emerald-200 dark:border-emerald-800/50 shadow-sm">

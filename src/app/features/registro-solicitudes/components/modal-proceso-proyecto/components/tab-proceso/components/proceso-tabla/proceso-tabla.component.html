@@ -12,7 +12,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
-        <ng-container *ngFor="let nodo of ctx.flujoTablaPaginada; let rowIdx = index">
+        <ng-container *ngFor="let nodo of ctx.flujoTablaPaginada; let rowIdx = index; trackBy: ctx.trackByNodoId">
         <tr *ngIf="ctx.mostrarSeparadorActividadesSeguimiento(nodo, rowIdx, ctx.flujoTablaPaginada)">
           <td colspan="6" class="py-2 px-2">
             <div class="relative z-10 flex items-center py-2 w-full">
@@ -57,42 +57,42 @@
                       <span class="font-semibold">Costo de dependencia:</span>
                       S/ {{ ctx.getCostoDependenciaActividad(nodo.id) | number:'1.2-2' }}
                     </p>
-                  </ng-container>
-                  <div>
-                    <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="ctx.formatearDescripcionDetalle(nodo.descripcion)"></div>
-                  </div>
-                  <div>
-                    <p><span class="font-semibold">Adjuntos:</span> {{ nodo.adjuntos?.length || 0 }}</p>
-                  </div>
-                  <div *ngIf="(nodo.adjuntos?.length || 0) > 0" class="flex flex-wrap gap-1 pt-1">
-                    <div *ngFor="let adj of nodo.adjuntos" class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 max-w-full">
-                      <span class="truncate text-[10px] max-w-40" [title]="adj.nombre">{{ adj.nombre }}</span>
-                      <button
-                        type="button"
-                        (click)="ctx.verAdjunto(adj); $event.stopPropagation()"
-                        [disabled]="!ctx.puedeVistaPreviaAdjunto(adj)"
-                        title="Ver archivo"
-                        aria-label="Ver archivo"
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/40 dark:text-green-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="ctx.descargarAdjunto(adj); $event.stopPropagation()"
-                        [disabled]="!ctx.puedeAccionarAdjunto(adj)"
-                        title="Descargar archivo"
-                        aria-label="Descargar archivo"
-                        class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/40 dark:text-blue-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
-                        </svg>
-                      </button>
+                    <div>
+                      <div class="mt-1 text-[11px] leading-relaxed prose prose-sm dark:prose-invert max-w-none" [innerHTML]="ctx.formatearDescripcionDetalle(nodo.descripcion)"></div>
                     </div>
-                  </div>
+                    <div>
+                      <p><span class="font-semibold">Adjuntos:</span> {{ nodo.adjuntos?.length || 0 }}</p>
+                    </div>
+                    <div *ngIf="(nodo.adjuntos?.length || 0) > 0" class="flex flex-wrap gap-1 pt-1">
+                      <div *ngFor="let adj of nodo.adjuntos" class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 max-w-full">
+                        <span class="truncate text-[10px] max-w-40" [title]="adj.nombre">{{ adj.nombre }}</span>
+                        <button
+                          type="button"
+                          (click)="ctx.verAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!ctx.puedeVistaPreviaAdjunto(adj)"
+                          title="Ver archivo"
+                          aria-label="Ver archivo"
+                          class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-900/40 dark:text-green-300">
+                          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="ctx.descargarAdjunto(adj); $event.stopPropagation()"
+                          [disabled]="!ctx.puedeAccionarAdjunto(adj)"
+                          title="Descargar archivo"
+                          aria-label="Descargar archivo"
+                          class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-900/40 dark:text-blue-300">
+                          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </ng-container>
                   <ng-template #detalleOrdenCompra>
                     <div class="space-y-2">
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">

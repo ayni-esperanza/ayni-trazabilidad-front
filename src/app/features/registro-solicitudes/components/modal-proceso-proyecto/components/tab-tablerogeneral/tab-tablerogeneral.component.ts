@@ -63,6 +63,16 @@ export class TabTableroGeneralComponent {
     };
   }
 
+  crearDocOrdenCompra(orden: any, adjunto: any): DocumentoResumen {
+    return {
+      actividad: `Orden ${orden.numero || '-'}`,
+      origen: 'Orden Compra',
+      nombre: adjunto?.nombre || 'Adjunto',
+      tipo: adjunto?.tipo || '-',
+      adjunto
+    };
+  }
+
   crearDocComentario(nodo: FlujoNodo, adjunto: FlujoAdjunto): DocumentoResumen {
     return {
       actividad: nodo.nombre,

@@ -110,6 +110,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private readonly comentariosSaliendo = new Set<number>();
   private readonly detallesActividadAbiertos = new Set<string>();
   private readonly estadoDropdownAbierto: Record<number, boolean> = {};
+  private nodosOrdenCompraCache: FlujoNodo[] = [];
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
@@ -130,6 +131,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['flujoNodos'] || changes['ordenesCompra']) {
+      if (changes['ordenesCompra']) {
+        this.nodosOrdenCompraCache = this.mapearOrdenesCompraANodos();
+      }
       this.actualizarPaginacionTablaFlujo();
     }
 
@@ -944,6 +948,10 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return this.comentariosSaliendo.has(comentarioId);
   }
 
+  trackByNodoId(_index: number, nodo: FlujoNodo): number {
+    return nodo.id;
+  }
+
   esNodoOrdenCompra(nodo: FlujoNodo): boolean {
     return !!(nodo as any)?.esOrdenCompra;
   }
@@ -974,7 +982,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     try {
       const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
       const nodos = nodosBase.filter((nodo): nodo is FlujoNodo => !!nodo && typeof nodo === 'object');
-      const nodosOrdenCompra = this.mapearOrdenesCompraANodos();
+      const nodosOrdenCompra = this.nodosOrdenCompraCache || [];
       const direction = this.ordenRecientePrimero ? -1 : 1;
 
       const todos = [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
