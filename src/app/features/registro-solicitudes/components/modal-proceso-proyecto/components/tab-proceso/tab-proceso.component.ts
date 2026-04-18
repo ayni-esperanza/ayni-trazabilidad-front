@@ -42,6 +42,12 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   vistaFlujo: 'timeline' | 'tabla' = 'tabla';
   ordenRecientePrimero = true;
+  filtroBusqueda = '';
+  filtroResponsableId: number | '' = '';
+  filtroEstadoActividad = '';
+  filtroFechaDesde = '';
+  filtroFechaHasta = '';
+  mostrarFiltroFechas = false;
   paginacionTablaFlujo: PaginacionConfig = {
     paginaActual: 0,
     porPagina: 20,
@@ -102,7 +108,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   private readonly comentarioEdicionBackup = new Map<number, ComentarioAdicionalActividad>();
   private readonly comentariosEntrando = new Set<number>();
   private readonly comentariosSaliendo = new Set<number>();
-  private readonly detallesActividadAbiertos = new Set<number>();
+  private readonly detallesActividadAbiertos = new Set<string>();
   private readonly estadoDropdownAbierto: Record<number, boolean> = {};
 
   constructor(
@@ -233,6 +239,22 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     };
   }
 
+  tieneFiltrosActivos(): boolean {
+    return !!this.filtroBusqueda.trim()
+      || !!this.filtroResponsableId
+      || !!this.filtroEstadoActividad
+      || !!this.filtroFechaDesde
+      || !!this.filtroFechaHasta;
+  }
+
+  limpiarFiltros(): void {
+    this.filtroBusqueda = '';
+    this.filtroResponsableId = '';
+    this.filtroEstadoActividad = '';
+    this.filtroFechaDesde = '';
+    this.filtroFechaHasta = '';
+  }
+
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
     if (this.esNodoOrdenCompra(nodo)) return 'Completado';
     return nodo.estadoActividad || 'Pendiente';
@@ -336,15 +358,25 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return decodificada || '<em>Sin descripcion</em>';
   }
 
-  puedeAccionarAdjunto(adjunto: { archivo?: File; dataUrl?: string }): boolean {
-    return !!adjunto.archivo || !!adjunto.dataUrl;
+  puedeAccionarAdjunto(adjunto: { archivo?: File; dataUrl?: string; url?: string; objectKey?: string }): boolean {
+    return !!adjunto.archivo || !!adjunto.dataUrl || !!adjunto.url || !!adjunto.objectKey;
   }
 
-  puedeVistaPreviaAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): boolean {
-    return this.adjuntosPreviewService.puedeVistaPrevia(adjunto);
+  puedeVistaPreviaAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string; url?: string; objectKey?: string }): boolean {
+    if (this.adjuntosPreviewService.puedeVistaPrevia(adjunto)) {
+      return true;
+    }
+
+    if (!adjunto?.objectKey) {
+      return false;
+    }
+
+    return this.adjuntosPreviewService.esPdf(adjunto)
+      || this.adjuntosPreviewService.esImagen(adjunto)
+      || this.adjuntosPreviewService.esOffice(adjunto);
   }
 
-  async verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string }): Promise<void> {
+  async verAdjunto(adjunto: { nombre?: string; tipo?: string; archivo?: File; dataUrl?: string; url?: string; objectKey?: string }): Promise<void> {
     if (!this.puedeVistaPreviaAdjunto(adjunto)) return;
 
     if ((this.vistaPreviaAdjuntoEvt as any).observers?.length) {
@@ -352,7 +384,9 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
         nombre: adjunto.nombre || 'Documento adjunto',
         tipo: adjunto.tipo,
         archivo: adjunto.archivo,
-        dataUrl: adjunto.dataUrl
+        dataUrl: adjunto.dataUrl,
+        url: adjunto.url,
+        objectKey: adjunto.objectKey
       } as FlujoAdjunto);
       return;
     }
@@ -393,7 +427,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.mostrarVistaPreviaAdjunto = true;
   }
 
-  async descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string }): Promise<void> {
+  async descargarAdjunto(adjunto: { nombre: string; archivo?: File; dataUrl?: string; url?: string }): Promise<void> {
     await this.adjuntosPreviewService.descargarAdjunto(adjunto);
   }
 
@@ -693,25 +727,34 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     });
   }
 
-  toggleDetalleActividad(actividadId: number): void {
-    if (this.detallesActividadAbiertos.has(actividadId)) {
-      this.detallesActividadAbiertos.delete(actividadId);
-      this.limpiarEdicionComentariosActividad(actividadId);
+  toggleDetalleActividad(actividad: number | string | FlujoNodo): void {
+    const clave = this.resolverClaveDetalleActividad(actividad);
+    if (this.detallesActividadAbiertos.has(clave)) {
+      this.detallesActividadAbiertos.delete(clave);
+      const actividadId = this.obtenerActividadIdNumerico(actividad);
+      if (actividadId !== null) {
+        this.limpiarEdicionComentariosActividad(actividadId);
+      }
       return;
     }
 
-    this.detallesActividadAbiertos.add(actividadId);
+    this.detallesActividadAbiertos.add(clave);
   }
 
-  onToggleDetalleActividad(actividadId: number, event: Event): void {
+  onToggleDetalleActividad(actividad: number | string | FlujoNodo, event: Event): void {
     const details = event.target as HTMLDetailsElement;
+    const clave = this.resolverClaveDetalleActividad(actividad);
+
     if (details?.open) {
-      this.detallesActividadAbiertos.add(actividadId);
+      this.detallesActividadAbiertos.add(clave);
       return;
     }
 
-    this.detallesActividadAbiertos.delete(actividadId);
-    this.limpiarEdicionComentariosActividad(actividadId);
+    this.detallesActividadAbiertos.delete(clave);
+    const actividadId = this.obtenerActividadIdNumerico(actividad);
+    if (actividadId !== null) {
+      this.limpiarEdicionComentariosActividad(actividadId);
+    }
   }
 
   private limpiarEdicionComentariosActividad(actividadId: number): void {
@@ -769,8 +812,46 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return `${day}-${month}-${year}`;
   }
 
-  isDetalleActividadAbierto(actividadId: number): boolean {
-    return this.detallesActividadAbiertos.has(actividadId);
+  isDetalleActividadAbierto(actividad: number | string | FlujoNodo): boolean {
+    return this.detallesActividadAbiertos.has(this.resolverClaveDetalleActividad(actividad));
+  }
+
+  private resolverClaveDetalleActividad(actividad: number | string | FlujoNodo): string {
+    if (typeof actividad === 'number' || typeof actividad === 'string') {
+      return `id:${String(actividad)}`;
+    }
+
+    if (this.esNodoOrdenCompra(actividad)) {
+      const meta = this.getOrdenCompraMeta(actividad);
+      const base = [
+        actividad.id,
+        meta?.numero,
+        meta?.fecha,
+        meta?.tipo,
+        actividad.nombre
+      ]
+        .map(valor => String(valor ?? '').trim())
+        .find(valor => !!valor);
+      return `oc:${base || 'sin-clave'}`;
+    }
+
+    const id = actividad.id;
+    if (id !== null && id !== undefined && String(id).trim() !== '') {
+      return `act:${String(id)}`;
+    }
+
+    return `act:${String(actividad.nombre || 'sin-id')}`;
+  }
+
+  private obtenerActividadIdNumerico(actividad: number | string | FlujoNodo): number | null {
+    if (typeof actividad === 'object') {
+      if (!actividad || this.esNodoOrdenCompra(actividad)) return null;
+      const id = Number(actividad.id);
+      return Number.isFinite(id) ? id : null;
+    }
+
+    const id = Number(actividad);
+    return Number.isFinite(id) ? id : null;
   }
 
   async onSeleccionarAdjuntosComentario(event: Event, comentarioId: number): Promise<void> {
@@ -867,6 +948,28 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     return !!(nodo as any)?.esOrdenCompra;
   }
 
+  getOrdenCompraMeta(nodo: FlujoNodo): {
+    numero?: string;
+    tipo?: string;
+    numeroLicitacion?: string;
+    numeroSolicitud?: string;
+    total?: number;
+    fecha?: string;
+  } | null {
+    if (!this.esNodoOrdenCompra(nodo)) return null;
+    const meta = (nodo as any)?.ordenCompraMeta;
+    if (!meta) return null;
+
+    return {
+      numero: meta.numero,
+      tipo: meta.tipo,
+      numeroLicitacion: meta.numeroLicitacion,
+      numeroSolicitud: meta.numeroSolicitud,
+      total: Number(meta.total || 0),
+      fecha: meta.fecha
+    };
+  }
+
   get flujoTimeline(): FlujoNodo[] {
     try {
       const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
@@ -874,7 +977,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       const nodosOrdenCompra = this.mapearOrdenesCompraANodos();
       const direction = this.ordenRecientePrimero ? -1 : 1;
 
-      return [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
+      const todos = [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
         .sort((a, b) => {
           const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
           const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
@@ -892,6 +995,47 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
 
           return (a.id - b.id) * direction;
         });
+
+      return todos.filter(nodo => {
+        // Filtro texto (nombre, descripción, responsable)
+        const termino = (this.filtroBusqueda || '').trim().toLowerCase();
+        if (termino) {
+          const nombre = (nodo.nombre || '').toLowerCase();
+          const descripcion = (nodo.descripcion || '').toLowerCase();
+          const responsable = (nodo.responsableNombre || '').toLowerCase();
+          if (!nombre.includes(termino) && !descripcion.includes(termino) && !responsable.includes(termino)) {
+            return false;
+          }
+        }
+
+        // Filtro responsable
+        if (this.filtroResponsableId !== '' && this.filtroResponsableId !== null) {
+          if (Number(nodo.responsableId) !== Number(this.filtroResponsableId)) {
+            return false;
+          }
+        }
+
+        // Filtro estado
+        if (this.filtroEstadoActividad) {
+          const estadoNodo = this.esNodoOrdenCompra(nodo) ? 'Completado' : (nodo.estadoActividad || 'Pendiente');
+          if (estadoNodo !== this.filtroEstadoActividad) {
+            return false;
+          }
+        }
+
+        // Filtro fechas (sobre fechaInicio del nodo)
+        if (this.filtroFechaDesde || this.filtroFechaHasta) {
+          const fechaInicioStr = typeof nodo.fechaInicio === 'string' ? nodo.fechaInicio.slice(0, 10) : '';
+          if (this.filtroFechaDesde && fechaInicioStr && fechaInicioStr < this.filtroFechaDesde) {
+            return false;
+          }
+          if (this.filtroFechaHasta && fechaInicioStr && fechaInicioStr > this.filtroFechaHasta) {
+            return false;
+          }
+        }
+
+        return true;
+      });
     } catch {
       return [];
     }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, EventEmitter, Output } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
@@ -7,6 +7,7 @@ import { DatePickerComponent } from '../../../../../../shared/components/date-pi
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { ResponsableSelectComponent } from '../../../../../../shared/components/responsable-select/responsable-select.component';
 import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
+import { DocumentoResumen } from '../../models/documento-resumen.model';
 
 export type ProyectoInfoFormData = {
   nombreProyecto: string;
@@ -40,6 +41,8 @@ export class TabInformacionComponent implements OnInit {
   @Input() modoSoloLectura = false;
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;
+
+  @Output() abrirVistaPreviaDocumentoEvt = new EventEmitter<DocumentoResumen>();
 
   readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
@@ -137,7 +140,23 @@ export class TabInformacionComponent implements OnInit {
     orden.adjuntos = orden.adjuntos.filter((_, i) => i !== adjuntoIndex);
   }
 
-  verAdjuntoOrdenCompra(adjunto: FlujoAdjunto): void {
+  verAdjuntoOrdenCompra(ordenOAdjunto: OrdenCompra | FlujoAdjunto, adjuntoArg?: FlujoAdjunto): void {
+    const adjunto = adjuntoArg || (ordenOAdjunto as FlujoAdjunto);
+    const orden = adjuntoArg ? (ordenOAdjunto as OrdenCompra) : null;
+
+    const documento: DocumentoResumen = {
+      actividad: `Orden de compra ${orden?.numero || ''}`.trim() || 'Orden de compra',
+      origen: 'Orden de compra',
+      nombre: adjunto?.nombre || 'Documento adjunto',
+      tipo: adjunto?.tipo || 'Archivo',
+      adjunto
+    };
+
+    if ((this.abrirVistaPreviaDocumentoEvt as any).observers?.length) {
+      this.abrirVistaPreviaDocumentoEvt.emit(documento);
+      return;
+    }
+
     if (!this.isBrowser) return;
     const url = this.obtenerUrlAdjunto(adjunto);
     if (!url) return;
