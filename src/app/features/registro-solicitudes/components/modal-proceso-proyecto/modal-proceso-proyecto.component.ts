@@ -188,6 +188,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
       // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
       this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
+      
+      // Configurar costosHabilitados sincrónicamente desde local storage para evitar parpadeo en UI
+      const storageKey = this.obtenerClaveCostosStorage();
+      if (storageKey && typeof window !== 'undefined') {
+        this.costosHabilitados = window.localStorage.getItem(storageKey) === '1';
+      } else {
+        this.costosHabilitados = false;
+      }
+
       this.generarEtapas();
       this.cargarProyectoInfoForm();
       this.prepararFlujo();
