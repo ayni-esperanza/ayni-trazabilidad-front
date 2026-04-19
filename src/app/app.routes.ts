@@ -33,7 +33,7 @@ export const routes: Routes = [
         (m) => m.TableroControlComponent,
       ),
     title: 'Módulo de Trazabilidad',
-    canActivate: [authGuard, submoduleLockGuard],
+    canActivate: [authGuard],
     data: { moduleLabel: 'Tablero de control' },
   },
   {
@@ -72,7 +72,7 @@ export const routes: Routes = [
         (m) => m.AlertasComponent,
       ),
     title: 'Alertas - AYNI Trazabilidad',
-    canActivate: [authGuard, submoduleLockGuard],
+    canActivate: [authGuard],
     data: { moduleLabel: 'Alertas' },
   },
   {

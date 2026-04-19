@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { HttpService } from './http.service';
 import { EstadoTarea, FlujoNodo } from '../../features/registro-solicitudes/models/solicitud.model';
 
@@ -19,6 +19,20 @@ export interface AlertaActividadGlobal {
 type AlertaActividadApi = AlertaActividadGlobal & {
   proyecto?: string;
   nombreProyecto?: string;
+  proyectoNombre?: string;
+  proyecto_nombre?: string;
+  nombre_proyecto?: string;
+};
+
+type ProyectoNombreApi = {
+  id: number;
+  nombreProyecto?: string;
+  nombre?: string;
+  proyectoNombre?: string;
+};
+
+type PaginatedResponse<T> = {
+  content: T[];
 };
 
 @Injectable({
@@ -46,9 +60,27 @@ export class AlertasActividadesService {
     return this.http.get<AlertaActividadApi[]>(this.endpoint).pipe(
       map((items) => (items || []).map((item) => ({
         ...item,
-        proyectoNombre: (item.nombreProyecto || item.proyecto || '').trim() || undefined,
+        proyectoNombre: this.resolveProyectoNombre(item),
         estado: this.normalizarEstado(item.estado),
       }))),
+      switchMap((items) => {
+        const sinNombre = items.filter((item) => !item.proyectoNombre);
+        if (!sinNombre.length) {
+          return of(items);
+        }
+
+        const ids = [...new Set(sinNombre.map((item) => Number(item.proyectoId || 0)).filter((id) => id > 0))];
+        if (!ids.length) {
+          return of(items);
+        }
+
+        return this.obtenerMapaNombresProyecto(ids).pipe(
+          map((mapaNombres) => items.map((item) => ({
+            ...item,
+            proyectoNombre: item.proyectoNombre || mapaNombres.get(Number(item.proyectoId || 0)) || undefined,
+          })))
+        );
+      }),
       tap((items) => {
         this.alertasCache = items;
       }),
@@ -57,6 +89,51 @@ export class AlertasActividadesService {
         this.alertasCache = local;
         return of(local);
       })
+    );
+  }
+
+  private resolveProyectoNombre(item: AlertaActividadApi): string | undefined {
+    const nombre = String(
+      item.proyectoNombre ||
+      item.nombreProyecto ||
+      item.proyecto_nombre ||
+      item.nombre_proyecto ||
+      item.proyecto ||
+      ''
+    ).trim();
+
+    if (!nombre) return undefined;
+
+    // Evita mostrar IDs como nombre cuando backend envía solo el número en string.
+    if (/^\d+$/.test(nombre)) return undefined;
+
+    return nombre;
+  }
+
+  private obtenerMapaNombresProyecto(ids: number[]): Observable<Map<number, string>> {
+    const idsSet = new Set(ids);
+
+    return this.http.get<PaginatedResponse<ProyectoNombreApi>>('/v1/proyectos', { size: 500 }).pipe(
+      map((response) => {
+        const mapa = new Map<number, string>();
+        for (const proyecto of response?.content || []) {
+          const id = Number(proyecto?.id || 0);
+          if (!id || !idsSet.has(id)) continue;
+
+          const nombre = String(
+            proyecto?.nombreProyecto ||
+            proyecto?.proyectoNombre ||
+            proyecto?.nombre ||
+            ''
+          ).trim();
+
+          if (nombre) {
+            mapa.set(id, nombre);
+          }
+        }
+        return mapa;
+      }),
+      catchError(() => of(new Map<number, string>()))
     );
   }
 

@@ -177,6 +177,10 @@ export class AuthService {
   }
 
   isAdminUser(): boolean {
+    if (this.hasRole('ADMINISTRADOR')) {
+      return true;
+    }
+
     const normalizedUsername = this.currentUserValue?.username?.trim().toLowerCase();
     if (normalizedUsername === this.adminUsername) {
       return true;

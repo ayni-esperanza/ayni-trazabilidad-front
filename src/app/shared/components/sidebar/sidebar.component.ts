@@ -126,6 +126,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { icon: 'users', label: 'Gestión de usuarios', route: '/gestion-usuarios' }
   ];
 
+  get visibleMenuItems(): MenuItem[] {
+    if (this.authService.isAdminUser()) {
+      return this.menuItems;
+    }
+
+    return this.menuItems.filter((item) => item.route !== '/gestion-usuarios');
+  }
+
   toggleSidebar(): void {
     this.isExpanded.update(v => {
       const nuevoEstado = !v;

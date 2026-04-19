@@ -51,6 +51,7 @@ interface Filtros {
   styleUrls: ['./gestion-usuarios.component.css'],
 })
 export class GestionUsuariosComponent implements OnInit, OnDestroy {
+  private readonly rolesPermitidos = new Set(['ADMINISTRADOR', 'INGENIERO', 'CONTADOR']);
   private destroy$ = new Subject<void>();
   private busqueda$ = new Subject<string>();
 
@@ -146,7 +147,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (roles) => {
-          this.roles = roles;
+          this.roles = (roles || []).filter((rol) => this.rolesPermitidos.has((rol?.nombre || '').toUpperCase()));
         },
         error: (err) => {
           console.error('Error al cargar roles:', err);
@@ -266,14 +267,10 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   getRolClasses(rolNombre: string): string {
     const nombre = rolNombre.toUpperCase();
     switch (nombre) {
-      case 'ASISTENTE':
-        return 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300';
-      case 'GERENTE':
-        return 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300';
-      case 'AYUDANTE':
-        return 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200';
       case 'INGENIERO':
         return 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
+      case 'CONTADOR':
+        return 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300';
       case 'ADMINISTRADOR':
         return 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300';
       default:
