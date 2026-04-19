@@ -268,7 +268,7 @@
                               }
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 truncate">
-                              {{ esNodoOrdenCompraTimeline(nodo) ? 'Compras' : (nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}
+                              <span *ngIf="!esNodoOrdenCompraTimeline(nodo)">{{ nodo.responsableId ? getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</span>
                             </div>
                             <div class="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap">
                               <span class="truncate">{{ getRangoFechasTareaTimeline(nodo) }}</span>

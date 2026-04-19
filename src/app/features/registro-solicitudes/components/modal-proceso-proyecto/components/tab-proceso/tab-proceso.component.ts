@@ -1154,7 +1154,6 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
           descripcion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),
           siguientesIds: [],
-          responsableNombre: 'Compras',
           esOrdenCompra: true,
           ordenCompraMeta: {
             ...orden,

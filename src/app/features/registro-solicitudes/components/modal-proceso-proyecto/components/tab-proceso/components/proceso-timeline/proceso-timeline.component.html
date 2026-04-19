@@ -40,8 +40,10 @@
 					</button>
 				</div>
 				<div class="mt-1 flex items-center gap-2 flex-wrap text-[10px] text-gray-500 dark:text-gray-400" (click)="$event.stopPropagation()">
-					<span class="truncate">{{ ctx.esNodoOrdenCompra(nodo) ? 'Compras' : (nodo.responsableId ? ctx.getResponsableNombre(nodo.responsableId) : 'Sin asignar') }}</span>
-					<span>•</span>
+					<ng-container *ngIf="!ctx.esNodoOrdenCompra(nodo)">
+						<span class="truncate">{{ nodo.responsableId ? ctx.getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</span>
+						<span>•</span>
+					</ng-container>
 					<span class="truncate">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || 'Sin fecha') : ((ctx.formatDateStandar(nodo.fechaInicio) || '—') + ' - ' + (ctx.formatDateStandar(nodo.fechaFin) || '—')) }}</span>
 					<div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group">
 						<select

@@ -899,7 +899,6 @@ export class RegistroSolicitudesComponent implements OnInit {
           fechaInicio: fechaTimeline || undefined,
           fechaFin: fechaTimeline || undefined,
           fechaCambioEstado: fechaTimeline || undefined,
-          responsableNombre: 'Compras',
           descripcion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),
           siguientesIds: [],
