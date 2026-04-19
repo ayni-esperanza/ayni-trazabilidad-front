@@ -11,7 +11,6 @@ export interface UsuarioFormData {
   username: string;
   email: string;
   telefono: string;
-  cargo: string;
   area: string;
   rolId: number | null;
   activo: boolean;
@@ -26,10 +25,20 @@ export interface UsuarioFormData {
   styleUrls: ['./usuario-form-modal.component.css']
 })
 export class UsuarioFormModalComponent implements OnChanges {
+  readonly areasDisponibles: string[] = [
+    'Metalmecanica',
+    'Mecanica',
+    'Fibra',
+    'Electrico',
+    'Lineas de vida',
+    'Sistemas'
+  ];
   
   @Input() visible = false;
   @Input() usuario: Usuario | null = null;
   @Input() roles: Rol[] = [];
+  @Input() mensajeErrorGuardado: string | null = null;
+  @Input() erroresGuardadoPorCampo: Record<string, string> | null = null;
   
   @Output() cerrar = new EventEmitter<void>();
   @Output() guardar = new EventEmitter<UsuarioFormData>();
@@ -49,6 +58,10 @@ export class UsuarioFormModalComponent implements OnChanges {
   get titulo(): string {
     return this.esEdicion ? 'Editar Usuario' : 'Nuevo Usuario';
   }
+
+  get mensajesErroresFormulario(): string[] {
+    return Object.values(this.errores);
+  }
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['usuario'] || changes['visible']) {
@@ -63,7 +76,6 @@ export class UsuarioFormModalComponent implements OnChanges {
             username: this.usuario.username,
             email: this.usuario.email,
             telefono: this.usuario.telefono || '',
-            cargo: this.usuario.cargo,
             area: this.usuario.area,
             rolId: this.usuario.roles.length > 0 ? this.usuario.roles[0].id : null,
             activo: this.usuario.activo,
@@ -83,7 +95,6 @@ export class UsuarioFormModalComponent implements OnChanges {
       username: '',
       email: '',
       telefono: '',
-      cargo: '',
       area: '',
       rolId: null,
       activo: true,
@@ -129,7 +140,16 @@ export class UsuarioFormModalComponent implements OnChanges {
   }
 
   tieneError(campo: string): boolean {
-    return this.intentoGuardar && !!this.errores[campo];
+    return !!this.obtenerErrorCampo(campo);
+  }
+
+  obtenerErrorCampo(campo: string): string | null {
+    if (this.intentoGuardar && this.errores[campo]) {
+      return this.errores[campo];
+    }
+
+    const errorBackend = this.erroresGuardadoPorCampo?.[campo];
+    return errorBackend || null;
   }
   
   

@@ -98,6 +98,8 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   // Modal
   mostrarModal = false;
   usuarioSeleccionado: Usuario | null = null;
+  mensajeErrorGuardadoUsuario: string | null = null;
+  erroresGuardadoUsuarioPorCampo: Record<string, string> = {};
 
   // Modal de credenciales
   mostrarModalCredenciales = false;
@@ -282,21 +284,29 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
 
   abrirModalNuevoUsuario(): void {
     this.usuarioSeleccionado = null;
+    this.mensajeErrorGuardadoUsuario = null;
+    this.erroresGuardadoUsuarioPorCampo = {};
     this.mostrarModal = true;
   }
 
   seleccionarUsuario(usuario: Usuario): void {
     this.usuarioSeleccionado = usuario;
+    this.mensajeErrorGuardadoUsuario = null;
+    this.erroresGuardadoUsuarioPorCampo = {};
     this.mostrarModal = true;
   }
 
   cerrarModal(): void {
     this.mostrarModal = false;
     this.usuarioSeleccionado = null;
+    this.mensajeErrorGuardadoUsuario = null;
+    this.erroresGuardadoUsuarioPorCampo = {};
   }
 
   onGuardarUsuario(formData: UsuarioFormData): void {
     this.guardando = true;
+    this.mensajeErrorGuardadoUsuario = null;
+    this.erroresGuardadoUsuarioPorCampo = {};
 
     const request: UsuarioRequest = {
       nombre: formData.nombre,
@@ -304,7 +314,6 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       username: formData.username,
       email: formData.email,
       telefono: formData.telefono,
-      cargo: formData.cargo,
       area: formData.area,
       rolId: formData.rolId!,
       activo: formData.activo,
@@ -328,9 +337,10 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error al guardar usuario:', err);
-            alert(
-              'Error al guardar el usuario. Por favor, intente nuevamente.',
-            );
+            this.erroresGuardadoUsuarioPorCampo = this.obtenerErroresGuardadoPorCampo(err);
+            this.mensajeErrorGuardadoUsuario = Object.keys(this.erroresGuardadoUsuarioPorCampo).length > 0
+              ? 'Revisa los campos marcados para poder guardar los cambios.'
+              : this.obtenerMensajeErrorGuardado(err);
           },
         });
     } else {
@@ -352,12 +362,89 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error al guardar usuario:', err);
-            alert(
-              'Error al guardar el usuario. Por favor, intente nuevamente.',
-            );
+            this.erroresGuardadoUsuarioPorCampo = this.obtenerErroresGuardadoPorCampo(err);
+            this.mensajeErrorGuardadoUsuario = Object.keys(this.erroresGuardadoUsuarioPorCampo).length > 0
+              ? 'Revisa los campos marcados para poder crear el usuario.'
+              : this.obtenerMensajeErrorGuardado(err);
           },
         });
     }
+  }
+
+  private obtenerErroresGuardadoPorCampo(err: any): Record<string, string> {
+    const resultado: Record<string, string> = {};
+    const payload = err?.error;
+
+    const normalizarCampo = (campoRaw: string): string => {
+      const campo = String(campoRaw || '').trim().toLowerCase();
+      if (campo === 'rol' || campo === 'rolid' || campo === 'rol_id') return 'rolId';
+      if (campo === 'usuario' || campo === 'user' || campo === 'nombreusuario') return 'username';
+      return campoRaw;
+    };
+
+    const asignar = (campoRaw: string, mensajeRaw: string): void => {
+      const campo = normalizarCampo(campoRaw);
+      const mensaje = String(mensajeRaw || '').trim();
+      if (!campo || !mensaje) return;
+      resultado[campo] = mensaje;
+    };
+
+    if (Array.isArray(payload?.errors)) {
+      for (const item of payload.errors) {
+        asignar(item?.field || item?.campo || '', item?.defaultMessage || item?.message || item?.mensaje || 'Dato inválido');
+      }
+    }
+
+    const erroresObjeto = payload?.errors && typeof payload.errors === 'object' && !Array.isArray(payload.errors)
+      ? payload.errors
+      : payload?.fieldErrors && typeof payload.fieldErrors === 'object'
+        ? payload.fieldErrors
+        : null;
+
+    if (erroresObjeto) {
+      for (const [campo, mensaje] of Object.entries(erroresObjeto)) {
+        asignar(campo, Array.isArray(mensaje) ? String(mensaje[0] || '') : String(mensaje || ''));
+      }
+    }
+
+    const backendMessage = String(
+      payload?.message ||
+      payload?.mensaje ||
+      err?.message ||
+      ''
+    ).toLowerCase();
+
+    if (!Object.keys(resultado).length && backendMessage) {
+      if (backendMessage.includes('email') || backendMessage.includes('correo')) {
+        resultado.email = 'El correo electrónico ya está en uso o no es válido.';
+      }
+      if (backendMessage.includes('username') || backendMessage.includes('usuario')) {
+        resultado.username = 'El nombre de usuario ya está en uso o no es válido.';
+      }
+      if (backendMessage.includes('area') || backendMessage.includes('área')) {
+        resultado.area = 'El área seleccionada no es válida.';
+      }
+      if (backendMessage.includes('rol')) {
+        resultado.rolId = 'Debe seleccionar un rol válido.';
+      }
+    }
+
+    return resultado;
+  }
+
+  private obtenerMensajeErrorGuardado(err: any): string {
+    const backendMessage = String(
+      err?.error?.message ||
+      err?.error?.mensaje ||
+      err?.message ||
+      ''
+    ).trim();
+
+    if (backendMessage) {
+      return `No se pudo guardar el usuario: ${backendMessage}`;
+    }
+
+    return 'No se pudo guardar el usuario. Verifica los datos e inténtalo nuevamente.';
   }
 
   onEliminarUsuario(id: number): void {

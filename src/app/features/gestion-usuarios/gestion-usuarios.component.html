@@ -252,7 +252,7 @@
 </div>
 
 <!-- Modal Crear/Editar Usuario (Componente reutilizable) -->
-<app-usuario-form-modal [visible]="mostrarModal" [usuario]="usuarioSeleccionado" [roles]="roles"
+<app-usuario-form-modal [visible]="mostrarModal" [usuario]="usuarioSeleccionado" [roles]="roles" [mensajeErrorGuardado]="mensajeErrorGuardadoUsuario" [erroresGuardadoPorCampo]="erroresGuardadoUsuarioPorCampo"
   (cerrar)="cerrarModal()" (guardar)="onGuardarUsuario($event)" (eliminar)="onEliminarUsuario($event)">
 </app-usuario-form-modal>
 

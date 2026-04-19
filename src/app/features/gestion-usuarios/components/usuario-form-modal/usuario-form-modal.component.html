@@ -69,7 +69,7 @@
                   placeholder="Nombre"
                   [class.border-red-500]="tieneError('nombre')"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
-                <span *ngIf="tieneError('nombre')" class="text-xs text-red-500">{{ errores['nombre'] }}</span>
+                <span *ngIf="tieneError('nombre')" class="text-xs text-red-500">{{ obtenerErrorCampo('nombre') }}</span>
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Apellido *</label>
@@ -81,7 +81,7 @@
                   placeholder="Apellido"
                   [class.border-red-500]="tieneError('apellido')"
                   class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
-                <span *ngIf="tieneError('apellido')" class="text-xs text-red-500">{{ errores['apellido'] }}</span>
+                <span *ngIf="tieneError('apellido')" class="text-xs text-red-500">{{ obtenerErrorCampo('apellido') }}</span>
               </div>
             </div>
             <div>
@@ -94,7 +94,7 @@
                 placeholder="nombre_usuario"
                 [class.border-red-500]="tieneError('username')"
                 class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
-              <span *ngIf="tieneError('username')" class="text-xs text-red-500">{{ errores['username'] }}</span>
+              <span *ngIf="tieneError('username')" class="text-xs text-red-500">{{ obtenerErrorCampo('username') }}</span>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@
               placeholder="correo@ejemplo.com"
               [class.border-red-500]="tieneError('email')"
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
-            <span *ngIf="tieneError('email')" class="text-xs text-red-500">{{ errores['email'] }}</span>
+            <span *ngIf="tieneError('email')" class="text-xs text-red-500">{{ obtenerErrorCampo('email') }}</span>
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Teléfono</label>
@@ -119,30 +119,28 @@
               type="tel" 
               [(ngModel)]="formData.telefono" 
               name="telefono"
+              [class.border-red-500]="tieneError('telefono')"
               placeholder="123456789"
               class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            <span *ngIf="tieneError('telefono')" class="text-xs text-red-500">{{ obtenerErrorCampo('telefono') }}</span>
           </div>
         </div>
         
-        <!-- Cargo, Área y Rol -->
-        <div class="grid grid-cols-3 gap-2 mb-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Cargo</label>
-            <input 
-              type="text" 
-              [(ngModel)]="formData.cargo" 
-              name="cargo"
-              placeholder="Cargo"
-              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
-          </div>
+        <!-- Área y Rol -->
+        <div class="grid grid-cols-2 gap-2 mb-3">
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Área</label>
-            <input 
-              type="text" 
-              [(ngModel)]="formData.area" 
+            <select
+              [(ngModel)]="formData.area"
               name="area"
-              placeholder="Área"
-              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-700 dark:text-white">
+              [class.border-red-500]="tieneError('area')"
+              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
+              <option value="">Seleccionar área</option>
+              @for (area of areasDisponibles; track area) {
+                <option [value]="area">{{ area }}</option>
+              }
+            </select>
+            <span *ngIf="tieneError('area')" class="text-xs text-red-500">{{ obtenerErrorCampo('area') }}</span>
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Rol *</label>
@@ -157,7 +155,7 @@
                 <option [ngValue]="rol.id">{{ rol.nombre }}</option>
               }
             </select>
-            <span *ngIf="tieneError('rolId')" class="text-xs text-red-500">{{ errores['rolId'] }}</span>
+            <span *ngIf="tieneError('rolId')" class="text-xs text-red-500">{{ obtenerErrorCampo('rolId') }}</span>
           </div>
         </div>
         
@@ -176,9 +174,19 @@
           </div>
         }
 
-        <!-- Mensaje de error general -->
-        <div *ngIf="intentoGuardar && Object.keys(errores).length > 0" class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p class="text-xs text-red-600 dark:text-red-400">Por favor, complete todos los campos requeridos correctamente.</p>
+        <!-- Mensajes de validación -->
+        <div *ngIf="intentoGuardar && mensajesErroresFormulario.length > 0" class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p class="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">No se puede guardar por lo siguiente:</p>
+          <ul class="text-xs text-red-600 dark:text-red-400 list-disc pl-4 space-y-0.5">
+            @for (mensaje of mensajesErroresFormulario; track mensaje) {
+              <li>{{ mensaje }}</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Mensaje de error de guardado backend -->
+        <div *ngIf="mensajeErrorGuardado" class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p class="text-xs text-red-700 dark:text-red-300">{{ mensajeErrorGuardado }}</p>
         </div>
         
         <!-- Botones -->
@@ -202,8 +210,7 @@
           </button>
           <button 
             type="submit"
-            [disabled]="!validarFormulario()"
-            class="flex-1 px-3 py-2 text-sm bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
+            class="flex-1 px-3 py-2 text-sm bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
             {{ esEdicion ? 'Guardar' : 'Crear' }}
           </button>
         </div>
