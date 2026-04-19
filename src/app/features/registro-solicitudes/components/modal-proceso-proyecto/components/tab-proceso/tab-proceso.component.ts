@@ -933,7 +933,25 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   }
 
   getNombreCuentaComentario(comentario: ComentarioAdicionalActividad): string {
-    return comentario.autorCuenta || this.obtenerNombreCuentaActual() || 'Cuenta actual';
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      autor_cuenta?: string;
+    };
+    return String(comentario.autorCuenta || comentarioConAlias.autor_cuenta || this.obtenerNombreCuentaActual() || '').trim() || 'Sin autor';
+  }
+
+  getResponsableComentario(comentario: ComentarioAdicionalActividad): string {
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      responsable_id?: number;
+    };
+    const responsableId = Number(comentario.responsableId || comentarioConAlias.responsable_id || 0);
+    return responsableId > 0 ? this.getResponsableNombre(responsableId) : 'Sin asignar';
+  }
+
+  getFechaComentario(comentario: ComentarioAdicionalActividad): string {
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      fecha_comentario?: string;
+    };
+    return this.formatDateStandar(comentario.fechaComentario || comentarioConAlias.fecha_comentario) || '—';
   }
 
   trackByComentarioId(_index: number, comentario: ComentarioAdicionalActividad): number {

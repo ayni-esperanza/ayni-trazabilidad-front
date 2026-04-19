@@ -80,9 +80,12 @@ type ComentarioAdicionalApi = {
   nombre?: string;
   texto?: string;
   autorCuenta?: string;
+  autor_cuenta?: string;
   fechaComentario?: string;
+  fecha_comentario?: string;
   estadoActividad?: string;
   responsableId?: number;
+  responsable_id?: number;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
@@ -628,16 +631,20 @@ export class RegistroSolicitudesService {
   }
 
   private mapComentarioAdicional(comentario: ComentarioAdicionalApi): ComentarioAdicionalActividad {
+    const autorCuenta = String(comentario.autorCuenta || comentario.autor_cuenta || '').trim();
+    const responsableId = Number(comentario.responsableId ?? comentario.responsable_id ?? 0);
+    const fechaComentario = String(comentario.fechaComentario || comentario.fecha_comentario || '').trim();
+
     return {
       id: Number(comentario.id || 0),
       actividadId: Number(comentario.actividadId || 0),
       guardado: true,
       nombre: comentario.nombre,
       texto: comentario.texto || comentario.descripcion || '',
-      autorCuenta: comentario.autorCuenta,
-      fechaComentario: comentario.fechaComentario,
+      autorCuenta: autorCuenta || undefined,
+      fechaComentario: fechaComentario || undefined,
       estadoActividad: this.mapEstadoTarea(comentario.estadoActividad),
-      responsableId: comentario.responsableId,
+      responsableId: responsableId > 0 ? responsableId : undefined,
       fechaInicio: comentario.fechaInicio,
       fechaFin: comentario.fechaFin,
       descripcion: comentario.descripcion,

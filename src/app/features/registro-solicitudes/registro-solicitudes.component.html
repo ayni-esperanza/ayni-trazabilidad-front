@@ -330,7 +330,9 @@
                                 @for (comentario of getComentariosActividadTimeline(solicitud.id, nodo.id); track comentario.id + ($index || 0); let cIdx = $index) {
                                   <div class="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 px-1.5 py-1">
                                     <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
-                                      <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ formatDateStandar(comentario.fechaComentario) || '—' }}</span>
+                                      <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ getResponsableComentarioTimeline(comentario) }}</span>
+                                      <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ getFechaComentarioTimeline(comentario) }}</span>
+                                      <span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ getAutorCuentaComentarioTimeline(comentario) }}</span>
                                     </div>
                                     <p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
                                     @if ((comentario.adjuntos || []).length > 0) {

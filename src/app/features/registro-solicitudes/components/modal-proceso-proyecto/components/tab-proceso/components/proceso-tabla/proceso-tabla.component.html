@@ -314,8 +314,8 @@
                         <ng-template #comentarioDescripcion>
                           <div class="rounded bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-2">
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1 text-[10px] text-gray-500 dark:text-gray-400">
-                              <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ comentario.responsableId ? ctx.getResponsableNombre(comentario.responsableId) : 'Sin asignar' }}</span>
-                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ ctx.formatDateStandar(comentario.fechaComentario) || '—' }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Responsable:</strong> {{ ctx.getResponsableComentario(comentario) }}</span>
+                              <span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ ctx.getFechaComentario(comentario) }}</span>
                               <span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ ctx.getNombreCuentaComentario(comentario) }}</span>
                             </div>
                             <p class="text-[11px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>

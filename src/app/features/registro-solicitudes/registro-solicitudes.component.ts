@@ -743,6 +743,46 @@ export class RegistroSolicitudesComponent implements OnInit {
     return responsable?.nombre || 'Sin asignar';
   }
 
+  getResponsableComentarioTimeline(comentario: ComentarioAdicionalActividad): string {
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      responsableNombre?: string;
+      autor_cuenta?: string;
+      responsable_id?: number;
+    };
+
+    const nombreDirecto = String(
+      comentarioConAlias.responsableNombre ||
+      ''
+    ).trim();
+
+    if (nombreDirecto) return nombreDirecto;
+
+    const responsableId = Number(comentario.responsableId || comentarioConAlias.responsable_id || 0);
+    if (responsableId > 0) {
+      return this.getResponsableNombre(responsableId);
+    }
+
+    return 'Sin responsable';
+  }
+
+  getAutorCuentaComentarioTimeline(comentario: ComentarioAdicionalActividad): string {
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      autor_cuenta?: string;
+      autorCuenta?: string;
+    };
+
+    const cuenta = String(comentarioConAlias.autorCuenta || comentarioConAlias.autor_cuenta || '').trim();
+    return cuenta || 'Sin autor';
+  }
+
+  getFechaComentarioTimeline(comentario: ComentarioAdicionalActividad): string {
+    const comentarioConAlias = comentario as ComentarioAdicionalActividad & {
+      fecha_comentario?: string;
+    };
+
+    return this.formatDateStandar(comentario.fechaComentario || comentarioConAlias.fecha_comentario) || '—';
+  }
+
   getFechaUltimaActualizacion(solicitud: Solicitud): Date | undefined {
     const proyecto = this.proyectos.find((p) => p.solicitudId === solicitud.id);
     const desdeProyecto = proyecto?.fechaActualizacion ? new Date(proyecto.fechaActualizacion) : undefined;
