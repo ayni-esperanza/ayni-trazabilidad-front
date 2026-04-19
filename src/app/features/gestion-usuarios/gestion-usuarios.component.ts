@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   Subject,
+  forkJoin,
   takeUntil,
   finalize,
   debounceTime,
@@ -110,6 +111,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   mostrarModalEliminar = false;
   eliminando = false;
   usuarioAEliminar: Usuario | null = null;
+  usuariosSeleccionados = new Set<number>();
   deleteConfig: ConfirmDeleteConfig = {};
 
   constructor(private usuariosService: GestionUsuariosService) {}
@@ -184,6 +186,12 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.usuarios = response.content;
+          const idsVisibles = new Set(this.usuarios.map((u) => u.id));
+          this.usuariosSeleccionados.forEach((id) => {
+            if (!idsVisibles.has(id)) {
+              this.usuariosSeleccionados.delete(id);
+            }
+          });
           this.paginacion.totalElementos = response.totalElements;
           this.paginacion.totalPaginas = response.totalPages;
           this.calcularEstadisticasFiltradas();
@@ -416,16 +424,16 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
 
     if (!Object.keys(resultado).length && backendMessage) {
       if (backendMessage.includes('email') || backendMessage.includes('correo')) {
-        resultado.email = 'El correo electrónico ya está en uso o no es válido.';
+        resultado['email'] = 'El correo electrónico ya está en uso o no es válido.';
       }
       if (backendMessage.includes('username') || backendMessage.includes('usuario')) {
-        resultado.username = 'El nombre de usuario ya está en uso o no es válido.';
+        resultado['username'] = 'El nombre de usuario ya está en uso o no es válido.';
       }
       if (backendMessage.includes('area') || backendMessage.includes('área')) {
-        resultado.area = 'El área seleccionada no es válida.';
+        resultado['area'] = 'El área seleccionada no es válida.';
       }
       if (backendMessage.includes('rol')) {
-        resultado.rolId = 'Debe seleccionar un rol válido.';
+        resultado['rolId'] = 'Debe seleccionar un rol válido.';
       }
     }
 
@@ -458,26 +466,69 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleSeleccionUsuario(id: number, event: Event): void {
+    event.stopPropagation();
+    if (this.usuariosSeleccionados.has(id)) {
+      this.usuariosSeleccionados.delete(id);
+    } else {
+      this.usuariosSeleccionados.add(id);
+    }
+  }
+
+  toggleSeleccionTodosUsuarios(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      this.usuarios.forEach((usuario) => this.usuariosSeleccionados.add(usuario.id));
+    } else {
+      this.usuariosSeleccionados.clear();
+    }
+  }
+
+  get todosUsuariosSeleccionados(): boolean {
+    return this.usuarios.length > 0 && this.usuarios.every((usuario) => this.usuariosSeleccionados.has(usuario.id));
+  }
+
+  get hayUsuariosSeleccionados(): boolean {
+    return this.usuariosSeleccionados.size > 0;
+  }
+
+  iniciarEliminarSeleccionados(): void {
+    if (!this.hayUsuariosSeleccionados) return;
+
+    this.usuarioAEliminar = null;
+    this.deleteConfig = {
+      titulo: 'Eliminar usuarios',
+      cantidadElementos: this.usuariosSeleccionados.size,
+      tipoElemento: this.usuariosSeleccionados.size === 1 ? 'usuario' : 'usuarios',
+      textoConfirmar: 'Eliminar'
+    };
+    this.mostrarModalEliminar = true;
+  }
+
   confirmarEliminacion(): void {
-    if (!this.usuarioAEliminar) return;
+    const ids = this.usuarioAEliminar
+      ? [this.usuarioAEliminar.id]
+      : Array.from(this.usuariosSeleccionados);
+
+    if (!ids.length) return;
 
     this.eliminando = true;
-    this.usuariosService
-      .eliminarUsuario(this.usuarioAEliminar.id)
+    forkJoin(ids.map((id) => this.usuariosService.eliminarUsuario(id)))
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.eliminando = false))
       )
       .subscribe({
         next: () => {
+          this.usuariosSeleccionados.clear();
           this.cancelarEliminacion();
           this.cerrarModal();
           this.cargarUsuarios();
           this.cargarEstadisticas();
         },
         error: (err) => {
-          console.error('Error al eliminar usuario:', err);
-          alert('Error al eliminar el usuario. Por favor, intente nuevamente.');
+          console.error('Error al eliminar usuario(s):', err);
+          alert('Error al eliminar usuario(s). Por favor, intente nuevamente.');
         },
       });
   }

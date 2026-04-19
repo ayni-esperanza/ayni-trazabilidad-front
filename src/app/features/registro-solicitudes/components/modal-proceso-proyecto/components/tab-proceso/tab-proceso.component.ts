@@ -48,6 +48,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
   filtroFechaDesde = '';
   filtroFechaHasta = '';
   mostrarFiltroFechas = false;
+  actividadesSeleccionadasIds = new Set<number>();
   paginacionTablaFlujo: PaginacionConfig = {
     paginaActual: 0,
     porPagina: 20,
@@ -134,6 +135,7 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       if (changes['ordenesCompra']) {
         this.nodosOrdenCompraCache = this.mapearOrdenesCompraANodos();
       }
+      this.limpiarSeleccionActividadesInexistentes();
       this.actualizarPaginacionTablaFlujo();
     }
 
@@ -185,7 +187,63 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
     this.vistaFlujo = vista;
     if (vista === 'tabla') {
       this.actualizarPaginacionTablaFlujo();
+      this.limpiarSeleccionActividadesInexistentes();
     }
+  }
+
+  esActividadSeleccionable(nodo: FlujoNodo): boolean {
+    return nodo.tipo === 'tarea' && !this.esNodoOrdenCompra(nodo) && !this.proyectoCancelado;
+  }
+
+  get actividadesTablaSeleccionables(): FlujoNodo[] {
+    return this.flujoTablaPaginada.filter((nodo) => this.esActividadSeleccionable(nodo));
+  }
+
+  get todasActividadesSeleccionablesTablaSeleccionadas(): boolean {
+    const seleccionables = this.actividadesTablaSeleccionables;
+    return seleccionables.length > 0
+      && seleccionables.every((nodo) => this.actividadesSeleccionadasIds.has(nodo.id));
+  }
+
+  get totalActividadesSeleccionadas(): number {
+    return this.actividadesSeleccionadasIds.size;
+  }
+
+  toggleSeleccionActividad(nodo: FlujoNodo, event: Event): void {
+    event.stopPropagation();
+    if (!this.esActividadSeleccionable(nodo)) return;
+
+    if (this.actividadesSeleccionadasIds.has(nodo.id)) {
+      this.actividadesSeleccionadasIds.delete(nodo.id);
+      return;
+    }
+
+    this.actividadesSeleccionadasIds.add(nodo.id);
+  }
+
+  toggleSeleccionTodasActividadesTabla(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      this.actividadesTablaSeleccionables.forEach((nodo) => this.actividadesSeleccionadasIds.add(nodo.id));
+      return;
+    }
+
+    this.actividadesTablaSeleccionables.forEach((nodo) => this.actividadesSeleccionadasIds.delete(nodo.id));
+  }
+
+  eliminarActividadesSeleccionadas(): void {
+    if (!this.actividadesSeleccionadasIds.size || this.proyectoCancelado) return;
+
+    const idsSeleccionados = new Set(this.actividadesSeleccionadasIds);
+    const flujoActualizado = this.flujoNodos
+      .filter((nodo) => !idsSeleccionados.has(nodo.id))
+      .map((nodo) => ({
+        ...nodo,
+        siguientesIds: (nodo.siguientesIds || []).filter((id) => !idsSeleccionados.has(id))
+      }));
+
+    this.actividadesSeleccionadasIds.clear();
+    this.flujoActualizadoEvt.emit(flujoActualizado);
   }
 
   alternarOrdenFlujo(): void {
@@ -241,6 +299,22 @@ export class TabProcesoComponent implements AfterViewInit, OnChanges, OnDestroy 
       totalPaginas,
       paginaActual
     };
+  }
+
+  private limpiarSeleccionActividadesInexistentes(): void {
+    if (!this.actividadesSeleccionadasIds.size) return;
+
+    const idsValidos = new Set(
+      this.flujoNodos
+        .filter((nodo) => this.esActividadSeleccionable(nodo))
+        .map((nodo) => nodo.id)
+    );
+
+    this.actividadesSeleccionadasIds.forEach((id) => {
+      if (!idsValidos.has(id)) {
+        this.actividadesSeleccionadasIds.delete(id);
+      }
+    });
   }
 
   tieneFiltrosActivos(): boolean {

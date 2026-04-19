@@ -3,6 +3,14 @@
     <table class="w-full text-xs">
       <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
         <tr>
+          <th class="py-2 px-2 text-center w-8">
+            <input
+              type="checkbox"
+              [checked]="ctx.todasActividadesSeleccionablesTablaSeleccionadas"
+              (change)="ctx.toggleSeleccionTodasActividadesTabla($event)"
+              class="w-3.5 h-3.5 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:bg-gray-700 dark:border-gray-500"
+            />
+          </th>
           <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Actividad</th>
           <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Tipo</th>
           <th class="py-2 px-2 text-left font-semibold text-gray-500 dark:text-[#9fb3cc]">Responsable</th>
@@ -14,7 +22,7 @@
       <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
         <ng-container *ngFor="let nodo of ctx.flujoTablaPaginada; let rowIdx = index; trackBy: ctx.trackByNodoId">
         <tr *ngIf="ctx.mostrarSeparadorActividadesSeguimiento(nodo, rowIdx, ctx.flujoTablaPaginada)">
-          <td colspan="6" class="py-2 px-2">
+          <td colspan="7" class="py-2 px-2">
             <div class="relative z-10 flex items-center py-2 w-full">
               <div class="flex-grow border-t-2 border-dashed border-emerald-500 dark:border-emerald-400"></div>
               <span class="flex-shrink-0 mx-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-white dark:bg-gray-800 px-2 rounded-full border border-emerald-200 dark:border-emerald-800/50 shadow-sm">
@@ -30,6 +38,15 @@
             'cursor-pointer hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)]': ctx.puedeAbrirNodo(nodo),
             'bg-amber-50/70 dark:bg-amber-900/20': ctx.esNodoOrdenCompra(nodo)
           }">
+          <td class="py-2 px-2 text-center" (click)="$event.stopPropagation()">
+            <input
+              type="checkbox"
+              [checked]="ctx.actividadesSeleccionadasIds.has(nodo.id)"
+              [disabled]="!ctx.esActividadSeleccionable(nodo)"
+              (change)="ctx.toggleSeleccionActividad(nodo, $event)"
+              class="w-3.5 h-3.5 text-green-600 border-gray-300 rounded focus:ring-green-500 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-500"
+            />
+          </td>
           <td class="py-2 px-2 text-gray-700 dark:text-gray-200 font-medium">
             <div class="flex flex-col gap-1">
               <span>{{ nodo.nombre }}</span>
@@ -418,7 +435,7 @@
         </tr>
         </ng-container>
         <tr *ngIf="ctx.totalActividadesFlujo === 0">
-          <td colspan="6" class="py-5 text-center text-gray-500 dark:text-gray-400">No hay actividades en el flujo</td>
+          <td colspan="7" class="py-5 text-center text-gray-500 dark:text-gray-400">No hay actividades en el flujo</td>
         </tr>
       </tbody>
     </table>

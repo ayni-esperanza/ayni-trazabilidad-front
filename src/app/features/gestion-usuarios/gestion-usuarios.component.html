@@ -2,13 +2,15 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white">Gestión de Usuarios</h1>
-    <button (click)="abrirModalNuevoUsuario()"
-      class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      Nuevo Usuario
-    </button>
+    <div class="flex items-center gap-2">
+      <button (click)="abrirModalNuevoUsuario()"
+        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Nuevo Usuario
+      </button>
+    </div>
   </div>
 
   <!-- Tarjetas de estadísticas -->
@@ -150,10 +152,35 @@
     </div>
     }
 
+    @if (hayUsuariosSeleccionados) {
+    <div class="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-100/80 dark:bg-[#2a3f5f]/45 border-b border-slate-200 dark:border-[#2a3f5f]">
+      <span class="text-sm font-semibold text-blue-700 dark:text-blue-300">
+        {{ usuariosSeleccionados.size }} usuario(s) seleccionado(s)
+      </span>
+      <button
+        type="button"
+        (click)="iniciarEliminarSeleccionados()"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors whitespace-nowrap">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Eliminar seleccionados
+      </button>
+    </div>
+    }
+
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
           <tr>
+            <th class="py-2.5 px-3 text-center w-10">
+              <input
+                type="checkbox"
+                [checked]="todosUsuariosSeleccionados"
+                (change)="toggleSeleccionTodosUsuarios($event)"
+                class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:bg-gray-700 dark:border-gray-500"
+              />
+            </th>
             <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Foto</th>
             <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Usuario</th>
             <th class="py-2.5 px-4 text-left text-[11px] font-semibold tracking-wide text-gray-500 dark:text-[#9fb3cc]">Nombre</th>
@@ -166,6 +193,15 @@
         <tbody class="divide-y divide-gray-100 dark:divide-[#1b304d]">
           @for (usuario of usuarios; track usuario.id) {
           <tr (click)="seleccionarUsuario(usuario)" class="hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)] cursor-pointer transition-colors">
+            <td class="py-2 px-3 text-center">
+              <input
+                type="checkbox"
+                [checked]="usuariosSeleccionados.has(usuario.id)"
+                (change)="toggleSeleccionUsuario(usuario.id, $event)"
+                (click)="$event.stopPropagation()"
+                class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:bg-gray-700 dark:border-gray-500"
+              />
+            </td>
             <!-- Foto -->
             <td class="py-2 px-4">
               <div
@@ -226,7 +262,7 @@
           </tr>
           } @empty {
           <tr>
-            <td colspan="7" class="py-8 text-center">
+            <td colspan="8" class="py-8 text-center">
               <div class="flex flex-col items-center gap-3">
                 <svg class="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">

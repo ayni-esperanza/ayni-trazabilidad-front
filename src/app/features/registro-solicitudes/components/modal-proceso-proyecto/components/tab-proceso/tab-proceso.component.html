@@ -113,6 +113,15 @@
 
 	<!-- Nueva actividad -->
 	<button
+		*ngIf="vistaFlujo === 'tabla' && totalActividadesSeleccionadas > 0"
+		type="button"
+		(click)="eliminarActividadesSeleccionadas()"
+		[disabled]="proyectoCancelado"
+		class="px-2.5 py-1 text-[10px] font-semibold rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
+		Eliminar seleccionadas ({{ totalActividadesSeleccionadas }})
+	</button>
+
+	<button
 		type="button"
 		(click)="crearNuevaActividad()"
 		[disabled]="proyectoCancelado || hayComentariosEnEdicion"
