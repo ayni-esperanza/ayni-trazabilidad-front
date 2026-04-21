@@ -2,7 +2,7 @@ import { Component, Input, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, Event
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
-import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, ComentarioAdicionalActividad, EstadoTarea, FlujoAdjunto } from '../../../../models/solicitud.model';
+import { Proyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, ComentarioAdicionalActividad, EstadoTarea, FlujoAdjunto } from '../../../../models/solicitud.model';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { ResponsableSelectComponent } from '../../../../../../shared/components/responsable-select/responsable-select.component';
@@ -37,7 +37,6 @@ export class TabInformacionComponent implements OnInit {
   @Input() flujoNodos: FlujoNodo[] = [];
   @Input() responsables: Responsable[] = [];
   @Input() procesos: ProcesoSimple[] = [];
-  @Input() etapas: EtapaProyecto[] = [];
   @Input() modoSoloLectura = false;
   @Input() proyectoFinalizado = false;
   @Input() proyectoCancelado = false;

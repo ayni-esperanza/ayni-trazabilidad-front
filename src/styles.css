@@ -5,8 +5,6 @@
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
-@import "../node_modules/bpmn-js/dist/assets/diagram-js.css";
-@import "../node_modules/bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 @import "flowbite/src/themes/default";
 @import "flatpickr/dist/flatpickr.min.css";
 
@@ -160,90 +158,6 @@ select:autofill {
 
 .ck.ck-color-selector__remove-color:hover {
   background-color: #f3f4f6 !important;
-}
-
-/* BPMN canvas tweaks */
-.bpmn-canvas {
-  position: relative;
-  background-color: #f8fafc;
-  background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.22) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.bpmn-canvas .djs-container {
-  background: transparent;
-}
-
-.dark .bpmn-canvas {
-  background-color: #111827;
-  background-image:
-    linear-gradient(to right, rgba(75, 85, 99, 0.35) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(75, 85, 99, 0.35) 1px, transparent 1px);
-}
-
-.bpmn-canvas .bjs-powered-by {
-  display: none !important;
-}
-
-.bpmn-canvas .djs-palette {
-  top: 8px !important;
-  left: 50% !important;
-  right: auto !important;
-  transform: translateX(-50%);
-  margin: 0 !important;
-  border-radius: 10px !important;
-  padding: 4px !important;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15) !important;
-  max-width: calc(100% - 16px) !important;
-  width: max-content !important;
-  min-height: 40px !important;
-}
-
-.bpmn-canvas .djs-palette .djs-palette-entries {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  gap: 4px !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  max-width: min(100%, 860px) !important;
-  padding: 0 2px !important;
-}
-
-.bpmn-canvas .djs-palette .group {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  float: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.bpmn-canvas .djs-palette .entry {
-  float: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 28px !important;
-  height: 28px !important;
-  line-height: 28px !important;
-}
-
-.bpmn-canvas .djs-palette .separator {
-  float: none !important;
-  width: 1px !important;
-  height: 20px !important;
-  margin: 0 4px !important;
-}
-
-.dark .bpmn-canvas .djs-palette {
-  background: rgba(17, 24, 39, 0.92) !important;
-  border-color: #374151 !important;
 }
 
 .dark .ck.ck-color-picker,

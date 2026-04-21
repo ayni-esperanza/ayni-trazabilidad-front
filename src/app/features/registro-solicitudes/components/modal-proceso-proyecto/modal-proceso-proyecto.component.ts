@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, EtapaProyecto, TareaAsignada, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { ConfirmFinalizeModalComponent, ConfirmFinalizeConfig } from '../../../../shared/components/confirm-finalize-modal/confirm-finalize-modal.component';
@@ -104,7 +104,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   infoProyectoExpandida = false;
   mostrarConfeti = false;
   confetis: { id: number; tipo: string; color: string; left: number; delay: number; duration: number }[] = [];
-  etapaSeleccionada: EtapaProyecto | null = null;
   proyectoSeleccionadoId = 0;
 
   // Modal de cancelación
@@ -170,17 +169,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   tablasCostosExtras: TablaCostoExtra[] = [];
   sincronizandoCostos = false;
 
-  etapaForm = {
-    presupuesto: 0,
-    responsableId: 0,
-    fechaInicio: '',
-    fechaFinalizacion: ''
-  };
-
-  // Control de validación para etapa
-  intentoFinalizarEtapa = false;
-  erroresEtapa: { [key: string]: string } = {};
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
@@ -222,9 +210,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     // Si el proyecto ya tiene etapas guardadas, restaurarlas
     if (this.proyecto.etapas && this.proyecto.etapas.length > 0) {
       this.etapas = this.proyecto.etapas.map(e => ({ ...e }));
-      if (this.etapas.length > 0) {
-        this.seleccionarEtapa(this.etapas[0]);
-      }
       return;
     }
 
@@ -242,71 +227,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       fechaInicio: '', // Cada etapa tendrá sus propias fechas
       fechaFinalizacion: '',
       estado: index === 0 ? 'En Proceso' : 'Pendiente',
-      tareas: this.generarTareasEjemplo(index + 1)
+      tareas: []
     })) || [];
-
-    if (this.etapas.length > 0) {
-      this.seleccionarEtapa(this.etapas[0]);
-    }
-  }
-
-  generarTareasEjemplo(etapaId: number): TareaAsignada[] {
-    return [];
-  }
-
-  seleccionarEtapa(etapa: EtapaProyecto): void {
-    // Guardar los cambios de la etapa actual antes de cambiar
-    if (this.etapaSeleccionada && !this.modoSoloLectura) {
-      this.guardarCambiosEtapaActual();
-    }
-
-    this.etapaSeleccionada = etapa;
-    this.intentoFinalizarEtapa = false;
-    this.erroresEtapa = {};
-    
-    // Asegurar que el responsableNombre esté actualizado si hay un responsableId
-    if (etapa.responsableId && etapa.responsableId > 0 && !etapa.responsableNombre) {
-      etapa.responsableNombre = this.getResponsableNombre(etapa.responsableId);
-    }
-    
-    this.etapaForm = {
-      presupuesto: etapa.presupuesto,
-      responsableId: etapa.responsableId,
-      fechaInicio: etapa.fechaInicio ? this.formatDate(etapa.fechaInicio) : '',
-      fechaFinalizacion: etapa.fechaFinalizacion ? this.formatDate(etapa.fechaFinalizacion) : ''
-    };
-  }
-
-  private guardarCambiosEtapaActual(): void {
-    if (this.etapaSeleccionada) {
-      // Actualizar los valores de la etapa con los del formulario
-      this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
-      this.etapaSeleccionada.responsableId = Number(this.etapaForm.responsableId);
-      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(Number(this.etapaForm.responsableId));
-      this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
-      this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
-      
-      // Actualizar también en el array de etapas para mantener sincronización
-      const index = this.etapas.findIndex(e => e.id === this.etapaSeleccionada!.id);
-      if (index >= 0) {
-        this.etapas[index] = { ...this.etapaSeleccionada };
-      }
-    }
   }
 
   cambiarTab(nuevoTab: 'tablero' | 'proceso' | 'informacion' | 'costos'): void {
-    // Guardar cambios de la etapa actual antes de cambiar tab
-    if (this.tabActiva === 'proceso' && this.etapaSeleccionada && !this.modoSoloLectura) {
-      this.guardarCambiosEtapaActual();
-    }
     this.tabActiva = nuevoTab;
-  }
-
-  private getEtapaAnterior(): EtapaProyecto | null {
-    if (!this.etapaSeleccionada) return null;
-    
-    const index = this.etapas.findIndex(e => e.id === this.etapaSeleccionada!.id);
-    return index > 0 ? this.etapas[index - 1] : null;
   }
 
   formatDate(date: Date | string | undefined): string {
@@ -322,10 +248,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onCerrar(): void {
     if (this.sincronizandoCostos) return;
 
-    // Guardar cambios de la etapa actual antes de cerrar
-    if (this.etapaSeleccionada && !this.modoSoloLectura) {
-      this.guardarCambiosEtapaActual();
-    }
     // Persistir etapas en el proyecto al cerrar
     this.guardarEtapasEnProyecto();
     this.sincronizarCostosProyecto().subscribe({
@@ -373,10 +295,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     
     this.cargandoCancelacion = true;
     try {
-      // Guardar etapas antes de cancelar para preservar datos ingresados
-      if (this.etapaSeleccionada) {
-        this.guardarCambiosEtapaActual();
-      }
       this.guardarEtapasEnProyecto();
       this.marcarActualizacionProyecto();
       this.cancelarProy.emit({ motivo: this.motivoCancelacion });
@@ -390,84 +308,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   onCancelarConfirmacionCancelar(): void {
     this.mostrarConfirmacionCancelar = false;
-  }
-
-  onFinalizarEtapa(): void {
-    this.intentoFinalizarEtapa = true;
-    
-    if (!this.validarEtapa()) return;
-
-    if (this.etapaSeleccionada) {
-      // Actualizar todos los campos de la etapa con valores independientes
-      this.etapaSeleccionada.presupuesto = this.etapaForm.presupuesto;
-      this.etapaSeleccionada.responsableId = Number(this.etapaForm.responsableId);
-      this.etapaSeleccionada.responsableNombre = this.getResponsableNombre(Number(this.etapaForm.responsableId));
-      this.etapaSeleccionada.fechaInicio = this.etapaForm.fechaInicio;
-      this.etapaSeleccionada.fechaFinalizacion = this.etapaForm.fechaFinalizacion;
-      this.etapaSeleccionada.estado = 'Completado';
-
-      // Guardar etapas en el proyecto para persistir los datos
-      this.guardarEtapasEnProyecto();
-      this.marcarActualizacionProyecto();
-
-      this.finalizarEtapa.emit(this.etapaSeleccionada);
-
-      // Avanzar a siguiente etapa
-      const index = this.etapas.findIndex(e => e.id === this.etapaSeleccionada!.id);
-      if (index + 1 < this.etapas.length) {
-        this.etapas[index + 1].estado = 'En Proceso';
-        this.seleccionarEtapa(this.etapas[index + 1]);
-      }
-    }
-  }
-
-  validarEtapa(): boolean {
-    this.erroresEtapa = {};
-
-    if (!this.etapaForm.responsableId || Number(this.etapaForm.responsableId) === 0) {
-      this.erroresEtapa['responsableId'] = 'Debe seleccionar un responsable';
-    }
-    if (!this.etapaForm.fechaInicio) {
-      this.erroresEtapa['fechaInicio'] = 'La fecha de inicio es requerida';
-    } else {
-      const fechaInicioEtapa = new Date(this.etapaForm.fechaInicio);
-      const fechaInicioProyecto = new Date(this.proyecto!.fechaInicio);
-      
-      if (fechaInicioEtapa < fechaInicioProyecto) {
-        this.erroresEtapa['fechaInicio'] = 'La fecha de inicio no puede ser anterior al inicio del proyecto';
-      }
-
-      // Validar que no sea anterior a la fecha de fin de la etapa anterior
-      const etapaAnterior = this.getEtapaAnterior();
-      if (etapaAnterior && etapaAnterior.fechaFinalizacion) {
-        const fechaFinAnterior = new Date(etapaAnterior.fechaFinalizacion);
-        if (fechaInicioEtapa < fechaFinAnterior) {
-          this.erroresEtapa['fechaInicio'] = 'La fecha de inicio no puede ser anterior al fin de la etapa anterior';
-        }
-      }
-    }
-    
-    if (!this.etapaForm.fechaFinalizacion) {
-      this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización es requerida';
-    } else {
-      const fechaFinEtapa = new Date(this.etapaForm.fechaFinalizacion);
-      const fechaFinProyecto = new Date(this.proyecto!.fechaFinalizacion);
-      
-      if (fechaFinEtapa > fechaFinProyecto) {
-        this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización no puede ser posterior al fin del proyecto';
-      }
-      
-      if (this.etapaForm.fechaInicio && 
-          new Date(this.etapaForm.fechaFinalizacion) < new Date(this.etapaForm.fechaInicio)) {
-        this.erroresEtapa['fechaFinalizacion'] = 'La fecha de finalización debe ser posterior a la de inicio';
-      }
-    }
-
-    return Object.keys(this.erroresEtapa).length === 0;
-  }
-
-  tieneErrorEtapa(campo: string): boolean {
-    return this.intentoFinalizarEtapa && !!this.erroresEtapa[campo];
   }
 
   onCambiarProyecto(): void {
@@ -641,7 +481,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.mostrarModalActividad = true;
   }
 
-  abrirNuevaActividadDesdeBpmn(payload: { nombre: string; nodoOrigenId?: number }): void {
+  abrirNuevaActividadDesdeProceso(payload: { nombre: string; nodoOrigenId?: number }): void {
     if (!this.proyecto) return;
 
     // No crear nodo aún: la actividad se agrega al flujo recién al guardar en la modal.
