@@ -15,8 +15,8 @@ import { Responsable } from '../../../features/registro-solicitudes/models/solic
         [compareWith]="compareValues"
         [disabled]="disabled"
         [ngClass]="{
-          'text-gray-400 dark:text-gray-500': isPlaceholderActive(),
-          'text-gray-900 dark:text-white': !isPlaceholderActive()
+          'text-gray-500 dark:text-gray-300': isPlaceholderActive(),
+          'text-gray-900 dark:text-gray-100': !isPlaceholderActive()
         }"
         (mousedown)="onAbrirDropdown()"
         (focus)="onAbrirDropdown()"
@@ -24,9 +24,9 @@ import { Responsable } from '../../../features/registro-solicitudes/models/solic
         (keydown.escape)="onCerrarDropdown()"
         (keydown.tab)="onCerrarDropdown()"
         style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-        class="w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-400 dark:border-gray-500 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700">
-        <option [ngValue]="emptyValue" class="text-gray-400">{{ placeholder }}</option>
-        <option *ngFor="let resp of responsables" [ngValue]="resp.id" class="text-gray-900">{{ resp.nombre }}</option>
+        class="w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed">
+        <option [ngValue]="emptyValue" class="text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-700">{{ placeholder }}</option>
+        <option *ngFor="let resp of responsables" [ngValue]="resp.id" class="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">{{ resp.nombre }}</option>
       </select>
 
       <svg
