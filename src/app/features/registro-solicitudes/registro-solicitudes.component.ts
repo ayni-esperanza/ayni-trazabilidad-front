@@ -19,6 +19,12 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./registro-solicitudes.component.css']
 })
 export class RegistroSolicitudesComponent implements OnInit {
+  dropdownFiltrosAbiertos = {
+    estado: false,
+    empresa: false,
+    responsable: false
+  };
+
   // Estados de las modales
   showNuevaSolicitudModal = false;
   showProcesoProyectoModal = false;
@@ -265,18 +271,29 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   onFiltrarEstado(): void {
+    this.cerrarDropdownFiltro('estado');
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
   }
 
   onFiltrarEmpresa(): void {
+    this.cerrarDropdownFiltro('empresa');
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
   }
 
   onFiltrarResponsable(): void {
+    this.cerrarDropdownFiltro('responsable');
     this.paginacionConfig.paginaActual = 0;
     this.aplicarFiltros();
+  }
+
+  abrirDropdownFiltro(nombre: keyof RegistroSolicitudesComponent['dropdownFiltrosAbiertos']): void {
+    this.dropdownFiltrosAbiertos[nombre] = true;
+  }
+
+  cerrarDropdownFiltro(nombre: keyof RegistroSolicitudesComponent['dropdownFiltrosAbiertos']): void {
+    this.dropdownFiltrosAbiertos[nombre] = false;
   }
 
   onFiltrarRangoFechas(): void {

@@ -108,13 +108,21 @@
       <!-- Rol -->
       <div class="min-w-[160px]">
         <div class="relative">
-          <select [(ngModel)]="filtros.rol" (ngModelChange)="onRolChange()"
+          <select
+            [(ngModel)]="filtros.rol"
+            (ngModelChange)="onRolChange()"
+            (mousedown)="abrirRolDropdown()"
+            (focus)="abrirRolDropdown()"
+            (blur)="cerrarRolDropdown()"
+            (keydown.escape)="cerrarRolDropdown()"
+            (keydown.tab)="cerrarRolDropdown()"
+            style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
             class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white appearance-none cursor-pointer pr-8">
             <option value="">Todos los Roles</option>
             <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
           </select>
           <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-gray-400 dark:text-gray-300 transition-transform duration-200 ease-out" [ngClass]="{ 'rotate-180': rolDropdownAbierto }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>

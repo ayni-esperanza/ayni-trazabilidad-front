@@ -34,6 +34,12 @@ export class ProyectosTablaCardComponent {
   @Input() fechaHasta: string | null = null;
 
   mostrarFiltrosFecha: boolean = false;
+  dropdownFiltrosAbiertos: Record<'empresa' | 'estado' | 'lugar' | 'area', boolean> = {
+    empresa: false,
+    estado: false,
+    lugar: false,
+    area: false
+  };
   
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() limpiarFiltros = new EventEmitter<void>();
@@ -59,19 +65,31 @@ export class ProyectosTablaCardComponent {
   }
   
   onEmpresaChange(empresa: string | null): void {
+    this.cerrarDropdownFiltro('empresa');
     this.empresaSeleccionadaChange.emit(empresa);
   }
 
   onLugarChange(lugar: string | null): void {
+    this.cerrarDropdownFiltro('lugar');
     this.lugarSeleccionadoChange.emit(lugar);
   }
 
   onAreaChange(area: string | null): void {
+    this.cerrarDropdownFiltro('area');
     this.areaSeleccionadaChange.emit(area);
   }
 
   onEstadoProyectoChange(estado: string | null): void {
+    this.cerrarDropdownFiltro('estado');
     this.estadoProyectoChange.emit(estado);
+  }
+
+  abrirDropdownFiltro(nombre: keyof ProyectosTablaCardComponent['dropdownFiltrosAbiertos']): void {
+    this.dropdownFiltrosAbiertos[nombre] = true;
+  }
+
+  cerrarDropdownFiltro(nombre: keyof ProyectosTablaCardComponent['dropdownFiltrosAbiertos']): void {
+    this.dropdownFiltrosAbiertos[nombre] = false;
   }
 
   onFechaDesdeChange(fecha: string): void {

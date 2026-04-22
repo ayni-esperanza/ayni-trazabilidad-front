@@ -55,6 +55,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   private readonly rolesPermitidos = new Set(['ADMINISTRADOR', 'INGENIERO', 'CONTADOR']);
   private destroy$ = new Subject<void>();
   private busqueda$ = new Subject<string>();
+  rolDropdownAbierto = false;
 
   // Estados de carga
   cargando = false;
@@ -254,8 +255,17 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   }
 
   onRolChange(): void {
+    this.cerrarRolDropdown();
     this.paginacion.paginaActual = 0;
     this.cargarUsuarios();
+  }
+
+  abrirRolDropdown(): void {
+    this.rolDropdownAbierto = true;
+  }
+
+  cerrarRolDropdown(): void {
+    this.rolDropdownAbierto = false;
   }
 
   limpiarFiltros(): void {

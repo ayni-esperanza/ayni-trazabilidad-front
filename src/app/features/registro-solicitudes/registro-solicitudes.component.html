@@ -101,23 +101,82 @@
     <div class="flex flex-wrap gap-3 items-center">
       <input type="text" [(ngModel)]="busqueda" (input)="onBuscar()" placeholder="Buscar por proyecto, cliente o responsable..." 
         class="flex-1 min-w-[250px] px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none dark:bg-gray-800 dark:text-white">
-      <select [(ngModel)]="estadoFiltro" (change)="onFiltrarEstado()" 
-        class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
-        <option value="">Todos los Estados</option>
-        <option value="En Proceso">En Proceso</option>
-        <option value="Completado">Completado</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
-      <select [(ngModel)]="empresaFiltro" (change)="onFiltrarEmpresa()" 
-        class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
-        <option value="">Todas las Empresas</option>
-        <option *ngFor="let empresa of empresasDisponibles" [value]="empresa">{{ empresa }}</option>
-      </select>
-      <select [(ngModel)]="responsableFiltro" (change)="onFiltrarResponsable()" 
-        class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white">
-        <option value="">Todos los Responsables</option>
-        <option *ngFor="let responsable of responsables" [value]="responsable.id">{{ responsable.nombre }}</option>
-      </select>
+      <div class="relative">
+        <select
+          [(ngModel)]="estadoFiltro"
+          (change)="onFiltrarEstado()"
+          (mousedown)="abrirDropdownFiltro('estado')"
+          (focus)="abrirDropdownFiltro('estado')"
+          (blur)="cerrarDropdownFiltro('estado')"
+          (keydown.escape)="cerrarDropdownFiltro('estado')"
+          (keydown.tab)="cerrarDropdownFiltro('estado')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white appearance-none">
+          <option value="">Todos los Estados</option>
+          <option value="En Proceso">En Proceso</option>
+          <option value="Completado">Completado</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+        <svg
+          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.estado }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      <div class="relative">
+        <select
+          [(ngModel)]="empresaFiltro"
+          (change)="onFiltrarEmpresa()"
+          (mousedown)="abrirDropdownFiltro('empresa')"
+          (focus)="abrirDropdownFiltro('empresa')"
+          (blur)="cerrarDropdownFiltro('empresa')"
+          (keydown.escape)="cerrarDropdownFiltro('empresa')"
+          (keydown.tab)="cerrarDropdownFiltro('empresa')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white appearance-none">
+          <option value="">Todas las Empresas</option>
+          <option *ngFor="let empresa of empresasDisponibles" [value]="empresa">{{ empresa }}</option>
+        </select>
+        <svg
+          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.empresa }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      <div class="relative">
+        <select
+          [(ngModel)]="responsableFiltro"
+          (change)="onFiltrarResponsable()"
+          (mousedown)="abrirDropdownFiltro('responsable')"
+          (focus)="abrirDropdownFiltro('responsable')"
+          (blur)="cerrarDropdownFiltro('responsable')"
+          (keydown.escape)="cerrarDropdownFiltro('responsable')"
+          (keydown.tab)="cerrarDropdownFiltro('responsable')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white appearance-none">
+          <option value="">Todos los Responsables</option>
+          <option *ngFor="let responsable of responsables" [value]="responsable.id">{{ responsable.nombre }}</option>
+        </select>
+        <svg
+          class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.responsable }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
       <button
         type="button"
         (click)="toggleFiltroFechas()"

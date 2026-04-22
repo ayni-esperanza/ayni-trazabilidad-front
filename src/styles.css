@@ -69,6 +69,37 @@ select:autofill {
   color: #f9fafb;
 }
 
+/* Combobox animado para filtros */
+.filter-combo-wrap {
+  position: relative;
+}
+
+.filter-combo {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transform: scale(1);
+}
+
+.filter-combo:focus {
+  transform: scale(1.015);
+}
+
+.filter-combo-icon {
+  pointer-events: none;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  transition: transform 220ms ease, color 180ms ease;
+}
+
+.filter-combo-wrap:focus-within .filter-combo-icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+
 /* Estilos para ngx-charts en modo oscuro */
 .dark .ngx-charts text {
   fill: #e5e7eb !important;

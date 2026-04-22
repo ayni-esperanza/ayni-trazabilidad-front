@@ -30,48 +30,116 @@
     <div class="flex items-center gap-1.5 mb-2 flex-wrap animate-ui-in">
 
       <!-- Filtro Empresa -->
-      <select
-        [ngModel]="empresaSeleccionada"
-        (ngModelChange)="onEmpresaChange($event)"
-        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[140px] max-w-[180px]">
-        <option [ngValue]="null">Todas las empresas</option>
-        @for (empresa of empresas; track empresa) {
-          <option [ngValue]="empresa">{{ empresa }}</option>
-        }
-      </select>
+      <div class="relative min-w-[140px] max-w-[180px]">
+        <select
+          [ngModel]="empresaSeleccionada"
+          (ngModelChange)="onEmpresaChange($event)"
+          (mousedown)="abrirDropdownFiltro('empresa')"
+          (focus)="abrirDropdownFiltro('empresa')"
+          (blur)="cerrarDropdownFiltro('empresa')"
+          (keydown.escape)="cerrarDropdownFiltro('empresa')"
+          (keydown.tab)="cerrarDropdownFiltro('empresa')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
+          <option [ngValue]="null">Todas las empresas</option>
+          @for (empresa of empresas; track empresa) {
+            <option [ngValue]="empresa">{{ empresa }}</option>
+          }
+        </select>
+        <svg
+          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.empresa }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
 
       <!-- Filtro Estado -->
-      <select
-        [ngModel]="estadoProyecto"
-        (ngModelChange)="onEstadoProyectoChange($event)"
-        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[130px] max-w-[170px]">
-        <option [ngValue]="null">Todos los estados</option>
-        @for (estado of estadosDisponibles; track estado) {
-          <option [ngValue]="estado">{{ estado }}</option>
-        }
-      </select>
+      <div class="relative min-w-[130px] max-w-[170px]">
+        <select
+          [ngModel]="estadoProyecto"
+          (ngModelChange)="onEstadoProyectoChange($event)"
+          (mousedown)="abrirDropdownFiltro('estado')"
+          (focus)="abrirDropdownFiltro('estado')"
+          (blur)="cerrarDropdownFiltro('estado')"
+          (keydown.escape)="cerrarDropdownFiltro('estado')"
+          (keydown.tab)="cerrarDropdownFiltro('estado')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
+          <option [ngValue]="null">Todos los estados</option>
+          @for (estado of estadosDisponibles; track estado) {
+            <option [ngValue]="estado">{{ estado }}</option>
+          }
+        </select>
+        <svg
+          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.estado }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
 
       <!-- Filtro Lugar -->
-      <select
-        [ngModel]="lugarSeleccionado"
-        (ngModelChange)="onLugarChange($event)"
-        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[120px] max-w-[160px]">
-        <option [ngValue]="null">Todas las ubicaciones</option>
-        @for (lugar of lugares; track lugar) {
-          <option [ngValue]="lugar">{{ lugar }}</option>
-        }
-      </select>
+      <div class="relative min-w-[120px] max-w-[160px]">
+        <select
+          [ngModel]="lugarSeleccionado"
+          (ngModelChange)="onLugarChange($event)"
+          (mousedown)="abrirDropdownFiltro('lugar')"
+          (focus)="abrirDropdownFiltro('lugar')"
+          (blur)="cerrarDropdownFiltro('lugar')"
+          (keydown.escape)="cerrarDropdownFiltro('lugar')"
+          (keydown.tab)="cerrarDropdownFiltro('lugar')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
+          <option [ngValue]="null">Todas las ubicaciones</option>
+          @for (lugar of lugares; track lugar) {
+            <option [ngValue]="lugar">{{ lugar }}</option>
+          }
+        </select>
+        <svg
+          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.lugar }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
 
       <!-- Filtro Área -->
-      <select
-        [ngModel]="areaSeleccionada"
-        (ngModelChange)="onAreaChange($event)"
-        class="text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 min-w-[120px] max-w-[160px]">
-        <option [ngValue]="null">Todas las áreas</option>
-        @for (area of areas; track area) {
-          <option [ngValue]="area">{{ area }}</option>
-        }
-      </select>
+      <div class="relative min-w-[120px] max-w-[160px]">
+        <select
+          [ngModel]="areaSeleccionada"
+          (ngModelChange)="onAreaChange($event)"
+          (mousedown)="abrirDropdownFiltro('area')"
+          (focus)="abrirDropdownFiltro('area')"
+          (blur)="cerrarDropdownFiltro('area')"
+          (keydown.escape)="cerrarDropdownFiltro('area')"
+          (keydown.tab)="cerrarDropdownFiltro('area')"
+          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
+          <option [ngValue]="null">Todas las áreas</option>
+          @for (area of areas; track area) {
+            <option [ngValue]="area">{{ area }}</option>
+          }
+        </select>
+        <svg
+          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
+          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.area }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
 
       <!-- Alternar Filtros de Fecha -->
       <button 
