@@ -326,7 +326,7 @@
 										<span><strong class="text-gray-700 dark:text-gray-200">Fecha:</strong> {{ ctx.getFechaComentario(comentario) }}</span>
 										<span><strong class="text-gray-700 dark:text-gray-200">Cuenta:</strong> {{ ctx.getNombreCuentaComentario(comentario) }}</span>
 									</div>
-									<p class="text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{{ comentario.texto || 'Sin comentario' }}</p>
+									<p class="linkified-content text-[10px] text-gray-700 dark:text-gray-200 whitespace-pre-wrap" [innerHTML]="(comentario.texto || 'Sin comentario') | linkify"></p>
 									<div class="mt-1.5" *ngIf="(comentario.adjuntos || []).length > 0" (click)="$event.stopPropagation()">
 										<p class="text-[10px] font-semibold text-gray-600 dark:text-gray-300 mb-1">Adjuntos del comentario</p>
 										<div class="flex flex-wrap gap-1">

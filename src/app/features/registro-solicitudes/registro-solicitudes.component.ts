@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { AdjuntosPreviewService } from '../../shared/services/adjuntos-preview.service';
+import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 import { RegistroSolicitudesService } from './services/registro-solicitudes.service';
 import { ModalNuevaSolicitudComponent } from './components/modal-nueva-solicitud/modal-nueva-solicitud.component';
 import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyecto/modal-proceso-proyecto.component';
@@ -14,7 +15,7 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })

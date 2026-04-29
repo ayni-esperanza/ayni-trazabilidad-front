@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, Responsable } from '../../../../models/solicitud.model';
 import { DocumentoResumen } from '../../models/documento-resumen.model';
+import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
 @Component({
   selector: 'app-tab-tablero-general, app-tab-tablerogeneral',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LinkifyPipe],
   templateUrl: './tab-tablerogeneral.component.html'
 })
 export class TabTableroGeneralComponent {

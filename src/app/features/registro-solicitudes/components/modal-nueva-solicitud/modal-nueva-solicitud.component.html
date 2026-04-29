@@ -49,7 +49,7 @@
           <span *ngIf="tieneError('cliente')" class="text-xs text-red-500 mt-0.5 block">{{ errores['cliente'] }}</span>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Encargado de Proyecto</label>
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Encargado de Proyecto (Gestor)</label>
           <input type="text" [(ngModel)]="solicitud.representante"
             [class.border-red-500]="tieneError('representante')"
             [class.ring-red-500]="tieneError('representante')"

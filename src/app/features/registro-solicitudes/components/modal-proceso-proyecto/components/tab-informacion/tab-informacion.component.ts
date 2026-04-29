@@ -7,6 +7,7 @@ import { DatePickerComponent } from '../../../../../../shared/components/date-pi
 import { UbicacionSelectComponent } from '../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { ResponsableSelectComponent } from '../../../../../../shared/components/responsable-select/responsable-select.component';
 import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
+import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 import { DocumentoResumen } from '../../models/documento-resumen.model';
 
 export type ProyectoInfoFormData = {
@@ -28,7 +29,7 @@ export type ProyectoInfoFormData = {
 @Component({
   selector: 'app-tab-informacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, CKEditorModule, DatePickerComponent, UbicacionSelectComponent, ResponsableSelectComponent],
+  imports: [CommonModule, FormsModule, CKEditorModule, DatePickerComponent, UbicacionSelectComponent, ResponsableSelectComponent, LinkifyPipe],
   templateUrl: './tab-informacion.component.html'
 })
 export class TabInformacionComponent implements OnInit {

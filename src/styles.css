@@ -35,6 +35,17 @@ select:-webkit-autofill:focus {
   transition: background-color 9999s ease-out 0s;
 }
 
+/* Link styling for linkified content (comments/descriptions). */
+.linkified-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dark .linkified-content a {
+  color: #60a5fa;
+}
+
 input:autofill,
 textarea:autofill,
 select:autofill {

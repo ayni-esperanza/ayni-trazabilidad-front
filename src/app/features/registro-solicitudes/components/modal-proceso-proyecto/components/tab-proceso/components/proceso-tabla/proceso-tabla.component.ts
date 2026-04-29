@@ -2,12 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PaginacionComponent } from '../../../../../../../../shared/components/paginacion/paginacion.component';
+import { LinkifyPipe } from '../../../../../../../../shared/pipes/linkify.pipe';
 import type { CambioPaginaEvent } from '../../../../../../../../shared/components/paginacion/paginacion.component';
 
 @Component({
   selector: 'app-proceso-tabla',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginacionComponent],
+  imports: [CommonModule, FormsModule, PaginacionComponent, LinkifyPipe],
   templateUrl: './proceso-tabla.component.html',
   styleUrl: './proceso-tabla.component.css'
 })
