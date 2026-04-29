@@ -47,12 +47,16 @@ export class TabInformacionComponent implements OnInit {
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.zip,.rar';
   readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
   readonly areasDisponibles: string[] = [
-    'Metalmecanica',
-    'Mecanica',
+    'Cvil',
+    'Electricidad',
+    'Extruccion - Inyenccion',
     'Fibra',
-    'Electrico',
     'Lineas de vida',
-    'Sistemas'
+    'Mecanica',
+    'Metalmecanica',
+    'Perforación de pozos',
+    'Sistemas',
+    'Torres de enfriamiento',
   ];
   areaSeleccionadaParaAgregar = '';
 
