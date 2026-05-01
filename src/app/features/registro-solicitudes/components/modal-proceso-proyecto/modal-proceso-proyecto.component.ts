@@ -169,6 +169,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   tablasCostosExtras: TablaCostoExtra[] = [];
   sincronizandoCostos = false;
 
+  get totalActividadesFlujoNav(): number {
+    return (this.flujoNodos || []).filter((nodo) => String(nodo?.tipo || '').toLowerCase() !== 'inicio').length;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;

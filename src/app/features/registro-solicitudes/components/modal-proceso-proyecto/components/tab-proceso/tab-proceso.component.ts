@@ -1050,7 +1050,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       const nodosOrdenCompra = this.nodosOrdenCompraCache || [];
       const direction = this.ordenRecientePrimero ? -1 : 1;
 
-      const todos = [...nodos.filter((nodo) => nodo.tipo !== 'inicio'), ...nodosOrdenCompra]
+      const todos = [...nodos.filter((nodo) => String(nodo.tipo || '').toLowerCase() !== 'inicio'), ...nodosOrdenCompra]
         .sort((a, b) => {
           const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
           const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
