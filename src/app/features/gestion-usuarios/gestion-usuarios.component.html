@@ -315,3 +315,11 @@
   (confirmar)="confirmarEliminacion()"
   (cancelar)="cancelarEliminacion()">
 </app-confirm-delete-modal>
+
+<!-- Modal Error Eliminacion -->
+<app-confirm-delete-modal
+  [visible]="mostrarModalErrorEliminar"
+  [loading]="false"
+  [config]="deleteErrorConfig"
+  (cancelar)="cerrarModalErrorEliminacion()">
+</app-confirm-delete-modal>

@@ -10,6 +10,8 @@ export interface ConfirmDeleteConfig {
   tipoElemento?: string;
   textoConfirmar?: string;
   textoCancelar?: string;
+  soloCerrar?: boolean;
+  ocultarAdvertencia?: boolean;
 }
 
 @Component({
@@ -56,8 +58,16 @@ export class ConfirmDeleteModalComponent {
     return this.config.textoCancelar || 'Cancelar';
   }
 
+  get mostrarConfirmar(): boolean {
+    return !this.config.soloCerrar;
+  }
+
   get esEliminacionMasiva(): boolean {
     return (this.config.cantidadElementos || 0) > 1;
+  }
+
+  get mostrarAdvertencia(): boolean {
+    return !this.config.ocultarAdvertencia;
   }
 
   onConfirmar(): void {

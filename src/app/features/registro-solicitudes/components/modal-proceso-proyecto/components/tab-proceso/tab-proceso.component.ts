@@ -36,6 +36,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   @Output() abrirNodoEvt = new EventEmitter<FlujoNodo>();
   @Output() crearActividadEvt = new EventEmitter<{ nombre: string; nodoOrigenId?: number }>();
   @Output() flujoActualizadoEvt = new EventEmitter<FlujoNodo[]>();
+  @Output() eliminarActividadesEvt = new EventEmitter<{ ids: number[]; flujoActualizado: FlujoNodo[] }>();
   @Output() comentariosAdicionalesActividadChange = new EventEmitter<ComentarioAdicionalActividad[]>();
   @Output() bloqueoEdicionActividadesChange = new EventEmitter<boolean>();
   @Output() vistaPreviaAdjuntoEvt = new EventEmitter<FlujoAdjunto>();
@@ -212,7 +213,10 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       }));
 
     this.actividadesSeleccionadasIds.clear();
-    this.flujoActualizadoEvt.emit(flujoActualizado);
+    this.eliminarActividadesEvt.emit({
+      ids: Array.from(idsSeleccionados),
+      flujoActualizado
+    });
   }
 
   alternarOrdenFlujo(): void {

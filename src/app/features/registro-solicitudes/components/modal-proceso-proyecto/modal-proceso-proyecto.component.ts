@@ -633,6 +633,22 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     });
   }
 
+  onEliminarActividadesSeleccionadas(evento: { ids: number[]; flujoActualizado: FlujoNodo[] }): void {
+    if (!this.proyecto || !evento.ids.length) return;
+
+    forkJoin(evento.ids.map((id) => this.registroSolicitudesService.eliminarActividad(this.proyecto!.id, id)))
+      .subscribe({
+        next: () => {
+          this.flujoNodos = evento.flujoActualizado;
+          this.persistirFlujoProyecto();
+          this.marcarActualizacionProyecto();
+        },
+        error: (error) => {
+          console.error('Error eliminando actividades:', error);
+        }
+      });
+  }
+
   onCerrarModalActividad(): void {
     this.cerrarEditorActividad();
   }

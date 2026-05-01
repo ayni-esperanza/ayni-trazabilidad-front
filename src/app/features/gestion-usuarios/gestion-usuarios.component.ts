@@ -114,6 +114,8 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   usuarioAEliminar: Usuario | null = null;
   usuariosSeleccionados = new Set<number>();
   deleteConfig: ConfirmDeleteConfig = {};
+  mostrarModalErrorEliminar = false;
+  deleteErrorConfig: ConfirmDeleteConfig = {};
 
   constructor(private usuariosService: GestionUsuariosService) {}
 
@@ -465,6 +467,50 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     return 'No se pudo guardar el usuario. Verifica los datos e inténtalo nuevamente.';
   }
 
+  private obtenerMensajeErrorEliminacion(err: any, ids: number[]): string {
+    const backendMessage = String(
+      err?.error?.message ||
+      err?.error?.mensaje ||
+      err?.message ||
+      ''
+    ).trim();
+
+    const nombres = this.usuarios
+      .filter((usuario) => ids.includes(usuario.id))
+      .map((usuario) => `${usuario.nombre} ${usuario.apellido}`.trim())
+      .filter((nombre) => nombre.length > 0);
+
+    const listaNombres = nombres.length ? nombres.join(', ') : 'el/los usuario(s) seleccionado(s)';
+    const backendLower = backendMessage.toLowerCase();
+    const sugerenciaBackend = this.obtenerSugerenciaEliminacion(backendMessage);
+    if (
+      backendLower.includes('asign')
+      || backendLower.includes('proyecto')
+      || backendLower.includes('solicitud')
+      || backendLower.includes('responsable')
+    ) {
+      const base = `No se pudo eliminar a ${listaNombres} porque esta asignado a un proyecto.`;
+      return sugerenciaBackend ? `${base} ${sugerenciaBackend}` : base;
+    }
+
+    if (backendMessage) {
+      return `No se pudo eliminar a ${listaNombres}: ${backendMessage}`;
+    }
+
+    return `No se pudo eliminar a ${listaNombres}. Por favor, intente nuevamente.`;
+  }
+
+  private obtenerSugerenciaEliminacion(mensaje: string): string | null {
+    if (!mensaje) return null;
+
+    const sinId = mensaje.replace(/\b(id|ID)\s*\d+\b/g, '').trim();
+    const sinPrefijo = sinId.replace(/^No se puede eliminar[^.]*\.?/i, '').trim();
+    const sugerencia = sinPrefijo.replace(/^porque\s+/i, '').trim();
+
+    if (!sugerencia) return null;
+    return sugerencia.endsWith('.') ? sugerencia : `${sugerencia}.`;
+  }
+
   onEliminarUsuario(id: number): void {
     const usuario = this.usuarios.find((u) => u.id === id);
     if (usuario) {
@@ -538,7 +584,15 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error al eliminar usuario(s):', err);
-          alert('Error al eliminar usuario(s). Por favor, intente nuevamente.');
+          this.cancelarEliminacion();
+          this.deleteErrorConfig = {
+            titulo: 'No se pudo eliminar',
+            mensaje: this.obtenerMensajeErrorEliminacion(err, ids),
+            textoCancelar: 'Cerrar',
+            soloCerrar: true,
+            ocultarAdvertencia: true
+          };
+          this.mostrarModalErrorEliminar = true;
         },
       });
   }
@@ -552,5 +606,10 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     this.mostrarModalCredenciales = false;
     this.usuarioCreado = null;
     this.passwordGenerado = '';
+  }
+
+  cerrarModalErrorEliminacion(): void {
+    this.mostrarModalErrorEliminar = false;
+    this.deleteErrorConfig = {};
   }
 }

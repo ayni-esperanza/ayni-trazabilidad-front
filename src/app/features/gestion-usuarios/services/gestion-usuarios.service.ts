@@ -68,7 +68,7 @@ export class GestionUsuariosService {
 
   eliminarUsuario(id: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.baseUrl}${API_ENDPOINTS.usuarios}/${id}`,
+      `${this.baseUrl}${API_ENDPOINTS.usuarios}/${id}/permanente`,
     );
   }
 
