@@ -19,16 +19,49 @@
     @if (mostrarSelector) {
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-500 dark:text-gray-400">Mostrar:</span>
-        <select 
-          [(ngModel)]="config.porPagina"
-          (ngModelChange)="onCambioTamano()"
-          class="h-8 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none min-w-[72px]">
-          @for (opcion of opcionesPorPagina; track opcion) {
-            <option [ngValue]="opcion">{{ opcion }}</option>
+
+        <!-- Dropdown custom con animación de flecha igual que los filtros -->
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleDropdown()"
+            (blur)="cerrarDropdown()"
+            style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
+            class="flex items-center gap-2 h-8 pl-3 pr-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none min-w-[72px]">
+            <span class="flex-1 text-left">{{ config.porPagina }}</span>
+            <!-- Flecha animada idéntica a los filtros -->
+            <svg
+              class="w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out flex-shrink-0"
+              [ngClass]="{ 'rotate-180': dropdownAbierto }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- Lista de opciones -->
+          @if (dropdownAbierto) {
+            <div class="absolute bottom-full mb-1 left-0 z-50 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden min-w-full animate-dropdown">
+              @for (opcion of opcionesPorPagina; track opcion) {
+                <button
+                  type="button"
+                  (mousedown)="seleccionarOpcion(opcion)"
+                  class="w-full text-left px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  [class.font-semibold]="opcion === config.porPagina"
+                  [class.text-green-600]="opcion === config.porPagina"
+                  [class.dark:text-green-400]="opcion === config.porPagina">
+                  {{ opcion }}
+                </button>
+              }
+            </div>
           }
-        </select>
+        </div>
+
       </div>
     }
+
     
     <!-- Navegación -->
     @if (mostrarNavegacion && config.totalPaginas > 1) {

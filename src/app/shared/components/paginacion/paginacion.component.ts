@@ -22,6 +22,8 @@ export interface CambioPaginaEvent {
 })
 export class PaginacionComponent {
   
+  dropdownAbierto = false;
+  
   @Input() config: PaginacionConfig = {
     paginaActual: 0,
     porPagina: 100,
@@ -56,6 +58,20 @@ export class PaginacionComponent {
     return this.config.paginaActual < this.config.totalPaginas - 1;
   }
   
+  toggleDropdown(): void {
+    this.dropdownAbierto = !this.dropdownAbierto;
+  }
+
+  cerrarDropdown(): void {
+    this.dropdownAbierto = false;
+  }
+
+  seleccionarOpcion(opcion: number): void {
+    this.config.porPagina = opcion;
+    this.dropdownAbierto = false;
+    this.onCambioTamano();
+  }
+
   onCambioTamano(): void {
     this.cambioTamano.emit(this.config.porPagina);
     this.cambioPagina.emit({
