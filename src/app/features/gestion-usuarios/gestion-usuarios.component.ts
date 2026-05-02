@@ -31,6 +31,7 @@ import {
   ConfirmDeleteModalComponent,
   ConfirmDeleteConfig,
 } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 
 interface Filtros {
   busqueda: string;
@@ -47,6 +48,7 @@ interface Filtros {
     ModalCredencialesComponent,
     PaginacionComponent,
     ConfirmDeleteModalComponent,
+    VideoTutorialComponent,
   ],
   templateUrl: './gestion-usuarios.component.html',
   styleUrls: ['./gestion-usuarios.component.css'],

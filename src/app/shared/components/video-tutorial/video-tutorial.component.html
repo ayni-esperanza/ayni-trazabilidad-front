@@ -1,0 +1,112 @@
+<!-- ─── Botón de información ──────────────────────────────────── -->
+<button
+  type="button"
+  (click)="abrirModal()"
+  [title]="tooltip"
+  class="vt-btn"
+  [class.vt-btn--disabled]="!videoId">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  </svg>
+</button>
+
+@if (mostrarModal) {
+
+  <!-- ─── Overlay (solo en modo modal completo) ─────────────────── -->
+  @if (!modoMini) {
+    <div class="vt-overlay" (click)="cerrarModal()"></div>
+  }
+
+  <!-- ─── Contenedor principal — mismo nodo en ambos modos ──────── -->
+  <div
+    class="vt-container"
+    [class.vt-container--mini]="modoMini"
+    [style.left.px]="modoMini ? miniX : null"
+    [style.top.px]="modoMini ? miniY : null">
+
+    <!-- Header -->
+    <div
+      class="vt-header"
+      [class.vt-header--draggable]="modoMini"
+      (mousedown)="onDragStart($event)">
+
+      <div class="vt-header__left">
+        <svg class="w-4 h-4 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        <span class="vt-header__title">Video Tutorial</span>
+      </div>
+
+      <div class="vt-header__actions">
+        <!-- Minimizar: solo en modo completo y cuando el video está activo -->
+        @if (!modoMini && videoActivado) {
+          <button type="button" (click)="minimizar()" class="vt-header__btn" title="Modo mini">
+            <!-- Ícono minimizar -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7"/>
+            </svg>
+          </button>
+        }
+
+        <!-- Maximizar: solo en modo mini -->
+        @if (modoMini) {
+          <button type="button" (click)="maximizar()" class="vt-header__btn" title="Modo completo">
+            <!-- Ícono maximizar -->
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          </button>
+        }
+
+        <!-- Cerrar -->
+        <button type="button" (click)="cerrarModal()" class="vt-header__btn vt-header__btn--close" title="Cerrar">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body: miniatura o iframe -->
+    <div class="vt-body">
+      <div class="vt-video-wrapper">
+
+        <!-- Miniatura con botón play -->
+        @if (!videoActivado) {
+          <button
+            type="button"
+            class="vt-thumb-btn"
+            (click)="activarVideo()"
+            title="Reproducir video">
+            <img [src]="thumbnailUrl" alt="Miniatura del tutorial" class="vt-thumb-img" loading="lazy">
+            <div class="vt-thumb-overlay">
+              <div class="vt-play-icon">
+                <svg viewBox="0 0 68 48" class="w-16 h-12">
+                  <path d="M66.52,7.74C65.69,4.56,63.14,2.01,59.97,1.18C54.72,0,34,0,34,0S13.28,0,8.03,1.18C4.86,2.01,2.31,4.56,1.48,7.74C0.3,12.99,0,24,0,24s0.3,11.01,1.48,16.26c0.83,3.18,3.38,5.73,6.55,6.56C13.28,48,34,48,34,48s20.72,0,25.97-1.18c3.17-0.83,5.72-3.38,6.55-6.56C67.7,35.01,68,24,68,24S67.7,12.99,66.52,7.74z" fill="#f00"/>
+                  <path d="M 45,24 27,14 27,34" fill="#fff"/>
+                </svg>
+              </div>
+              <p class="vt-thumb-label">Haz clic para reproducir</p>
+            </div>
+          </button>
+        }
+
+        <!-- iframe — permanece montado una vez activado para no interrumpir la reproducción -->
+        @if (videoActivado && safeEmbedUrl) {
+          <iframe
+            class="vt-iframe"
+            [src]="safeEmbedUrl"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
+        }
+
+      </div>
+    </div>
+
+  </div>
+}

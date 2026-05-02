@@ -1,7 +1,10 @@
 <div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col overflow-y-auto">
   <!-- Header -->
   <div class="flex items-center justify-between mb-4 h-10 flex-shrink-0">
-    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Estadísticas e Indicadores</h1>
+    <div class="flex items-center gap-1.5">
+      <h1 class="text-xl font-bold text-gray-800 dark:text-white">Estadísticas e Indicadores</h1>
+      <app-video-tutorial youtubeUrl="https://www.youtube.com/watch?v=PLACEHOLDER_ESTADISTICAS" tooltip="Ver tutorial de Estadísticas e Indicadores"></app-video-tutorial>
+    </div>
   </div>
   <!-- Filtros rápidos -->
   <div class="stats-card p-4 mb-6" *ngIf="!proyectoSeleccionado && !responsableSeleccionado">

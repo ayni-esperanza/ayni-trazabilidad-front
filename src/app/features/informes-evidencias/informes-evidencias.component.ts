@@ -17,6 +17,7 @@ import {
 } from './components/firmar-documento-modal/firmar-documento-modal.component';
 import { Firma } from './models/firma.model';
 import { FirmasService } from './services/firmas.service';
+import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 
 interface InformeItem {
   id: string;
@@ -38,7 +39,7 @@ const STORAGE_KEY_MODO_VISUALIZACION = 'informes_modo_visualizacion';
 @Component({
   selector: 'app-informes-evidencias',
   standalone: true,
-  imports: [CommonModule, PaginacionComponent, InformeFormModalComponent, FirmarDocumentoModalComponent],
+  imports: [CommonModule, PaginacionComponent, InformeFormModalComponent, FirmarDocumentoModalComponent, VideoTutorialComponent],
   templateUrl: './informes-evidencias.component.html',
   styleUrls: ['./informes-evidencias.component.css']
 })

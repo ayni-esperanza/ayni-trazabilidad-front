@@ -18,6 +18,7 @@ import { MetricasCardComponent } from './components/metricas-card/metricas-card.
 import { GraficosCardComponent } from './components/graficos-card/graficos-card.component';
 import { ProyectosTablaCardComponent } from './components/proyectos-tabla-card/proyectos-tabla-card.component';
 import { EncargadosTablaCardComponent } from './components/encargados-tabla-card/encargados-tabla-card.component';
+import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 
 // Registrar locale español
 registerLocaleData(localeEs);
@@ -31,7 +32,8 @@ registerLocaleData(localeEs);
     MetricasCardComponent,
     GraficosCardComponent,
     ProyectosTablaCardComponent,
-    EncargadosTablaCardComponent
+    EncargadosTablaCardComponent,
+    VideoTutorialComponent
   ],
   templateUrl: './tablero-control.component.html',
   styleUrls: ['./tablero-control.component.css']

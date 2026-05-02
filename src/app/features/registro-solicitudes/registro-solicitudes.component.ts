@@ -10,12 +10,13 @@ import { ModalProcesoProyectoComponent } from './components/modal-proceso-proyec
 import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea, OrdenCompra } from './models/solicitud.model';
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe, VideoTutorialComponent],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })

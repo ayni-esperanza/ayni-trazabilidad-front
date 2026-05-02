@@ -2,7 +2,10 @@
   <span class="hidden" aria-hidden="true" [innerHTML]="'linkify' | linkify"></span>
   <!-- Header -->
   <div class="flex items-center justify-between mb-4">
-    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Registro de Solicitudes</h1>
+    <div class="flex items-center gap-1.5">
+      <h1 class="text-xl font-bold text-gray-800 dark:text-white">Registro de Solicitudes</h1>
+      <app-video-tutorial youtubeUrl="https://www.youtube.com/watch?v=nHBct2E8MsI" tooltip="Ver tutorial de Registro de Solicitudes"></app-video-tutorial>
+    </div>
 
     <div class="w-[170px] flex justify-end">
       @if (!showProcesoProyectoModal) {

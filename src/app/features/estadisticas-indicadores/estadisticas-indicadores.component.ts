@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { EstadisticasIndicadoresService } from './services/estadisticas-indicadores.service';
+import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { forkJoin } from 'rxjs';
 
 export interface ProyectoIndicador {
@@ -59,7 +60,7 @@ interface ROIData {
 @Component({
   selector: 'app-estadisticas-indicadores',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxChartsModule],
+  imports: [CommonModule, FormsModule, NgxChartsModule, VideoTutorialComponent],
   templateUrl: './estadisticas-indicadores.component.html',
   styleUrls: ['./estadisticas-indicadores.component.css']
 })
