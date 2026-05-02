@@ -29,7 +29,8 @@
     <div
       class="vt-header"
       [class.vt-header--draggable]="modoMini"
-      (mousedown)="onDragStart($event)">
+      (mousedown)="onDragStart($event)"
+      (touchstart)="onDragStart($event)">
 
       <div class="vt-header__left">
         <svg class="w-4 h-4 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

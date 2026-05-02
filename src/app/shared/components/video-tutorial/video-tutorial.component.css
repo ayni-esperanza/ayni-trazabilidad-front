@@ -49,8 +49,9 @@
   z-index: 101;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: calc(100% - 2rem);
   max-width: 56rem;
+  height: fit-content;
   max-height: 90vh;
   margin: auto;
   border-radius: 1rem;
@@ -72,7 +73,7 @@
   inset: auto;            /* desactiva el centrado */
   z-index: 200;
   width: 320px;
-  max-width: 320px;
+  max-width: calc(100vw - 2rem);
   max-height: none;
   margin: 0;
   border-radius: 0.75rem;
@@ -96,6 +97,7 @@
 
 .vt-header--draggable {
   cursor: grab;
+  touch-action: none;
 }
 .vt-header--draggable:active {
   cursor: grabbing;
@@ -153,7 +155,7 @@
 /* ════════════════════════════════════════
    Body y video wrapper
    ════════════════════════════════════════ */
-.vt-body { flex: 1; overflow: hidden; }
+.vt-body { overflow: hidden; }
 
 .vt-video-wrapper {
   position: relative;
