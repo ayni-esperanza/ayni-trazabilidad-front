@@ -264,7 +264,6 @@
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Registro - Ultima actualizacion</th>
             <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Estado</th>
-            <th class="py-1.5 px-3 text-left text-[10px] font-semibold text-gray-500 dark:text-gray-400">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -293,18 +292,9 @@
                   {{ solicitud.estado }}
                 </span>
               </td>
-              <td class="py-1.5 px-3">
-                @if (solicitud.estado !== 'Cancelado') {
-                  <button 
-                    (click)="abrirProcesoDesdeTabla(solicitud); $event.stopPropagation()"
-                    class="px-2 py-0.5 text-[10px] font-medium rounded-lg bg-blue-500 hover:bg-blue-600 text-white">
-                    Ver Flujo
-                  </button>
-                }
-              </td>
             </tr>
             <tr class="bg-gray-50 dark:bg-gray-800/30">
-              <td colspan="7" class="px-3 py-2">
+              <td colspan="6" class="px-3 py-2">
                 <span class="hidden" aria-hidden="true" [innerHTML]="'linkify' | linkify"></span>
                 <details class="text-[10px] timeline-details">
                   <summary class="cursor-pointer text-gray-600 dark:text-gray-300 font-semibold timeline-summary">Flujo timeline del proyecto</summary>
@@ -453,7 +443,7 @@
           }
           @if (solicitudesFiltradas.length === 0) {
             <tr>
-              <td colspan="7" class="py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="6" class="py-8 text-center text-gray-500 dark:text-gray-400">
                 No hay solicitudes registradas. Haz clic en "Nueva Solicitud" para crear una.
               </td>
             </tr>
