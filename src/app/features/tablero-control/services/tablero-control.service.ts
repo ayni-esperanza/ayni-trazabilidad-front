@@ -107,7 +107,10 @@ export class TableroControlService {
     const fin = this.toDate(item?.durationEnd) || inicio;
     const fechaRegistro = this.toDate(item?.fechaRegistro) || inicio;
     const estado = this.mapEstadoProyecto(item?.estado);
-    const area = Array.isArray(item?.areas) && item.areas.length ? item.areas[0] : '';
+    const areas = Array.isArray(item?.areas)
+      ? item.areas.map((area) => String(area || '').trim()).filter((area) => !!area)
+      : [];
+    const area = areas[0] || '';
 
     return {
       id: Number(item?.id || 0),
@@ -127,6 +130,7 @@ export class TableroControlService {
       gastoTotal: Number(item?.gasto || 0),
       lugar: item?.ubicacion || '',
       area,
+      areas,
     };
   }
 
