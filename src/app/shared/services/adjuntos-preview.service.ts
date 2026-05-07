@@ -17,8 +17,12 @@ export class AdjuntosPreviewService {
     const url = String(adjunto?.url || '').trim();
     if (url) return url;
 
-    if (adjunto?.archivo instanceof Blob) {
-      return URL.createObjectURL(adjunto.archivo);
+    if (adjunto?.archivo && (adjunto.archivo instanceof Blob || typeof (adjunto.archivo as any).size === 'number')) {
+      try {
+        return URL.createObjectURL(adjunto.archivo as any);
+      } catch (e) {
+        console.warn('No se pudo generar Object URL', e);
+      }
     }
 
     return null;
@@ -75,7 +79,9 @@ export class AdjuntosPreviewService {
   }
 
   async obtenerBlob(adjunto: AdjuntoPreview): Promise<Blob | null> {
-    if (adjunto?.archivo instanceof Blob) return adjunto.archivo;
+    if (adjunto?.archivo && (adjunto.archivo instanceof Blob || typeof (adjunto.archivo as any).size === 'number')) {
+      return adjunto.archivo as Blob;
+    }
 
     const fuente = this.getAdjuntoUrl(adjunto);
     if (!fuente) return null;

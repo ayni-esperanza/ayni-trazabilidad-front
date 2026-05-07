@@ -309,7 +309,7 @@
         <div class="h-[calc(100vh-57px)] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPrevia()"></div>
       } @else if (esPdf(adjuntoVistaPrevia)) {
         <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
-          <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaPdf()"></iframe>
+          <iframe class="w-full h-full" [src]="fuenteVistaPreviaPdf"></iframe>
         </div>
       } @else {
         <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">

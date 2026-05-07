@@ -76,6 +76,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   mostrarVistaPreviaAdjuntoTimeline = false;
   adjuntoVistaPreviaTimelineNombre = '';
   fuenteVistaPreviaAdjuntoTimeline = '';
+  fuenteVistaPreviaAdjuntoTimelinePdf: SafeResourceUrl | null = null;
   htmlVistaPreviaAdjuntoTimeline: SafeHtml | null = null;
   cargandoVistaPreviaAdjuntoTimeline = false;
   private fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
@@ -624,6 +625,9 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.adjuntoVistaPreviaTimelineEsPdf = this.esAdjuntoPdfTimeline(adjunto);
     this.adjuntoVistaPreviaTimelineEsOffice = false;
     this.fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
+    this.fuenteVistaPreviaAdjuntoTimelinePdf = this.adjuntoVistaPreviaTimelineEsPdf
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(fuente)
+      : null;
     this.mostrarVistaPreviaAdjuntoTimeline = true;
   }
 
@@ -636,8 +640,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     });
   }
 
-  obtenerFuenteVistaPreviaAdjuntoTimelinePdf(): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaAdjuntoTimeline);
+  obtenerFuenteVistaPreviaAdjuntoTimelinePdf(): SafeResourceUrl | null {
+    return this.fuenteVistaPreviaAdjuntoTimelinePdf;
   }
 
   obtenerFuenteVistaPreviaAdjuntoTimelineImagen(): string {
@@ -665,6 +669,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.mostrarVistaPreviaAdjuntoTimeline = false;
     this.adjuntoVistaPreviaTimelineNombre = '';
     this.fuenteVistaPreviaAdjuntoTimeline = '';
+    this.fuenteVistaPreviaAdjuntoTimelinePdf = null;
     this.htmlVistaPreviaAdjuntoTimeline = null;
     this.cargandoVistaPreviaAdjuntoTimeline = false;
     this.fuenteVistaPreviaAdjuntoTimelineEsBlob = false;

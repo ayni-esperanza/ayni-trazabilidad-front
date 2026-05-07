@@ -490,7 +490,7 @@
         <div class="h-[78vh] bg-white dark:bg-gray-900 overflow-auto" [innerHTML]="obtenerHtmlVistaPreviaAdjuntoTimeline()"></div>
       } @else if (esPdfVistaPreviaAdjuntoTimeline()) {
         <div class="h-[78vh] bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
-          <iframe class="w-full h-full" [src]="obtenerFuenteVistaPreviaAdjuntoTimelinePdf()"></iframe>
+          <iframe class="w-full h-full" [src]="fuenteVistaPreviaAdjuntoTimelinePdf"></iframe>
         </div>
       } @else {
         <div class="bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">

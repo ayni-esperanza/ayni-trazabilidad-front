@@ -92,6 +92,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   mostrarVistaPreviaAdjunto = false;
   adjuntoVistaPreviaNombre = '';
   fuenteVistaPreviaAdjunto = '';
+  fuenteVistaPreviaAdjuntoSafe: SafeResourceUrl | null = null;
   htmlVistaPreviaAdjunto: SafeHtml | null = null;
   cargandoVistaPreviaAdjunto = false;
   private fuenteVistaPreviaAdjuntoEsBlob = false;
@@ -445,6 +446,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.cerrarVistaPreviaAdjunto();
     this.htmlVistaPreviaAdjunto = null;
     this.cargandoVistaPreviaAdjunto = false;
+    this.fuenteVistaPreviaAdjuntoSafe = null;
 
     this.adjuntoVistaPreviaNombre = this.adjuntosPreviewService.getNombre(adjunto, 'Documento adjunto');
 
@@ -475,6 +477,9 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.fuenteVistaPreviaAdjuntoEsBlob = !!adjunto.archivo && !adjunto.dataUrl;
     this.adjuntoVistaPreviaEsPdf = this.esAdjuntoPdf(adjunto);
     this.adjuntoVistaPreviaEsOffice = false;
+    this.fuenteVistaPreviaAdjuntoSafe = this.adjuntoVistaPreviaEsPdf
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaAdjunto)
+      : null;
     this.mostrarVistaPreviaAdjunto = true;
   }
 
@@ -492,8 +497,8 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     return textarea.value;
   }
 
-  obtenerFuenteVistaPreviaAdjuntoPdf(): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaAdjunto);
+  obtenerFuenteVistaPreviaAdjuntoPdf(): SafeResourceUrl | null {
+    return this.fuenteVistaPreviaAdjuntoSafe;
   }
 
   obtenerFuenteVistaPreviaAdjuntoImagen(): string {
@@ -521,6 +526,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.mostrarVistaPreviaAdjunto = false;
     this.adjuntoVistaPreviaNombre = '';
     this.fuenteVistaPreviaAdjunto = '';
+    this.fuenteVistaPreviaAdjuntoSafe = null;
     this.htmlVistaPreviaAdjunto = null;
     this.cargandoVistaPreviaAdjunto = false;
     this.fuenteVistaPreviaAdjuntoEsBlob = false;

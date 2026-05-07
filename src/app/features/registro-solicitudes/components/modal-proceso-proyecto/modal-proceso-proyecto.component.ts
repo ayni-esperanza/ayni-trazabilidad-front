@@ -124,6 +124,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarVistaPreviaDocumento = false;
   documentoVistaPrevia: DocumentoResumen | null = null;
   fuenteVistaPreviaDocumento = '';
+  fuenteVistaPreviaDocumentoSafe: SafeResourceUrl | null = null;
   htmlVistaPreviaDocumento: SafeHtml | null = null;
   cargandoVistaPreviaDocumento = false;
   private fuenteVistaPreviaDocumentoEsBlob = false;
@@ -539,6 +540,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         this.mapearNodoAActividadRequest(nodoActualizado)
       ).subscribe({
         next: (actualizadoDesdeApi) => {
+          const adjuntosGuardados = nodoActualizado.adjuntos || [];
+          actualizadoDesdeApi.adjuntos = (actualizadoDesdeApi.adjuntos || []).map(adjApi => {
+            const adjLocal = adjuntosGuardados.find(a => a.nombre === adjApi.nombre);
+            return adjLocal ? { ...adjApi, archivo: adjLocal.archivo, dataUrl: adjLocal.dataUrl, url: adjLocal.url || adjApi.url } : adjApi;
+          });
+
           this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? actualizadoDesdeApi : nodo);
           this.persistirFlujoProyecto();
           this.cerrarEditorActividad();
@@ -571,6 +578,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         nodoOrigenId: this.nodoPadreParaNuevoId ?? undefined
       }).subscribe({
         next: (creadaDesdeApi) => {
+          const adjuntosGuardados = nuevoNodo.adjuntos || [];
+          creadaDesdeApi.adjuntos = (creadaDesdeApi.adjuntos || []).map(adjApi => {
+            const adjLocal = adjuntosGuardados.find(a => a.nombre === adjApi.nombre);
+            return adjLocal ? { ...adjApi, archivo: adjLocal.archivo, dataUrl: adjLocal.dataUrl, url: adjLocal.url || adjApi.url } : adjApi;
+          });
+
           if (this.nodoPadreParaNuevoId !== null) {
             const indexPadre = this.flujoNodos.findIndex(n => n.id === this.nodoPadreParaNuevoId);
             if (indexPadre >= 0) {
@@ -973,7 +986,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
           objectKey: subida.objectKey,
           dataUrl: adjunto.dataUrl || subida.publicUrl,
-          url: subida.publicUrl
+          url: subida.publicUrl,
+          archivo: adjunto.archivo
         });
       }
     } catch (error) {
@@ -1016,7 +1030,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
             objectKey: subida.objectKey,
             dataUrl: adjunto.dataUrl || subida.publicUrl,
-            url: subida.publicUrl
+            url: subida.publicUrl,
+            archivo: adjunto.archivo
           });
         }
 
@@ -1281,6 +1296,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.liberarFuenteVistaPreviaDocumento();
     this.htmlVistaPreviaDocumento = null;
     this.cargandoVistaPreviaDocumento = false;
+    this.fuenteVistaPreviaDocumentoSafe = null;
+    const esPdf = this.esPdfDocumento(doc);
 
     if (this.esDocumentoOffice(doc)) {
       this.documentoVistaPrevia = doc;
@@ -1317,6 +1334,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     if (!this.esVistaPreviaSoportadaDocumento(doc)) {
       this.fuenteVistaPreviaDocumento = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" fill="#374151" font-size="26" font-family="Arial">Vista previa no disponible para este tipo de archivo</text><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#6b7280" font-size="17" font-family="Arial">Usa el botón descargar para abrirlo con su aplicación</text></svg>`);
       this.fuenteVistaPreviaDocumentoEsBlob = false;
+      this.fuenteVistaPreviaDocumentoSafe = esPdf
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento)
+        : null;
       this.documentoVistaPrevia = doc;
       this.mostrarVistaPreviaDocumento = true;
       return;
@@ -1327,7 +1347,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.fuenteVistaPreviaDocumento = fuente.url;
       this.fuenteVistaPreviaDocumentoEsBlob = fuente.revokeObjectUrl;
     } else {
-      if (this.esPdfDocumento(doc)) {
+      if (esPdf) {
         this.fuenteVistaPreviaDocumento = 'data:text/html;charset=utf-8,' + encodeURIComponent(`
           <html><body style="margin:0;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100%;background:#f3f4f6;color:#374151;">
             <div style="text-align:center;max-width:560px;padding:24px;">
@@ -1341,6 +1361,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       }
       this.fuenteVistaPreviaDocumentoEsBlob = false;
     }
+
+    this.fuenteVistaPreviaDocumentoSafe = esPdf
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento)
+      : null;
 
     this.documentoVistaPrevia = doc;
     this.mostrarVistaPreviaDocumento = true;
@@ -1389,6 +1413,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   cerrarVistaPreviaDocumento(): void {
     this.liberarFuenteVistaPreviaDocumento();
     this.fuenteVistaPreviaDocumento = '';
+    this.fuenteVistaPreviaDocumentoSafe = null;
     this.htmlVistaPreviaDocumento = null;
     this.cargandoVistaPreviaDocumento = false;
     this.fuenteVistaPreviaDocumentoEsBlob = false;
@@ -1400,8 +1425,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.fuenteVistaPreviaDocumento;
   }
 
-  obtenerFuenteVistaPreviaDocumentoPdf(): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento);
+  obtenerFuenteVistaPreviaDocumentoPdf(): SafeResourceUrl | null {
+    return this.fuenteVistaPreviaDocumentoSafe;
   }
 
   obtenerHtmlVistaPreviaDocumento(): SafeHtml {
@@ -1961,11 +1986,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   private async resolverFuenteAdjunto(adjunto: FlujoAdjunto): Promise<{ url: string; revokeObjectUrl: boolean } | null> {
-    if (adjunto.archivo instanceof Blob) {
-      return {
-        url: window.URL.createObjectURL(adjunto.archivo),
-        revokeObjectUrl: true
-      };
+    if (adjunto.archivo && (adjunto.archivo instanceof Blob || typeof (adjunto.archivo as any).size === 'number')) {
+      try {
+        return {
+          url: window.URL.createObjectURL(adjunto.archivo as any),
+          revokeObjectUrl: true
+        };
+      } catch (e) {
+        console.warn('No se pudo generar Blob URL:', e);
+      }
     }
 
     const fuente = this.adjuntosPreviewService.getAdjuntoUrl({

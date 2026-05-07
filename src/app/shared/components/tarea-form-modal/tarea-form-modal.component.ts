@@ -108,6 +108,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   mostrarVistaPrevia = false;
   adjuntoVistaPrevia: ArchivoAdjuntoActividad | null = null;
   fuenteVistaPrevia = '';
+  fuenteVistaPreviaPdf: SafeResourceUrl | null = null;
   htmlVistaPrevia: SafeHtml | null = null;
   cargandoVistaPrevia = false;
   vistaPreviaOffice = false;
@@ -431,6 +432,9 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
 
     this.fuenteVistaPrevia = fuenteResuelta.fuente;
     this.fuenteVistaPreviaEsBlob = fuenteResuelta.esBlob;
+    this.fuenteVistaPreviaPdf = this.adjuntosPreviewService.esPdf(adjunto)
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPrevia)
+      : null;
 
     this.adjuntoVistaPrevia = adjunto;
     this.mostrarVistaPrevia = true;
@@ -441,6 +445,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.mostrarVistaPrevia = false;
     this.adjuntoVistaPrevia = null;
     this.fuenteVistaPrevia = '';
+    this.fuenteVistaPreviaPdf = null;
     this.htmlVistaPrevia = null;
     this.cargandoVistaPrevia = false;
     this.vistaPreviaOffice = false;
@@ -451,8 +456,8 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     return this.fuenteVistaPrevia;
   }
 
-  obtenerFuenteVistaPreviaPdf(): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPrevia);
+  obtenerFuenteVistaPreviaPdf(): SafeResourceUrl | null {
+    return this.fuenteVistaPreviaPdf;
   }
 
   obtenerHtmlVistaPrevia(): SafeHtml {
