@@ -40,7 +40,7 @@
 			<div
 				class="grid items-center gap-1.5 overflow-hidden transition-[grid-template-columns,opacity,margin] duration-200 ease-out"
 				[ngClass]="mostrarFiltrosAvanzados
-					? 'grid-cols-[150px_115px] opacity-100 ml-0.5'
+					? 'grid-cols-[150px_130px] opacity-100 ml-0.5'
 					: 'grid-cols-[0px_0px] opacity-0 ml-0 pointer-events-none'">
 				<div class="relative min-w-0">
 					<select
@@ -70,6 +70,11 @@
 				</div>
 
 				<div class="relative min-w-0">
+					<span
+						class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ring-2 transition-colors duration-200"
+						[ngClass]="getClaseIconoEstadoFiltro(filtroEstadoActividad)"
+						aria-hidden="true">
+					</span>
 					<select
 						[(ngModel)]="filtroEstadoActividad"
 						[attr.tabindex]="mostrarFiltrosAvanzados ? null : -1"
@@ -80,7 +85,7 @@
 						(keydown.escape)="cerrarDropdownFiltroFlujo('estado')"
 						(keydown.tab)="cerrarDropdownFiltroFlujo('estado')"
 						style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-						class="h-7 min-w-0 w-full pl-2 pr-7 py-0 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 appearance-none"
+						class="h-7 min-w-0 w-full pl-5 pr-7 py-0 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 appearance-none"
 						[ngClass]="filtroEstadoActividad ? 'border-blue-400 dark:border-blue-600 ring-1 ring-blue-300 dark:ring-blue-700' : ''">
 						<option value="">Estado</option>
 						<option *ngFor="let e of estadosActividad" [value]="e">{{ e }}</option>

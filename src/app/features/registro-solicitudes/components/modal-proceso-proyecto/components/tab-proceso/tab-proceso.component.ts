@@ -43,7 +43,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   ordenRecientePrimero = true;
   filtroBusqueda = '';
   filtroResponsableId: number | '' = '';
-  filtroEstadoActividad = '';
+  filtroEstadoActividad: EstadoTarea | '' = '';
   filtroFechaDesde = '';
   filtroFechaHasta = '';
   public mostrarFiltrosAvanzados = false;
@@ -386,6 +386,18 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       Retrasado: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
     };
     return clases[estado];
+  }
+
+  getClaseIconoEstadoFiltro(estado: EstadoTarea | ''): string {
+    const clases: Record<EstadoTarea, string> = {
+      Pendiente: 'bg-slate-400 ring-slate-100 dark:bg-slate-300 dark:ring-slate-700',
+      'En Proceso': 'bg-blue-500 ring-blue-100 dark:bg-blue-400 dark:ring-blue-900/50',
+      Completado: 'bg-green-500 ring-green-100 dark:bg-green-400 dark:ring-green-900/50',
+      Cancelado: 'bg-red-500 ring-red-100 dark:bg-red-400 dark:ring-red-900/50',
+      Retrasado: 'bg-amber-500 ring-amber-100 dark:bg-amber-400 dark:ring-amber-900/50'
+    };
+
+    return estado ? clases[estado] : 'bg-gray-300 ring-gray-100 dark:bg-gray-500 dark:ring-gray-700';
   }
 
   getClaseAlerta(): string {
