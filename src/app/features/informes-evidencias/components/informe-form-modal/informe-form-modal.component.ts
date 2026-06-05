@@ -24,6 +24,7 @@ import { PdfExportService } from '../../services/pdf-export.service';
 import { FirmaFormModalComponent, FirmaFormData } from '../firma-form-modal/firma-form-modal.component';
 import { FirmasService } from '../../services/firmas.service';
 import { Firma } from '../../models/firma.model';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 export interface InformeFormData {
   id?: string;
@@ -38,7 +39,7 @@ export interface InformeFormData {
 @Component({
   selector: 'app-informe-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, FirmaFormModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, FirmaFormModalComponent, DatePickerComponent],
   templateUrl: './informe-form-modal.component.html',
   styleUrls: ['./informe-form-modal.component.css'],
 })

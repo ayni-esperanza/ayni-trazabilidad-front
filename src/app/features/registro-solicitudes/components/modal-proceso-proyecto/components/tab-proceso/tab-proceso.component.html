@@ -135,21 +135,21 @@
 	<div class="flex flex-wrap items-center gap-3 mb-3 pt-2.5 border-t border-gray-100 dark:border-gray-700/60 animate-ui-in">
 		<div class="flex items-center gap-1.5">
 			<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Desde</span>
-			<input
-				type="date"
-				[(ngModel)]="filtroFechaDesde"
-				class="px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
-				[ngClass]="filtroFechaDesde ? 'border-blue-400 dark:border-blue-600' : ''"
-				title="Fecha inicio desde"/>
+			<app-date-picker
+				class="w-[118px]"
+				[(value)]="filtroFechaDesde"
+				[placeholder]="'Desde'"
+				[inputClass]="'w-full px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer'">
+			</app-date-picker>
 		</div>
 		<div class="flex items-center gap-1.5">
 			<span class="text-[10px] font-medium text-gray-600 dark:text-gray-300">Hasta</span>
-			<input
-				type="date"
-				[(ngModel)]="filtroFechaHasta"
-				class="px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
-				[ngClass]="filtroFechaHasta ? 'border-blue-400 dark:border-blue-600' : ''"
-				title="Fecha inicio hasta"/>
+			<app-date-picker
+				class="w-[118px]"
+				[(value)]="filtroFechaHasta"
+				[placeholder]="'Hasta'"
+				[inputClass]="'w-full px-2 py-1 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer'">
+			</app-date-picker>
 		</div>
 		<button
 			*ngIf="filtroFechaDesde || filtroFechaHasta"

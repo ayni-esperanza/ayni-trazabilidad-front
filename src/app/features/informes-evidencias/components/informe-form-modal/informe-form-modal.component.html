@@ -46,12 +46,12 @@
 
               <div class="col-span-1">
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha *</label>
-                <input
-                  type="date"
-                  [(ngModel)]="form.fecha"
-                  (ngModelChange)="actualizarPreview()"
-                  [class.border-red-500]="tieneError('fecha')"
-                  class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" />
+                <app-date-picker
+                  [value]="form.fecha"
+                  (valueChange)="form.fecha = $event; actualizarPreview()"
+                  [hasError]="tieneError('fecha')"
+                  [inputClass]="'w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none cursor-pointer'">
+                </app-date-picker>
                 <span *ngIf="tieneError('fecha')" class="text-xs text-red-500 mt-1">{{ errores['fecha'] }}</span>
               </div>
 

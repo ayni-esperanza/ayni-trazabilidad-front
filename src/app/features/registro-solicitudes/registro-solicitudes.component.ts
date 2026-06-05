@@ -11,12 +11,13 @@ import { Solicitud, Proyecto, EtapaProyecto, Responsable, ProcesoSimple, FlujoNo
 import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../shared/components/paginacion/paginacion.component';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
+import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe, VideoTutorialComponent],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe, VideoTutorialComponent, DatePickerComponent],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })

@@ -155,19 +155,21 @@
       <!-- Filtros de Fecha: Desde y Hasta agrupados (ocultos por defecto) -->
       @if (mostrarFiltrosFecha || fechaDesde || fechaHasta) {
         <div class="flex items-center gap-1.5 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded px-2 py-0.5 animate-ui-in">
-          <input
-            type="date"
-            [ngModel]="fechaDesde ?? ''"
-            (ngModelChange)="onFechaDesdeChange($event)"
-            title="Desde"
-            class="text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none w-[100px] border-none p-0 cursor-pointer">
+          <app-date-picker
+            class="w-[112px]"
+            [value]="fechaDesde ?? ''"
+            (valueChange)="onFechaDesdeChange($event)"
+            [placeholder]="'Desde'"
+            [inputClass]="'w-full px-1.5 py-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none border-none cursor-pointer'">
+          </app-date-picker>
           <span class="text-gray-300 dark:text-gray-600">-</span>
-          <input
-            type="date"
-            [ngModel]="fechaHasta ?? ''"
-            (ngModelChange)="onFechaHastaChange($event)"
-            title="Hasta"
-            class="text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none w-[100px] border-none p-0 cursor-pointer">
+          <app-date-picker
+            class="w-[112px]"
+            [value]="fechaHasta ?? ''"
+            (valueChange)="onFechaHastaChange($event)"
+            [placeholder]="'Hasta'"
+            [inputClass]="'w-full px-1.5 py-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none border-none cursor-pointer'">
+          </app-date-picker>
         </div>
       }
 

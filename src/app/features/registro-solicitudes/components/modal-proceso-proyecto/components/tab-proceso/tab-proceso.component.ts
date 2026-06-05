@@ -9,12 +9,13 @@ import { ProcesoTablaComponent } from './components/proceso-tabla/proceso-tabla.
 import { ProcesoTimelineComponent } from './components/proceso-timeline/proceso-timeline.component';
 import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
 import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
+import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent],
+  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent, DatePickerComponent],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements OnChanges, OnDestroy {

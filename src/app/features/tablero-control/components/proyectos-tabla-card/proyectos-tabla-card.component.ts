@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProyectoEnCurso, EstadoProyecto } from '../../models/tablero.model';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-proyectos-tabla-card',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DatePickerComponent],
   templateUrl: './proyectos-tabla-card.component.html',
   styleUrls: ['./proyectos-tabla-card.component.css']
 })
