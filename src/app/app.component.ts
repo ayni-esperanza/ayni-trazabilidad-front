@@ -47,6 +47,11 @@ export class AppComponent implements OnInit {
       const url = event instanceof NavigationEnd
         ? (event.urlAfterRedirects || event.url)
         : event.url;
+
+      if (event instanceof NavigationStart && this.esRutaConLayoutProtegido(url)) {
+        return;
+      }
+
       this.actualizarVisibilidadSidebar(url);
     });
   }
@@ -59,8 +64,12 @@ export class AppComponent implements OnInit {
 
   private actualizarVisibilidadSidebar(url: string): void {
     const normalizada = (url || '').split('?')[0].split('#')[0];
-    this.showSidebar =
-      !normalizada.startsWith('/login') && !normalizada.startsWith('/loading');
+    this.showSidebar = this.esRutaConLayoutProtegido(normalizada);
+  }
+
+  private esRutaConLayoutProtegido(url: string): boolean {
+    const normalizada = (url || '').split('?')[0].split('#')[0];
+    return !normalizada.startsWith('/login') && !normalizada.startsWith('/loading');
   }
 
   private obtenerUrlInicial(): string {
