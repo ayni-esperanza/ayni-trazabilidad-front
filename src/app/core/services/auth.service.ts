@@ -212,7 +212,7 @@ export class AuthService {
       token: response.accessToken,
       refreshToken: response.refreshToken,
       tokenType: response.tokenType,
-      expiresAt: response.expiresIn,
+      expiresAt: this.resolveExpiresAt(response.expiresIn, response.accessToken),
       roles: response.usuario.roles || [],
       permissions: [],
     };
@@ -258,7 +258,38 @@ export class AuthService {
       return null;
     }
 
-    const payload = token.split('.')[1];
+    const parsed = this.parseTokenPayload(token) as { sub?: string } | null;
+    return parsed?.sub?.trim().toLowerCase() || null;
+  }
+
+  private resolveExpiresAt(expiresIn: number | undefined, accessToken: string): number | undefined {
+    if (typeof expiresIn === 'number' && Number.isFinite(expiresIn) && expiresIn > 0) {
+      if (expiresIn > 1_000_000_000_000) {
+        return expiresIn;
+      }
+
+      if (expiresIn > 1_000_000_000) {
+        return expiresIn * 1000;
+      }
+
+      return Date.now() + expiresIn * 1000;
+    }
+
+    return this.getTokenExpiration(accessToken);
+  }
+
+  private getTokenExpiration(token: string): number | undefined {
+    const payload = this.parseTokenPayload(token);
+    const exp = payload?.['exp'];
+    if (typeof exp !== 'number' || !Number.isFinite(exp)) {
+      return undefined;
+    }
+
+    return exp * 1000;
+  }
+
+  private parseTokenPayload(token: string): Record<string, unknown> | null {
+    const payload = token?.split('.')[1];
     if (!payload) {
       return null;
     }
@@ -270,9 +301,7 @@ export class AuthService {
         return null;
       }
 
-      const decoded = atob(padded);
-      const parsed = JSON.parse(decoded) as { sub?: string };
-      return parsed.sub?.trim().toLowerCase() || null;
+      return JSON.parse(atob(padded)) as Record<string, unknown>;
     } catch {
       return null;
     }
