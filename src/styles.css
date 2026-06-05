@@ -80,6 +80,78 @@ select:autofill {
   color: #f9fafb;
 }
 
+/* Scrollbars globales */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
+
+html.dark,
+html.dark body {
+  color-scheme: dark;
+  scrollbar-color: #475569 transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html.dark::-webkit-scrollbar-thumb,
+html.dark body::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+html.dark::-webkit-scrollbar-thumb:hover,
+html.dark body::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+.dark * {
+  scrollbar-color: #475569 transparent;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
 /* Combobox animado para filtros */
 .filter-combo-wrap {
   position: relative;

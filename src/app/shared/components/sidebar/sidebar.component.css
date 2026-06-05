@@ -7,6 +7,15 @@
 }
 
 /* Scrollbar personalizado */
+nav {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+:host-context(.dark) nav {
+  scrollbar-color: #475569 transparent;
+}
+
 nav::-webkit-scrollbar {
   width: 4px;
 }
@@ -22,6 +31,14 @@ nav::-webkit-scrollbar-thumb {
 
 nav::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
+}
+
+:host-context(.dark) nav::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+:host-context(.dark) nav::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Active state styling */
