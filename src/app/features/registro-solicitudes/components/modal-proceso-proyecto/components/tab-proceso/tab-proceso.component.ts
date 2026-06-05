@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleChanges, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleChanges, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
@@ -19,9 +19,6 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements OnChanges, OnDestroy {
-  private readonly authService = inject(AuthService);
-  private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
-  private readonly adjuntosPreviewService = inject(AdjuntosPreviewService);
   @Input() proyecto: Proyecto | null = null;
   @Input() responsables: Responsable[] = [];
   @Input() proyectoFinalizado = false;
@@ -49,7 +46,12 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   filtroEstadoActividad = '';
   filtroFechaDesde = '';
   filtroFechaHasta = '';
-  mostrarFiltroFechas = false;
+  public mostrarFiltrosAvanzados = false;
+  public mostrarFiltroFechas = false;
+  dropdownFiltrosFlujoAbiertos: Record<'responsable' | 'estado', boolean> = {
+    responsable: false,
+    estado: false
+  };
   actividadesSeleccionadasIds = new Set<number>();
   paginacionTablaFlujo: PaginacionConfig = {
     paginaActual: 0,
@@ -111,7 +113,10 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly authService: AuthService,
+    private readonly registroSolicitudesService: RegistroSolicitudesService,
+    private readonly adjuntosPreviewService: AdjuntosPreviewService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
@@ -300,12 +305,32 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       || !!this.filtroFechaHasta;
   }
 
+  public get totalFiltrosActivos(): number {
+    let total = 0;
+    if (this.filtroResponsableId) total++;
+    if (this.filtroEstadoActividad) total++;
+    if (this.filtroFechaDesde || this.filtroFechaHasta) total++;
+    return total;
+  }
+
+  abrirDropdownFiltroFlujo(nombre: keyof TabProcesoComponent['dropdownFiltrosFlujoAbiertos']): void {
+    this.dropdownFiltrosFlujoAbiertos[nombre] = true;
+  }
+
+  cerrarDropdownFiltroFlujo(nombre: keyof TabProcesoComponent['dropdownFiltrosFlujoAbiertos']): void {
+    this.dropdownFiltrosFlujoAbiertos[nombre] = false;
+  }
+
   limpiarFiltros(): void {
     this.filtroBusqueda = '';
     this.filtroResponsableId = '';
     this.filtroEstadoActividad = '';
     this.filtroFechaDesde = '';
     this.filtroFechaHasta = '';
+    this.mostrarFiltrosAvanzados = false;
+    this.mostrarFiltroFechas = false;
+    this.cerrarDropdownFiltroFlujo('responsable');
+    this.cerrarDropdownFiltroFlujo('estado');
   }
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {

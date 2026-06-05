@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -75,12 +75,6 @@ export interface TablaCostoExtra {
   styleUrls: ['./modal-proceso-proyecto.component.css']
 })
 export class ModalProcesoProyectoComponent implements OnChanges {
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly registroSolicitudesService = inject(RegistroSolicitudesService);
-  private readonly httpClient = inject(HttpClient);
-  private readonly httpService = inject(HttpService);
-  private readonly adjuntosPreviewService = inject(AdjuntosPreviewService);
-
   @Input() visible = false;
   @Input() embedded = false;
   @Input() proyecto: Proyecto | null = null;
@@ -173,6 +167,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   get totalActividadesFlujoNav(): number {
     return (this.flujoNodos || []).filter((nodo) => String(nodo?.tipo || '').toLowerCase() !== 'inicio').length;
   }
+
+  constructor(
+    private readonly sanitizer: DomSanitizer,
+    private readonly registroSolicitudesService: RegistroSolicitudesService,
+    private readonly httpClient: HttpClient,
+    private readonly httpService: HttpService,
+    private readonly adjuntosPreviewService: AdjuntosPreviewService
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
