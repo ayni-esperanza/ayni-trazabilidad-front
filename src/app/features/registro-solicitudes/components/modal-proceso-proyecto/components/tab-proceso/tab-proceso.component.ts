@@ -321,6 +321,19 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.dropdownFiltrosFlujoAbiertos[nombre] = false;
   }
 
+  alternarDropdownFiltroEstado(): void {
+    this.dropdownFiltrosFlujoAbiertos.estado = !this.dropdownFiltrosFlujoAbiertos.estado;
+  }
+
+  cerrarDropdownFiltroEstadoConRetraso(): void {
+    setTimeout(() => this.cerrarDropdownFiltroFlujo('estado'), 120);
+  }
+
+  seleccionarFiltroEstado(estado: EstadoTarea | ''): void {
+    this.filtroEstadoActividad = estado;
+    this.cerrarDropdownFiltroFlujo('estado');
+  }
+
   limpiarFiltros(): void {
     this.filtroBusqueda = '';
     this.filtroResponsableId = '';
@@ -388,6 +401,18 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     return clases[estado];
   }
 
+  getClaseControlEstadoActividad(estado: EstadoTarea | ''): string {
+    const clases: Record<EstadoTarea, string> = {
+      Pendiente: 'border-slate-300 bg-slate-50 text-slate-700 ring-slate-200 dark:border-slate-500 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-500/40',
+      'En Proceso': 'border-blue-300 bg-blue-50 text-blue-700 ring-blue-200 dark:border-blue-500 dark:bg-blue-950/70 dark:text-blue-100 dark:ring-blue-500/40',
+      Completado: 'border-green-300 bg-green-50 text-green-700 ring-green-200 dark:border-green-500 dark:bg-green-950/70 dark:text-green-100 dark:ring-green-500/40',
+      Cancelado: 'border-red-300 bg-red-50 text-red-700 ring-red-200 dark:border-red-500 dark:bg-red-950/70 dark:text-red-100 dark:ring-red-500/40',
+      Retrasado: 'border-amber-300 bg-amber-50 text-amber-700 ring-amber-200 dark:border-amber-500 dark:bg-amber-950/70 dark:text-amber-100 dark:ring-amber-500/40'
+    };
+
+    return estado ? `${clases[estado]} ring-1` : 'border-gray-200 bg-white text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100';
+  }
+
   getClaseIconoEstadoFiltro(estado: EstadoTarea | ''): string {
     const clases: Record<EstadoTarea, string> = {
       Pendiente: 'bg-slate-400 ring-slate-100 dark:bg-slate-300 dark:ring-slate-700',
@@ -408,8 +433,21 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.estadoDropdownAbierto[nodoId] = true;
   }
 
+  toggleEstadoDropdown(nodoId: number): void {
+    this.estadoDropdownAbierto[nodoId] = !this.estadoDropdownAbierto[nodoId];
+  }
+
   onEstadoDropdownClose(nodoId: number): void {
     this.estadoDropdownAbierto[nodoId] = false;
+  }
+
+  cerrarEstadoDropdownConRetraso(nodoId: number): void {
+    setTimeout(() => this.onEstadoDropdownClose(nodoId), 120);
+  }
+
+  seleccionarEstadoActividad(nodo: FlujoNodo, estado: EstadoTarea): void {
+    this.onCambiarEstadoActividad(nodo, estado);
+    this.onEstadoDropdownClose(nodo.id);
   }
 
   isEstadoDropdownAbierto(nodoId: number): boolean {

@@ -45,22 +45,32 @@
 						<span>•</span>
 					</ng-container>
 					<span class="truncate">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || 'Sin fecha') : ((ctx.formatDateStandar(nodo.fechaInicio) || '—') + ' - ' + (ctx.formatDateStandar(nodo.fechaFin) || '—')) }}</span>
-					<div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group">
-						<select
-							[ngModel]="ctx.getEstadoActividad(nodo)"
-							(ngModelChange)="ctx.onCambiarEstadoActividad(nodo, $event); ctx.onEstadoDropdownClose(nodo.id)"
-							(mousedown)="ctx.onEstadoDropdownOpen(nodo.id)"
-							(blur)="ctx.onEstadoDropdownClose(nodo.id)"
-							(keydown.enter)="ctx.onEstadoDropdownOpen(nodo.id)"
+					<div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group" (focusout)="ctx.cerrarEstadoDropdownConRetraso(nodo.id)">
+						<button
+							type="button"
+							(click)="ctx.toggleEstadoDropdown(nodo.id)"
 							(keydown.escape)="ctx.onEstadoDropdownClose(nodo.id)"
 							[disabled]="ctx.proyectoCancelado"
-							style="appearance:none;-webkit-appearance:none;-moz-appearance:none;"
-							class="text-[10px] pl-2 pr-6 py-0.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 bg-none text-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-							<option *ngFor="let estado of ctx.estadosActividad" [value]="estado">{{ estado }}</option>
-						</select>
+							class="min-w-[92px] text-[10px] pl-2 pr-6 py-0.5 border rounded text-left whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							[ngClass]="ctx.getClaseControlEstadoActividad(ctx.getEstadoActividad(nodo))"
+							[attr.aria-expanded]="ctx.isEstadoDropdownAbierto(nodo.id)">
+							{{ ctx.getEstadoActividad(nodo) }}
+						</button>
 						<svg class="pointer-events-none absolute right-1.5 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200" [ngClass]="{ 'rotate-180': ctx.isEstadoDropdownAbierto(nodo.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
 						</svg>
+						<div
+							*ngIf="ctx.isEstadoDropdownAbierto(nodo.id)"
+							class="absolute left-0 top-full z-[1000] mt-1 w-32 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+							<button
+								*ngFor="let estado of ctx.estadosActividad"
+								type="button"
+								(click)="ctx.seleccionarEstadoActividad(nodo, estado)"
+								class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10px] whitespace-nowrap text-gray-700 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700">
+								<span class="h-2 w-2 rounded-full ring-2" [ngClass]="ctx.getClaseIconoEstadoFiltro(estado)" aria-hidden="true"></span>
+								{{ estado }}
+							</button>
+						</div>
 					</div>
 				</div>
 

@@ -1,6 +1,6 @@
 <!-- Barra única: buscador + filtros + controles -->
-<div class="flex flex-wrap items-start gap-2 mb-3">
-	<div class="flex flex-wrap items-start gap-2 flex-1 min-w-0">
+<div class="relative z-50 flex flex-wrap items-start gap-2 mb-3">
+	<div class="relative z-50 flex flex-wrap items-start gap-2 flex-1 min-w-0">
 		<!-- Buscador -->
 		<div class="relative w-full sm:w-[220px] lg:w-[260px] xl:w-[300px] flex-shrink-0">
 			<span class="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
@@ -16,7 +16,7 @@
 			/>
 		</div>
 
-		<!-- Filtros -->
+		<!-- Filtros, fechas y orden -->
 		<div class="flex flex-wrap items-center gap-1.5 flex-shrink-0">
 			<button
 				type="button"
@@ -37,11 +37,8 @@
 				</span>
 			</button>
 
-			<div
-				class="grid items-center gap-1.5 overflow-hidden transition-[grid-template-columns,opacity,margin] duration-200 ease-out"
-				[ngClass]="mostrarFiltrosAvanzados
-					? 'grid-cols-[150px_130px] opacity-100 ml-0.5'
-					: 'grid-cols-[0px_0px] opacity-0 ml-0 pointer-events-none'">
+			@if (mostrarFiltrosAvanzados) {
+			<div class="grid grid-cols-[150px_130px] items-center gap-1.5 ml-0.5 overflow-visible animate-ui-in">
 				<div class="relative min-w-0">
 					<select
 						[(ngModel)]="filtroResponsableId"
@@ -69,27 +66,22 @@
 					</svg>
 				</div>
 
-				<div class="relative min-w-0">
+				<div class="relative min-w-0" (focusout)="cerrarDropdownFiltroEstadoConRetraso()">
 					<span
 						class="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ring-2 transition-colors duration-200"
 						[ngClass]="getClaseIconoEstadoFiltro(filtroEstadoActividad)"
 						aria-hidden="true">
 					</span>
-					<select
-						[(ngModel)]="filtroEstadoActividad"
-						[attr.tabindex]="mostrarFiltrosAvanzados ? null : -1"
-						(mousedown)="abrirDropdownFiltroFlujo('estado')"
-						(focus)="abrirDropdownFiltroFlujo('estado')"
-						(blur)="cerrarDropdownFiltroFlujo('estado')"
-						(change)="cerrarDropdownFiltroFlujo('estado')"
+					<button
+						type="button"
+						(click)="alternarDropdownFiltroEstado()"
 						(keydown.escape)="cerrarDropdownFiltroFlujo('estado')"
-						(keydown.tab)="cerrarDropdownFiltroFlujo('estado')"
-						style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-						class="h-7 min-w-0 w-full pl-5 pr-7 py-0 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 appearance-none"
-						[ngClass]="filtroEstadoActividad ? 'border-blue-400 dark:border-blue-600 ring-1 ring-blue-300 dark:ring-blue-700' : ''">
-						<option value="">Estado</option>
-						<option *ngFor="let e of estadosActividad" [value]="e">{{ e }}</option>
-					</select>
+						class="h-7 min-w-0 w-full pl-5 pr-7 py-0 text-left text-[10px] border rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none transition-colors"
+						[ngClass]="getClaseControlEstadoActividad(filtroEstadoActividad)"
+						[attr.aria-expanded]="dropdownFiltrosFlujoAbiertos.estado"
+						aria-label="Filtrar por estado">
+						{{ filtroEstadoActividad || 'Estado' }}
+					</button>
 					<svg
 						class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
 						[ngClass]="{ 'rotate-180': dropdownFiltrosFlujoAbiertos.estado }"
@@ -99,12 +91,30 @@
 						aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 					</svg>
+					<div
+						*ngIf="dropdownFiltrosFlujoAbiertos.estado"
+						class="absolute left-0 top-full z-[1000] mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+						<button
+							type="button"
+							(click)="seleccionarFiltroEstado('')"
+							class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10px] text-gray-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">
+							<span class="h-2 w-2 rounded-full ring-2" [ngClass]="getClaseIconoEstadoFiltro('')" aria-hidden="true"></span>
+							Estado
+						</button>
+						<button
+							*ngFor="let estado of estadosActividad"
+							type="button"
+							(click)="seleccionarFiltroEstado(estado)"
+							class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10px] text-gray-700 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700">
+							<span class="h-2 w-2 rounded-full ring-2" [ngClass]="getClaseIconoEstadoFiltro(estado)" aria-hidden="true"></span>
+							{{ estado }}
+						</button>
+					</div>
 				</div>
-			</div>
-		</div>
 
-		<!-- Fechas -->
-		<div class="flex flex-wrap items-center gap-1.5 flex-shrink-0">
+			</div>
+			}
+
 			<button
 				type="button"
 				(click)="mostrarFiltroFechas = !mostrarFiltroFechas; mostrarFiltrosAvanzados = false"
@@ -144,6 +154,28 @@
 					Limpiar
 				</button>
 			}
+
+			<!-- Orden -->
+			<button
+				type="button"
+				(click)="alternarOrdenFlujo()"
+				class="inline-flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-200 ease-out hover:-translate-y-[1px]"
+				[ngClass]="ordenRecientePrimero
+					? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+					: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+				[attr.aria-label]="ordenRecientePrimero ? 'Cambiar a antiguos primero' : 'Cambiar a recientes primero'"
+				title="Cambiar orden">
+				<svg
+					class="w-3.5 h-3.5 transition-transform duration-200"
+					[ngClass]="{ 'rotate-180': !ordenRecientePrimero }"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 12h8m-8 5h4M4 4v16m0 0l-2-2m2 2l2-2"/>
+				</svg>
+				<span class="sr-only">{{ ordenRecientePrimero ? 'Recientes primero' : 'Antiguos primero' }}</span>
+			</button>
 		</div>
 
 		<!-- Limpiar filtros -->
@@ -157,16 +189,18 @@
 			</svg>
 			Limpiar
 		</button>
+	</div>
 
+	<div class="ml-auto flex items-center gap-2 flex-shrink-0">
 		<!-- Vista Timeline / Tabla -->
-		<div class="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden h-7">
+		<div class="flex items-center gap-1.5">
 			<button
 				type="button"
 				(click)="cambiarVistaFlujo('timeline')"
-				class="inline-flex items-center justify-center w-7 h-7 transition-all duration-200 ease-out hover:-translate-y-[1px]"
+				class="inline-flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-200 ease-out hover:-translate-y-[1px]"
 				[ngClass]="vistaFlujo === 'timeline'
-					? 'bg-blue-500 text-white'
-					: 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+					? 'border-blue-300 dark:border-blue-700 bg-blue-500 text-white'
+					: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
 				aria-label="Vista timeline"
 				title="Vista timeline">
 				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -177,10 +211,10 @@
 			<button
 				type="button"
 				(click)="cambiarVistaFlujo('tabla')"
-				class="inline-flex items-center justify-center w-7 h-7 transition-all duration-200 ease-out hover:-translate-y-[1px]"
+				class="inline-flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-200 ease-out hover:-translate-y-[1px]"
 				[ngClass]="vistaFlujo === 'tabla'
-					? 'bg-blue-500 text-white'
-					: 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
+					? 'border-blue-300 dark:border-blue-700 bg-blue-500 text-white'
+					: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
 				aria-label="Vista tabla"
 				title="Vista tabla">
 				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -190,30 +224,6 @@
 			</button>
 		</div>
 
-		<!-- Orden -->
-		<button
-			type="button"
-			(click)="alternarOrdenFlujo()"
-			class="inline-flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-200 ease-out hover:-translate-y-[1px]"
-			[ngClass]="ordenRecientePrimero
-				? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-				: 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-			[attr.aria-label]="ordenRecientePrimero ? 'Cambiar a antiguos primero' : 'Cambiar a recientes primero'"
-			title="Cambiar orden">
-			<svg
-				class="w-3.5 h-3.5 transition-transform duration-200"
-				[ngClass]="{ 'rotate-180': !ordenRecientePrimero }"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				aria-hidden="true">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12M8 12h8m-8 5h4M4 4v16m0 0l-2-2m2 2l2-2"/>
-			</svg>
-			<span class="sr-only">{{ ordenRecientePrimero ? 'Recientes primero' : 'Antiguos primero' }}</span>
-		</button>
-	</div>
-
-	<div class="ml-auto flex items-center gap-2 flex-shrink-0">
 		<button
 			*ngIf="vistaFlujo === 'tabla' && totalActividadesSeleccionadas > 0"
 			type="button"
