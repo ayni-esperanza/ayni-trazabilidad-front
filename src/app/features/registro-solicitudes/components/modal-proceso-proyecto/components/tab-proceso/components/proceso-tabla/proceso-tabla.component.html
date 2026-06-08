@@ -1,5 +1,5 @@
-<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-hidden bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
-  <div class="overflow-x-auto">
+<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-visible bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
+  <div class="overflow-visible">
     <table class="w-full text-xs">
       <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
         <tr>
@@ -428,12 +428,12 @@
                 </svg>
                 <div
                   *ngIf="ctx.isEstadoDropdownAbierto(nodo.id)"
-                  class="absolute left-0 top-full z-[1000] mt-1 w-36 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                  class="absolute left-0 top-full z-[1000] mt-1 min-w-full w-max overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   <button
                     *ngFor="let estado of ctx.estadosActividad"
                     type="button"
                     (click)="ctx.seleccionarEstadoActividad(nodo, estado)"
-                    class="flex w-full items-center gap-2 px-2 py-1.5 text-left text-[11px] whitespace-nowrap text-gray-700 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700">
+                    class="flex w-full items-center gap-2 px-2 py-1 text-left text-[11px] whitespace-nowrap text-gray-700 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700">
                     <span class="h-2 w-2 rounded-full ring-2" [ngClass]="ctx.getClaseIconoEstadoFiltro(estado)" aria-hidden="true"></span>
                     {{ estado }}
                   </button>
