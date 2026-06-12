@@ -2,8 +2,20 @@
 
 :host {
   display: block;
-  height: 100vh;
   flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  :host {
+    height: 100vh;
+  }
+}
+
+@media (max-width: 767px) {
+  :host {
+    width: 0;
+    flex-basis: 0;
+  }
 }
 
 /* Scrollbar personalizado */
@@ -42,7 +54,7 @@ nav::-webkit-scrollbar-thumb:hover {
 }
 
 /* Active state styling */
-a.bg-green-50 {
+.menu-item-container a.bg-green-50 {
   margin-left: -4px;
   padding-left: calc(0.75rem + 4px);
 }
@@ -106,4 +118,13 @@ a.bg-green-50 {
 /* Hover mejorado con transición */
 .menu-item-container a:hover {
   transform: translateX(2px);
+}
+
+.sidebar-mobile-nav {
+  box-shadow: 0 -12px 30px -24px rgba(15, 23, 42, 0.5);
+}
+
+.sidebar-user-panel {
+  max-height: min(32rem, calc(100vh - 1.5rem));
+  overflow: hidden;
 }

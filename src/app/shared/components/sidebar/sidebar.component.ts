@@ -1,14 +1,14 @@
 import { Component, signal, inject, HostListener, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
-import { trigger, state, style, transition, animate, query, stagger } from '@angular/animations';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertasActividadesService, AlertaActividadGlobal } from '../../../core/services/alertas-actividades.service';
 import { filter } from 'rxjs/operators';
 
 interface MenuItem {
-  icon: 'dashboard' | 'requests' | 'stats' | 'reports' | 'users';
+  icon: 'dashboard' | 'requests' | 'stats' | 'users';
   label: string;
   route: string;
 }
@@ -56,7 +56,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private elementRef = inject(ElementRef);
   private router = inject(Router);
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
-  
+
   private getInitialSidebarState(): boolean {
     if (typeof window !== 'undefined') {
       const valorGuardado = window.localStorage.getItem(this.SIDEBAR_STATE_KEY);
@@ -72,6 +72,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
   alertasPendientes = signal(0);
   mostrarModalAlertas = signal(false);
   alertasRecientes = signal<AlertaActividadGlobal[]>([]);
+
+  menuItems: MenuItem[] = [
+    { icon: 'dashboard', label: 'Tablero de control', route: '/tablero-control' },
+    { icon: 'requests', label: 'Registro de solicitudes', route: '/registro-solicitudes' },
+    { icon: 'stats', label: 'Estadisticas e indicadores', route: '/estadisticas-indicadores' },
+    { icon: 'users', label: 'Gestion de usuarios', route: '/gestion-usuarios' }
+  ];
 
   constructor() {
     this.router.events.pipe(
@@ -118,14 +125,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.currentRoute().startsWith(route);
   }
 
-  menuItems: MenuItem[] = [
-    { icon: 'dashboard', label: 'Tablero de control', route: '/tablero-control' },
-    { icon: 'requests', label: 'Registro de solicitudes', route: '/registro-solicitudes' },
-    { icon: 'stats', label: 'Estadísticas e indicadores', route: '/estadisticas-indicadores' },
-    { icon: 'reports', label: 'Informes y evidencias', route: '/informes-evidencias' },
-    { icon: 'users', label: 'Gestión de usuarios', route: '/gestion-usuarios' }
-  ];
-
   get visibleMenuItems(): MenuItem[] {
     if (this.authService.isAdminUser()) {
       return this.menuItems;
@@ -156,6 +155,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.showUserMenu.set(false);
+    this.mostrarModalAlertas.set(false);
     this.authService.logout();
   }
 
@@ -178,12 +178,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleModalAlertas(event: MouseEvent): void {
-    event.stopPropagation();
+  toggleModalAlertas(event?: Event): void {
+    event?.stopPropagation();
     const nuevoEstado = !this.mostrarModalAlertas();
-    if (nuevoEstado) {
-      this.showUserMenu.set(false);
-    }
     this.mostrarModalAlertas.set(nuevoEstado);
     if (nuevoEstado) {
       this.actualizarAlertasRecientes();
@@ -192,6 +189,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   verTodasAlertas(): void {
     this.mostrarModalAlertas.set(false);
+    this.showUserMenu.set(false);
     this.router.navigate(['/alertas']);
   }
 
@@ -213,16 +211,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     window.localStorage.setItem(this.SIDEBAR_STATE_KEY, String(expandido));
   }
 
-  // Cerrar el menú al hacer clic fuera
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    const userMenuElement = this.elementRef.nativeElement.querySelector('.user-menu-container');
-    if (userMenuElement && !userMenuElement.contains(event.target)) {
-      this.showUserMenu.set(false);
-    }
+    const userMenuElements = Array.from(this.elementRef.nativeElement.querySelectorAll('.user-menu-container')) as HTMLElement[];
+    const target = event.target as Node | null;
+    const clickDentroDeMenuUsuario = userMenuElements.some((element) => !!target && element.contains(target));
 
-    const alertasElement = this.elementRef.nativeElement.querySelector('.alertas-menu-container');
-    if (alertasElement && !alertasElement.contains(event.target)) {
+    if (!clickDentroDeMenuUsuario) {
+      this.showUserMenu.set(false);
       this.mostrarModalAlertas.set(false);
     }
   }

@@ -1,19 +1,18 @@
-<aside 
-  class="h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-[width] duration-300 ease-in-out max-w-full z-50"
+<aside
+  class="hidden h-screen max-w-full flex-col border-r border-gray-200 bg-white transition-[width] duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-900 md:flex"
   [class.w-56]="isExpanded()"
   [class.w-16]="!isExpanded()">
-  
-  <!-- Header -->
-  <div class="p-2.5 border-b border-gray-200 dark:border-gray-700">
+
+  <div class="border-b border-gray-200 p-2.5 dark:border-gray-700">
     @if (isExpanded()) {
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img src="logoayni.png" alt="AYNI Logo" class="w-7 h-7 object-contain">
-          <span class="text-sm font-semibold text-gray-800 dark:text-white">Módulo de Trazabilidad</span>
+          <img src="logoayni.png" alt="AYNI Logo" class="h-7 w-7 object-contain">
+          <span class="text-sm font-semibold text-gray-800 dark:text-white">Modulo de Trazabilidad</span>
         </div>
-        <button 
-          (click)="toggleSidebar()" 
-          class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 dark:text-gray-400">
+        <button
+          (click)="toggleSidebar()"
+          class="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
           </svg>
@@ -21,69 +20,65 @@
       </div>
     } @else {
       <div class="flex flex-col items-center gap-2">
-        <button 
-          (click)="toggleSidebar()" 
-          class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 dark:text-gray-400 mx-auto">
+        <button
+          (click)="toggleSidebar()"
+          class="mx-auto rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
           </svg>
         </button>
-        <img src="logoayni.png" alt="AYNI Logo" class="w-8 h-8 object-contain">
+        <img src="logoayni.png" alt="AYNI Logo" class="h-8 w-8 object-contain">
       </div>
     }
   </div>
 
-  <!-- Navigation -->
-  <nav class="flex-1 p-2 overflow-y-auto">
+  <nav class="flex-1 overflow-y-auto p-2">
     <ul class="space-y-0.5">
       @for (item of visibleMenuItems; track item.route) {
-        <li 
+        <li
           [@activeIndicator]="getAnimationState(item.route)"
           [@pulseEffect]="getAnimationState(item.route)"
           class="menu-item-container">
-          <a 
+          <a
             [routerLink]="item.route"
-            routerLinkActive="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-l-4 border-green-500"
-            [routerLinkActiveOptions]="{exact: false}"
-            class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all duration-200 group relative overflow-hidden"
+            routerLinkActive="bg-green-50 text-green-700 border-l-4 border-green-500 dark:bg-green-900/30 dark:text-green-400"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="group relative flex items-center gap-2 overflow-hidden rounded-lg px-2.5 py-2 text-gray-600 transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
             [class.justify-center]="!isExpanded()"
             [title]="!isExpanded() ? item.label : ''">
-            <!-- Active indicator bar animation -->
             @if (isActiveRoute(item.route)) {
-              <span class="absolute left-0 top-0 h-full w-1 bg-green-500 animate-slide-in"></span>
+              <span class="absolute left-0 top-0 h-full w-1 animate-slide-in bg-green-500"></span>
             }
-            <span class="flex-shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                  [class.animate-bounce-subtle]="isActiveRoute(item.route)">
+
+            <span
+              class="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+              [class.animate-bounce-subtle]="isActiveRoute(item.route)">
               @switch (item.icon) {
                 @case ('dashboard') {
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
                   </svg>
                 }
                 @case ('requests') {
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 }
                 @case ('stats') {
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7" />
                   </svg>
                 }
-                @case ('reports') {
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h6m-6 0l2-2m-2 2l2 2M7 7h10a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" />
-                  </svg>
-                }
                 @case ('users') {
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 }
               }
             </span>
+
             @if (isExpanded()) {
-              <span class="text-xs font-medium truncate transition-all duration-200">{{ item.label }}</span>
+              <span class="truncate text-xs font-medium transition-all duration-200">{{ item.label }}</span>
             }
           </a>
         </li>
@@ -91,166 +86,143 @@
     </ul>
   </nav>
 
-  <!-- Footer -->
-  <div class="p-2 border-t border-gray-200 dark:border-gray-700 space-y-0.5">
-    <!-- Dark Mode Toggle -->
-    <button 
-      (click)="toggleTheme()"
-      type="button"
-      class="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-      [class.justify-center]="!isExpanded()"
-      [attr.aria-label]="themeService.isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
-      <span class="flex-shrink-0">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            [attr.d]="themeService.isDarkMode()
-              ? 'M12 3v2m0 14v2m7-9h2M3 12H5m11.364 6.364l1.414 1.414M6.222 6.222l1.414 1.414m8.728 0 1.414-1.414M6.222 17.778l1.414-1.414M12 8a4 4 0 100 8 4 4 0 000-8z'
-              : 'M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z'" />
-        </svg>
-      </span>
-      @if (isExpanded()) {
-        <span class="text-xs font-medium">{{ themeService.isDarkMode() ? 'Modo Claro' : 'Modo Oscuro' }}</span>
-      }
-    </button>
-
-    <!-- Alerts -->
-    <div class="relative alertas-menu-container">
-      <button
-        type="button"
-        (click)="toggleModalAlertas($event)"
-        class="relative flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-        [class.justify-center]="!isExpanded()"
-        [ngClass]="{
-          'bg-amber-50': mostrarModalAlertas(),
-          'dark:bg-amber-900/30': mostrarModalAlertas(),
-          'text-amber-700': mostrarModalAlertas(),
-          'dark:text-amber-300': mostrarModalAlertas()
-        }">
-        <span class="flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </span>
-        @if (!isExpanded() && alertasPendientes() > 0) {
-          <span class="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] leading-4 text-center font-semibold">
-            {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
-          </span>
-        }
-        @if (isExpanded()) {
-          <span class="text-xs font-medium">Alertas</span>
-          @if (alertasPendientes() > 0) {
-            <span class="ml-auto min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] leading-5 text-center font-semibold">
-              {{ alertasPendientes() > 99 ? '99+' : alertasPendientes() }}
-            </span>
-          }
-        }
-      </button>
-
-      @if (mostrarModalAlertas()) {
-        <div
-          class="absolute left-full bottom-0 ml-2 z-50 w-80 max-w-[calc(100vw-5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-2.5">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-100">Alertas recientes</p>
-            <span class="text-[10px] text-gray-500 dark:text-gray-400">{{ alertasPendientes() }}</span>
-          </div>
-
-          <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            @if (alertasRecientes().length > 0) {
-              @for (alerta of alertasRecientes(); track alerta.proyectoId + '-' + alerta.nodoId) {
-                <div class="rounded-md border px-2 py-1.5" [ngClass]="getClaseAlerta(alerta)">
-                  <p class="text-[11px] font-semibold truncate">{{ alerta.nombreActividad }}</p>
-                  <p class="text-[10px] opacity-90">Proyecto {{ alerta.proyectoNombre || ('#' + alerta.proyectoId) }} · {{ alerta.estado }}</p>
-                  <p class="text-[10px] opacity-90 truncate">{{ alerta.mensaje }}</p>
-                </div>
-              }
-            } @else {
-              <p class="text-[11px] text-gray-500 dark:text-gray-400 text-center py-4">No hay alertas activas.</p>
-            }
-          </div>
-
-          <button
-            type="button"
-            (click)="verTodasAlertas()"
-            class="mt-2 w-full text-center text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-            Ver todas
-          </button>
-        </div>
-      }
-    </div>
-
-    <!-- User Profile -->
+  <div class="border-t border-gray-200 p-2 dark:border-gray-700">
     <div class="relative user-menu-container">
-      <button 
+      <button
         (click)="toggleUserMenu()"
-        class="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+        class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
         [class.justify-center]="!isExpanded()"
         [class.bg-gray-100]="showUserMenu()"
         [class.dark:bg-gray-700]="showUserMenu()">
-        <div class="w-7 h-7 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+        <div class="relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
+          @if (alertasPendientes() > 0) {
+            <span class="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-semibold leading-4 text-white">
+              {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
+            </span>
+          }
         </div>
+
         @if (isExpanded()) {
-          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 text-left">{{ getUserName() }}</span>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            class="h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200"
+          <span class="flex-1 text-left text-xs font-medium text-gray-700 dark:text-gray-300">{{ getUserName() }}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-gray-500 transition-transform duration-200 dark:text-gray-400"
             [class.rotate-180]="showUserMenu()"
-            fill="none" 
-            viewBox="0 0 24 24" 
+            fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
           </svg>
         }
       </button>
 
-      <!-- User Menu Dropdown -->
       @if (showUserMenu()) {
-        <div 
-          class="absolute left-full bottom-0 ml-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px] z-50">
-          
-          <!-- Header del menú -->
-          <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div class="sidebar-user-panel absolute bottom-0 left-full z-50 ml-2 min-w-[220px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ getUserName() }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">{{ authService.currentUserValue?.email || 'admin@ayni.com' }}</p>
           </div>
 
-          <!-- Opciones del menú -->
           <div class="py-1">
-            <button 
-              class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Mi Perfil
             </button>
+
+            <button
+              type="button"
+              (click)="toggleModalAlertas($event)"
+              class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+              <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                @if (alertasPendientes() > 0) {
+                  <span class="absolute -right-2 -top-2 min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-semibold leading-4 text-white">
+                    {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
+                  </span>
+                }
+              </div>
+              <span class="flex-1 text-left">Notificaciones</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">{{ mostrarModalAlertas() ? 'Ocultar' : 'Ver' }}</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="toggleTheme()"
+              class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  [attr.d]="themeService.isDarkMode()
+                    ? 'M12 3v2m0 14v2m7-9h2M3 12H5m11.364 6.364l1.414 1.414M6.222 6.222l1.414 1.414m8.728 0 1.414-1.414M6.222 17.778l1.414-1.414M12 8a4 4 0 100 8 4 4 0 000-8z'
+                    : 'M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z'">
+                </path>
+              </svg>
+              {{ themeService.isDarkMode() ? 'Modo claro' : 'Modo oscuro' }}
+            </button>
+
             @if (authService.isAdminUser()) {
-              <a 
+              <a
                 routerLink="/gestion-usuarios"
                 (click)="showUserMenu.set(false)"
-                class="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Configuración
+                Configuracion
               </a>
             }
           </div>
 
-          <!-- Separador y Cerrar Sesión -->
-          <div class="border-t border-gray-200 dark:border-gray-700 py-1">
-            <button 
+          @if (mostrarModalAlertas()) {
+            <div class="border-t border-gray-200 px-3 py-2 dark:border-gray-700">
+              <div class="mb-2 flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-100">Alertas recientes</p>
+                <span class="text-[10px] text-gray-500 dark:text-gray-400">{{ alertasPendientes() }}</span>
+              </div>
+
+              <div class="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+                @if (alertasRecientes().length > 0) {
+                  @for (alerta of alertasRecientes(); track alerta.proyectoId + '-' + alerta.nodoId) {
+                    <div class="rounded-md border px-2 py-1.5" [ngClass]="getClaseAlerta(alerta)">
+                      <p class="truncate text-[11px] font-semibold">{{ alerta.nombreActividad }}</p>
+                      <p class="text-[10px] opacity-90">Proyecto {{ alerta.proyectoNombre || ('#' + alerta.proyectoId) }} · {{ alerta.estado }}</p>
+                      <p class="truncate text-[10px] opacity-90">{{ alerta.mensaje }}</p>
+                    </div>
+                  }
+                } @else {
+                  <p class="py-4 text-center text-[11px] text-gray-500 dark:text-gray-400">No hay alertas activas.</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                (click)="verTodasAlertas()"
+                class="mt-2 w-full text-center text-[11px] font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                Ver todas
+              </button>
+            </div>
+          }
+
+          <div class="border-t border-gray-200 py-1 dark:border-gray-700">
+            <button
               (click)="logout()"
-              class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              class="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              Cerrar Sesión
+              Cerrar sesion
             </button>
           </div>
         </div>
@@ -258,3 +230,171 @@
     </div>
   </div>
 </aside>
+
+<nav class="sidebar-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
+  <div
+    class="grid items-end gap-1 px-2 pb-[max(env(safe-area-inset-bottom),0.65rem)] pt-2"
+    [ngClass]="authService.isAdminUser() ? 'grid-cols-5' : 'grid-cols-4'">
+    @for (item of visibleMenuItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        class="relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        [ngClass]="isActiveRoute(item.route) ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''">
+        @switch (item.icon) {
+          @case ('dashboard') {
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+            </svg>
+          }
+          @case ('requests') {
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          }
+          @case ('stats') {
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20V10m5 10V4m5 16v-7" />
+            </svg>
+          }
+          @case ('users') {
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          }
+        }
+        <span class="max-w-full truncate">
+          {{ item.route === '/tablero-control' ? 'Inicio' : item.route === '/registro-solicitudes' ? 'Solicitudes' : item.route === '/estadisticas-indicadores' ? 'Estadisticas' : 'Usuarios' }}
+        </span>
+      </a>
+    }
+
+    <div class="relative user-menu-container">
+      <button
+        type="button"
+        (click)="toggleUserMenu()"
+        class="relative flex w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        [ngClass]="showUserMenu() ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''">
+        <div class="relative flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          @if (alertasPendientes() > 0) {
+            <span class="absolute -right-1 -top-1 min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-semibold leading-4 text-white">
+              {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
+            </span>
+          }
+        </div>
+        <span>Cuenta</span>
+      </button>
+
+      @if (showUserMenu()) {
+        <div class="sidebar-user-panel absolute bottom-full right-0 mb-2 w-[min(22rem,calc(100vw-1rem))] rounded-2xl border border-gray-200 bg-white py-1 shadow-xl dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ getUserName() }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ authService.currentUserValue?.email || 'admin@ayni.com' }}</p>
+          </div>
+
+          <div class="py-1">
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Mi Perfil
+            </button>
+
+            <button
+              type="button"
+              (click)="toggleModalAlertas($event)"
+              class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+              <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                @if (alertasPendientes() > 0) {
+                  <span class="absolute -right-2 -top-2 min-w-4 rounded-full bg-red-500 px-1 text-center text-[10px] font-semibold leading-4 text-white">
+                    {{ alertasPendientes() > 9 ? '9+' : alertasPendientes() }}
+                  </span>
+                }
+              </div>
+              <span class="flex-1 text-left">Notificaciones</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">{{ mostrarModalAlertas() ? 'Ocultar' : 'Ver' }}</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="toggleTheme()"
+              class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  [attr.d]="themeService.isDarkMode()
+                    ? 'M12 3v2m0 14v2m7-9h2M3 12H5m11.364 6.364l1.414 1.414M6.222 6.222l1.414 1.414m8.728 0 1.414-1.414M6.222 17.778l1.414-1.414M12 8a4 4 0 100 8 4 4 0 000-8z'
+                    : 'M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z'">
+                </path>
+              </svg>
+              {{ themeService.isDarkMode() ? 'Modo claro' : 'Modo oscuro' }}
+            </button>
+
+            @if (authService.isAdminUser()) {
+              <a
+                routerLink="/gestion-usuarios"
+                (click)="showUserMenu.set(false)"
+                class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Configuracion
+              </a>
+            }
+          </div>
+
+          @if (mostrarModalAlertas()) {
+            <div class="border-t border-gray-200 px-3 py-2 dark:border-gray-700">
+              <div class="mb-2 flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-gray-800 dark:text-gray-100">Alertas recientes</p>
+                <span class="text-[10px] text-gray-500 dark:text-gray-400">{{ alertasPendientes() }}</span>
+              </div>
+
+              <div class="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+                @if (alertasRecientes().length > 0) {
+                  @for (alerta of alertasRecientes(); track alerta.proyectoId + '-' + alerta.nodoId) {
+                    <div class="rounded-md border px-2 py-1.5" [ngClass]="getClaseAlerta(alerta)">
+                      <p class="truncate text-[11px] font-semibold">{{ alerta.nombreActividad }}</p>
+                      <p class="text-[10px] opacity-90">Proyecto {{ alerta.proyectoNombre || ('#' + alerta.proyectoId) }} · {{ alerta.estado }}</p>
+                      <p class="truncate text-[10px] opacity-90">{{ alerta.mensaje }}</p>
+                    </div>
+                  }
+                } @else {
+                  <p class="py-4 text-center text-[11px] text-gray-500 dark:text-gray-400">No hay alertas activas.</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                (click)="verTodasAlertas()"
+                class="mt-2 w-full text-center text-[11px] font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                Ver todas
+              </button>
+            </div>
+          }
+
+          <div class="border-t border-gray-200 py-1 dark:border-gray-700">
+            <button
+              (click)="logout()"
+              class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Cerrar sesion
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</nav>
