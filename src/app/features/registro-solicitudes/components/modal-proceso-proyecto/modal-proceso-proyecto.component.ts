@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { ConfirmFinalizeModalComponent, ConfirmFinalizeConfig } from '../../../../shared/components/confirm-finalize-modal/confirm-finalize-modal.component';
@@ -484,7 +484,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       fechaFin: undefined,
       descripcion: '',
       archivosAdjuntos: [],
-      estado: 'Pendiente'
+      estado: 'En Proceso'
     };
     this.mostrarModalActividad = true;
   }
@@ -503,7 +503,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       fechaFin: undefined,
       descripcion: '',
       archivosAdjuntos: [],
-      estado: 'Pendiente'
+      estado: 'En Proceso'
     };
     this.mostrarModalActividad = true;
   }
@@ -527,7 +527,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         ...nodoActual,
         nombre: actividad.nombre,
         tipo: 'tarea',
-        estadoActividad: nodoActual.estadoActividad || 'Pendiente',
+        estadoActividad: this.normalizarEstadoActividad(nodoActual.estadoActividad),
         fechaCambioEstado: nodoActual.fechaCambioEstado || this.formatLocalDateTime(new Date()),
         responsableId,
         responsableNombre,
@@ -548,6 +548,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             const adjLocal = adjuntosGuardados.find(a => a.nombre === adjApi.nombre);
             return adjLocal ? { ...adjApi, archivo: adjLocal.archivo, dataUrl: adjLocal.dataUrl, url: adjLocal.url || adjApi.url } : adjApi;
           });
+          actualizadoDesdeApi.estadoActividad = this.normalizarEstadoActividad(actualizadoDesdeApi.estadoActividad);
 
           this.flujoNodos = this.flujoNodos.map((nodo, i) => i === indexNodoExistente ? actualizadoDesdeApi : nodo);
           this.persistirFlujoProyecto();
@@ -565,7 +566,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         tipo: 'tarea',
         posicionX: posicionInicial.x,
         posicionY: posicionInicial.y,
-        estadoActividad: 'Pendiente',
+        estadoActividad: this.normalizarEstadoActividad(actividad.estado),
         fechaCambioEstado: this.formatLocalDateTime(new Date()),
         responsableId,
         responsableNombre,
@@ -586,6 +587,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             const adjLocal = adjuntosGuardados.find(a => a.nombre === adjApi.nombre);
             return adjLocal ? { ...adjApi, archivo: adjLocal.archivo, dataUrl: adjLocal.dataUrl, url: adjLocal.url || adjApi.url } : adjApi;
           });
+          creadaDesdeApi.estadoActividad = this.normalizarEstadoActividad(creadaDesdeApi.estadoActividad);
 
           if (this.nodoPadreParaNuevoId !== null) {
             const indexPadre = this.flujoNodos.findIndex(n => n.id === this.nodoPadreParaNuevoId);
@@ -633,7 +635,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     const normalizados = nodosActualizados.map(nodo => ({
       ...nodo,
       tipoActividad: nodo.tipoActividad,
-      estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
+      estadoActividad: nodo.tipo === 'tarea' ? this.normalizarEstadoActividad(nodo.estadoActividad) : undefined,
       fechaCambioEstado: nodo.fechaCambioEstado,
       siguientesIds: [...nodo.siguientesIds]
     }));
@@ -874,7 +876,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
     this.flujoNodos = this.proyecto.flujo.nodos.map(nodo => ({
       ...nodo,
-      estadoActividad: nodo.tipo === 'tarea' ? (nodo.estadoActividad || 'Pendiente') : undefined,
+      estadoActividad: nodo.tipo === 'tarea' ? this.normalizarEstadoActividad(nodo.estadoActividad) : undefined,
       fechaCambioEstado: nodo.fechaCambioEstado,
       siguientesIds: [...(nodo.siguientesIds || [])]
     }));
@@ -945,8 +947,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         url: (a as any).url,
         archivo: (a as any).archivo
       })),
-      estado: nodo.estadoActividad || 'Pendiente'
+      estado: this.normalizarEstadoActividad(nodo.estadoActividad)
     };
+  }
+
+  private normalizarEstadoActividad(estado?: string): EstadoTarea {
+    if (!estado || estado === 'Pendiente') return 'En Proceso';
+    return estado as EstadoTarea;
   }
 
   private mapearAdjuntosActividadANodo(adjuntos: Tarea['archivosAdjuntos']): FlujoAdjunto[] {

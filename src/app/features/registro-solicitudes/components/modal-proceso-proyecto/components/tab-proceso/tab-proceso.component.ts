@@ -60,7 +60,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     totalPaginas: 0
   };
   readonly opcionesPorPaginaTablaFlujo = [20, 50, 100, 200];
-  readonly estadosActividad: EstadoTarea[] = ['Pendiente', 'En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
+  readonly estadosActividad: EstadoTarea[] = ['En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
   readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
   private readonly maxImagenBytes = 5 * 1024 * 1024;
   private readonly maxDocumentoBytes = 25 * 1024 * 1024;
@@ -348,7 +348,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {
     if (this.esNodoOrdenCompra(nodo)) return 'Completado';
-    return nodo.estadoActividad || 'Pendiente';
+    return this.normalizarEstadoActividad(nodo.estadoActividad);
   }
 
   get totalActividadesFlujo(): number {
@@ -1172,7 +1172,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
         // Filtro estado
         if (this.filtroEstadoActividad) {
-          const estadoNodo = this.esNodoOrdenCompra(nodo) ? 'Completado' : (nodo.estadoActividad || 'Pendiente');
+          const estadoNodo = this.esNodoOrdenCompra(nodo) ? 'Completado' : this.normalizarEstadoActividad(nodo.estadoActividad);
           if (estadoNodo !== this.filtroEstadoActividad) {
             return false;
           }
@@ -1439,6 +1439,11 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       ...comentario,
       adjuntos: resultado
     };
+  }
+
+  private normalizarEstadoActividad(estado?: EstadoTarea | string): EstadoTarea {
+    if (!estado || estado === 'Pendiente') return 'En Proceso';
+    return estado as EstadoTarea;
   }
 
   private formatearFechaInput(date: Date): string {
