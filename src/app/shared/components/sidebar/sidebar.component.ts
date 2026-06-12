@@ -214,11 +214,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const userMenuElements = Array.from(this.elementRef.nativeElement.querySelectorAll('.user-menu-container')) as HTMLElement[];
+    const alertasMenuElements = Array.from(this.elementRef.nativeElement.querySelectorAll('.alertas-menu-container')) as HTMLElement[];
     const target = event.target as Node | null;
     const clickDentroDeMenuUsuario = userMenuElements.some((element) => !!target && element.contains(target));
+    const clickDentroDeAlertas = alertasMenuElements.some((element) => !!target && element.contains(target));
 
     if (!clickDentroDeMenuUsuario) {
       this.showUserMenu.set(false);
+    }
+
+    if (!clickDentroDeAlertas && !clickDentroDeMenuUsuario) {
       this.mostrarModalAlertas.set(false);
     }
   }
