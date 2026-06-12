@@ -454,7 +454,6 @@ export class RegistroSolicitudesService {
     return this.http.post<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales`, {
       fecha: item.fecha || null,
       nroComprobante: item.nroComprobante || '',
-      tipo: item.tipo || '',
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
@@ -467,7 +466,6 @@ export class RegistroSolicitudesService {
     return this.http.put<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales/${item.id}`, {
       fecha: item.fecha || null,
       nroComprobante: item.nroComprobante || '',
-      tipo: item.tipo || '',
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),

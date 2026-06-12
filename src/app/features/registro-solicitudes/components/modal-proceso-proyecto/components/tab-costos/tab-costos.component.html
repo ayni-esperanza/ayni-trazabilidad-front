@@ -287,8 +287,17 @@
 <!-- ===== SUB-TAB MATERIALES ===== -->
 <div *ngIf="subTabCostosActiva === 'materiales'" class="space-y-3">
   <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="px-3 py-2 bg-blue-50 dark:bg-blue-900/20">
+    <div class="flex items-center justify-between gap-3 px-3 py-2 bg-blue-50 dark:bg-blue-900/20">
       <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">Materiales</span>
+      <button type="button"
+        (click)="abrirCatalogo('tipoMaterial')"
+        title="Gestionar tipos"
+        aria-label="Gestionar tipos"
+        class="inline-flex items-center justify-center rounded-lg bg-blue-600 p-2 text-white hover:bg-blue-700">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h9m-9 6h9m-9 6h9M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>
+        </svg>
+      </button>
     </div>
     <div class="p-2">
       <div class="overflow-x-auto">
@@ -321,8 +330,11 @@
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mat.tipo" (ngModelChange)="emitirCambios()" placeholder="EPP, maquinaria..."
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                <select [(ngModel)]="mat.tipo" (ngModelChange)="emitirCambios()"
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
+                  <option value="">Seleccionar tipo</option>
+                  <option *ngFor="let tipo of opcionesTipoMaterial; trackBy: trackOpcion" [ngValue]="tipo">{{ tipo }}</option>
+                </select>
               </td>
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mat.producto" (ngModelChange)="emitirCambios()" placeholder="Nombre del producto"
@@ -380,8 +392,17 @@
 <!-- ===== SUB-TAB MANO DE OBRA ===== -->
 <div *ngIf="subTabCostosActiva === 'manoObra'" class="space-y-3">
   <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="px-3 py-2 bg-green-50 dark:bg-green-900/20">
+    <div class="flex items-center justify-between gap-3 px-3 py-2 bg-green-50 dark:bg-green-900/20">
       <span class="text-xs font-semibold text-green-700 dark:text-green-300">Mano de Obra</span>
+      <button type="button"
+        (click)="abrirCatalogo('cargoManoObra')"
+        title="Gestionar cargos"
+        aria-label="Gestionar cargos"
+        class="inline-flex items-center justify-center rounded-lg bg-green-600 p-2 text-white hover:bg-green-700">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h9m-9 6h9m-9 6h9M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>
+        </svg>
+      </button>
     </div>
     <div class="p-2">
       <div class="overflow-x-auto">
@@ -404,8 +425,11 @@
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <input type="text" [(ngModel)]="mo.cargo" (ngModelChange)="emitirCambios()" placeholder="Cargo"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                <select [(ngModel)]="mo.cargo" (ngModelChange)="emitirCambios()"
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
+                  <option value="">Seleccionar cargo</option>
+                  <option *ngFor="let cargo of opcionesCargoManoObra; trackBy: trackOpcion" [ngValue]="cargo">{{ cargo }}</option>
+                </select>
               </td>
               <td class="py-1 px-1">
                 <input type="number" [(ngModel)]="mo.diasTrabajando" (ngModelChange)="calcularCostoTotalManoObra(mo)" min="0" placeholder="0"
@@ -447,6 +471,162 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
         Agregar Trabajador
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="catalogoActivo" class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4" (click)="cerrarCatalogo()">
+  <div class="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 px-5 py-4">
+      <div>
+        <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ tituloCatalogoActivo }}</h3>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Administra las opciones que apareceran en el combo al registrar costos.</p>
+      </div>
+      <button type="button" (click)="cerrarCatalogo()" class="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+        X
+      </button>
+    </div>
+
+    <div class="space-y-4 px-5 py-4">
+      <div *ngIf="catalogoActivo === 'tipoMaterial'" class="space-y-4">
+        <div class="flex gap-2">
+          <input type="text"
+            [(ngModel)]="nuevoTipoMaterial"
+            [disabled]="modoSoloLectura"
+            placeholder="Nuevo tipo de material"
+            (keyup.enter)="agregarOpcionTipoMaterial()"
+            class="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
+          <button type="button"
+            (click)="agregarOpcionTipoMaterial()"
+            [disabled]="modoSoloLectura || !nuevoTipoMaterial.trim()"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+            Agregar
+          </button>
+        </div>
+
+        <div class="max-h-72 space-y-2 overflow-y-auto">
+          <div *ngFor="let tipo of opcionesTipoMaterial; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+            <div class="min-w-0 flex-1">
+              <ng-container *ngIf="tipoMaterialEnEdicion !== tipo; else editarTipoTpl">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ tipo }}</p>
+              </ng-container>
+              <ng-template #editarTipoTpl>
+                <input type="text"
+                  [(ngModel)]="nuevoNombreTipoMaterialEdicion"
+                  [disabled]="modoSoloLectura"
+                  (keyup.enter)="guardarEdicionTipoMaterial(tipo)"
+                  class="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
+              </ng-template>
+              <p *ngIf="estaTipoMaterialEnUso(tipo)" class="text-[11px] text-amber-600 dark:text-amber-300">En uso en materiales registrados</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <ng-container *ngIf="tipoMaterialEnEdicion !== tipo; else accionesEdicionTipoTpl">
+                <button type="button"
+                  (click)="iniciarEdicionTipoMaterial(tipo)"
+                  [disabled]="modoSoloLectura"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-blue-200 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
+                  Editar
+                </button>
+                <button type="button"
+                  (click)="eliminarOpcionTipoMaterial(tipo)"
+                  [disabled]="modoSoloLectura || estaTipoMaterialEnUso(tipo)"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
+                  Eliminar
+                </button>
+              </ng-container>
+              <ng-template #accionesEdicionTipoTpl>
+                <button type="button"
+                  (click)="guardarEdicionTipoMaterial(tipo)"
+                  [disabled]="modoSoloLectura || !nuevoNombreTipoMaterialEdicion.trim()"
+                  class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                  Guardar
+                </button>
+                <button type="button"
+                  (click)="cancelarEdicionTipoMaterial()"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Cancelar
+                </button>
+              </ng-template>
+            </div>
+          </div>
+          <p *ngIf="!opcionesTipoMaterial.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Aun no hay tipos registrados.
+          </p>
+        </div>
+      </div>
+
+      <div *ngIf="catalogoActivo === 'cargoManoObra'" class="space-y-4">
+        <div class="flex gap-2">
+          <input type="text"
+            [(ngModel)]="nuevoCargoManoObra"
+            [disabled]="modoSoloLectura"
+            placeholder="Nuevo cargo"
+            (keyup.enter)="agregarOpcionCargoManoObra()"
+            class="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
+          <button type="button"
+            (click)="agregarOpcionCargoManoObra()"
+            [disabled]="modoSoloLectura || !nuevoCargoManoObra.trim()"
+            class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+            Agregar
+          </button>
+        </div>
+
+        <div class="max-h-72 space-y-2 overflow-y-auto">
+          <div *ngFor="let cargo of opcionesCargoManoObra; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+            <div class="min-w-0 flex-1">
+              <ng-container *ngIf="cargoManoObraEnEdicion !== cargo; else editarCargoTpl">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ cargo }}</p>
+              </ng-container>
+              <ng-template #editarCargoTpl>
+                <input type="text"
+                  [(ngModel)]="nuevoNombreCargoManoObraEdicion"
+                  [disabled]="modoSoloLectura"
+                  (keyup.enter)="guardarEdicionCargoManoObra(cargo)"
+                  class="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
+              </ng-template>
+              <p *ngIf="estaCargoManoObraEnUso(cargo)" class="text-[11px] text-amber-600 dark:text-amber-300">En uso en registros de mano de obra</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <ng-container *ngIf="cargoManoObraEnEdicion !== cargo; else accionesEdicionCargoTpl">
+                <button type="button"
+                  (click)="iniciarEdicionCargoManoObra(cargo)"
+                  [disabled]="modoSoloLectura"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-green-200 hover:text-green-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
+                  Editar
+                </button>
+                <button type="button"
+                  (click)="eliminarOpcionCargoManoObra(cargo)"
+                  [disabled]="modoSoloLectura || estaCargoManoObraEnUso(cargo)"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
+                  Eliminar
+                </button>
+              </ng-container>
+              <ng-template #accionesEdicionCargoTpl>
+                <button type="button"
+                  (click)="guardarEdicionCargoManoObra(cargo)"
+                  [disabled]="modoSoloLectura || !nuevoNombreCargoManoObraEdicion.trim()"
+                  class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                  Guardar
+                </button>
+                <button type="button"
+                  (click)="cancelarEdicionCargoManoObra()"
+                  class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Cancelar
+                </button>
+              </ng-template>
+            </div>
+          </div>
+          <p *ngIf="!opcionesCargoManoObra.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Aun no hay cargos registrados.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end border-t border-slate-200 dark:border-slate-700 px-5 py-4">
+      <button type="button" (click)="cerrarCatalogo()" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200">
+        Cerrar
       </button>
     </div>
   </div>

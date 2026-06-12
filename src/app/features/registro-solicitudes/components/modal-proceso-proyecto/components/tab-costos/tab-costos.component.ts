@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
@@ -30,7 +30,7 @@ type ResumenCostoItem = {
   imports: [CommonModule, FormsModule, DatePickerComponent],
   templateUrl: './tab-costos.component.html'
 })
-export class TabCostosComponent {
+export class TabCostosComponent implements OnChanges {
   @Input() materiales!: MaterialCosto[];
   @Input() manoObra!: ManoObraCosto[];
   @Input() tablasCostosExtras!: TablaCostoExtra[];
@@ -44,7 +44,26 @@ export class TabCostosComponent {
   @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
 
   subTabCostosActiva: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
+  catalogoActivo: 'tipoMaterial' | 'cargoManoObra' | null = null;
   nuevoNombreTablaExtra = '';
+  nuevoTipoMaterial = '';
+  nuevoCargoManoObra = '';
+  opcionesTipoMaterial: string[] = [];
+  opcionesCargoManoObra: string[] = [];
+  tipoMaterialEnEdicion: string | null = null;
+  nuevoNombreTipoMaterialEdicion = '';
+  cargoManoObraEnEdicion: string | null = null;
+  nuevoNombreCargoManoObraEdicion = '';
+
+  private readonly tiposMaterialStorageKey = 'ayni:registro-solicitudes:costos:tipos-material';
+  private readonly cargosManoObraStorageKey = 'ayni:registro-solicitudes:costos:cargos-mano-obra';
+  private opcionesCatalogoInicializadas = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['materiales'] || changes['manoObra']) {
+      this.sincronizarCatalogosOpciones();
+    }
+  }
 
   private formatDate(date: Date | string | undefined): string {
     if (!date) return '';
@@ -66,7 +85,7 @@ export class TabCostosComponent {
       id: nuevoId,
       fecha: this.formatDate(new Date()),
       nroComprobante: '',
-      tipo: '',
+      tipo: this.opcionesTipoMaterial[0] || '',
       producto: '',
       cantidad: null,
       costoUnitario: null,
@@ -98,12 +117,82 @@ export class TabCostosComponent {
     return this.agruparPorNombre(this.materiales || [], (item) => item.tipo || 'Sin tipo');
   }
 
+  agregarOpcionTipoMaterial(): void {
+    if (this.modoSoloLectura) return;
+
+    const nombre = (this.nuevoTipoMaterial || '').trim();
+    if (!nombre) return;
+
+    this.opcionesTipoMaterial = this.normalizarOpciones([...this.opcionesTipoMaterial, nombre]);
+    this.nuevoTipoMaterial = '';
+    this.guardarOpcionesCatalogo();
+  }
+
+  abrirCatalogo(tipo: 'tipoMaterial' | 'cargoManoObra'): void {
+    this.catalogoActivo = tipo;
+  }
+
+  cerrarCatalogo(): void {
+    this.cancelarEdicionTipoMaterial();
+    this.cancelarEdicionCargoManoObra();
+    this.catalogoActivo = null;
+  }
+
+  eliminarOpcionTipoMaterial(nombre: string): void {
+    if (this.modoSoloLectura || this.estaTipoMaterialEnUso(nombre)) return;
+
+    this.opcionesTipoMaterial = this.opcionesTipoMaterial.filter((item) => item !== nombre);
+    this.guardarOpcionesCatalogo();
+  }
+
+  iniciarEdicionTipoMaterial(nombre: string): void {
+    this.tipoMaterialEnEdicion = nombre;
+    this.nuevoNombreTipoMaterialEdicion = nombre;
+  }
+
+  cancelarEdicionTipoMaterial(): void {
+    this.tipoMaterialEnEdicion = null;
+    this.nuevoNombreTipoMaterialEdicion = '';
+  }
+
+  guardarEdicionTipoMaterial(nombreAnterior: string): void {
+    if (this.modoSoloLectura) return;
+
+    const nombreNuevo = (this.nuevoNombreTipoMaterialEdicion || '').trim();
+    if (!nombreNuevo || nombreNuevo === nombreAnterior) {
+      this.cancelarEdicionTipoMaterial();
+      return;
+    }
+
+    if (this.opcionesTipoMaterial.some((item) => item !== nombreAnterior && item.toLowerCase() === nombreNuevo.toLowerCase())) {
+      return;
+    }
+
+    this.opcionesTipoMaterial = this.normalizarOpciones(
+      this.opcionesTipoMaterial.map((item) => item === nombreAnterior ? nombreNuevo : item)
+    );
+
+    for (const material of this.materiales || []) {
+      if ((material.tipo || '').trim() === nombreAnterior) {
+        material.tipo = nombreNuevo;
+      }
+    }
+
+    this.guardarOpcionesCatalogo();
+    this.emitirCambios();
+    this.cancelarEdicionTipoMaterial();
+  }
+
+  estaTipoMaterialEnUso(nombre: string): boolean {
+    return (this.materiales || []).some((item) => (item.tipo || '').trim() === nombre);
+  }
+
   agregarManoObra(): void {
     const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map(m => m.id)) + 1 : 1;
     this.manoObra.push({
       id: nuevoId,
       trabajador: '',
-      cargo: '',
+      cargo: this.opcionesCargoManoObra[0] || '',
       diasTrabajando: null,
       costoPorDia: null,
       costoTotal: 0,
@@ -131,6 +220,72 @@ export class TabCostosComponent {
 
   get manoObraPorCargo(): ResumenCostoItem[] {
     return this.agruparPorNombre(this.manoObra || [], (item) => item.cargo || 'Sin cargo');
+  }
+
+  agregarOpcionCargoManoObra(): void {
+    if (this.modoSoloLectura) return;
+
+    const nombre = (this.nuevoCargoManoObra || '').trim();
+    if (!nombre) return;
+
+    this.opcionesCargoManoObra = this.normalizarOpciones([...this.opcionesCargoManoObra, nombre]);
+    this.nuevoCargoManoObra = '';
+    this.guardarOpcionesCatalogo();
+  }
+
+  eliminarOpcionCargoManoObra(nombre: string): void {
+    if (this.modoSoloLectura || this.estaCargoManoObraEnUso(nombre)) return;
+
+    this.opcionesCargoManoObra = this.opcionesCargoManoObra.filter((item) => item !== nombre);
+    this.guardarOpcionesCatalogo();
+  }
+
+  iniciarEdicionCargoManoObra(nombre: string): void {
+    this.cargoManoObraEnEdicion = nombre;
+    this.nuevoNombreCargoManoObraEdicion = nombre;
+  }
+
+  cancelarEdicionCargoManoObra(): void {
+    this.cargoManoObraEnEdicion = null;
+    this.nuevoNombreCargoManoObraEdicion = '';
+  }
+
+  guardarEdicionCargoManoObra(nombreAnterior: string): void {
+    if (this.modoSoloLectura) return;
+
+    const nombreNuevo = (this.nuevoNombreCargoManoObraEdicion || '').trim();
+    if (!nombreNuevo || nombreNuevo === nombreAnterior) {
+      this.cancelarEdicionCargoManoObra();
+      return;
+    }
+
+    if (this.opcionesCargoManoObra.some((item) => item !== nombreAnterior && item.toLowerCase() === nombreNuevo.toLowerCase())) {
+      return;
+    }
+
+    this.opcionesCargoManoObra = this.normalizarOpciones(
+      this.opcionesCargoManoObra.map((item) => item === nombreAnterior ? nombreNuevo : item)
+    );
+
+    for (const item of this.manoObra || []) {
+      if ((item.cargo || '').trim() === nombreAnterior) {
+        item.cargo = nombreNuevo;
+      }
+    }
+
+    this.guardarOpcionesCatalogo();
+    this.emitirCambios();
+    this.cancelarEdicionCargoManoObra();
+  }
+
+  estaCargoManoObraEnUso(nombre: string): boolean {
+    return (this.manoObra || []).some((item) => (item.cargo || '').trim() === nombre);
+  }
+
+  get tituloCatalogoActivo(): string {
+    if (this.catalogoActivo === 'tipoMaterial') return 'Gestionar tipos de materiales';
+    if (this.catalogoActivo === 'cargoManoObra') return 'Gestionar cargos de mano de obra';
+    return '';
   }
 
   agregarTablaExtra(): void {
@@ -209,6 +364,10 @@ export class TabCostosComponent {
     return item.nombre;
   }
 
+  trackOpcion(_: number, item: string): string {
+    return item;
+  }
+
   private agruparPorNombre<T extends { costoTotal: number }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
     const acumulado = new Map<string, number>();
 
@@ -221,6 +380,69 @@ export class TabCostosComponent {
       .map(([nombre, total]) => ({ nombre, total }))
       .filter((item) => item.total > 0)
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  private sincronizarCatalogosOpciones(): void {
+    this.asegurarCatalogosOpciones();
+
+    this.opcionesTipoMaterial = this.normalizarOpciones([
+      ...this.opcionesTipoMaterial,
+      ...((this.materiales || []).map((item) => item.tipo || ''))
+    ]);
+
+    this.opcionesCargoManoObra = this.normalizarOpciones([
+      ...this.opcionesCargoManoObra,
+      ...((this.manoObra || []).map((item) => item.cargo || ''))
+    ]);
+
+    this.guardarOpcionesCatalogo();
+  }
+
+  private asegurarCatalogosOpciones(): void {
+    if (this.opcionesCatalogoInicializadas) return;
+
+    this.opcionesTipoMaterial = this.leerOpcionesStorage(this.tiposMaterialStorageKey);
+    this.opcionesCargoManoObra = this.leerOpcionesStorage(this.cargosManoObraStorageKey);
+    this.opcionesCatalogoInicializadas = true;
+  }
+
+  private guardarOpcionesCatalogo(): void {
+    this.escribirOpcionesStorage(this.tiposMaterialStorageKey, this.opcionesTipoMaterial);
+    this.escribirOpcionesStorage(this.cargosManoObraStorageKey, this.opcionesCargoManoObra);
+  }
+
+  private leerOpcionesStorage(clave: string): string[] {
+    if (typeof window === 'undefined') return [];
+
+    try {
+      const contenido = window.localStorage.getItem(clave);
+      if (!contenido) return [];
+      return this.normalizarOpciones(JSON.parse(contenido));
+    } catch {
+      return [];
+    }
+  }
+
+  private escribirOpcionesStorage(clave: string, opciones: string[]): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.setItem(clave, JSON.stringify(this.normalizarOpciones(opciones)));
+    } catch {
+      // Ignoramos errores de storage para no bloquear la edicion local.
+    }
+  }
+
+  private normalizarOpciones(opciones: unknown): string[] {
+    if (!Array.isArray(opciones)) return [];
+
+    return Array.from(
+      new Set(
+        opciones
+          .map((item) => String(item || '').trim())
+          .filter((item) => !!item)
+      )
+    ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
   }
 
   private formatearFechaResumen(date: Date | string | undefined): string {

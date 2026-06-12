@@ -1697,7 +1697,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             id: item.id,
             fecha: item.fecha,
             nroComprobante: item.nroComprobante?.trim() || '',
-            tipo: item.tipo?.trim() || '',
             producto: item.producto?.trim(),
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
