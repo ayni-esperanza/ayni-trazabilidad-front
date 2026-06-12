@@ -183,6 +183,118 @@ html.dark body::-webkit-scrollbar-thumb:hover {
   transform: translateY(-50%) rotate(180deg);
 }
 
+/* Tarjetas de resumen con acento inferior */
+.summary-accent-card {
+  --summary-accent: #2563eb;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-bottom-width: 4px;
+  border-bottom-color: var(--summary-accent);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -24px rgba(15, 23, 42, 0.55);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.summary-accent-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px -24px rgba(15, 23, 42, 0.7);
+}
+
+.summary-accent-card__copy {
+  min-width: 0;
+}
+
+.summary-accent-card__label {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-transform: uppercase;
+  color: var(--summary-accent);
+}
+
+.summary-accent-card__value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--summary-accent);
+}
+
+.summary-accent-card__helper {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1rem;
+  color: #64748b;
+}
+
+.summary-accent-card__icon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--summary-accent);
+  background: color-mix(in srgb, var(--summary-accent) 15%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--summary-accent) 22%, white);
+}
+
+.summary-accent-card__icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.summary-accent-card--blue {
+  --summary-accent: #2563eb;
+}
+
+.summary-accent-card--emerald {
+  --summary-accent: #10b981;
+}
+
+.summary-accent-card--amber {
+  --summary-accent: #f59e0b;
+}
+
+.summary-accent-card--red {
+  --summary-accent: #ef4444;
+}
+
+.summary-accent-card--slate {
+  --summary-accent: #475569;
+}
+
+.summary-accent-card--cyan {
+  --summary-accent: #0891b2;
+}
+
+.summary-accent-card--violet {
+  --summary-accent: #8b5cf6;
+}
+
+.dark .summary-accent-card {
+  background: oklch(0.28 0.03 257);
+  border-color: #334155;
+  box-shadow: none;
+}
+
+.dark .summary-accent-card__helper {
+  color: #94a3b8;
+}
+
+.dark .summary-accent-card__icon {
+  background: color-mix(in srgb, var(--summary-accent) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--summary-accent) 36%, transparent);
+}
+
 /* Estilos para ngx-charts en modo oscuro */
 .dark .ngx-charts text {
   fill: #e5e7eb !important;

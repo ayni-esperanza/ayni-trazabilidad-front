@@ -39,63 +39,55 @@
 
   <!-- Tarjetas de estadísticas -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Solicitudes Registradas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.total }}</h3>
-          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">de {{ solicitudes.length }} totales</p>
-        </div>
-        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="summary-accent-card summary-accent-card--blue">
+      <div class="summary-accent-card__copy">
+        <p class="summary-accent-card__label">Solicitudes Registradas</p>
+        <h3 class="summary-accent-card__value">{{ estadisticas.total }}</h3>
+        <p *ngIf="tieneFiltrosActivos()" class="summary-accent-card__helper">de {{ solicitudes.length }} totales</p>
+      </div>
+      <div class="summary-accent-card__icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
-        </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">En Proceso</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.enProceso }}</h3>
-          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
-        </div>
-        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="summary-accent-card summary-accent-card--amber">
+      <div class="summary-accent-card__copy">
+        <p class="summary-accent-card__label">En Proceso</p>
+        <h3 class="summary-accent-card__value">{{ estadisticas.enProceso }}</h3>
+        <p *ngIf="tieneFiltrosActivos()" class="summary-accent-card__helper">en filtro actual</p>
+      </div>
+      <div class="summary-accent-card__icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
-        </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Completadas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.completadas }}</h3>
-          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
-        </div>
-        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="summary-accent-card summary-accent-card--emerald">
+      <div class="summary-accent-card__copy">
+        <p class="summary-accent-card__label">Completadas</p>
+        <h3 class="summary-accent-card__value">{{ estadisticas.completadas }}</h3>
+        <p *ngIf="tieneFiltrosActivos()" class="summary-accent-card__helper">en filtro actual</p>
+      </div>
+      <div class="summary-accent-card__icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-        </div>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-transparent dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-300 mb-1">Canceladas</p>
-          <h3 class="text-3xl font-bold text-gray-800 dark:text-white">{{ estadisticas.canceladas }}</h3>
-          <p *ngIf="tieneFiltrosActivos()" class="text-xs text-gray-500 dark:text-gray-400 mt-1">en filtro actual</p>
-        </div>
-        <div class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="summary-accent-card summary-accent-card--red">
+      <div class="summary-accent-card__copy">
+        <p class="summary-accent-card__label">Canceladas</p>
+        <h3 class="summary-accent-card__value">{{ estadisticas.canceladas }}</h3>
+        <p *ngIf="tieneFiltrosActivos()" class="summary-accent-card__helper">en filtro actual</p>
+      </div>
+      <div class="summary-accent-card__icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-12.728 12.728m0-12.728l12.728 12.728"/>
           </svg>
-        </div>
       </div>
     </div>
   </div>
