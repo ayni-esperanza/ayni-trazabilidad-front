@@ -10,6 +10,20 @@ import {
   TablaCostoExtra
 } from '../../modal-proceso-proyecto.component';
 
+type ProyectoCostosResumen = {
+  nombreProyecto?: string;
+  cliente?: string;
+  responsableId?: number;
+  fechaInicio?: string;
+  fechaFinalizacion?: string;
+  ubicacion?: string;
+};
+
+type ResumenCostoItem = {
+  nombre: string;
+  total: number;
+};
+
 @Component({
   selector: 'app-tab-costos',
   standalone: true,
@@ -20,13 +34,16 @@ export class TabCostosComponent {
   @Input() materiales!: MaterialCosto[];
   @Input() manoObra!: ManoObraCosto[];
   @Input() tablasCostosExtras!: TablaCostoExtra[];
+  @Input() proyectoInfoForm: ProyectoCostosResumen | null = null;
+  @Input() proyectoId: number | null | undefined = null;
+  @Input() responsableNombre = '';
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
   @Output() costosChange = new EventEmitter<void>();
   @Output() agregarCategoria = new EventEmitter<string>();
   @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
 
-  subTabCostosActiva: 'materiales' | 'manoObra' | 'otrosCostos' = 'materiales';
+  subTabCostosActiva: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
   nuevoNombreTablaExtra = '';
 
   private formatDate(date: Date | string | undefined): string {
@@ -49,6 +66,7 @@ export class TabCostosComponent {
       id: nuevoId,
       fecha: this.formatDate(new Date()),
       nroComprobante: '',
+      tipo: '',
       producto: '',
       cantidad: null,
       costoUnitario: null,
@@ -74,6 +92,10 @@ export class TabCostosComponent {
 
   get totalMateriales(): number {
     return this.materiales?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
+  }
+
+  get materialesPorTipo(): ResumenCostoItem[] {
+    return this.agruparPorNombre(this.materiales || [], (item) => item.tipo || 'Sin tipo');
   }
 
   agregarManoObra(): void {
@@ -105,6 +127,10 @@ export class TabCostosComponent {
 
   get totalManoObra(): number {
     return this.manoObra?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
+  }
+
+  get manoObraPorCargo(): ResumenCostoItem[] {
+    return this.agruparPorNombre(this.manoObra || [], (item) => item.cargo || 'Sin cargo');
   }
 
   agregarTablaExtra(): void {
@@ -157,7 +183,59 @@ export class TabCostosComponent {
     return this.tablasCostosExtras?.reduce((sum, t) => sum + this.getTotalTablaExtra(t), 0) ?? 0;
   }
 
+  get otrosCostosPorCategoria(): ResumenCostoItem[] {
+    return (this.tablasCostosExtras || [])
+      .map((tabla) => ({
+        nombre: (tabla.nombre || '').trim() || 'Sin categoría',
+        total: this.getTotalTablaExtra(tabla)
+      }))
+      .filter((item) => item.total > 0)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
   get totalCostosGeneral(): number {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
+  }
+
+  get fechaInicioResumen(): string {
+    return this.formatearFechaResumen(this.proyectoInfoForm?.fechaInicio);
+  }
+
+  get fechaFinResumen(): string {
+    return this.formatearFechaResumen(this.proyectoInfoForm?.fechaFinalizacion);
+  }
+
+  trackResumenItem(_: number, item: ResumenCostoItem): string {
+    return item.nombre;
+  }
+
+  private agruparPorNombre<T extends { costoTotal: number }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
+    const acumulado = new Map<string, number>();
+
+    for (const item of items) {
+      const nombre = (obtenerNombre(item) || '').trim() || 'Sin clasificar';
+      acumulado.set(nombre, (acumulado.get(nombre) || 0) + Number(item.costoTotal || 0));
+    }
+
+    return Array.from(acumulado.entries())
+      .map(([nombre, total]) => ({ nombre, total }))
+      .filter((item) => item.total > 0)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  private formatearFechaResumen(date: Date | string | undefined): string {
+    if (!date) return '';
+    if (typeof date === 'string') {
+      const soloFecha = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (soloFecha) {
+        return `${soloFecha[3]}/${soloFecha[2]}/${soloFecha[1]}`;
+      }
+    }
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 }

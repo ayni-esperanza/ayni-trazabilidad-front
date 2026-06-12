@@ -25,6 +25,7 @@ export interface MaterialCosto {
   id: number;
   fecha: string;
   nroComprobante: string;
+  tipo?: string;
   producto: string;
   cantidad: number | null;
   costoUnitario: number | null;
@@ -1514,6 +1515,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           id: item.id,
           fecha: item.fecha || this.formatDate(new Date()),
           nroComprobante: item.nroComprobante || '',
+          tipo: item.tipo || '',
           producto: item.producto || '',
           cantidad: Number(item.cantidad || 0),
           costoUnitario: Number(item.costoUnitario || 0),
@@ -1695,6 +1697,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             id: item.id,
             fecha: item.fecha,
             nroComprobante: item.nroComprobante?.trim() || '',
+            tipo: item.tipo?.trim() || '',
             producto: item.producto?.trim(),
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
@@ -1928,6 +1931,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       id: Number(item.id || 0),
       fecha: item.fecha || '',
       nroComprobante: (item.nroComprobante || '').trim(),
+      tipo: (item.tipo || '').trim(),
       producto: (item.producto || '').trim(),
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),

@@ -1,5 +1,16 @@
 <!-- Sub-navegación de Costos -->
 <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4 bg-gray-50 dark:bg-gray-800/50">
+  <button (click)="subTabCostosActiva = 'resumen'"
+    class="flex-1 px-4 py-2.5 text-xs font-medium transition-all duration-200 ease-out flex items-center justify-center gap-1.5 hover:-translate-y-[1px]"
+    [ngClass]="{
+      'text-slate-700 dark:text-slate-100 border-b-2 border-slate-600 dark:border-slate-300 bg-white dark:bg-gray-800 shadow-sm': subTabCostosActiva === 'resumen',
+      'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': subTabCostosActiva !== 'resumen'
+    }">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    Resumen
+  </button>
   <button (click)="subTabCostosActiva = 'materiales'"
     class="flex-1 px-4 py-2.5 text-xs font-medium transition-all duration-200 ease-out flex items-center justify-center gap-1.5 hover:-translate-y-[1px]"
     [ngClass]="{
@@ -45,23 +56,232 @@
 </div>
 
 <!-- Resumen rápido de totales -->
-<div class="grid grid-cols-4 gap-2 mb-4 text-xs">
-  <div class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded text-center">
-    <p class="text-gray-500 dark:text-gray-400">Materiales</p>
-    <p class="font-semibold text-blue-600 dark:text-blue-400">S/ {{ totalMateriales | number:'1.2-2' }}</p>
+
+<!-- ===== SUB-TAB RESUMEN ===== -->
+<div *ngIf="subTabCostosActiva === 'resumen'" class="space-y-5">
+  <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 p-4 sm:p-5 lg:p-6 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]">
+    <div class="space-y-5">
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)] gap-4">
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/60 p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div class="rounded-xl border border-white/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Cliente</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ proyectoInfoForm?.cliente || 'Sin registrar' }}</p>
+            </div>
+            <div class="rounded-xl border border-white/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Responsable</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ responsableNombre || 'Sin asignar' }}</p>
+            </div>
+            <div class="rounded-xl border border-white/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Ubicacion</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ proyectoInfoForm?.ubicacion || 'Sin registrar' }}</p>
+            </div>
+            <div class="rounded-xl border border-white/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Codigo de proyecto</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ proyectoId || 'Sin codigo' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-emerald-100 dark:border-emerald-900/50 bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-slate-800 dark:via-slate-800 dark:to-emerald-950/40 p-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl border border-blue-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/35 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">Inicio</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ fechaInicioResumen || 'Sin fecha' }}</p>
+            </div>
+            <div class="rounded-xl border border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/35 px-4 py-3">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">Fin</p>
+              <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ fechaFinResumen || 'Sin fecha' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 bg-white/85 dark:bg-slate-900/40 px-4 py-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Total general</p>
+            <div class="mt-2 flex items-end justify-between gap-3">
+              <p class="text-sm text-slate-600 dark:text-slate-300">Costo consolidado del proyecto</p>
+              <p class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-300">
+                S/ {{ totalCostosGeneral | number:'1.2-2' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div class="rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/80 dark:bg-blue-950/20 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <span class="inline-flex rounded-full bg-blue-100 dark:bg-blue-900/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-200">
+                Materiales
+              </span>
+              <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Resumen armado segun la tabla de tipos.</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+              <p class="mt-1 text-lg font-extrabold text-blue-700 dark:text-blue-300">S/ {{ totalMateriales | number:'1.2-2' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4 space-y-2">
+            <div *ngFor="let item of materialesPorTipo; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+              <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">S/ {{ item.total | number:'1.2-2' }}</span>
+            </div>
+            <p *ngIf="materialesPorTipo.length === 0" class="rounded-xl border border-dashed border-blue-200 dark:border-blue-900/60 px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+              Sin materiales registrados
+            </p>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/80 dark:bg-emerald-950/20 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <span class="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
+                Mano de obra
+              </span>
+              <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Resumen armado segun la tabla de cargos.</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+              <p class="mt-1 text-lg font-extrabold text-emerald-700 dark:text-emerald-300">S/ {{ totalManoObra | number:'1.2-2' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4 space-y-2">
+            <div *ngFor="let item of manoObraPorCargo; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+              <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">S/ {{ item.total | number:'1.2-2' }}</span>
+            </div>
+            <p *ngIf="manoObraPorCargo.length === 0" class="rounded-xl border border-dashed border-emerald-200 dark:border-emerald-900/60 px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+              Sin mano de obra registrada
+            </p>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/80 dark:bg-amber-950/20 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <span class="inline-flex rounded-full bg-amber-100 dark:bg-amber-900/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-200">
+                Otros costos
+              </span>
+              <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Resumen por cada categoria de otros costos creada.</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+              <p class="mt-1 text-lg font-extrabold text-amber-700 dark:text-amber-300">S/ {{ totalOtrosCostos | number:'1.2-2' }}</p>
+            </div>
+          </div>
+
+          <div class="mt-4 space-y-2">
+            <div *ngFor="let item of otrosCostosPorCategoria; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+              <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">S/ {{ item.total | number:'1.2-2' }}</span>
+            </div>
+            <p *ngIf="otrosCostosPorCategoria.length === 0" class="rounded-xl border border-dashed border-amber-200 dark:border-amber-900/60 px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+              Sin otros costos registrados
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legacy resumen layout retained for reference.
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm text-slate-900 dark:text-slate-100">
+      <div class="space-y-2">
+        <div class="grid grid-cols-[140px_1fr] gap-2">
+          <span class="font-bold uppercase">Cliente</span>
+          <span>{{ proyectoInfoForm?.cliente || '' }}</span>
+        </div>
+        <div class="grid grid-cols-[140px_1fr] gap-2">
+          <span class="font-bold uppercase">Ubicación</span>
+          <span>{{ proyectoInfoForm?.ubicacion || '' }}</span>
+        </div>
+        <div class="grid grid-cols-[140px_1fr] gap-2">
+          <span class="font-bold uppercase">Fecha</span>
+          <span>{{ fechaResumenActual }}</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="grid grid-cols-[150px_1fr] gap-2">
+          <span class="font-bold uppercase">Responsable:</span>
+          <span class="font-semibold">{{ responsableNombre || '' }}</span>
+        </div>
+        <div class="grid grid-cols-[150px_1fr] gap-2">
+          <span class="font-bold uppercase">Nº de proyecto:</span>
+          <span>{{ proyectoId || '' }}</span>
+        </div>
+        <div class="overflow-hidden rounded border-2 border-slate-900 dark:border-slate-300">
+          <div class="grid grid-cols-[45%_55%] border-b-2 border-slate-900 dark:border-slate-300">
+            <span class="px-2 py-1 font-bold uppercase">Inicio:</span>
+            <span class="px-2 py-1 text-center border-l-2 border-slate-900 dark:border-slate-300">{{ fechaInicioResumen }}</span>
+          </div>
+          <div class="grid grid-cols-[45%_55%]">
+            <span class="px-2 py-1 font-bold uppercase">Fin:</span>
+            <span class="px-2 py-1 text-center border-l-2 border-slate-900 dark:border-slate-300">{{ fechaFinResumen }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 space-y-5 text-sm">
+      <div class="grid grid-cols-1 lg:grid-cols-[160px_1fr_170px] gap-3 items-start">
+        <h4 class="font-extrabold uppercase text-slate-950 dark:text-white">Materiales</h4>
+        <div class="space-y-1">
+          <div *ngFor="let item of materialesPorTipo; trackBy: trackResumenItem" class="grid grid-cols-[1fr_32px_120px] gap-2">
+            <span class="uppercase">{{ item.nombre }}</span>
+            <span>S/</span>
+            <span class="text-right">{{ item.total | number:'1.2-2' }}</span>
+          </div>
+          <p *ngIf="materialesPorTipo.length === 0" class="text-slate-500 dark:text-slate-400">Sin materiales registrados</p>
+        </div>
+        <div class="grid grid-cols-[32px_1fr] gap-2 font-extrabold text-base">
+          <span>S/</span>
+          <span class="text-right">{{ totalMateriales | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[160px_1fr_170px] gap-3 items-start">
+        <h4 class="font-extrabold uppercase text-slate-950 dark:text-white">Mano de Obra</h4>
+        <div class="space-y-1">
+          <div *ngFor="let item of manoObraPorCargo; trackBy: trackResumenItem" class="grid grid-cols-[1fr_32px_120px] gap-2">
+            <span class="uppercase">{{ item.nombre }}</span>
+            <span>S/</span>
+            <span class="text-right">{{ item.total | number:'1.2-2' }}</span>
+          </div>
+          <p *ngIf="manoObraPorCargo.length === 0" class="text-slate-500 dark:text-slate-400">Sin mano de obra registrada</p>
+        </div>
+        <div class="grid grid-cols-[32px_1fr] gap-2 font-extrabold text-base">
+          <span>S/</span>
+          <span class="text-right">{{ totalManoObra | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[160px_1fr_170px] gap-3 items-start">
+        <h4 class="font-extrabold uppercase text-slate-950 dark:text-white">Otros Costos</h4>
+        <div class="space-y-1">
+          <div *ngFor="let item of otrosCostosPorCategoria; trackBy: trackResumenItem" class="grid grid-cols-[1fr_32px_120px] gap-2">
+            <span class="uppercase">{{ item.nombre }}</span>
+            <span>S/</span>
+            <span class="text-right">{{ item.total | number:'1.2-2' }}</span>
+          </div>
+          <p *ngIf="otrosCostosPorCategoria.length === 0" class="text-slate-500 dark:text-slate-400">Sin otros costos registrados</p>
+        </div>
+        <div class="grid grid-cols-[32px_1fr] gap-2 font-extrabold text-base">
+          <span>S/</span>
+          <span class="text-right">{{ totalOtrosCostos | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 pt-3 border-t-4 border-slate-900 dark:border-slate-200 grid grid-cols-[1fr_32px_160px] gap-2 text-lg font-extrabold text-slate-950 dark:text-white">
+      <span class="text-right uppercase">Total general</span>
+      <span>S/</span>
+      <span class="text-right">{{ totalCostosGeneral | number:'1.2-2' }}</span>
+    </div>
+      -->
   </div>
-  <div class="p-2 bg-green-50 dark:bg-green-900/30 rounded text-center">
-    <p class="text-gray-500 dark:text-gray-400">Mano de Obra</p>
-    <p class="font-semibold text-green-600 dark:text-green-400">S/ {{ totalManoObra | number:'1.2-2' }}</p>
-  </div>
-  <div class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded text-center">
-    <p class="text-gray-500 dark:text-gray-400">Otros</p>
-    <p class="font-semibold text-amber-600 dark:text-amber-400">S/ {{ totalOtrosCostos | number:'1.2-2' }}</p>
-  </div>
-  <div class="p-2 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded text-center">
-    <p class="text-gray-500 dark:text-gray-400">Total</p>
-    <p class="font-bold text-green-600 dark:text-green-400">S/ {{ totalCostosGeneral | number:'1.2-2' }}</p>
-  </div>
+</div>
 </div>
 
 <!-- ===== SUB-TAB MATERIALES ===== -->
@@ -77,6 +297,7 @@
             <tr>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Fecha</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Nº Comprobante</th>
+              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Tipo</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Producto</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-16">Cantidad</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Unit.</th>
@@ -97,6 +318,10 @@
               </td>
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mat.nroComprobante" (ngModelChange)="emitirCambios()" placeholder="000-000"
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+              </td>
+              <td class="py-1 px-1">
+                <input type="text" [(ngModel)]="mat.tipo" (ngModelChange)="emitirCambios()" placeholder="EPP, maquinaria..."
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
@@ -136,7 +361,7 @@
               </td>
             </tr>
             <tr *ngIf="materiales.length === 0">
-              <td colspan="9" class="py-3 text-center text-gray-400 text-xs">No hay materiales registrados</td>
+              <td colspan="10" class="py-3 text-center text-gray-400 text-xs">No hay materiales registrados</td>
             </tr>
           </tbody>
         </table>
