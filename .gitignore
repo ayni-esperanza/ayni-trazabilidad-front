@@ -39,6 +39,7 @@ testem.log
 
 # Env files
 .env
+.env.prod
 public/env.js
 
 # System files
