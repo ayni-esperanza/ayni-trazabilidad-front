@@ -8,6 +8,8 @@ import { ComentarioActividadPayloadApi, RegistroSolicitudesService } from '../..
 import { ProcesoTablaComponent } from './components/proceso-tabla/proceso-tabla.component';
 import { ProcesoTimelineComponent } from './components/proceso-timeline/proceso-timeline.component';
 import { AdjuntosPreviewService } from '../../../../../../shared/services/adjuntos-preview.service';
+import { AdjuntoUploadOptimizerService } from '../../../../../../shared/services/adjunto-upload-optimizer.service';
+import { ADJUNTO_ACCEPT_TIPOS } from '../../../../../../shared/services/adjunto-upload-policy';
 import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { firstValueFrom } from 'rxjs';
@@ -61,7 +63,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   };
   readonly opcionesPorPaginaTablaFlujo = [20, 50, 100, 200];
   readonly estadosActividad: EstadoTarea[] = ['En Proceso', 'Completado', 'Cancelado', 'Retrasado'];
-  readonly acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
+  readonly acceptTiposArchivo = ADJUNTO_ACCEPT_TIPOS;
   private readonly maxImagenBytes = 5 * 1024 * 1024;
   private readonly maxDocumentoBytes = 25 * 1024 * 1024;
   private readonly tiposPermitidos = new Set([
@@ -116,6 +118,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     private readonly sanitizer: DomSanitizer,
     private readonly authService: AuthService,
     private readonly registroSolicitudesService: RegistroSolicitudesService,
+    private readonly adjuntoUploadOptimizerService: AdjuntoUploadOptimizerService,
     private readonly adjuntosPreviewService: AdjuntosPreviewService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -1473,9 +1476,9 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
         );
 
         resultado.push({
-          nombre: adjunto.nombre,
-          tipo: adjunto.tipo,
-          tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+          nombre: String(subida.fileName || adjunto.nombre || '').trim() || adjunto.nombre,
+          tipo: String(subida.contentType || adjunto.tipo || '').trim() || adjunto.tipo,
+          tamano: Number(subida.fileSize || adjunto.tamano || adjunto.archivo.size || 0),
           objectKey: subida.objectKey,
           dataUrl: adjunto.dataUrl || subida.publicUrl
         });
@@ -1602,33 +1605,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   private async prepararAdjuntoComentario(file: File): Promise<File | string | null> {
-    const nombre = (file.name || '').trim();
-    if (!nombre) {
-      return 'No se pudo adjuntar un archivo sin nombre';
-    }
-
-    if (this.esAudioOVideo(file)) {
-      return `No se permiten archivos de audio o video (${nombre})`;
-    }
-
-    if (!this.esTipoPermitido(file)) {
-      return `Tipo de archivo no permitido (${nombre})`;
-    }
-
-    let archivoFinal = file;
-    if (this.esImagenComprimible(file)) {
-      const comprimido = await this.comprimirImagen(file);
-      if (comprimido) {
-        archivoFinal = comprimido;
-      }
-    }
-
-    const limiteBytes = this.obtenerLimiteBytes(archivoFinal);
-    if (archivoFinal.size > limiteBytes) {
-      return `El archivo supera el límite de ${this.formatearLimiteMb(limiteBytes)} (${nombre})`;
-    }
-
-    return archivoFinal;
+    return this.adjuntoUploadOptimizerService.prepararAdjunto(file);
   }
 
   private esAudioOVideo(file: File): boolean {

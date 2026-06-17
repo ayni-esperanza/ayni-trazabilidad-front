@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { Firma } from '../../models/firma.model';
 import { FirmaFormData, FirmaFormModalComponent } from '../firma-form-modal/firma-form-modal.component';
+import { ADJUNTO_MAX_DOCUMENTO_BYTES } from '../../../../shared/services/adjunto-upload-policy';
+import { AdjuntoUploadOptimizerService } from '../../../../shared/services/adjunto-upload-optimizer.service';
 import { PDFDocument, rgb } from 'pdf-lib';
 
 type PosicionFirma = 'superior-izquierda' | 'superior-centro' | 'superior-derecha' | 
@@ -97,7 +99,10 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
   private pdfjsLib: any = null; // Se cargará dinámicamente en el navegador
   private isBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: object,
+    private readonly adjuntoUploadOptimizerService: AdjuntoUploadOptimizerService,
+  ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     
     // Configurar worker de PDF.js solo en el navegador
@@ -157,7 +162,7 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
       // Si hay un archivo inicial (PDF firmado pre-cargado), cargarlo automáticamente
       if (this.archivoInicial) {
         setTimeout(() => {
-          this.procesarArchivo(this.archivoInicial!);
+          void this.procesarArchivo(this.archivoInicial!);
         }, 100);
       }
     }
@@ -299,7 +304,7 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.procesarArchivo(input.files[0]);
+      void this.procesarArchivo(input.files[0]);
     }
   }
 
@@ -318,27 +323,36 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
     event.stopPropagation();
 
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      this.procesarArchivo(event.dataTransfer.files[0]);
+      void this.procesarArchivo(event.dataTransfer.files[0]);
     }
   }
 
-  private procesarArchivo(file: File): void {
+  private async procesarArchivo(file: File): Promise<void> {
     // Validar tipo de archivo - Solo PDF
     if (file.type !== 'application/pdf') {
       this.errores['archivo'] = 'Solo se permiten archivos PDF';
       return;
     }
 
-    // Validar tamaño (10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.errores['archivo'] = 'El archivo no debe superar los 10MB';
+    const procesado = await this.adjuntoUploadOptimizerService.prepararAdjunto(file);
+    if (typeof procesado === 'string') {
+      this.errores['archivo'] = procesado;
       return;
     }
 
-    this.archivoSubido = file;
-    this.nombreArchivo = file.name;
-    this.tamanoArchivo = this.formatearTamano(file.size);
+    if (procesado.type !== 'application/pdf') {
+      this.errores['archivo'] = 'Solo se permiten archivos PDF';
+      return;
+    }
+
+    if (procesado.size > ADJUNTO_MAX_DOCUMENTO_BYTES) {
+      this.errores['archivo'] = 'El archivo no debe superar los 25MB';
+      return;
+    }
+
+    this.archivoSubido = procesado;
+    this.nombreArchivo = procesado.name;
+    this.tamanoArchivo = this.formatearTamano(procesado.size);
     delete this.errores['archivo'];
 
     // Resetear estado de firma posicionada
@@ -347,7 +361,7 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
     this.firmaPosY = 0;
 
     // Cargar el PDF para previsualización
-    this.cargarPDF(file);
+    await this.cargarPDF(procesado);
   }
 
   private formatearTamano(bytes: number): string {

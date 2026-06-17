@@ -81,6 +81,9 @@
                   </div>
                 </div>
               </div>
+              <p *ngIf="erroresAdjuntosOrdenCompra[i]" class="text-xs text-red-500 dark:text-red-400">
+                {{ erroresAdjuntosOrdenCompra[i] }}
+              </p>
             </div>
 
             <div class="flex-shrink-0 h-[38px] flex items-center gap-2 self-start">

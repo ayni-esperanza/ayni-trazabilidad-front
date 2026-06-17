@@ -8,6 +8,8 @@ import { firstValueFrom } from 'rxjs';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../confirm-delete-modal/confirm-delete-modal.component';
 import { DatePickerComponent } from '../date-picker/date-picker.component';
 import { ResponsableSelectComponent } from '../responsable-select/responsable-select.component';
+import { AdjuntoUploadOptimizerService } from '../../services/adjunto-upload-optimizer.service';
+import { ADJUNTO_ACCEPT_TIPOS } from '../../services/adjunto-upload-policy';
 import { AdjuntosPreviewService } from '../../services/adjuntos-preview.service';
 import { HttpService } from '../../../core/services/http.service';
 import { Responsable } from '../../../features/registro-solicitudes/models/solicitud.model';
@@ -62,7 +64,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     estado: 'En Proceso'
   };
 
-  acceptTiposArchivo = '.xlsx,.xls,.pdf,.docx,.doc,.pptx,.ppt,.txt,.csv,.png,.jpg,.jpeg,.webp,.gif,.zip,.rar';
+  acceptTiposArchivo = ADJUNTO_ACCEPT_TIPOS;
   protected Editor: any;
   protected ckeditorConfig: any = {};
   protected isBrowser = false;
@@ -117,6 +119,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
+    private readonly adjuntoUploadOptimizerService: AdjuntoUploadOptimizerService,
     private readonly adjuntosPreviewService: AdjuntosPreviewService,
     private readonly httpService: HttpService,
     @Inject(PLATFORM_ID) platformId: object
@@ -517,34 +520,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   private async prepararAdjunto(file: File): Promise<File | string | null> {
-    const nombre = (file.name || '').trim();
-    if (!nombre) {
-      return 'No se pudo adjuntar un archivo sin nombre';
-    }
-
-    if (this.esAudioOVideo(file)) {
-      return `No se permiten archivos de audio o video (${nombre})`;
-    }
-
-    if (!this.esTipoPermitido(file)) {
-      return `Tipo de archivo no permitido (${nombre})`;
-    }
-
-    let archivoFinal = file;
-
-    if (this.esImagenComprimible(file)) {
-      const comprimido = await this.comprimirImagen(file);
-      if (comprimido) {
-        archivoFinal = comprimido;
-      }
-    }
-
-    const limiteBytes = this.obtenerLimiteBytes(archivoFinal);
-    if (archivoFinal.size > limiteBytes) {
-      return `El archivo supera el límite de ${this.formatearLimiteMb(limiteBytes)} (${nombre})`;
-    }
-
-    return archivoFinal;
+    return this.adjuntoUploadOptimizerService.prepararAdjunto(file);
   }
 
   private esAudioOVideo(file: File): boolean {

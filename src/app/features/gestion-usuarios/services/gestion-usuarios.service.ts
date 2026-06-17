@@ -17,6 +17,9 @@ type StorageUploadResponse = {
   objectKey: string;
   publicUrl?: string;
   eTag?: string;
+  fileSize?: number;
+  fileName?: string;
+  contentType?: string;
 };
 
 // Configuración de endpoints - Cambiar cuando el backend esté listo

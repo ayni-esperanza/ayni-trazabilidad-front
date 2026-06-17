@@ -1009,9 +1009,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         );
 
         resultado.push({
-          nombre: adjunto.nombre,
-          tipo: adjunto.tipo,
-          tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+          nombre: String(subida.fileName || adjunto.nombre || '').trim() || adjunto.nombre,
+          tipo: String(subida.contentType || adjunto.tipo || '').trim() || adjunto.tipo,
+          tamano: Number(subida.fileSize || adjunto.tamano || adjunto.archivo.size || 0),
           objectKey: subida.objectKey,
           dataUrl: adjunto.dataUrl || subida.publicUrl,
           url: subida.publicUrl,
@@ -1053,9 +1053,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           );
 
           adjuntosSubidos.push({
-            nombre: adjunto.nombre,
-            tipo: adjunto.tipo,
-            tamano: Number(adjunto.tamano || adjunto.archivo.size || 0),
+            nombre: String(subida.fileName || adjunto.nombre || '').trim() || adjunto.nombre,
+            tipo: String(subida.contentType || adjunto.tipo || '').trim() || adjunto.tipo,
+            tamano: Number(subida.fileSize || adjunto.tamano || adjunto.archivo.size || 0),
             objectKey: subida.objectKey,
             dataUrl: adjunto.dataUrl || subida.publicUrl,
             url: subida.publicUrl,

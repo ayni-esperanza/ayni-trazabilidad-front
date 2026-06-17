@@ -59,6 +59,9 @@ type StorageUploadResponseApi = {
   objectKey: string;
   publicUrl?: string;
   eTag?: string;
+  fileSize?: number;
+  fileName?: string;
+  contentType?: string;
 };
 
 type FlujoNodoApi = {
