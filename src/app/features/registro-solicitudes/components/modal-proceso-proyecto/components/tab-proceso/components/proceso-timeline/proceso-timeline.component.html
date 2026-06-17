@@ -50,7 +50,7 @@
 							type="button"
 							(click)="ctx.toggleEstadoDropdown(nodo.id)"
 							(keydown.escape)="ctx.onEstadoDropdownClose(nodo.id)"
-							[disabled]="ctx.proyectoCancelado"
+							[disabled]="ctx.proyectoCancelado || !ctx.puedeGestionarActividad(nodo)"
 							class="min-w-[92px] text-[10px] pl-2 pr-6 py-0.5 border rounded text-left whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							[ngClass]="ctx.getClaseControlEstadoActividad(ctx.getEstadoActividad(nodo))"
 							[attr.aria-expanded]="ctx.isEstadoDropdownAbierto(nodo.id)">

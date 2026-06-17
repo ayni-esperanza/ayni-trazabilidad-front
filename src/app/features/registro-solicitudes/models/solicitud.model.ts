@@ -1,5 +1,5 @@
 export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
-export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado';
+export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado' | 'Archivado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
 export type TipoActividadInterna = 'DESARROLLO' | 'SEGUIMIENTO';
 
@@ -8,9 +8,12 @@ export interface OrdenCompra {
   numero: string;
   fecha: string;
   tipo?: string;
+  tipoActividad?: TipoActividadInterna;
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
   adjuntos?: FlujoAdjunto[];
 }
 
@@ -36,6 +39,10 @@ export interface FlujoNodo {
   fechaCambioEstado?: string;
   responsableId?: number;
   responsableNombre?: string;
+  creadorId?: number;
+  creadorNombre?: string;
+  fechaRegistro?: string;
+  fechaActualizacion?: string;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
@@ -71,6 +78,8 @@ export interface Solicitud {
   costo: number;
   responsableId: number;
   responsableNombre?: string;
+  creadorId?: number;
+  creadorNombre?: string;
   descripcion: string;
   areas?: string[];
   ubicacion?: string;

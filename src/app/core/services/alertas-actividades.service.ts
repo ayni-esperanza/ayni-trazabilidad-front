@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { HttpService } from './http.service';
-import { EstadoTarea, FlujoNodo } from '../../features/registro-solicitudes/models/solicitud.model';
+import { EstadoProyecto, EstadoTarea, FlujoNodo } from '../../features/registro-solicitudes/models/solicitud.model';
 
 export type NivelAlertaActividad = 'media' | 'alta';
+export type EstadoAlertaActividad = EstadoTarea | Extract<EstadoProyecto, 'Archivado'>;
 
 export interface AlertaActividadGlobal {
   proyectoId: number;
   proyectoNombre?: string;
   nodoId: number;
   nombreActividad: string;
-  estado: EstadoTarea;
+  estado: EstadoAlertaActividad;
   nivel: NivelAlertaActividad;
   horasSinCambio: number;
   mensaje: string;
@@ -137,8 +138,9 @@ export class AlertasActividadesService {
     );
   }
 
-  private normalizarEstado(value?: string): EstadoTarea {
+  private normalizarEstado(value?: string): EstadoAlertaActividad {
     const clean = (value || '').toLowerCase();
+    if (clean.includes('archiv')) return 'Archivado';
     if (clean.includes('complet')) return 'Completado';
     if (clean.includes('cancel')) return 'Cancelado';
     if (clean.includes('retras')) return 'Retrasado';

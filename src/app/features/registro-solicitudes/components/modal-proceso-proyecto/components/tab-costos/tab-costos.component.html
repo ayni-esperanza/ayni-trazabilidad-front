@@ -139,7 +139,7 @@
               <span class="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
                 Mano de obra
               </span>
-              <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Resumen armado segun la tabla de cargos.</p>
+              <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Resumen armado segun la tabla de oficios.</p>
             </div>
             <div class="text-right">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
@@ -148,11 +148,11 @@
           </div>
 
           <div class="mt-4 space-y-2">
-            <div *ngFor="let item of manoObraPorCargo; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+            <div *ngFor="let item of manoObraPorOficio; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
               <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
               <span class="text-sm font-bold text-slate-900 dark:text-slate-100">S/ {{ item.total | number:'1.2-2' }}</span>
             </div>
-            <p *ngIf="manoObraPorCargo.length === 0" class="rounded-xl border border-dashed border-emerald-200 dark:border-emerald-900/60 px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p *ngIf="manoObraPorOficio.length === 0" class="rounded-xl border border-dashed border-emerald-200 dark:border-emerald-900/60 px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
               Sin mano de obra registrada
             </p>
           </div>
@@ -244,12 +244,12 @@
       <div class="grid grid-cols-1 lg:grid-cols-[160px_1fr_170px] gap-3 items-start">
         <h4 class="font-extrabold uppercase text-slate-950 dark:text-white">Mano de Obra</h4>
         <div class="space-y-1">
-          <div *ngFor="let item of manoObraPorCargo; trackBy: trackResumenItem" class="grid grid-cols-[1fr_32px_120px] gap-2">
+          <div *ngFor="let item of manoObraPorOficio; trackBy: trackResumenItem" class="grid grid-cols-[1fr_32px_120px] gap-2">
             <span class="uppercase">{{ item.nombre }}</span>
             <span>S/</span>
             <span class="text-right">{{ item.total | number:'1.2-2' }}</span>
           </div>
-          <p *ngIf="manoObraPorCargo.length === 0" class="text-slate-500 dark:text-slate-400">Sin mano de obra registrada</p>
+          <p *ngIf="manoObraPorOficio.length === 0" class="text-slate-500 dark:text-slate-400">Sin mano de obra registrada</p>
         </div>
         <div class="grid grid-cols-[32px_1fr] gap-2 font-extrabold text-base">
           <span>S/</span>
@@ -395,9 +395,9 @@
     <div class="flex items-center justify-between gap-3 px-3 py-2 bg-green-50 dark:bg-green-900/20">
       <span class="text-xs font-semibold text-green-700 dark:text-green-300">Mano de Obra</span>
       <button type="button"
-        (click)="abrirCatalogo('cargoManoObra')"
-        title="Gestionar cargos"
-        aria-label="Gestionar cargos"
+        (click)="abrirCatalogo('oficioManoObra')"
+        title="Gestionar oficios"
+        aria-label="Gestionar oficios"
         class="inline-flex items-center justify-center rounded-lg bg-green-600 p-2 text-white hover:bg-green-700">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6h9m-9 6h9m-9 6h9M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>
@@ -410,7 +410,7 @@
           <thead class="bg-gray-50 dark:bg-gray-800/60">
             <tr>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Trabajador</th>
-              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Cargo</th>
+              <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Oficio</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Días Trabajando</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo por Día</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Costo Total</th>
@@ -425,10 +425,10 @@
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
               </td>
               <td class="py-1 px-1">
-                <select [(ngModel)]="mo.cargo" (ngModelChange)="emitirCambios()"
+                <select [(ngModel)]="mo.oficio" (ngModelChange)="emitirCambios()"
                   class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-                  <option value="">Seleccionar cargo</option>
-                  <option *ngFor="let cargo of opcionesCargoManoObra; trackBy: trackOpcion" [ngValue]="cargo">{{ cargo }}</option>
+                  <option value="">Seleccionar oficio</option>
+                  <option *ngFor="let oficio of opcionesOficioManoObra; trackBy: trackOpcion" [ngValue]="oficio">{{ oficio }}</option>
                 </select>
               </td>
               <td class="py-1 px-1">
@@ -556,69 +556,69 @@
         </div>
       </div>
 
-      <div *ngIf="catalogoActivo === 'cargoManoObra'" class="space-y-4">
+      <div *ngIf="catalogoActivo === 'oficioManoObra'" class="space-y-4">
         <div class="flex gap-2">
           <input type="text"
-            [(ngModel)]="nuevoCargoManoObra"
+            [(ngModel)]="nuevoOficioManoObra"
             [disabled]="modoSoloLectura"
-            placeholder="Nuevo cargo"
-            (keyup.enter)="agregarOpcionCargoManoObra()"
+            placeholder="Nuevo oficio"
+            (keyup.enter)="agregarOpcionOficioManoObra()"
             class="flex-1 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
           <button type="button"
-            (click)="agregarOpcionCargoManoObra()"
-            [disabled]="modoSoloLectura || !nuevoCargoManoObra.trim()"
+            (click)="agregarOpcionOficioManoObra()"
+            [disabled]="modoSoloLectura || !nuevoOficioManoObra.trim()"
             class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
             Agregar
           </button>
         </div>
 
         <div class="max-h-72 space-y-2 overflow-y-auto">
-          <div *ngFor="let cargo of opcionesCargoManoObra; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+          <div *ngFor="let oficio of opcionesOficioManoObra; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
             <div class="min-w-0 flex-1">
-              <ng-container *ngIf="cargoManoObraEnEdicion !== cargo; else editarCargoTpl">
-                <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ cargo }}</p>
+              <ng-container *ngIf="oficioManoObraEnEdicion !== oficio; else editarOficioTpl">
+                <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ oficio }}</p>
               </ng-container>
-              <ng-template #editarCargoTpl>
+              <ng-template #editarOficioTpl>
                 <input type="text"
-                  [(ngModel)]="nuevoNombreCargoManoObraEdicion"
+                  [(ngModel)]="nuevoNombreOficioManoObraEdicion"
                   [disabled]="modoSoloLectura"
-                  (keyup.enter)="guardarEdicionCargoManoObra(cargo)"
+                  (keyup.enter)="guardarEdicionOficioManoObra(oficio)"
                   class="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white">
               </ng-template>
-              <p *ngIf="estaCargoManoObraEnUso(cargo)" class="text-[11px] text-amber-600 dark:text-amber-300">En uso en registros de mano de obra</p>
+              <p *ngIf="estaOficioManoObraEnUso(oficio)" class="text-[11px] text-amber-600 dark:text-amber-300">En uso en registros de mano de obra</p>
             </div>
             <div class="flex items-center gap-2">
-              <ng-container *ngIf="cargoManoObraEnEdicion !== cargo; else accionesEdicionCargoTpl">
+              <ng-container *ngIf="oficioManoObraEnEdicion !== oficio; else accionesEdicionOficioTpl">
                 <button type="button"
-                  (click)="iniciarEdicionCargoManoObra(cargo)"
+                  (click)="iniciarEdicionOficioManoObra(oficio)"
                   [disabled]="modoSoloLectura"
                   class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-green-200 hover:text-green-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
                   Editar
                 </button>
                 <button type="button"
-                  (click)="eliminarOpcionCargoManoObra(cargo)"
-                  [disabled]="modoSoloLectura || estaCargoManoObraEnUso(cargo)"
+                  (click)="eliminarOpcionOficioManoObra(oficio)"
+                  [disabled]="modoSoloLectura || estaOficioManoObraEnUso(oficio)"
                   class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
                   Eliminar
                 </button>
               </ng-container>
-              <ng-template #accionesEdicionCargoTpl>
+              <ng-template #accionesEdicionOficioTpl>
                 <button type="button"
-                  (click)="guardarEdicionCargoManoObra(cargo)"
-                  [disabled]="modoSoloLectura || !nuevoNombreCargoManoObraEdicion.trim()"
+                  (click)="guardarEdicionOficioManoObra(oficio)"
+                  [disabled]="modoSoloLectura || !nuevoNombreOficioManoObraEdicion.trim()"
                   class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed">
                   Guardar
                 </button>
                 <button type="button"
-                  (click)="cancelarEdicionCargoManoObra()"
+                  (click)="cancelarEdicionOficioManoObra()"
                   class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
                   Cancelar
                 </button>
               </ng-template>
             </div>
           </div>
-          <p *ngIf="!opcionesCargoManoObra.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            Aun no hay cargos registrados.
+          <p *ngIf="!opcionesOficioManoObra.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Aun no hay oficios registrados.
           </p>
         </div>
       </div>

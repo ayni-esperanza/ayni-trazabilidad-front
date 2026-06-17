@@ -19,6 +19,8 @@ type SolicitudApi = {
   costo?: number;
   responsableId: number;
   responsableNombre?: string;
+  creadorId?: number;
+  creadorNombre?: string;
   descripcion: string;
   areas?: string[];
   ubicacion?: string;
@@ -34,9 +36,12 @@ type OrdenCompraApi = {
   numero: string;
   fecha: string;
   tipo?: string;
+  tipoActividad?: string;
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
   adjuntos?: FlujoAdjuntoApi[];
 };
 
@@ -67,6 +72,10 @@ type FlujoNodoApi = {
   fechaCambioEstado?: string;
   responsableId?: number;
   responsableNombre?: string;
+  creadorId?: number;
+  creadorNombre?: string;
+  fechaRegistro?: string;
+  fechaActualizacion?: string;
   fechaInicio?: string;
   fechaFin?: string;
   descripcion?: string;
@@ -178,6 +187,7 @@ type CostoMaterialApi = {
 type CostoManoObraApi = {
   id: number;
   trabajador: string;
+  oficio?: string;
   cargo?: string;
   diasTrabajando: number;
   costoPorDia: number;
@@ -198,6 +208,11 @@ type CostoAdicionalApi = {
 };
 
 export type CostoCategoriaAdicionalApi = {
+  id: number;
+  nombre: string;
+};
+
+export type CostoCatalogoApi = {
   id: number;
   nombre: string;
 };
@@ -454,6 +469,7 @@ export class RegistroSolicitudesService {
     return this.http.post<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales`, {
       fecha: item.fecha || null,
       nroComprobante: item.nroComprobante || '',
+      tipo: item.tipo || '',
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
@@ -466,6 +482,7 @@ export class RegistroSolicitudesService {
     return this.http.put<CostoMaterialApi>(`/v1/proyectos/${proyectoId}/costos/materiales/${item.id}`, {
       fecha: item.fecha || null,
       nroComprobante: item.nroComprobante || '',
+      tipo: item.tipo || '',
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
@@ -483,6 +500,7 @@ export class RegistroSolicitudesService {
       map((items) => (items || []).map((item) => ({
         id: item.id,
         trabajador: item.trabajador,
+        oficio: item.oficio || item.cargo || '',
         cargo: item.cargo,
         diasTrabajando: Number(item.diasTrabajando || 0),
         costoPorDia: Number(item.costoPorDia || 0),
@@ -495,7 +513,7 @@ export class RegistroSolicitudesService {
   crearCostoManoObra(proyectoId: number, item: CostoManoObraApi): Observable<CostoManoObraApi> {
     return this.http.post<CostoManoObraApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra`, {
       trabajador: item.trabajador,
-      cargo: item.cargo || '',
+      oficio: item.oficio || item.cargo || '',
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       dependenciaActividadId: item.dependenciaActividadId ?? null
@@ -505,7 +523,7 @@ export class RegistroSolicitudesService {
   actualizarCostoManoObra(proyectoId: number, item: CostoManoObraApi): Observable<CostoManoObraApi> {
     return this.http.put<CostoManoObraApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra/${item.id}`, {
       trabajador: item.trabajador,
-      cargo: item.cargo || '',
+      oficio: item.oficio || item.cargo || '',
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       dependenciaActividadId: item.dependenciaActividadId ?? null
@@ -514,6 +532,38 @@ export class RegistroSolicitudesService {
 
   eliminarCostoManoObra(proyectoId: number, id: number): Observable<void> {
     return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/mano-obra/${id}`);
+  }
+
+  obtenerTiposMaterial(proyectoId: number): Observable<CostoCatalogoApi[]> {
+    return this.http.get<CostoCatalogoApi[]>(`/v1/proyectos/${proyectoId}/costos/materiales/tipos-registro`);
+  }
+
+  crearTipoMaterial(proyectoId: number, nombre: string): Observable<CostoCatalogoApi> {
+    return this.http.post<CostoCatalogoApi>(`/v1/proyectos/${proyectoId}/costos/materiales/tipos-registro`, { nombre });
+  }
+
+  actualizarTipoMaterial(proyectoId: number, tipoId: number, nombre: string): Observable<CostoCatalogoApi> {
+    return this.http.put<CostoCatalogoApi>(`/v1/proyectos/${proyectoId}/costos/materiales/tipos-registro/${tipoId}`, { nombre });
+  }
+
+  eliminarTipoMaterial(proyectoId: number, tipoId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/materiales/tipos-registro/${tipoId}`);
+  }
+
+  obtenerOficiosManoObra(proyectoId: number): Observable<CostoCatalogoApi[]> {
+    return this.http.get<CostoCatalogoApi[]>(`/v1/proyectos/${proyectoId}/costos/mano-obra/oficios-registro`);
+  }
+
+  crearOficioManoObra(proyectoId: number, nombre: string): Observable<CostoCatalogoApi> {
+    return this.http.post<CostoCatalogoApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra/oficios-registro`, { nombre });
+  }
+
+  actualizarOficioManoObra(proyectoId: number, oficioId: number, nombre: string): Observable<CostoCatalogoApi> {
+    return this.http.put<CostoCatalogoApi>(`/v1/proyectos/${proyectoId}/costos/mano-obra/oficios-registro/${oficioId}`, { nombre });
+  }
+
+  eliminarOficioManoObra(proyectoId: number, oficioId: number): Observable<void> {
+    return this.http.delete<void>(`/v1/proyectos/${proyectoId}/costos/mano-obra/oficios-registro/${oficioId}`);
   }
 
   obtenerCostosAdicionales(proyectoId: number): Observable<CostoAdicionalApi[]> {
@@ -583,6 +633,8 @@ export class RegistroSolicitudesService {
       costo: Number(item.costo || 0),
       responsableId: item.responsableId,
       responsableNombre: item.responsableNombre,
+      creadorId: item.creadorId,
+      creadorNombre: item.creadorNombre,
       descripcion: item.descripcion,
       areas: item.areas || [],
       ubicacion: item.ubicacion,
@@ -608,9 +660,12 @@ export class RegistroSolicitudesService {
         numero: orden.numero,
         fecha: orden.fecha,
         tipo: orden.tipo,
+        tipoActividad: this.mapTipoActividad(orden.tipoActividad),
         numeroLicitacion: orden.numeroLicitacion,
         numeroSolicitud: orden.numeroSolicitud,
         total: Number(orden.total || 0),
+        fechaCreacion: orden.fechaCreacion,
+        fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto))
       })),
       responsableId: item.responsableId,
@@ -667,6 +722,10 @@ export class RegistroSolicitudesService {
         fechaCambioEstado: nodo.fechaCambioEstado,
         responsableId: nodo.responsableId,
         responsableNombre: nodo.responsableNombre,
+        creadorId: nodo.creadorId,
+        creadorNombre: nodo.creadorNombre,
+        fechaRegistro: nodo.fechaRegistro,
+        fechaActualizacion: nodo.fechaActualizacion,
         fechaInicio: nodo.fechaInicio,
         fechaFin: nodo.fechaFin,
         descripcion: nodo.descripcion,
@@ -715,6 +774,7 @@ export class RegistroSolicitudesService {
   private mapEstadoProyecto(value?: string): Proyecto['estado'] {
     if (!value) return 'En Proceso';
     const clean = value.trim().toLowerCase().replace(/_/g, ' ');
+    if (clean.includes('archiv')) return 'Archivado';
     if (clean.includes('finaliz')) return 'Finalizado';
     if (clean.includes('complet')) return 'Completado';
     if (clean.includes('cancel')) return 'Cancelado';

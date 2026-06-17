@@ -35,6 +35,7 @@ type DashboardProyectoApi = {
   ubicacion?: string;
   areas?: string[];
   fechaRegistro?: string;
+  fechaActualizacion?: string;
 };
 
 type DashboardTareaApi = {
@@ -106,6 +107,7 @@ export class TableroControlService {
     const inicio = this.toDate(item?.durationStart) || this.toDate(item?.fechaRegistro) || new Date();
     const fin = this.toDate(item?.durationEnd) || inicio;
     const fechaRegistro = this.toDate(item?.fechaRegistro) || inicio;
+    const fechaActualizacion = this.toDate(item?.fechaActualizacion) || fechaRegistro;
     const estado = this.mapEstadoProyecto(item?.estado);
     const areas = Array.isArray(item?.areas)
       ? item.areas.map((area) => String(area || '').trim()).filter((area) => !!area)
@@ -118,7 +120,7 @@ export class TableroControlService {
       empresa: item?.cliente || 'Cliente',
       responsable: item?.responsable || 'Sin responsable',
       etapa: item?.etapa || estado,
-      fechas: `${this.formatDate(inicio)} - ${this.formatDate(fin)}`,
+      fechas: `${this.formatDate(fechaRegistro)} - ${this.formatDate(fechaActualizacion)}`,
       estado,
       mes: this.getMonthLabel(inicio),
       mesActivo: this.getMonthLabel(inicio),
@@ -127,6 +129,7 @@ export class TableroControlService {
       fechaInicio: inicio,
       fechaFinalizacion: fin,
       fechaRegistro,
+      fechaActualizacion,
       gastoTotal: Number(item?.gasto || 0),
       lugar: item?.ubicacion || '',
       area,
@@ -209,12 +212,40 @@ export class TableroControlService {
 
   private toDate(value?: string | Date | null): Date | null {
     if (!value) return null;
-    const date = value instanceof Date ? value : new Date(value);
+
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const raw = String(value).trim();
+    if (!raw) return null;
+
+    const localDateOnly = this.parseLocalDateOnly(raw);
+    if (localDateOnly) return localDateOnly;
+
+    const date = new Date(raw);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private parseLocalDateOnly(value: string): Date | null {
+    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      const [, year, month, day] = dateOnlyMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    const midnightUtcMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})T00:00(?::00(?:\.\d{1,3})?)?(?:Z|[+\-]00:00)?$/);
+    if (midnightUtcMatch) {
+      const [, year, month, day] = midnightUtcMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    return null;
   }
 
   private mapEstadoProyecto(value?: string): ProyectoEnCurso['estado'] {
     const normalized = (value || '').toUpperCase();
+    if (normalized.includes('ARCHIV')) return 'Archivado';
     if (normalized.includes('COMPLET') || normalized.includes('FINALIZ')) return 'Completado';
     if (normalized.includes('CANCEL')) return 'Cancelado';
     if (normalized.includes('PEND')) return 'Pendiente';

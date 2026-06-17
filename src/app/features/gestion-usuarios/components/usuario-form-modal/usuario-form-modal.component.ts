@@ -15,6 +15,7 @@ export interface UsuarioFormData {
   rolId: number | null;
   activo: boolean;
   foto: string | null;
+  fotoArchivo?: File | null;
 }
 
 @Component({
@@ -39,6 +40,7 @@ export class UsuarioFormModalComponent implements OnChanges {
   @Input() roles: Rol[] = [];
   @Input() mensajeErrorGuardado: string | null = null;
   @Input() erroresGuardadoPorCampo: Record<string, string> | null = null;
+  @Input() guardando = false;
   
   @Output() cerrar = new EventEmitter<void>();
   @Output() guardar = new EventEmitter<UsuarioFormData>();
@@ -49,6 +51,7 @@ export class UsuarioFormModalComponent implements OnChanges {
   // Control de validación
   intentoGuardar = false;
   errores: { [key: string]: string } = {};
+  errorFoto: string | null = null;
   Object = Object;  // Para usar en el template
   
   get esEdicion(): boolean {
@@ -79,11 +82,13 @@ export class UsuarioFormModalComponent implements OnChanges {
             area: this.usuario.area,
             rolId: this.usuario.roles.length > 0 ? this.usuario.roles[0].id : null,
             activo: this.usuario.activo,
-            foto: this.usuario.foto || null
+            foto: this.usuario.foto || null,
+            fotoArchivo: null
           };
         } else {
           this.formData = this.getFormVacio();
         }
+        this.errorFoto = null;
       }
     }
   }
@@ -98,13 +103,15 @@ export class UsuarioFormModalComponent implements OnChanges {
       area: '',
       rolId: null,
       activo: true,
-      foto: null
+      foto: null,
+      fotoArchivo: null
     };
   }
   
   onCerrar(): void {
     this.intentoGuardar = false;
     this.errores = {};
+    this.errorFoto = null;
     this.cerrar.emit();
   }
   
@@ -157,19 +164,24 @@ export class UsuarioFormModalComponent implements OnChanges {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
+      this.errorFoto = null;
       
       // Validar tamaño (máximo 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('La imagen no debe superar los 2MB');
+        this.errorFoto = 'La imagen no debe superar los 2MB';
+        input.value = '';
         return;
       }
       
       // Validar tipo
       if (!file.type.startsWith('image/')) {
-        alert('Solo se permiten archivos de imagen');
+        this.errorFoto = 'Solo se permiten archivos de imagen';
+        input.value = '';
         return;
       }
       
+      this.formData.fotoArchivo = file;
+
       // Convertir a base64
       const reader = new FileReader();
       reader.onload = () => {
@@ -181,6 +193,8 @@ export class UsuarioFormModalComponent implements OnChanges {
   
   quitarFoto(): void {
     this.formData.foto = null;
+    this.formData.fotoArchivo = null;
+    this.errorFoto = null;
   }
   
   onEliminar(): void {

@@ -9,6 +9,7 @@ import {
   OtroCosto,
   TablaCostoExtra
 } from '../../modal-proceso-proyecto.component';
+import { CostoCatalogoApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
 
 type ProyectoCostosResumen = {
   nombreProyecto?: string;
@@ -44,22 +45,26 @@ export class TabCostosComponent implements OnChanges {
   @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
 
   subTabCostosActiva: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
-  catalogoActivo: 'tipoMaterial' | 'cargoManoObra' | null = null;
+  catalogoActivo: 'tipoMaterial' | 'oficioManoObra' | null = null;
   nuevoNombreTablaExtra = '';
   nuevoTipoMaterial = '';
-  nuevoCargoManoObra = '';
+  nuevoOficioManoObra = '';
   opcionesTipoMaterial: string[] = [];
-  opcionesCargoManoObra: string[] = [];
+  opcionesOficioManoObra: string[] = [];
+  tiposMaterialPersistidos: CostoCatalogoApi[] = [];
+  oficiosManoObraPersistidos: CostoCatalogoApi[] = [];
   tipoMaterialEnEdicion: string | null = null;
   nuevoNombreTipoMaterialEdicion = '';
-  cargoManoObraEnEdicion: string | null = null;
-  nuevoNombreCargoManoObraEdicion = '';
+  oficioManoObraEnEdicion: string | null = null;
+  nuevoNombreOficioManoObraEdicion = '';
 
-  private readonly tiposMaterialStorageKey = 'ayni:registro-solicitudes:costos:tipos-material';
-  private readonly cargosManoObraStorageKey = 'ayni:registro-solicitudes:costos:cargos-mano-obra';
-  private opcionesCatalogoInicializadas = false;
+  constructor(private readonly registroSolicitudesService: RegistroSolicitudesService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['proyectoId']) {
+      this.cargarCatalogosProyecto();
+    }
+
     if (changes['materiales'] || changes['manoObra']) {
       this.sincronizarCatalogosOpciones();
     }
@@ -80,7 +85,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   agregarMaterial(): void {
-    const nuevoId = this.materiales.length > 0 ? Math.max(...this.materiales.map(m => m.id)) + 1 : 1;
+    const nuevoId = this.materiales.length > 0 ? Math.max(...this.materiales.map((m) => m.id)) + 1 : 1;
     this.materiales.push({
       id: nuevoId,
       fecha: this.formatDate(new Date()),
@@ -97,7 +102,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   eliminarMaterial(id: number): void {
-    const idx = this.materiales.findIndex(m => m.id === id);
+    const idx = this.materiales.findIndex((m) => m.id === id);
     if (idx >= 0) {
       this.materiales.splice(idx, 1);
       this.emitirCambios();
@@ -123,26 +128,50 @@ export class TabCostosComponent implements OnChanges {
     const nombre = (this.nuevoTipoMaterial || '').trim();
     if (!nombre) return;
 
-    this.opcionesTipoMaterial = this.normalizarOpciones([...this.opcionesTipoMaterial, nombre]);
-    this.nuevoTipoMaterial = '';
-    this.guardarOpcionesCatalogo();
+    const proyectoId = this.obtenerProyectoIdValido();
+    if (!proyectoId) {
+      this.registrarTipoMaterialLocal(nombre);
+      return;
+    }
+
+    this.registroSolicitudesService.crearTipoMaterial(proyectoId, nombre).subscribe({
+      next: (tipo) => {
+        this.actualizarTiposMaterialPersistidos(tipo, false);
+        this.nuevoTipoMaterial = '';
+      },
+      error: (error) => console.error('Error creando tipo de material:', error)
+    });
   }
 
-  abrirCatalogo(tipo: 'tipoMaterial' | 'cargoManoObra'): void {
+  abrirCatalogo(tipo: 'tipoMaterial' | 'oficioManoObra'): void {
     this.catalogoActivo = tipo;
   }
 
   cerrarCatalogo(): void {
     this.cancelarEdicionTipoMaterial();
-    this.cancelarEdicionCargoManoObra();
+    this.cancelarEdicionOficioManoObra();
     this.catalogoActivo = null;
   }
 
   eliminarOpcionTipoMaterial(nombre: string): void {
     if (this.modoSoloLectura || this.estaTipoMaterialEnUso(nombre)) return;
 
-    this.opcionesTipoMaterial = this.opcionesTipoMaterial.filter((item) => item !== nombre);
-    this.guardarOpcionesCatalogo();
+    const tipoPersistido = this.buscarCatalogoPorNombre(this.tiposMaterialPersistidos, nombre);
+    if (!tipoPersistido) {
+      this.opcionesTipoMaterial = this.opcionesTipoMaterial.filter((item) => item !== nombre);
+      return;
+    }
+
+    const proyectoId = this.obtenerProyectoIdValido();
+    if (!proyectoId) return;
+
+    this.registroSolicitudesService.eliminarTipoMaterial(proyectoId, tipoPersistido.id).subscribe({
+      next: () => {
+        this.tiposMaterialPersistidos = this.tiposMaterialPersistidos.filter((item) => item.id !== tipoPersistido.id);
+        this.sincronizarCatalogosOpciones();
+      },
+      error: (error) => console.error('Error eliminando tipo de material:', error)
+    });
   }
 
   iniciarEdicionTipoMaterial(nombre: string): void {
@@ -168,19 +197,20 @@ export class TabCostosComponent implements OnChanges {
       return;
     }
 
-    this.opcionesTipoMaterial = this.normalizarOpciones(
-      this.opcionesTipoMaterial.map((item) => item === nombreAnterior ? nombreNuevo : item)
-    );
-
-    for (const material of this.materiales || []) {
-      if ((material.tipo || '').trim() === nombreAnterior) {
-        material.tipo = nombreNuevo;
-      }
+    const proyectoId = this.obtenerProyectoIdValido();
+    const tipoPersistido = this.buscarCatalogoPorNombre(this.tiposMaterialPersistidos, nombreAnterior);
+    if (!proyectoId || !tipoPersistido) {
+      this.aplicarCambioTipoMaterial(nombreAnterior, nombreNuevo);
+      return;
     }
 
-    this.guardarOpcionesCatalogo();
-    this.emitirCambios();
-    this.cancelarEdicionTipoMaterial();
+    this.registroSolicitudesService.actualizarTipoMaterial(proyectoId, tipoPersistido.id, nombreNuevo).subscribe({
+      next: (tipo) => {
+        this.actualizarTiposMaterialPersistidos(tipo, true, nombreAnterior);
+        this.aplicarCambioTipoMaterial(nombreAnterior, tipo.nombre);
+      },
+      error: (error) => console.error('Error actualizando tipo de material:', error)
+    });
   }
 
   estaTipoMaterialEnUso(nombre: string): boolean {
@@ -188,11 +218,11 @@ export class TabCostosComponent implements OnChanges {
   }
 
   agregarManoObra(): void {
-    const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map(m => m.id)) + 1 : 1;
+    const nuevoId = this.manoObra.length > 0 ? Math.max(...this.manoObra.map((m) => m.id)) + 1 : 1;
     this.manoObra.push({
       id: nuevoId,
       trabajador: '',
-      cargo: this.opcionesCargoManoObra[0] || '',
+      oficio: this.opcionesOficioManoObra[0] || '',
       diasTrabajando: null,
       costoPorDia: null,
       costoTotal: 0,
@@ -202,7 +232,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   eliminarManoObra(id: number): void {
-    const idx = this.manoObra.findIndex(m => m.id === id);
+    const idx = this.manoObra.findIndex((m) => m.id === id);
     if (idx >= 0) {
       this.manoObra.splice(idx, 1);
       this.emitirCambios();
@@ -218,73 +248,98 @@ export class TabCostosComponent implements OnChanges {
     return this.manoObra?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
   }
 
-  get manoObraPorCargo(): ResumenCostoItem[] {
-    return this.agruparPorNombre(this.manoObra || [], (item) => item.cargo || 'Sin cargo');
+  get manoObraPorOficio(): ResumenCostoItem[] {
+    return this.agruparPorNombre(this.manoObra || [], (item) => item.oficio || 'Sin oficio');
   }
 
-  agregarOpcionCargoManoObra(): void {
+  agregarOpcionOficioManoObra(): void {
     if (this.modoSoloLectura) return;
 
-    const nombre = (this.nuevoCargoManoObra || '').trim();
+    const nombre = (this.nuevoOficioManoObra || '').trim();
     if (!nombre) return;
 
-    this.opcionesCargoManoObra = this.normalizarOpciones([...this.opcionesCargoManoObra, nombre]);
-    this.nuevoCargoManoObra = '';
-    this.guardarOpcionesCatalogo();
+    const proyectoId = this.obtenerProyectoIdValido();
+    if (!proyectoId) {
+      this.registrarOficioManoObraLocal(nombre);
+      return;
+    }
+
+    this.registroSolicitudesService.crearOficioManoObra(proyectoId, nombre).subscribe({
+      next: (oficio) => {
+        this.actualizarOficiosManoObraPersistidos(oficio, false);
+        this.nuevoOficioManoObra = '';
+      },
+      error: (error) => console.error('Error creando oficio:', error)
+    });
   }
 
-  eliminarOpcionCargoManoObra(nombre: string): void {
-    if (this.modoSoloLectura || this.estaCargoManoObraEnUso(nombre)) return;
+  eliminarOpcionOficioManoObra(nombre: string): void {
+    if (this.modoSoloLectura || this.estaOficioManoObraEnUso(nombre)) return;
 
-    this.opcionesCargoManoObra = this.opcionesCargoManoObra.filter((item) => item !== nombre);
-    this.guardarOpcionesCatalogo();
+    const oficioPersistido = this.buscarCatalogoPorNombre(this.oficiosManoObraPersistidos, nombre);
+    if (!oficioPersistido) {
+      this.opcionesOficioManoObra = this.opcionesOficioManoObra.filter((item) => item !== nombre);
+      return;
+    }
+
+    const proyectoId = this.obtenerProyectoIdValido();
+    if (!proyectoId) return;
+
+    this.registroSolicitudesService.eliminarOficioManoObra(proyectoId, oficioPersistido.id).subscribe({
+      next: () => {
+        this.oficiosManoObraPersistidos = this.oficiosManoObraPersistidos.filter((item) => item.id !== oficioPersistido.id);
+        this.sincronizarCatalogosOpciones();
+      },
+      error: (error) => console.error('Error eliminando oficio:', error)
+    });
   }
 
-  iniciarEdicionCargoManoObra(nombre: string): void {
-    this.cargoManoObraEnEdicion = nombre;
-    this.nuevoNombreCargoManoObraEdicion = nombre;
+  iniciarEdicionOficioManoObra(nombre: string): void {
+    this.oficioManoObraEnEdicion = nombre;
+    this.nuevoNombreOficioManoObraEdicion = nombre;
   }
 
-  cancelarEdicionCargoManoObra(): void {
-    this.cargoManoObraEnEdicion = null;
-    this.nuevoNombreCargoManoObraEdicion = '';
+  cancelarEdicionOficioManoObra(): void {
+    this.oficioManoObraEnEdicion = null;
+    this.nuevoNombreOficioManoObraEdicion = '';
   }
 
-  guardarEdicionCargoManoObra(nombreAnterior: string): void {
+  guardarEdicionOficioManoObra(nombreAnterior: string): void {
     if (this.modoSoloLectura) return;
 
-    const nombreNuevo = (this.nuevoNombreCargoManoObraEdicion || '').trim();
+    const nombreNuevo = (this.nuevoNombreOficioManoObraEdicion || '').trim();
     if (!nombreNuevo || nombreNuevo === nombreAnterior) {
-      this.cancelarEdicionCargoManoObra();
+      this.cancelarEdicionOficioManoObra();
       return;
     }
 
-    if (this.opcionesCargoManoObra.some((item) => item !== nombreAnterior && item.toLowerCase() === nombreNuevo.toLowerCase())) {
+    if (this.opcionesOficioManoObra.some((item) => item !== nombreAnterior && item.toLowerCase() === nombreNuevo.toLowerCase())) {
       return;
     }
 
-    this.opcionesCargoManoObra = this.normalizarOpciones(
-      this.opcionesCargoManoObra.map((item) => item === nombreAnterior ? nombreNuevo : item)
-    );
-
-    for (const item of this.manoObra || []) {
-      if ((item.cargo || '').trim() === nombreAnterior) {
-        item.cargo = nombreNuevo;
-      }
+    const proyectoId = this.obtenerProyectoIdValido();
+    const oficioPersistido = this.buscarCatalogoPorNombre(this.oficiosManoObraPersistidos, nombreAnterior);
+    if (!proyectoId || !oficioPersistido) {
+      this.aplicarCambioOficioManoObra(nombreAnterior, nombreNuevo);
+      return;
     }
 
-    this.guardarOpcionesCatalogo();
-    this.emitirCambios();
-    this.cancelarEdicionCargoManoObra();
+    this.registroSolicitudesService.actualizarOficioManoObra(proyectoId, oficioPersistido.id, nombreNuevo).subscribe({
+      next: (oficio) => {
+        this.actualizarOficiosManoObraPersistidos(oficio, true, nombreAnterior);
+        this.aplicarCambioOficioManoObra(nombreAnterior, oficio.nombre);
+      },
+      error: (error) => console.error('Error actualizando oficio:', error)
+    });
   }
 
-  estaCargoManoObraEnUso(nombre: string): boolean {
-    return (this.manoObra || []).some((item) => (item.cargo || '').trim() === nombre);
+  estaOficioManoObraEnUso(nombre: string): boolean {
+    return (this.manoObra || []).some((item) => (item.oficio || '').trim() === nombre);
   }
 
   get tituloCatalogoActivo(): string {
     if (this.catalogoActivo === 'tipoMaterial') return 'Gestionar tipos de materiales';
-    if (this.catalogoActivo === 'cargoManoObra') return 'Gestionar cargos de mano de obra';
+    if (this.catalogoActivo === 'oficioManoObra') return 'Gestionar oficios de mano de obra';
     return '';
   }
 
@@ -297,13 +352,13 @@ export class TabCostosComponent implements OnChanges {
   }
 
   eliminarTablaExtra(id: number): void {
-    const tabla = this.tablasCostosExtras.find(t => t.id === id);
+    const tabla = this.tablasCostosExtras.find((t) => t.id === id);
     if (!tabla) return;
     this.eliminarCategoria.emit(tabla);
   }
 
   agregarItemOtroCosto(tabla: TablaCostoExtra): void {
-    const nuevoId = tabla.items.length > 0 ? Math.max(...tabla.items.map(i => i.id)) + 1 : 1;
+    const nuevoId = tabla.items.length > 0 ? Math.max(...tabla.items.map((i) => i.id)) + 1 : 1;
     tabla.items.push({
       id: nuevoId,
       fecha: this.formatDate(new Date()),
@@ -318,7 +373,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   eliminarItemOtroCosto(tabla: TablaCostoExtra, itemId: number): void {
-    const idx = tabla.items.findIndex(i => i.id === itemId);
+    const idx = tabla.items.findIndex((i) => i.id === itemId);
     if (idx >= 0) {
       tabla.items.splice(idx, 1);
       this.emitirCambios();
@@ -341,7 +396,7 @@ export class TabCostosComponent implements OnChanges {
   get otrosCostosPorCategoria(): ResumenCostoItem[] {
     return (this.tablasCostosExtras || [])
       .map((tabla) => ({
-        nombre: (tabla.nombre || '').trim() || 'Sin categoría',
+        nombre: (tabla.nombre || '').trim() || 'Sin categoria',
         total: this.getTotalTablaExtra(tabla)
       }))
       .filter((item) => item.total > 0)
@@ -382,55 +437,139 @@ export class TabCostosComponent implements OnChanges {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 
-  private sincronizarCatalogosOpciones(): void {
-    this.asegurarCatalogosOpciones();
+  private cargarCatalogosProyecto(): void {
+    const proyectoId = this.obtenerProyectoIdValido();
+    if (!proyectoId) {
+      this.tiposMaterialPersistidos = [];
+      this.oficiosManoObraPersistidos = [];
+      this.sincronizarCatalogosOpciones();
+      return;
+    }
 
+    const proyectoSolicitado = proyectoId;
+
+    this.registroSolicitudesService.obtenerTiposMaterial(proyectoId).subscribe({
+      next: (tipos) => {
+        if (this.obtenerProyectoIdValido() !== proyectoSolicitado) return;
+        this.tiposMaterialPersistidos = this.ordenarCatalogos(tipos || []);
+        this.sincronizarCatalogosOpciones();
+      },
+      error: (error) => {
+        if (this.obtenerProyectoIdValido() !== proyectoSolicitado) return;
+        console.error('Error cargando tipos de material:', error);
+        this.tiposMaterialPersistidos = [];
+        this.sincronizarCatalogosOpciones();
+      }
+    });
+
+    this.registroSolicitudesService.obtenerOficiosManoObra(proyectoId).subscribe({
+      next: (oficios) => {
+        if (this.obtenerProyectoIdValido() !== proyectoSolicitado) return;
+        this.oficiosManoObraPersistidos = this.ordenarCatalogos(oficios || []);
+        this.sincronizarCatalogosOpciones();
+      },
+      error: (error) => {
+        if (this.obtenerProyectoIdValido() !== proyectoSolicitado) return;
+        console.error('Error cargando oficios:', error);
+        this.oficiosManoObraPersistidos = [];
+        this.sincronizarCatalogosOpciones();
+      }
+    });
+  }
+
+  private sincronizarCatalogosOpciones(): void {
     this.opcionesTipoMaterial = this.normalizarOpciones([
-      ...this.opcionesTipoMaterial,
+      ...this.tiposMaterialPersistidos.map((item) => item.nombre),
       ...((this.materiales || []).map((item) => item.tipo || ''))
     ]);
 
-    this.opcionesCargoManoObra = this.normalizarOpciones([
-      ...this.opcionesCargoManoObra,
-      ...((this.manoObra || []).map((item) => item.cargo || ''))
+    this.opcionesOficioManoObra = this.normalizarOpciones([
+      ...this.oficiosManoObraPersistidos.map((item) => item.nombre),
+      ...((this.manoObra || []).map((item) => item.oficio || ''))
     ]);
-
-    this.guardarOpcionesCatalogo();
   }
 
-  private asegurarCatalogosOpciones(): void {
-    if (this.opcionesCatalogoInicializadas) return;
-
-    this.opcionesTipoMaterial = this.leerOpcionesStorage(this.tiposMaterialStorageKey);
-    this.opcionesCargoManoObra = this.leerOpcionesStorage(this.cargosManoObraStorageKey);
-    this.opcionesCatalogoInicializadas = true;
+  private registrarTipoMaterialLocal(nombre: string): void {
+    this.opcionesTipoMaterial = this.normalizarOpciones([...this.opcionesTipoMaterial, nombre]);
+    this.nuevoTipoMaterial = '';
   }
 
-  private guardarOpcionesCatalogo(): void {
-    this.escribirOpcionesStorage(this.tiposMaterialStorageKey, this.opcionesTipoMaterial);
-    this.escribirOpcionesStorage(this.cargosManoObraStorageKey, this.opcionesCargoManoObra);
+  private registrarOficioManoObraLocal(nombre: string): void {
+    this.opcionesOficioManoObra = this.normalizarOpciones([...this.opcionesOficioManoObra, nombre]);
+    this.nuevoOficioManoObra = '';
   }
 
-  private leerOpcionesStorage(clave: string): string[] {
-    if (typeof window === 'undefined') return [];
+  private aplicarCambioTipoMaterial(nombreAnterior: string, nombreNuevo: string): void {
+    this.opcionesTipoMaterial = this.normalizarOpciones(
+      this.opcionesTipoMaterial.map((item) => item === nombreAnterior ? nombreNuevo : item)
+    );
 
-    try {
-      const contenido = window.localStorage.getItem(clave);
-      if (!contenido) return [];
-      return this.normalizarOpciones(JSON.parse(contenido));
-    } catch {
-      return [];
+    for (const material of this.materiales || []) {
+      if ((material.tipo || '').trim() === nombreAnterior) {
+        material.tipo = nombreNuevo;
+      }
+    }
+
+    this.emitirCambios();
+    this.cancelarEdicionTipoMaterial();
+  }
+
+  private aplicarCambioOficioManoObra(nombreAnterior: string, nombreNuevo: string): void {
+    this.opcionesOficioManoObra = this.normalizarOpciones(
+      this.opcionesOficioManoObra.map((item) => item === nombreAnterior ? nombreNuevo : item)
+    );
+
+    for (const item of this.manoObra || []) {
+      if ((item.oficio || '').trim() === nombreAnterior) {
+        item.oficio = nombreNuevo;
+      }
+    }
+
+    this.emitirCambios();
+    this.cancelarEdicionOficioManoObra();
+  }
+
+  private actualizarTiposMaterialPersistidos(tipo: CostoCatalogoApi, limpiarEdicion: boolean, nombreAnterior?: string): void {
+    const restantes = this.tiposMaterialPersistidos.filter((item) => item.id !== tipo.id);
+    if (nombreAnterior) {
+      this.tiposMaterialPersistidos = this.ordenarCatalogos([...restantes, { id: tipo.id, nombre: tipo.nombre }]);
+    } else {
+      this.tiposMaterialPersistidos = this.ordenarCatalogos([...restantes, tipo]);
+    }
+    this.sincronizarCatalogosOpciones();
+    if (limpiarEdicion) {
+      this.cancelarEdicionTipoMaterial();
+    } else {
+      this.nuevoTipoMaterial = '';
     }
   }
 
-  private escribirOpcionesStorage(clave: string, opciones: string[]): void {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.setItem(clave, JSON.stringify(this.normalizarOpciones(opciones)));
-    } catch {
-      // Ignoramos errores de storage para no bloquear la edicion local.
+  private actualizarOficiosManoObraPersistidos(oficio: CostoCatalogoApi, limpiarEdicion: boolean, nombreAnterior?: string): void {
+    const restantes = this.oficiosManoObraPersistidos.filter((item) => item.id !== oficio.id);
+    if (nombreAnterior) {
+      this.oficiosManoObraPersistidos = this.ordenarCatalogos([...restantes, { id: oficio.id, nombre: oficio.nombre }]);
+    } else {
+      this.oficiosManoObraPersistidos = this.ordenarCatalogos([...restantes, oficio]);
     }
+    this.sincronizarCatalogosOpciones();
+    if (limpiarEdicion) {
+      this.cancelarEdicionOficioManoObra();
+    } else {
+      this.nuevoOficioManoObra = '';
+    }
+  }
+
+  private buscarCatalogoPorNombre(opciones: CostoCatalogoApi[], nombre: string): CostoCatalogoApi | undefined {
+    return (opciones || []).find((item) => item.nombre.trim().toLowerCase() === nombre.trim().toLowerCase());
+  }
+
+  private ordenarCatalogos(opciones: CostoCatalogoApi[]): CostoCatalogoApi[] {
+    return [...(opciones || [])].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  }
+
+  private obtenerProyectoIdValido(): number | null {
+    const proyectoId = Number(this.proyectoId || 0);
+    return Number.isFinite(proyectoId) && proyectoId > 0 ? proyectoId : null;
   }
 
   private normalizarOpciones(opciones: unknown): string[] {

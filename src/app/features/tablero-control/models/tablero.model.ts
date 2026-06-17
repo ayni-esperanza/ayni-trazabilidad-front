@@ -1,5 +1,5 @@
 // Estados consistentes con registro de solicitudes
-export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado';
+export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado' | 'Archivado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
 
 export interface ProyectoEnCurso {
@@ -17,6 +17,7 @@ export interface ProyectoEnCurso {
   fechaInicio?: Date;
   fechaFinalizacion?: Date;
   fechaRegistro?: Date;
+  fechaActualizacion?: Date;
   gastoTotal?: number; // Para vista de gastos
   lugar?: string;      // Ubicación/ciudad del proyecto
   area?: string;       // Area principal del proyecto

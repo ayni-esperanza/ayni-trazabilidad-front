@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "env:generate": "node tools/generate-runtime-env.cjs",
-    "prestart": "pnpm env:generate",
+    "prestart": "node tools/generate-runtime-env.cjs",
     "start": "node tools/run-with-env.cjs ng serve",
     "build": "node tools/run-with-env.cjs ng build",
     "watch": "node tools/run-with-env.cjs ng build --watch --configuration development",

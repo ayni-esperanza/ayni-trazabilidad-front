@@ -4,10 +4,13 @@ import { FormsModule } from '@angular/forms';
 import {
   Subject,
   forkJoin,
+  of,
   takeUntil,
   finalize,
   debounceTime,
   distinctUntilChanged,
+  switchMap,
+  map,
 } from 'rxjs';
 import { GestionUsuariosService } from './services/gestion-usuarios.service';
 import {
@@ -16,6 +19,7 @@ import {
   EstadisticasUsuarios,
   UsuarioRequest,
   UsuarioResponse,
+  UsuarioCreacionResponse,
 } from './models/usuario.model';
 import {
   UsuarioFormModalComponent,
@@ -330,67 +334,73 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     this.mensajeErrorGuardadoUsuario = null;
     this.erroresGuardadoUsuarioPorCampo = {};
 
-    const request: UsuarioRequest = {
-      nombre: formData.nombre,
-      apellido: formData.apellido,
-      username: formData.username,
-      email: formData.email,
-      telefono: formData.telefono,
-      area: formData.area,
-      rolId: formData.rolId!,
-      activo: formData.activo,
-      foto: formData.foto,
-      password: undefined, // No enviar password, se generará automáticamente
-    };
+    this.resolverFotoUsuario(formData)
+      .pipe(
+        switchMap((foto) => {
+          const request: UsuarioRequest = {
+            nombre: formData.nombre,
+            apellido: formData.apellido,
+            username: formData.username,
+            email: formData.email,
+            telefono: formData.telefono,
+            area: formData.area,
+            rolId: formData.rolId!,
+            activo: formData.activo,
+            foto,
+            password: undefined,
+          };
 
-    if (formData.id) {
-      // Actualizar usuario existente
-      this.usuariosService
-        .actualizarUsuario(formData.id, request)
-        .pipe(
-          takeUntil(this.destroy$),
-          finalize(() => (this.guardando = false)),
-        )
-        .subscribe({
-          next: () => {
-            this.cerrarModal();
+          return formData.id
+            ? this.usuariosService.actualizarUsuario(formData.id, request)
+            : this.usuariosService.crearUsuario(request);
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => (this.guardando = false)),
+      )
+      .subscribe({
+        next: (response) => {
+          this.cerrarModal();
+          if (formData.id) {
             this.cargarUsuarios();
             this.cargarEstadisticas();
-          },
-          error: (err) => {
-            console.error('Error al guardar usuario:', err);
-            this.erroresGuardadoUsuarioPorCampo = this.obtenerErroresGuardadoPorCampo(err);
-            this.mensajeErrorGuardadoUsuario = Object.keys(this.erroresGuardadoUsuarioPorCampo).length > 0
+            return;
+          }
+
+          const usuarioCreado = response as UsuarioCreacionResponse;
+          this.usuarioCreado = usuarioCreado.usuario;
+          this.passwordGenerado = usuarioCreado.passwordGenerado;
+          this.mostrarModalCredenciales = true;
+          this.cargarUsuarios();
+          this.cargarEstadisticas();
+        },
+        error: (err) => {
+          console.error('Error al guardar usuario:', err);
+          this.erroresGuardadoUsuarioPorCampo = this.obtenerErroresGuardadoPorCampo(err);
+          this.mensajeErrorGuardadoUsuario = Object.keys(this.erroresGuardadoUsuarioPorCampo).length > 0
+            ? (formData.id
               ? 'Revisa los campos marcados para poder guardar los cambios.'
-              : this.obtenerMensajeErrorGuardado(err);
-          },
-        });
-    } else {
-      // Crear nuevo usuario
-      this.usuariosService
-        .crearUsuario(request)
-        .pipe(
-          takeUntil(this.destroy$),
-          finalize(() => (this.guardando = false)),
-        )
-        .subscribe({
-          next: (response) => {
-            this.cerrarModal();
-            this.usuarioCreado = response.usuario;
-            this.passwordGenerado = response.passwordGenerado;
-            this.mostrarModalCredenciales = true;
-            this.cargarUsuarios();
-            this.cargarEstadisticas();
-          },
-          error: (err) => {
-            console.error('Error al guardar usuario:', err);
-            this.erroresGuardadoUsuarioPorCampo = this.obtenerErroresGuardadoPorCampo(err);
-            this.mensajeErrorGuardadoUsuario = Object.keys(this.erroresGuardadoUsuarioPorCampo).length > 0
-              ? 'Revisa los campos marcados para poder crear el usuario.'
-              : this.obtenerMensajeErrorGuardado(err);
-          },
-        });
+              : 'Revisa los campos marcados para poder crear el usuario.')
+            : this.obtenerMensajeErrorGuardado(err);
+        },
+      });
+  }
+
+
+
+  private resolverFotoUsuario(formData: UsuarioFormData) {
+    if (!formData.fotoArchivo) {
+      return of(formData.foto ?? null);
     }
+
+    return this.usuariosService.subirFotoUsuario(formData.fotoArchivo).pipe(
+      map((response) => {
+        const foto = String(response.publicUrl || response.objectKey || '').trim();
+        if (!foto) {
+          throw new Error('No se pudo obtener la URL de la imagen subida.');
+        }
+        return foto;
+      }),
+    );
   }
 
   private obtenerErroresGuardadoPorCampo(err: any): Record<string, string> {

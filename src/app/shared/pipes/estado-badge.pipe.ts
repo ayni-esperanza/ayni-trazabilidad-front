@@ -10,6 +10,7 @@ export class EstadoBadgePipe implements PipeTransform {
       'Completado': 'badge-success',
       'En progreso': 'badge-warning',
       'Pendiente': 'badge-info',
+      'Archivado': 'badge-default',
       'Bloqueada': 'badge-danger',
       'Rechazada': 'badge-danger',
       'Aprobada': 'badge-success'

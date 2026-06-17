@@ -152,7 +152,8 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   puedeAbrirNodo(nodo: FlujoNodo): boolean {
     return nodo.tipo === 'tarea'
       && !this.esNodoOrdenCompra(nodo)
-      && !this.proyectoCancelado;
+      && !this.proyectoCancelado
+      && this.puedeGestionarActividad(nodo);
   }
 
   abrirNodo(nodo: FlujoNodo): void {
@@ -169,7 +170,10 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   esActividadSeleccionable(nodo: FlujoNodo): boolean {
-    return nodo.tipo === 'tarea' && !this.esNodoOrdenCompra(nodo) && !this.proyectoCancelado;
+    return nodo.tipo === 'tarea'
+      && !this.esNodoOrdenCompra(nodo)
+      && !this.proyectoCancelado
+      && this.puedeGestionarActividad(nodo);
   }
 
   get actividadesTablaSeleccionables(): FlujoNodo[] {
@@ -357,7 +361,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   onCambiarEstadoActividad(nodo: FlujoNodo, cambio: EstadoTarea | Event): void {
-    if (nodo.tipo !== 'tarea' || this.esNodoOrdenCompra(nodo) || this.proyectoCancelado) return;
+    if (nodo.tipo !== 'tarea' || this.esNodoOrdenCompra(nodo) || this.proyectoCancelado || !this.puedeGestionarActividad(nodo)) return;
 
     const nuevoEstado = typeof cambio === 'string'
       ? cambio
@@ -688,6 +692,23 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   puedeModificarComentario(comentario: ComentarioAdicionalActividad): boolean {
     return this.puedeEditarComentario(comentario);
+  }
+
+  puedeGestionarActividad(nodo: FlujoNodo): boolean {
+    if (this.esNodoOrdenCompra(nodo) || nodo.tipo !== 'tarea') {
+      return false;
+    }
+
+    if (this.authService.isAdminUser()) {
+      return true;
+    }
+
+    const currentUserId = Number(this.authService.currentUserValue?.id || 0);
+    if (!Number.isFinite(currentUserId) || currentUserId <= 0) {
+      return false;
+    }
+
+    return Number(nodo.creadorId || 0) === currentUserId;
   }
 
   agregarComentarioActividad(nodo: FlujoNodo): void {
@@ -1104,24 +1125,32 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   getOrdenCompraMeta(nodo: FlujoNodo): {
+    id?: number;
     numero?: string;
     tipo?: string;
+    tipoActividad?: string;
     numeroLicitacion?: string;
     numeroSolicitud?: string;
     total?: number;
     fecha?: string;
+    fechaCreacion?: string;
+    fechaActualizacion?: string;
   } | null {
     if (!this.esNodoOrdenCompra(nodo)) return null;
     const meta = (nodo as any)?.ordenCompraMeta;
     if (!meta) return null;
 
     return {
+      id: Number(meta.id || 0) || undefined,
       numero: meta.numero,
       tipo: meta.tipo,
+      tipoActividad: meta.tipoActividad,
       numeroLicitacion: meta.numeroLicitacion,
       numeroSolicitud: meta.numeroSolicitud,
       total: Number(meta.total || 0),
-      fecha: meta.fecha
+      fecha: meta.fecha,
+      fechaCreacion: meta.fechaCreacion,
+      fechaActualizacion: meta.fechaActualizacion
     };
   }
 
@@ -1134,8 +1163,8 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
       const todos = [...nodos.filter((nodo) => String(nodo.tipo || '').toLowerCase() !== 'inicio'), ...nodosOrdenCompra]
         .sort((a, b) => {
-          const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
-          const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
+          const esSegA = this.esNodoSeguimiento(a);
+          const esSegB = this.esNodoSeguimiento(b);
 
           if (esSegA !== esSegB) {
             return (esSegA ? 1 : -1) * direction;
@@ -1148,7 +1177,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
             return (fechaA - fechaB) * direction;
           }
 
-          return (a.id - b.id) * direction;
+          return (this.obtenerSortSecundarioNodo(a) - this.obtenerSortSecundarioNodo(b)) * direction;
         });
 
       return todos.filter(nodo => {
@@ -1198,20 +1227,20 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   esActividadSeguimiento(nodo: FlujoNodo): boolean {
     if (this.esNodoOrdenCompra(nodo)) return false;
-    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
+    return this.esNodoSeguimiento(nodo);
   }
 
   mostrarSeparadorActividadesSeguimiento(nodo: FlujoNodo, index: number, lista: FlujoNodo[]): boolean {
     if (this.ordenRecientePrimero) {
-      if (this.esActividadSeguimiento(nodo)) return false;
+      if (this.esNodoSeguimiento(nodo)) return false;
       if (index === 0) return false;
       const anterior = lista[index - 1];
-      return this.esActividadSeguimiento(anterior);
+      return this.esNodoSeguimiento(anterior);
     } else {
-      if (!this.esActividadSeguimiento(nodo)) return false;
+      if (!this.esNodoSeguimiento(nodo)) return false;
       if (index === 0) return true;
       const anterior = lista[index - 1];
-      return !this.esActividadSeguimiento(anterior);
+      return !this.esNodoSeguimiento(anterior);
     }
   }
 
@@ -1294,6 +1323,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
           id: -(100000 + idBase),
           nombre: `Orden de compra ${numero || `#${index + 1}`}`,
           tipo: 'tarea' as const,
+          tipoActividad: orden.tipoActividad,
           estadoActividad: 'Completado' as EstadoTarea,
           fechaCambioEstado: fecha || undefined,
           fechaInicio: fecha || undefined,
@@ -1304,11 +1334,15 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
           esOrdenCompra: true,
           ordenCompraMeta: {
             ...orden,
+            id: orden.id,
             numero,
             tipo,
+            tipoActividad: orden.tipoActividad,
             numeroLicitacion,
             numeroSolicitud,
-            total
+            total,
+            fechaCreacion: orden.fechaCreacion,
+            fechaActualizacion: orden.fechaActualizacion
           }
         } as FlujoNodo;
       })
@@ -1326,11 +1360,29 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   private obtenerSortFechaNodo(nodo: FlujoNodo): number {
     const fecha = this.esNodoOrdenCompra(nodo)
-      ? this.parseFechaComentario(nodo.fechaInicio)
+      ? (() => {
+          const meta = this.getOrdenCompraMeta(nodo);
+          return this.parseFechaComentario(meta?.fechaActualizacion)
+            || this.parseFechaComentario(meta?.fechaCreacion)
+            || this.parseFechaComentario(meta?.fecha)
+            || this.parseFechaComentario(nodo.fechaInicio);
+        })()
       : (this.parseFechaComentario(nodo.fechaCambioEstado) || this.parseFechaComentario(nodo.fechaInicio));
 
     if (fecha) return fecha;
+    return this.obtenerSortSecundarioNodo(nodo);
+  }
+
+  private obtenerSortSecundarioNodo(nodo: FlujoNodo): number {
+    if (this.esNodoOrdenCompra(nodo)) {
+      return Number(this.getOrdenCompraMeta(nodo)?.id || 0);
+    }
+
     return Math.abs(Number(nodo.id || 0));
+  }
+
+  private esNodoSeguimiento(nodo: FlujoNodo): boolean {
+    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
   private emitirComentariosActualizados(): void {

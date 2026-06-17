@@ -3,6 +3,15 @@ import { Observable, map } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
 import { KPI, Indicador, DatosGrafico } from '../models/estadistica.model';
 
+export interface ResumenCostosProyecto {
+  totalMateriales: number;
+  totalManoObra: number;
+  totalAdicionales: number;
+  costoTotalProyecto: number;
+  presupuestoOriginal: number;
+  diferencia: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -74,6 +83,25 @@ export class EstadisticasIndicadoresService {
         fechaCalculo: new Date(),
         parametros: item,
       })))
+    );
+  }
+
+  obtenerTareasEncargados(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBase}/tareas-encargados`).pipe(
+      map((items) => items || [])
+    );
+  }
+
+  obtenerResumenCostosProyecto(proyectoId: number): Observable<ResumenCostosProyecto> {
+    return this.http.get<any>(`/v1/proyectos/${proyectoId}/costos/resumen`).pipe(
+      map((resumen) => ({
+        totalMateriales: Number(resumen?.totalMateriales || 0),
+        totalManoObra: Number(resumen?.totalManoObra || 0),
+        totalAdicionales: Number(resumen?.totalAdicionales || 0),
+        costoTotalProyecto: Number(resumen?.costoTotalProyecto || 0),
+        presupuestoOriginal: Number(resumen?.presupuestoOriginal || 0),
+        diferencia: Number(resumen?.diferencia || 0),
+      }))
     );
   }
 

@@ -13,6 +13,7 @@ import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/c
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-registro-solicitudes',
@@ -87,7 +88,8 @@ export class RegistroSolicitudesComponent implements OnInit {
   constructor(
     private solicitudesService: RegistroSolicitudesService,
     private readonly sanitizer: DomSanitizer,
-    private readonly adjuntosPreviewService: AdjuntosPreviewService
+    private readonly adjuntosPreviewService: AdjuntosPreviewService,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -99,6 +101,11 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   toggleSeleccion(id: number, event: Event): void {
     event.stopPropagation();
+    const solicitud = this.solicitudes.find((item) => item.id === id);
+    if (!solicitud || !this.puedeGestionarSolicitud(solicitud)) {
+      return;
+    }
+
     if (this.solicitudesSeleccionadas.has(id)) {
       this.solicitudesSeleccionadas.delete(id);
     } else {
@@ -109,11 +116,11 @@ export class RegistroSolicitudesComponent implements OnInit {
   toggleSeleccionTodos(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
     if (checkbox.checked) {
-      this.solicitudesPaginadas.forEach(s => {
+      this.solicitudesPaginadasGestionables.forEach(s => {
         if (s.id) this.solicitudesSeleccionadas.add(s.id);
       });
     } else {
-      this.solicitudesPaginadas.forEach(s => {
+      this.solicitudesPaginadasGestionables.forEach(s => {
         if (s.id) this.solicitudesSeleccionadas.delete(s.id);
       });
     }
@@ -124,13 +131,17 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   get todosPaginadosSeleccionados(): boolean {
-    return this.solicitudesPaginadas.length > 0 && 
-           this.solicitudesPaginadas.every(s => s.id && this.solicitudesSeleccionadas.has(s.id));
+    return this.solicitudesPaginadasGestionables.length > 0 &&
+           this.solicitudesPaginadasGestionables.every(s => s.id && this.solicitudesSeleccionadas.has(s.id));
   }
 
   get algunosPaginadosSeleccionados(): boolean {
-    return this.solicitudesPaginadas.some(s => s.id && this.solicitudesSeleccionadas.has(s.id)) &&
+    return this.solicitudesPaginadasGestionables.some(s => s.id && this.solicitudesSeleccionadas.has(s.id)) &&
            !this.todosPaginadosSeleccionados;
+  }
+
+  get solicitudesPaginadasGestionables(): Solicitud[] {
+    return this.solicitudesPaginadas.filter((solicitud) => this.puedeGestionarSolicitud(solicitud));
   }
 
   iniciarEliminarSeleccionados(): void {
@@ -222,6 +233,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     }
 
     this.solicitudesFiltradas = resultado;
+    this.limpiarSolicitudesSeleccionadasInvalidas();
     this.actualizarPaginacion();
     this.calcularEstadisticas();
   }
@@ -477,8 +489,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     const nodosOrdenCompra = this.mapearOrdenesCompraTimeline(proyecto?.ordenesCompra || []);
 
     return [...nodos, ...nodosOrdenCompra].sort((a, b) => {
-      const esSegA = this.esTipoActividadSeguimiento(a.tipoActividad);
-      const esSegB = this.esTipoActividadSeguimiento(b.tipoActividad);
+      const esSegA = this.esNodoSeguimientoTimeline(a);
+      const esSegB = this.esNodoSeguimientoTimeline(b);
 
       if (esSegA !== esSegB) {
         return esSegA ? -1 : 1;
@@ -735,7 +747,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   esActividadSeguimientoTimeline(solicitudId: number | undefined, nodo: FlujoNodo): boolean {
     if (!solicitudId || this.esNodoOrdenCompraTimeline(nodo)) return false;
-    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
+    return this.esNodoSeguimientoTimeline(nodo);
   }
 
   mostrarSeparadorActividadesSeguimientoTimeline(
@@ -745,11 +757,11 @@ export class RegistroSolicitudesComponent implements OnInit {
     lista: FlujoNodo[]
   ): boolean {
     // La lista está ordenada de más reciente a más antiguo
-    if (this.esActividadSeguimientoTimeline(solicitudId, nodo)) return false;
+    if (this.esNodoSeguimientoTimeline(nodo)) return false;
     if (index === 0) return false;
 
     const anterior = lista[index - 1];
-    return this.esActividadSeguimientoTimeline(solicitudId, anterior);
+    return this.esNodoSeguimientoTimeline(anterior);
   }
 
   private esActividadSeguimientoTimelinePorId(solicitudId: number | undefined, actividadId: number): boolean {
@@ -926,6 +938,37 @@ export class RegistroSolicitudesComponent implements OnInit {
     return Number.isNaN(date.getTime()) ? undefined : date;
   }
 
+  puedeGestionarSolicitud(solicitud: Solicitud): boolean {
+    if (this.authService.isAdminUser()) {
+      return true;
+    }
+
+    const currentUserId = Number(this.authService.currentUserValue?.id || 0);
+    if (!Number.isFinite(currentUserId) || currentUserId <= 0) {
+      return false;
+    }
+
+    return Number(solicitud.creadorId || 0) === currentUserId;
+  }
+
+  private limpiarSolicitudesSeleccionadasInvalidas(): void {
+    if (!this.solicitudesSeleccionadas.size) {
+      return;
+    }
+
+    const idsGestionables = new Set(
+      this.solicitudes
+        .filter((solicitud) => this.puedeGestionarSolicitud(solicitud))
+        .map((solicitud) => solicitud.id)
+    );
+
+    this.solicitudesSeleccionadas.forEach((id) => {
+      if (!idsGestionables.has(id)) {
+        this.solicitudesSeleccionadas.delete(id);
+      }
+    });
+  }
+
 
   private mapearOrdenesCompraTimeline(ordenes: OrdenCompra[]): FlujoNodo[] {
     return (ordenes || [])
@@ -960,6 +1003,7 @@ export class RegistroSolicitudesComponent implements OnInit {
           id: -(100000 + identificador),
           nombre: `Orden de compra ${numero || `#${index + 1}`}`,
           tipo: 'tarea' as const,
+          tipoActividad: orden.tipoActividad,
           estadoActividad: 'Completado' as EstadoTarea,
           fechaInicio: fechaTimeline || undefined,
           fechaFin: fechaTimeline || undefined,
@@ -967,16 +1011,29 @@ export class RegistroSolicitudesComponent implements OnInit {
           descripcion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto })),
           siguientesIds: [],
-          esOrdenCompra: true
+          esOrdenCompra: true,
+          ordenCompraMeta: {
+            id: orden.id,
+            tipoActividad: orden.tipoActividad,
+            fechaCreacion: orden.fechaCreacion,
+            fechaActualizacion: orden.fechaActualizacion
+          }
         } as FlujoNodo;
       })
       .filter((nodo): nodo is FlujoNodo => !!nodo);
   }
 
   private getTimelineNodeSortValue(nodo: FlujoNodo): number {
-    const fecha = this.getTimelineDateValue(nodo.fechaCambioEstado || nodo.fechaInicio);
+    const meta = (nodo as any)?.ordenCompraMeta;
+    const fecha = this.esNodoOrdenCompraTimeline(nodo)
+      ? this.getTimelineDateValue(meta?.fechaActualizacion || meta?.fechaCreacion || nodo.fechaCambioEstado || nodo.fechaInicio)
+      : this.getTimelineDateValue(nodo.fechaCambioEstado || nodo.fechaInicio);
     if (fecha && !Number.isNaN(fecha)) return fecha;
     return Math.abs(Number(nodo.id || 0));
+  }
+
+  private esNodoSeguimientoTimeline(nodo: FlujoNodo): boolean {
+    return this.esTipoActividadSeguimiento(nodo?.tipoActividad);
   }
 
   private getTimelineDateValue(value?: Date | string): number {

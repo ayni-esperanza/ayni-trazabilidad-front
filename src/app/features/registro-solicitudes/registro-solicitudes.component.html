@@ -250,6 +250,7 @@
                 type="checkbox"
                 [checked]="todosPaginadosSeleccionados"
                 [indeterminate]="algunosPaginadosSeleccionados"
+                [disabled]="solicitudesPaginadasGestionables.length === 0"
                 (change)="toggleSeleccionTodos($event)"
                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
             </th>
@@ -268,8 +269,9 @@
                 <input 
                   type="checkbox"
                   [checked]="estaSeleccionado(solicitud.id)"
+                  [disabled]="!puedeGestionarSolicitud(solicitud)"
                   (change)="toggleSeleccion(solicitud.id!, $event)"
-                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600">
               </td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200 font-medium" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.nombreProyecto }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.cliente }}</td>

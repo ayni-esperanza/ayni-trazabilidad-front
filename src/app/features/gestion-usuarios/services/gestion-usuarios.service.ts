@@ -13,6 +13,12 @@ import {
   EstadisticasUsuarios,
 } from '../models/usuario.model';
 
+type StorageUploadResponse = {
+  objectKey: string;
+  publicUrl?: string;
+  eTag?: string;
+};
+
 // Configuración de endpoints - Cambiar cuando el backend esté listo
 const API_ENDPOINTS = {
   usuarios: '/v1/usuarios',
@@ -66,6 +72,17 @@ export class GestionUsuariosService {
     );
   }
 
+  subirFotoUsuario(file: File): Observable<StorageUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('carpeta', 'usuarios');
+
+    return this.http.post<StorageUploadResponse>(
+      this.buildUrl('/v1/storage/upload'),
+      formData,
+    );
+  }
+
   eliminarUsuario(id: number): Observable<void> {
     return this.http.delete<void>(
       `${this.baseUrl}${API_ENDPOINTS.usuarios}/${id}/permanente`,
@@ -101,5 +118,20 @@ export class GestionUsuariosService {
 
   obtenerPermisos(): Observable<Permiso[]> {
     return this.http.get<Permiso[]>(`${this.baseUrl}${API_ENDPOINTS.permisos}`);
+  }
+
+  private buildUrl(endpoint: string): string {
+    const base = (this.baseUrl || '').replace(/\/+$/, '');
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    if (base.endsWith('/api/v1') && path.startsWith('/v1/')) {
+      return `${base}${path.slice(3)}`;
+    }
+
+    if (base.endsWith('/v1') && path.startsWith('/v1/')) {
+      return `${base}${path.slice(3)}`;
+    }
+
+    return `${base}${path}`;
   }
 }

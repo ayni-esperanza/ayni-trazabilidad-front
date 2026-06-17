@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { EstadisticasIndicadoresService } from './services/estadisticas-indicadores.service';
+import { EstadisticasIndicadoresService, ResumenCostosProyecto } from './services/estadisticas-indicadores.service';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { forkJoin } from 'rxjs';
+import { FlujoNodo } from '../registro-solicitudes/models/solicitud.model';
+import { RegistroSolicitudesService } from '../registro-solicitudes/services/registro-solicitudes.service';
 
 export interface ProyectoIndicador {
   id: number;
@@ -13,7 +15,7 @@ export interface ProyectoIndicador {
   responsableId: number;
   cliente: string;
   etapa: string;
-  estado: 'En Proceso' | 'Completado' | 'Cancelado' | 'Registrada' | 'Finalizada';
+  estado: 'En Proceso' | 'Completado' | 'Cancelado' | 'Registrada' | 'Finalizada' | 'Archivado';
   avance: number;
   tareasCompletadas: number;
   tareasTotal: number;
@@ -25,6 +27,9 @@ export interface ProyectoIndicador {
   durationEnd: string;
   tasaRetorno: number;
   descripcion: string;
+  fechaRegistro: string;
+  fechaActualizacion: string;
+  rangoRegistroActualizacion: string;
 }
 
 export interface TareaProyecto {
@@ -35,7 +40,7 @@ export interface TareaProyecto {
   tarea: string;
   etapa: string;
   inicioFin: string;
-  status: 'pendiente' | 'completado' | 'alerta';
+  status: 'pendiente' | 'en_proceso' | 'completado' | 'alerta';
 }
 
 export interface ResponsableIndicador {
@@ -105,15 +110,19 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   inversionData: any[] = [];
   gastoData: any[] = [];
   retornoData: any[] = [];
+  resumenCostosProyecto: ResumenCostosProyecto | null = null;
 
   // Tareas del proyecto seleccionado
   tareasProyecto: TareaProyecto[] = [];
+  tareasProyectoDetalle: TareaProyecto[] = [];
+  tareasProyectoDetalleCargado = false;
   
   // Tareas filtradas según el proyecto seleccionado
   tareasProyectoFiltradas: TareaProyecto[] = [];
   
   // Tareas del responsable seleccionado
   tareasResponsableFiltradas: TareaProyecto[] = [];
+  proyectosResponsableFiltrados: ProyectoIndicador[] = [];
 
   // Datos de gráficos para responsable
   tareasRealizadasData: any[] = [];
@@ -134,7 +143,10 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     domain: ['#8b5cf6']
   };
   
-  constructor(private estadisticasService: EstadisticasIndicadoresService) {}
+  constructor(
+    private estadisticasService: EstadisticasIndicadoresService,
+    private registroSolicitudesService: RegistroSolicitudesService,
+  ) {}
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -144,13 +156,19 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     forkJoin({
       responsables: this.estadisticasService.obtenerIndicadoresRendimiento(),
       proyectos: this.estadisticasService.obtenerIndicadoresPorProyecto(0),
+      tareas: this.estadisticasService.obtenerTareasEncargados(),
     }).subscribe({
-      next: ({ responsables, proyectos }) => {
+      next: ({ responsables, proyectos, tareas }) => {
         if ((responsables || []).length > 0) {
           this.responsables = this.mapResponsablesDesdeBackend(responsables);
         }
         if ((proyectos || []).length > 0) {
           this.proyectos = this.mapProyectosDesdeBackend(proyectos);
+        }
+        if ((tareas || []).length > 0) {
+          this.tareasProyecto = this.mapTareasDesdeBackend(tareas);
+        } else {
+          this.tareasProyecto = [];
         }
         this.actualizarROI();
         this.aplicarFiltrosTareas();
@@ -203,16 +221,103 @@ export class EstadisticasIndicadoresComponent implements OnInit {
         durationEnd: p.durationEnd || '',
         tasaRetorno: Number(p.tasaRetorno || 0),
         descripcion: p.descripcion || '',
+        fechaRegistro: this.formatDateOnly(p.fechaRegistro),
+        fechaActualizacion: this.formatDateOnly(p.fechaActualizacion),
+        rangoRegistroActualizacion: this.buildDateRange(p.fechaRegistro, p.fechaActualizacion),
       };
     });
   }
 
+  private mapTareasDesdeBackend(items: any[]): TareaProyecto[] {
+    return (items || []).map((item: any) => ({
+      id: Number(item?.id || 0),
+      responsable: item?.responsable || 'Sin responsable',
+      proyecto: item?.proyecto || 'Proyecto',
+      proyectoId: Number(item?.proyectoId || 0),
+      tarea: item?.tarea || 'Actividad',
+      etapa: item?.etapa || 'En Proceso',
+      inicioFin: item?.fechas || '',
+      status: this.mapEstadoTarea(item?.estado),
+    }));
+  }
+
   private mapEstadoProyecto(estado?: string): ProyectoIndicador['estado'] {
     const clean = (estado || '').toUpperCase();
+    if (clean.includes('ARCHIV')) return 'Archivado';
     if (clean.includes('COMPLET')) return 'Completado';
     if (clean.includes('CANCEL')) return 'Cancelado';
     if (clean.includes('FINAL')) return 'Finalizada';
     return 'En Proceso';
+  }
+
+  private mapEstadoTarea(estado?: string): TareaProyecto['status'] {
+    const clean = (estado || '').toUpperCase();
+    if (clean.includes('COMPLET')) return 'completado';
+    if (clean.includes('RETRAS') || clean.includes('ALERT')) return 'alerta';
+    if (clean.includes('PROCES')) return 'en_proceso';
+    return 'pendiente';
+  }
+
+  private formatDateOnly(value?: string): string {
+    if (!value) {
+      return '';
+    }
+
+    const raw = String(value).trim();
+    if (!raw) {
+      return '';
+    }
+
+    const localDate = this.parseLocalDate(raw);
+    if (localDate) {
+      return this.formatDate(localDate);
+    }
+
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) {
+      return raw;
+    }
+
+    return this.formatDate(parsed);
+  }
+
+  private buildDateRange(fechaRegistro?: string, fechaActualizacion?: string): string {
+    const registro = this.formatDateOnly(fechaRegistro);
+    const actualizacion = this.formatDateOnly(fechaActualizacion);
+
+    if (registro && actualizacion) {
+      return `${registro} - ${actualizacion}`;
+    }
+    if (registro) {
+      return registro;
+    }
+    if (actualizacion) {
+      return actualizacion;
+    }
+    return '—';
+  }
+
+  private parseLocalDate(value: string): Date | null {
+    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      const [, year, month, day] = dateOnlyMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    const midnightUtcMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})T00:00(?::00(?:\.\d{1,3})?)?(?:Z|[+\-]00:00)?$/);
+    if (midnightUtcMatch) {
+      const [, year, month, day] = midnightUtcMatch;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+
+    return null;
+  }
+
+  private formatDate(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   cambiarFiltro(categoria: 'responsables' | 'proyectos'): void {
@@ -224,8 +329,13 @@ export class EstadisticasIndicadoresComponent implements OnInit {
 
   seleccionarProyecto(proyecto: ProyectoIndicador): void {
     this.proyectoSeleccionado = proyecto;
+    this.resumenCostosProyecto = null;
+    this.tareasProyectoDetalle = [];
+    this.tareasProyectoDetalleCargado = false;
     this.actualizarROI();
     this.aplicarFiltrosTareas();
+    this.sincronizarResumenCostosProyecto(proyecto.id);
+    this.sincronizarActividadesProyecto(proyecto);
   }
 
   cambiarGrafico(tipo: 'inversion' | 'gasto' | 'retorno'): void {
@@ -275,6 +385,9 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     this.proyectoSeleccionado = null;
     this.responsableSeleccionado = null;
     this.proyectoResponsableSeleccionado = null;
+    this.resumenCostosProyecto = null;
+    this.tareasProyectoDetalle = [];
+    this.tareasProyectoDetalleCargado = false;
     this.aplicarFiltrosTareas();
   }
   
@@ -360,32 +473,49 @@ export class EstadisticasIndicadoresComponent implements OnInit {
    */
   private aplicarFiltrosTareas(): void {
     if (this.proyectoSeleccionado) {
-      // Filtrar tareas solo del proyecto seleccionado
-      this.tareasProyectoFiltradas = this.tareasProyecto.filter(
+      const tareasProyectoDashboard = this.tareasProyecto.filter(
         tarea => tarea.proyectoId === this.proyectoSeleccionado!.id
       );
+
+      this.tareasProyectoFiltradas = this.tareasProyectoDetalleCargado
+        ? this.tareasProyectoDetalle
+        : tareasProyectoDashboard;
     } else {
       // Mostrar todas las tareas
       this.tareasProyectoFiltradas = this.tareasProyecto;
     }
     
     if (this.responsableSeleccionado) {
-      // Filtrar tareas solo del responsable seleccionado
-      let tareasFiltradas = this.tareasProyecto.filter(
+      const tareasDelResponsable = this.tareasProyecto.filter(
         tarea => tarea.responsable === this.responsableSeleccionado!.nombre
       );
-      
-      // Aplicar filtro adicional por proyecto si está seleccionado
+
+      const proyectoIdsConTareas = new Set(
+        tareasDelResponsable
+          .map(tarea => tarea.proyectoId)
+          .filter((id) => Number.isFinite(id) && id > 0)
+      );
+
+      let proyectosFiltrados = this.proyectos.filter(
+        proyecto => proyecto.responsableId === this.responsableSeleccionado!.id || proyectoIdsConTareas.has(proyecto.id)
+      );
+
+      let tareasFiltradas = tareasDelResponsable;
+
       if (this.proyectoResponsableSeleccionado) {
+        proyectosFiltrados = proyectosFiltrados.filter(
+          proyecto => proyecto.id === this.proyectoResponsableSeleccionado
+        );
         tareasFiltradas = tareasFiltradas.filter(
           tarea => tarea.proyectoId === this.proyectoResponsableSeleccionado
         );
       }
-      
+
+      this.proyectosResponsableFiltrados = proyectosFiltrados;
       this.tareasResponsableFiltradas = tareasFiltradas;
     } else {
-      // Mostrar todas las tareas
-      this.tareasResponsableFiltradas = this.tareasProyecto;
+      this.proyectosResponsableFiltrados = [];
+      this.tareasResponsableFiltradas = [];
     }
   }
 
@@ -408,17 +538,17 @@ export class EstadisticasIndicadoresComponent implements OnInit {
 
     this.inversionData = proyectosParaROI.map(p => ({
       name: p.nombre.length > 10 ? p.nombre.substring(0, 10) + '…' : p.nombre,
-      value: p.inversion / 1000
+      value: p.inversion
     }));
 
     this.gastoData = proyectosParaROI.map(p => ({
       name: p.nombre.length > 10 ? p.nombre.substring(0, 10) + '…' : p.nombre,
-      value: p.gasto / 1000
+      value: p.gasto
     }));
 
     this.retornoData = proyectosParaROI.map(p => ({
       name: p.nombre.length > 10 ? p.nombre.substring(0, 10) + '…' : p.nombre,
-      value: p.retorno / 1000
+      value: p.retorno
     }));
   }
 
@@ -461,5 +591,122 @@ export class EstadisticasIndicadoresComponent implements OnInit {
       { name: '% Proyectos', value: this.responsableSeleccionado.tareasPorcentajeProyectos }
     ];
 
+  }
+
+  private sincronizarResumenCostosProyecto(proyectoId: number): void {
+    if (!Number.isFinite(proyectoId) || proyectoId <= 0) {
+      return;
+    }
+
+    this.estadisticasService.obtenerResumenCostosProyecto(proyectoId).subscribe({
+      next: (resumen) => {
+        this.aplicarResumenCostosProyecto(proyectoId, resumen);
+      },
+      error: (error) => {
+        console.error('Error cargando resumen de costos del proyecto:', error);
+      }
+    });
+  }
+
+  private sincronizarActividadesProyecto(proyecto: ProyectoIndicador): void {
+    if (!Number.isFinite(proyecto.id) || proyecto.id <= 0) {
+      return;
+    }
+
+    this.registroSolicitudesService.obtenerActividades(proyecto.id).subscribe({
+      next: (actividades) => {
+        if (this.proyectoSeleccionado?.id !== proyecto.id) {
+          return;
+        }
+
+        this.tareasProyectoDetalle = this.mapActividadesProyecto(actividades, proyecto);
+        this.tareasProyectoDetalleCargado = true;
+        this.aplicarFiltrosTareas();
+      },
+      error: (error) => {
+        console.error('Error cargando actividades del proyecto:', error);
+        if (this.proyectoSeleccionado?.id !== proyecto.id) {
+          return;
+        }
+
+        this.tareasProyectoDetalle = [];
+        this.tareasProyectoDetalleCargado = false;
+        this.aplicarFiltrosTareas();
+      }
+    });
+  }
+
+  private mapActividadesProyecto(actividades: FlujoNodo[], proyecto: ProyectoIndicador): TareaProyecto[] {
+    return (actividades || [])
+      .filter((actividad) => actividad?.tipo === 'tarea')
+      .map((actividad) => ({
+        id: Number(actividad.id || 0),
+        responsable: actividad.responsableNombre || proyecto.responsable || 'Sin responsable',
+        proyecto: proyecto.nombre,
+        proyectoId: proyecto.id,
+        tarea: actividad.nombre || 'Actividad',
+        etapa: actividad.tipoActividad || 'En Proceso',
+        inicioFin: this.buildDateRange(
+          actividad.fechaRegistro,
+          actividad.fechaActualizacion || actividad.fechaCambioEstado
+        ),
+        status: this.mapEstadoTarea(actividad.estadoActividad),
+      }));
+  }
+
+  private aplicarResumenCostosProyecto(proyectoId: number, resumen: ResumenCostosProyecto): void {
+    const resumenNormalizado: ResumenCostosProyecto = {
+      totalMateriales: Number(resumen.totalMateriales || 0),
+      totalManoObra: Number(resumen.totalManoObra || 0),
+      totalAdicionales: Number(resumen.totalAdicionales || 0),
+      costoTotalProyecto: Number(resumen.costoTotalProyecto || 0),
+      presupuestoOriginal: Number(resumen.presupuestoOriginal || 0),
+      diferencia: Number(resumen.diferencia || 0),
+    };
+    const inversion = resumenNormalizado.presupuestoOriginal;
+    const gasto = resumenNormalizado.totalMateriales
+      + resumenNormalizado.totalManoObra
+      + resumenNormalizado.totalAdicionales;
+    const retorno = inversion - gasto;
+    const tasaRetorno = inversion > 0 ? Math.round((retorno * 100) / inversion) : 0;
+
+    this.proyectos = this.proyectos.map((proyecto) => {
+      if (proyecto.id !== proyectoId) {
+        return proyecto;
+      }
+
+      return {
+        ...proyecto,
+        inversion,
+        gasto,
+        retorno,
+        tasaRetorno,
+      };
+    });
+
+    if (this.proyectoSeleccionado?.id === proyectoId) {
+      const proyectoActualizado = this.proyectos.find((proyecto) => proyecto.id === proyectoId) || null;
+      this.proyectoSeleccionado = proyectoActualizado;
+      this.resumenCostosProyecto = resumenNormalizado;
+    }
+
+    this.actualizarROI();
+  }
+
+  formatearMontoProyecto(value: number | null | undefined): string {
+    const monto = Number(value || 0);
+    const absMonto = Math.abs(monto);
+
+    if (absMonto >= 1000) {
+      return `S/. ${(monto / 1000).toLocaleString('es-PE', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}k`;
+    }
+
+    return `S/. ${monto.toLocaleString('es-PE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 }

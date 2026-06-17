@@ -53,7 +53,7 @@ export interface UsuarioRequest {
   rolId: number;
   activo?: boolean;
   password?: string; // Solo para creación
-  foto?: string | null; // Base64 de la imagen
+  foto?: string | null; // URL pública o base64 temporal para vista previa
 }
 
 export interface UsuarioResponse {

@@ -172,6 +172,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private actualizarAlertasPendientes(): void {
+    if (!this.puedeConsultarAlertas()) {
+      this.alertasPendientes.set(0);
+      return;
+    }
+
     this.alertasService.refrescarAlertas().subscribe({
       next: (items) => this.alertasPendientes.set(items.length),
       error: () => this.alertasPendientes.set(this.alertasService.obtenerAlertas().length),
@@ -200,10 +205,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private actualizarAlertasRecientes(): void {
+    if (!this.puedeConsultarAlertas()) {
+      this.alertasRecientes.set([]);
+      return;
+    }
+
     this.alertasService.refrescarAlertas().subscribe({
       next: (alertas) => this.alertasRecientes.set(alertas.slice(0, 5)),
       error: () => this.alertasRecientes.set(this.alertasService.obtenerAlertas().slice(0, 5)),
     });
+  }
+
+  private puedeConsultarAlertas(): boolean {
+    return !!this.authService.getAccessToken() || !!this.authService.getRefreshToken();
   }
 
   private persistirEstadoSidebar(expandido: boolean): void {

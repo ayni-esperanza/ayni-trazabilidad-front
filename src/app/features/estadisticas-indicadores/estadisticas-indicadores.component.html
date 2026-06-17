@@ -73,7 +73,10 @@
                 <span class="px-3 py-1 text-xs font-medium rounded-full"
                   [ngClass]="{
                     'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300': proyecto.estado === 'En Proceso',
-                    'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300': proyecto.estado === 'Completado'
+                    'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300': proyecto.estado === 'Completado',
+                    'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300': proyecto.estado === 'Cancelado',
+                    'bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-300': proyecto.estado === 'Archivado',
+                    'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300': proyecto.estado === 'Finalizada'
                   }">
                   {{ proyecto.estado }}
                 </span>
@@ -312,7 +315,7 @@
                   (click)="cambiarGrafico('inversion')"
                   [class]="'rounded-lg p-2 text-center transition-all cursor-pointer ' + (graficoSeleccionado === 'inversion' ? 'bg-blue-500 dark:bg-blue-600 ring-2 ring-blue-400' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700')">
                   <h4 [class]="'text-[10px] font-medium ' + (graficoSeleccionado === 'inversion' ? 'text-white' : 'text-gray-500 dark:text-gray-400')">Inversión</h4>
-                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'inversion' ? 'text-white' : 'text-gray-800 dark:text-white')">S/. {{ (proyectoSeleccionado.inversion / 1000) | number:'1.0-0' }}k</p>
+                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'inversion' ? 'text-white' : 'text-gray-800 dark:text-white')">{{ formatearMontoProyecto(proyectoSeleccionado.inversion) }}</p>
                 </button>
                 
                 <!-- Gasto -->
@@ -320,7 +323,7 @@
                   (click)="cambiarGrafico('gasto')"
                   [class]="'rounded-lg p-2 text-center transition-all cursor-pointer ' + (graficoSeleccionado === 'gasto' ? 'bg-red-500 dark:bg-red-600 ring-2 ring-red-400' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700')">
                   <h4 [class]="'text-[10px] font-medium ' + (graficoSeleccionado === 'gasto' ? 'text-white' : 'text-gray-500 dark:text-gray-400')">Gasto</h4>
-                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'gasto' ? 'text-white' : 'text-gray-800 dark:text-white')">S/. {{ (proyectoSeleccionado.gasto / 1000) | number:'1.0-0' }}k</p>
+                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'gasto' ? 'text-white' : 'text-gray-800 dark:text-white')">{{ formatearMontoProyecto(proyectoSeleccionado.gasto) }}</p>
                 </button>
                 
                 <!-- Retorno/Sobrante -->
@@ -328,7 +331,7 @@
                   (click)="cambiarGrafico('retorno')"
                   [class]="'rounded-lg p-2 text-center transition-all cursor-pointer ' + (graficoSeleccionado === 'retorno' ? 'bg-green-500 dark:bg-green-600 ring-2 ring-green-400' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700')">
                   <h4 [class]="'text-[10px] font-medium ' + (graficoSeleccionado === 'retorno' ? 'text-white' : 'text-gray-500 dark:text-gray-400')">Retorno/Sobrante</h4>
-                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'retorno' ? 'text-white' : 'text-gray-800 dark:text-white')">S/. {{ (proyectoSeleccionado.retorno / 1000) | number:'1.0-0' }}k</p>
+                  <p [class]="'text-sm font-bold ' + (graficoSeleccionado === 'retorno' ? 'text-white' : 'text-gray-800 dark:text-white')">{{ formatearMontoProyecto(proyectoSeleccionado.retorno) }}</p>
                 </button>
               </div>
               
@@ -369,6 +372,36 @@
                     [roundEdges]="false">
                   </ngx-charts-bar-vertical>
                 </div>
+
+                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-semibold text-gray-800 dark:text-white">Resumen de costos</h4>
+                    <span class="text-[10px] text-gray-500 dark:text-gray-400">Materiales, mano de obra y otros costos</span>
+                  </div>
+
+                  @if (resumenCostosProyecto) {
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div class="rounded-lg border border-blue-200/70 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/20 p-2">
+                        <p class="text-[10px] font-medium text-blue-700 dark:text-blue-300">Materiales</p>
+                        <p class="mt-1 text-sm font-bold text-gray-800 dark:text-white">{{ formatearMontoProyecto(resumenCostosProyecto.totalMateriales) }}</p>
+                      </div>
+
+                      <div class="rounded-lg border border-emerald-200/70 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20 p-2">
+                        <p class="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">Mano de obra</p>
+                        <p class="mt-1 text-sm font-bold text-gray-800 dark:text-white">{{ formatearMontoProyecto(resumenCostosProyecto.totalManoObra) }}</p>
+                      </div>
+
+                      <div class="rounded-lg border border-amber-200/70 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/20 p-2">
+                        <p class="text-[10px] font-medium text-amber-700 dark:text-amber-300">Otros costos</p>
+                        <p class="mt-1 text-sm font-bold text-gray-800 dark:text-white">{{ formatearMontoProyecto(resumenCostosProyecto.totalAdicionales) }}</p>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 px-3 py-4 text-center text-[11px] text-gray-500 dark:text-gray-400">
+                      Cargando resumen de costos del proyecto...
+                    </div>
+                  }
+                </div>
                 
                 <!-- Dashboard de Gastos Expandido -->
                 @if (mostrarDashboardGastos && graficoSeleccionado === 'gasto') {
@@ -384,7 +417,7 @@
                     
                     <div class="mt-2 flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-gray-700">
                       <span class="text-[10px] font-medium text-gray-600 dark:text-gray-400">Total de Gastos:</span>
-                      <span class="text-xs font-bold text-red-600 dark:text-red-400">S/. {{ (proyectoSeleccionado.gasto / 1000 | number:'1.0-0') }}k</span>
+                      <span class="text-xs font-bold text-red-600 dark:text-red-400">{{ formatearMontoProyecto(proyectoSeleccionado.gasto) }}</span>
                     </div>
                   </div>
                 }
@@ -472,23 +505,26 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                  <tr *ngFor="let tarea of tareasResponsableFiltradas; let i = index"
-                    (click)="seleccionarProyectoResponsable(tarea.proyectoId)"
+                  <tr *ngFor="let proyecto of proyectosResponsableFiltrados; let i = index"
+                    (click)="seleccionarProyectoResponsable(proyecto.id)"
                     class="cursor-pointer transition-colors"
                     [ngClass]="{
-                      'bg-green-50 dark:bg-green-900/20': proyectoResponsableSeleccionado === tarea.proyectoId,
-                      'hover:bg-gray-50 dark:hover:bg-gray-800/40': proyectoResponsableSeleccionado !== tarea.proyectoId,
-                      'bg-red-50 dark:bg-red-900/20': tarea.status === 'alerta' && proyectoResponsableSeleccionado !== tarea.proyectoId
+                      'bg-green-50 dark:bg-green-900/20': proyectoResponsableSeleccionado === proyecto.id,
+                      'hover:bg-gray-50 dark:hover:bg-gray-800/40': proyectoResponsableSeleccionado !== proyecto.id
                     }">
-                    <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.proyecto }}</td>
-                    <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.inicioFin }}</td>
+                    <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ proyecto.nombre }}</td>
+                    <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ proyecto.rangoRegistroActualizacion }}</td>
                     <td class="py-2 px-4">
-                      <svg *ngIf="tarea.status === 'alerta'" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                      </svg>
-                      <svg *ngIf="tarea.status === 'completado'" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                      </svg>
+                      <span class="px-3 py-1 text-xs font-medium rounded-full"
+                        [ngClass]="{
+                          'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300': proyecto.estado === 'En Proceso',
+                          'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300': proyecto.estado === 'Completado',
+                          'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300': proyecto.estado === 'Cancelado',
+                          'bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-300': proyecto.estado === 'Archivado',
+                          'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300': proyecto.estado === 'Finalizada'
+                        }">
+                        {{ proyecto.estado }}
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -563,12 +599,20 @@
                       <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.proyecto }}</td>
                       <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ tarea.inicioFin }}</td>
                       <td class="py-2 px-4">
-                        <svg *ngIf="tarea.status === 'alerta'" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                        <svg *ngIf="tarea.status === 'completado'" class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
+                        <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
+                          [ngClass]="{
+                            'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400': tarea.status === 'completado',
+                            'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400': tarea.status === 'alerta',
+                            'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400': tarea.status === 'en_proceso',
+                            'bg-gray-100 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300': tarea.status === 'pendiente'
+                          }">
+                          {{
+                            tarea.status === 'completado' ? 'Completado' :
+                            tarea.status === 'alerta' ? 'Alerta' :
+                            tarea.status === 'en_proceso' ? 'En Proceso' :
+                            'Pendiente'
+                          }}
+                        </span>
                       </td>
                     </tr>
                   </tbody>
@@ -608,9 +652,16 @@
                           <span class="px-2 py-0.5 text-[10px] font-medium rounded-full whitespace-nowrap"
                             [ngClass]="{
                               'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400': tarea.status === 'completado',
-                              'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400': tarea.status === 'alerta'
+                              'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400': tarea.status === 'alerta',
+                              'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400': tarea.status === 'en_proceso',
+                              'bg-gray-100 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300': tarea.status === 'pendiente'
                             }">
-                            {{ tarea.status === 'completado' ? 'Completado' : 'Alerta' }}
+                            {{
+                              tarea.status === 'completado' ? 'Completado' :
+                              tarea.status === 'alerta' ? 'Alerta' :
+                              tarea.status === 'en_proceso' ? 'En Proceso' :
+                              'Pendiente'
+                            }}
                           </span>
                         </div>
                         <div class="flex items-center gap-3 text-[10px] text-gray-500 dark:text-gray-400">

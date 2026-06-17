@@ -7,7 +7,8 @@
   },
   "version": 1,
   "cli": {
-    "packageManager": "pnpm"
+    "packageManager": "pnpm",
+    "analytics": "4d3649fc-8eb9-4766-8a59-315b06b1c7b9"
   },
   "newProjectRoot": "projects",
   "projects": {

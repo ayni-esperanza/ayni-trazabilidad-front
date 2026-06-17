@@ -37,7 +37,7 @@ export interface MaterialCosto {
 export interface ManoObraCosto {
   id: number;
   trabajador: string;
-  cargo: string;
+  oficio: string;
   diasTrabajando: number | null;
   costoPorDia: number | null;
   costoTotal: number;
@@ -403,6 +403,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       ordenesCompra: this.deduplicarOrdenesCompra((this.proyecto.ordenesCompra || []).map(o => ({
         ...o,
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
+        tipoActividad: this.normalizarTipoActividadOrdenCompra(o.tipoActividad),
         numeroLicitacion: o.numeroLicitacion || '',
         numeroSolicitud: o.numeroSolicitud || ''
       }))),
@@ -433,6 +434,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return 'OTROS';
   }
 
+  private normalizarTipoActividadOrdenCompra(tipoActividad?: string): OrdenCompra['tipoActividad'] {
+    const valor = String(tipoActividad || '').trim().toUpperCase();
+    if (valor === 'SEGUIMIENTO') return 'SEGUIMIENTO';
+    if (valor === 'DESARROLLO') return 'DESARROLLO';
+    return undefined;
+  }
+
   private deduplicarOrdenesCompra(ordenes: OrdenCompra[]): OrdenCompra[] {
     const porClave = new Map<string, OrdenCompra>();
 
@@ -456,9 +464,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           numero,
           fecha,
           tipo,
+          tipoActividad: this.normalizarTipoActividadOrdenCompra(orden.tipoActividad),
           numeroLicitacion: licitacion,
           numeroSolicitud: solicitud,
           total,
+          fechaCreacion: orden.fechaCreacion,
+          fechaActualizacion: orden.fechaActualizacion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
         });
       }
@@ -783,6 +794,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     const ordenesNormalizadas = this.normalizarOrdenesCompraLocales(ordenes || []);
 
     const payload = ordenesNormalizadas.map((orden) => ({
+      id: orden.id,
       numero: orden.numero,
       fecha: orden.fecha,
       tipo: orden.tipo,
@@ -804,9 +816,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numero: orden.numero || '',
         fecha: orden.fecha || '',
         tipo: this.normalizarTipoOrdenCompra(orden.tipo),
+        tipoActividad: this.normalizarTipoActividadOrdenCompra(orden.tipoActividad),
         numeroLicitacion: orden.numeroLicitacion || '',
         numeroSolicitud: orden.numeroSolicitud || '',
         total: Number(orden.total || 0),
+        fechaCreacion: orden.fechaCreacion,
+        fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
       })))
     );
@@ -836,9 +851,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           numero,
           fecha,
           tipo,
+          tipoActividad: this.normalizarTipoActividadOrdenCompra(orden.tipoActividad),
           numeroLicitacion,
           numeroSolicitud,
           total,
+          fechaCreacion: orden.fechaCreacion,
+          fechaActualizacion: orden.fechaActualizacion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
         });
       }
@@ -1531,14 +1549,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
 
-        this.manoObra = (manoObra || []).map((item) => ({
-          id: item.id,
-          trabajador: item.trabajador || '',
-          cargo: item.cargo || '',
-          diasTrabajando: Number(item.diasTrabajando || 0),
-          costoPorDia: Number(item.costoPorDia || 0),
-          costoTotal: Number(item.costoTotal || 0),
-          dependenciaActividadId: item.dependenciaActividadId ?? null
+    this.manoObra = (manoObra || []).map((item) => ({
+      id: item.id,
+      trabajador: item.trabajador || '',
+      oficio: item.oficio || item.cargo || '',
+      diasTrabajando: Number(item.diasTrabajando || 0),
+      costoPorDia: Number(item.costoPorDia || 0),
+      costoTotal: Number(item.costoTotal || 0),
+      dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
 
         this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || [], categoriasPersistidas || []);
@@ -1704,6 +1722,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             id: item.id,
             fecha: item.fecha,
             nroComprobante: item.nroComprobante?.trim() || '',
+            tipo: item.tipo?.trim() || '',
             producto: item.producto?.trim(),
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
@@ -1732,7 +1751,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           const payload = {
             id: item.id,
             trabajador: item.trabajador?.trim(),
-            cargo: item.cargo?.trim() || '',
+            oficio: item.oficio?.trim() || '',
             diasTrabajando: Number(item.diasTrabajando || 0),
             costoPorDia: Number(item.costoPorDia || 0),
             costoTotal: Number(item.costoTotal || 0),
@@ -1949,7 +1968,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     const manoObra = (this.manoObra || []).map((item) => ({
       id: Number(item.id || 0),
       trabajador: (item.trabajador || '').trim(),
-      cargo: (item.cargo || '').trim(),
+      oficio: (item.oficio || '').trim(),
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       costoTotal: Number(item.costoTotal || 0),
