@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent } from '../../../../../../shared/components/select-searchable/select-searchable.component';
 import {
   ActividadCostoOption,
   MaterialCosto,
@@ -28,7 +29,7 @@ type ResumenCostoItem = {
 @Component({
   selector: 'app-tab-costos',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './tab-costos.component.html'
 })
 export class TabCostosComponent implements OnChanges {
@@ -82,6 +83,19 @@ export class TabCostosComponent implements OnChanges {
 
   emitirCambios(): void {
     this.costosChange.emit();
+  }
+
+  normalizarTextoSeleccion(value: string | number | null): string {
+    return String(value || '').trim();
+  }
+
+  normalizarSeleccionActividad(value: string | number | null): number | null {
+    if (value === null || value === undefined || String(value).trim() === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   agregarMaterial(): void {
@@ -250,6 +264,13 @@ export class TabCostosComponent implements OnChanges {
 
   get manoObraPorOficio(): ResumenCostoItem[] {
     return this.agruparPorNombre(this.manoObra || [], (item) => item.oficio || 'Sin oficio');
+  }
+
+  get actividadOptions(): Array<{ value: number; label: string }> {
+    return (this.actividadesDisponibles || []).map((actividad) => ({
+      value: actividad.id,
+      label: actividad.nombre
+    }));
   }
 
   agregarOpcionOficioManoObra(): void {

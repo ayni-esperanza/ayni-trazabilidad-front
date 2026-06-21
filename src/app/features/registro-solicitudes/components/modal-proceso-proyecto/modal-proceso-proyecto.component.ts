@@ -1204,12 +1204,32 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   get actividadesDisponiblesCostos(): ActividadCostoOption[] {
-    return this.flujoNodos
-      .filter(nodo => nodo.tipo === 'tarea')
-      .map(nodo => ({
-        id: nodo.id,
-        nombre: nodo.nombre || `Actividad ${nodo.id}`
-      }));
+    const actividades = new Map<number, ActividadCostoOption>();
+
+    for (const nodo of this.flujoNodos || []) {
+      const id = Number(nodo?.id);
+      const tipo = String(nodo?.tipo || '').toLowerCase();
+
+      if (!Number.isFinite(id) || id <= 0 || tipo === 'inicio') continue;
+
+      actividades.set(id, {
+        id,
+        nombre: (nodo?.nombre || '').trim() || `Actividad ${id}`
+      });
+    }
+
+    for (const comentario of this.proyectoInfoForm.comentariosAdicionalesActividad || []) {
+      const id = Number(comentario?.actividadId);
+      if (!Number.isFinite(id) || id <= 0 || actividades.has(id)) continue;
+
+      actividades.set(id, {
+        id,
+        nombre: (comentario?.nombre || '').trim() || `Actividad ${id}`
+      });
+    }
+
+    return Array.from(actividades.values())
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
   }
 
   get totalAdjuntosResumen(): number {
