@@ -148,6 +148,7 @@ export interface Responsable {
   nombre: string;
   cargo?: string;
   email?: string;
+  foto?: string;
 }
 
 export interface ProcesoSimple {

@@ -12,8 +12,10 @@ import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { GestionUsuariosService } from '../gestion-usuarios/services/gestion-usuarios.service';
+import { Usuario } from '../gestion-usuarios/models/usuario.model';
 
 @Component({
   selector: 'app-registro-solicitudes',
@@ -89,7 +91,8 @@ export class RegistroSolicitudesComponent implements OnInit {
     private solicitudesService: RegistroSolicitudesService,
     private readonly sanitizer: DomSanitizer,
     private readonly adjuntosPreviewService: AdjuntosPreviewService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly gestionUsuariosService: GestionUsuariosService
   ) {}
 
   ngOnInit(): void {
@@ -337,10 +340,11 @@ export class RegistroSolicitudesComponent implements OnInit {
     forkJoin({
       responsables: this.solicitudesService.obtenerResponsables(),
       solicitudes: this.solicitudesService.obtenerSolicitudes(),
-      proyectos: this.solicitudesService.obtenerProyectos()
+      proyectos: this.solicitudesService.obtenerProyectos(),
+      usuarios: this.gestionUsuariosService.obtenerUsuarios({ page: 0, size: 500 })
     }).subscribe({
-      next: ({ responsables, solicitudes, proyectos }) => {
-        this.responsables = responsables || [];
+      next: ({ responsables, solicitudes, proyectos, usuarios }) => {
+        this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios?.content || []);
         this.procesos = [];
         this.solicitudes = solicitudes || [];
         this.proyectos = proyectos || [];
@@ -348,11 +352,29 @@ export class RegistroSolicitudesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar datos de registro de solicitudes:', error);
-        this.responsables = [];
-        this.procesos = [];
-        this.solicitudes = [];
-        this.proyectos = [];
-        this.aplicarFiltros();
+
+        forkJoin({
+          responsables: this.solicitudesService.obtenerResponsables(),
+          solicitudes: this.solicitudesService.obtenerSolicitudes(),
+          proyectos: this.solicitudesService.obtenerProyectos(),
+          usuarios: of({ content: [] as Usuario[] })
+        }).subscribe({
+          next: ({ responsables, solicitudes, proyectos, usuarios }) => {
+            this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios.content || []);
+            this.procesos = [];
+            this.solicitudes = solicitudes || [];
+            this.proyectos = proyectos || [];
+            this.aplicarFiltros();
+          },
+          error: (fallbackError) => {
+            console.error('Error al cargar datos de registro de solicitudes:', fallbackError);
+            this.responsables = [];
+            this.procesos = [];
+            this.solicitudes = [];
+            this.proyectos = [];
+            this.aplicarFiltros();
+          }
+        });
       }
     });
   }
@@ -778,6 +800,31 @@ export class RegistroSolicitudesComponent implements OnInit {
   getResponsableNombre(responsableId: number): string {
     const responsable = this.responsables.find(r => r.id === responsableId);
     return responsable?.nombre || 'Sin asignar';
+  }
+
+  getResponsable(responsableId: number | undefined): Responsable | undefined {
+    if (!responsableId) return undefined;
+    return this.responsables.find((responsable) => responsable.id === responsableId);
+  }
+
+  private enriquecerResponsablesConFotos(responsables: Responsable[], usuarios: Usuario[]): Responsable[] {
+    const usuariosPorId = new Map(usuarios.map((usuario) => [Number(usuario.id), usuario]));
+
+    return responsables.map((responsable) => {
+      const usuario = usuariosPorId.get(Number(responsable.id));
+      return {
+        ...responsable,
+        foto: String(usuario?.foto || responsable.foto || '').trim() || undefined
+      };
+    });
+  }
+
+  getInicialesResponsable(nombre?: string): string {
+    const texto = String(nombre || '').trim();
+    if (!texto) return '?';
+
+    const partes = texto.split(/\s+/).filter(Boolean);
+    return partes.slice(0, 2).map((parte) => parte.charAt(0).toUpperCase()).join('');
   }
 
   getResponsableComentarioTimeline(comentario: ComentarioAdicionalActividad): string {

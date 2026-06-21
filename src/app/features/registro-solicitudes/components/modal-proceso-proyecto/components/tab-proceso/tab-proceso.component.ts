@@ -143,6 +143,19 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     return resp?.nombre || 'Sin asignar';
   }
 
+  getResponsable(responsableId: number | undefined): Responsable | undefined {
+    if (!responsableId) return undefined;
+    return this.responsables.find((responsable) => responsable.id === responsableId);
+  }
+
+  getInicialesResponsable(nombre?: string): string {
+    const texto = String(nombre || '').trim();
+    if (!texto) return '?';
+
+    const partes = texto.split(/\s+/).filter(Boolean);
+    return partes.slice(0, 2).map((parte) => parte.charAt(0).toUpperCase()).join('');
+  }
+
   getSiguientesNombres(nodo: FlujoNodo): string {
     const siguientesIds = Array.isArray(nodo.siguientesIds) ? nodo.siguientesIds : [];
     if (!siguientesIds.length) return 'Sin conexiones';

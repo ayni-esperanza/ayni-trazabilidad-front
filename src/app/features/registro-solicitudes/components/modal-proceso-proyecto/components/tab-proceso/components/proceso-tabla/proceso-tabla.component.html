@@ -406,8 +406,30 @@
             <span *ngIf="ctx.esNodoOrdenCompra(nodo)" class="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Orden de compra</span>
           </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">
-            <span *ngIf="!ctx.esNodoOrdenCompra(nodo)">{{ nodo.responsableId ? ctx.getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</span>
-            <span *ngIf="ctx.esNodoOrdenCompra(nodo)" class="text-gray-400 italic">—</span>
+            <ng-container *ngIf="!ctx.esNodoOrdenCompra(nodo); else responsableOrdenCompra">
+              <ng-container *ngIf="ctx.getResponsable(nodo.responsableId) as responsable; else responsableSinAsignar">
+                <div class="flex items-center gap-2 min-w-0">
+                  <ng-container *ngIf="responsable.foto; else responsableIniciales">
+                    <img
+                      [src]="responsable.foto"
+                      [alt]="responsable.nombre"
+                      class="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0" />
+                  </ng-container>
+                  <ng-template #responsableIniciales>
+                    <div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-[10px] font-semibold flex-shrink-0">
+                      {{ ctx.getInicialesResponsable(responsable.nombre) }}
+                    </div>
+                  </ng-template>
+                  <span class="truncate">{{ responsable.nombre }}</span>
+                </div>
+              </ng-container>
+              <ng-template #responsableSinAsignar>
+                <span>{{ nodo.responsableId ? ctx.getResponsableNombre(nodo.responsableId) : 'Sin asignar' }}</span>
+              </ng-template>
+            </ng-container>
+            <ng-template #responsableOrdenCompra>
+              <span class="text-gray-400 italic">—</span>
+            </ng-template>
           </td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.formatDateStandar(nodo.fechaInicio) || '—' }}</td>
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || '—') : (nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'dd-MM-yyyy HH:mm') : '—') }}</td>

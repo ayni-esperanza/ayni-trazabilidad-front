@@ -275,7 +275,25 @@
               </td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200 font-medium" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.nombreProyecto }}</td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.cliente }}</td>
-              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">{{ solicitud.responsableNombre }}</td>
+              <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">
+                @if (getResponsable(solicitud.responsableId); as responsable) {
+                  <div class="flex items-center gap-2 min-w-0">
+                    @if (responsable.foto) {
+                      <img
+                        [src]="responsable.foto"
+                        [alt]="responsable.nombre"
+                        class="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0">
+                    } @else {
+                      <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-[10px] font-semibold flex-shrink-0">
+                        {{ getInicialesResponsable(responsable.nombre) }}
+                      </div>
+                    }
+                    <span class="truncate">{{ responsable.nombre }}</span>
+                  </div>
+                } @else {
+                  <span>{{ solicitud.responsableNombre || 'Sin asignar' }}</span>
+                }
+              </td>
               <td class="py-1.5 px-3 text-gray-700 dark:text-gray-200" (click)="abrirProcesoDesdeTabla(solicitud)">
                 @if (solicitud.fechaSolicitud) {
                   {{ solicitud.fechaSolicitud | date:'dd/MM/yy' }} - {{ getFechaUltimaActualizacion(solicitud) | date:'dd/MM/yy' }}
