@@ -4,6 +4,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { ThemeService } from './core/services/theme.service';
 import { FlowbiteService } from './core/services/flowbite.service';
+import { AuthService } from './core/services/auth.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -21,6 +22,7 @@ export class AppComponent implements OnInit {
   constructor(
     private themeService: ThemeService,
     private flowbiteService: FlowbiteService,
+    private authService: AuthService,
     private router: Router,
     @Inject(PLATFORM_ID) platformId: object
   ) {
@@ -31,7 +33,7 @@ export class AppComponent implements OnInit {
       this.actualizarVisibilidadSidebar('/loading');
       void this.router.navigate(['/loading'], {
         queryParams: {
-          next: this.normalizeNextUrl(initialUrl),
+          next: this.getStartupLoaderNextUrl(initialUrl),
           source: 'startup',
         },
         replaceUrl: true,
@@ -105,6 +107,19 @@ export class AppComponent implements OnInit {
     } catch {
       return false;
     }
+  }
+
+  private getStartupLoaderNextUrl(url: string): string {
+    if (!this.authService.isAuthenticated()) {
+      return '/login';
+    }
+
+    const normalized = this.normalizeNextUrl(url);
+    if (normalized === '/' || normalized === '/login') {
+      return this.authService.getLandingRoute();
+    }
+
+    return normalized;
   }
 
   private normalizeNextUrl(url: string): string {

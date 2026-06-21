@@ -28,7 +28,7 @@ export class LoadingScreenComponent implements OnInit, OnDestroy {
       this.loadingText = 'Cerrando sesion';
     }
 
-    const durationMs = source === 'logout' ? 300 : 850;
+    const durationMs = source === 'logout' ? 300 : source === 'startup' ? 220 : 850;
 
     this.navigationTimer = setTimeout(() => {
       void this.router.navigateByUrl(nextUrl, { replaceUrl: true });
