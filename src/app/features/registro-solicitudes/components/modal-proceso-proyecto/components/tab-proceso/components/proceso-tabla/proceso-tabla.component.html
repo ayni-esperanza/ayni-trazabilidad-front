@@ -1,4 +1,4 @@
-<div *ngIf="vistaFlujo === 'tabla'" class="border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-visible bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
+<div *ngIf="vistaFlujo === 'tabla'" class="relative z-20 border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-visible bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
   <div class="overflow-visible">
     <table class="w-full text-xs">
       <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
@@ -477,7 +477,7 @@
 </div>
 
 @if (vistaFlujo === 'tabla' && ctx.totalActividadesFlujo > 0) {
-  <div class="mt-2">
+  <div class="relative z-10 mt-2">
     <app-paginacion
       [config]="paginacionTablaFlujo"
       [opcionesPorPagina]="opcionesPorPaginaTablaFlujo"
@@ -490,4 +490,3 @@
     </app-paginacion>
   </div>
 }
-

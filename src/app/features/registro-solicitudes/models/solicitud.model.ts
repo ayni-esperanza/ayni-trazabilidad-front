@@ -1,4 +1,4 @@
-export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
+  export type EstadoSolicitud = 'En Proceso' | 'Completado' | 'Cancelado';
 export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado' | 'Archivado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
 export type TipoActividadInterna = 'DESARROLLO' | 'SEGUIMIENTO';
