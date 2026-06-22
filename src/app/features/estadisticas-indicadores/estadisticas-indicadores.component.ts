@@ -30,6 +30,7 @@ export interface ProyectoIndicador {
   fechaRegistro: string;
   fechaActualizacion: string;
   rangoRegistroActualizacion: string;
+  rangoDuracion: string;
 }
 
 export interface TareaProyecto {
@@ -46,7 +47,8 @@ export interface TareaProyecto {
 export interface ResponsableIndicador {
   id: number;
   nombre: string;
-  cargo: string;
+  rol: string;
+  area: string;
   antiguedad: string;
   participacionProyectos: number;
   tareasRealizadas: number;
@@ -186,7 +188,8 @@ export class EstadisticasIndicadoresComponent implements OnInit {
       return {
         id: Number(p.id || item.id || 0),
         nombre: p.nombre || item.nombre || 'Responsable',
-        cargo: p.cargo || item.descripcion || '',
+        rol: p.rol || item.descripcion || '',
+        area: p.area || '',
         antiguedad: p.antiguedad || 'N/A',
         participacionProyectos: Number(p.participacionProyectos || 0),
         tareasRealizadas: Number(p.tareasRealizadas || 0),
@@ -224,6 +227,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
         fechaRegistro: this.formatDateOnly(p.fechaRegistro),
         fechaActualizacion: this.formatDateOnly(p.fechaActualizacion),
         rangoRegistroActualizacion: this.buildDateRange(p.fechaRegistro, p.fechaActualizacion),
+        rangoDuracion: this.buildDateRange(p.durationStart, p.durationEnd),
       };
     });
   }
@@ -316,7 +320,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   private formatDate(date: Date): string {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+    const year = String(date.getFullYear()).slice(-2);
     return `${day}/${month}/${year}`;
   }
 

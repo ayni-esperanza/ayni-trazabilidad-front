@@ -35,7 +35,8 @@
           <thead class="bg-gray-50 dark:bg-gray-800/60">
             <tr class="border-b border-gray-200 dark:border-gray-700">
               <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-              <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Cargo</th>
+              <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Rol</th>
+              <th class="py-2 px-4 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400">Área</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -44,7 +45,8 @@
               (click)="seleccionarResponsable(resp)"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ resp.nombre }}</td>
-              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ resp.cargo }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ resp.rol || '-' }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ resp.area || '-' }}</td>
             </tr>
           </tbody>
         </table>
@@ -68,7 +70,7 @@
               (click)="seleccionarProyecto(proyecto)"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/40 cursor-pointer">
               <td class="py-2 px-4 text-gray-700 dark:text-gray-200 font-medium">{{ proyecto.nombre }}</td>
-              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ proyecto.durationStart }} - {{ proyecto.durationEnd }}</td>
+              <td class="py-2 px-4 text-gray-700 dark:text-gray-200">{{ proyecto.rangoRegistroActualizacion }}</td>
               <td class="py-2 px-4">
                 <span class="px-3 py-1 text-xs font-medium rounded-full"
                   [ngClass]="{
@@ -145,7 +147,7 @@
                 <p class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">Responsable:</span> {{ proyectoSeleccionado.responsable }}</p>
                 <p class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">Cliente:</span> {{ proyectoSeleccionado.cliente }}</p>
                 <p class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">Estado:</span> {{ proyectoSeleccionado.estado }}</p>
-                <p class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">Duración:</span> {{ proyectoSeleccionado.durationStart }} - {{ proyectoSeleccionado.durationEnd }}</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">Duración:</span> {{ proyectoSeleccionado.rangoRegistroActualizacion }}</p>
                 <div class="mt-1.5 pt-1.5 border-t border-gray-200 dark:border-gray-700">
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Descripción:</p>
                   <div class="text-xs text-gray-700 dark:text-gray-300" [innerHTML]="proyectoSeleccionado.descripcion"></div>
@@ -458,7 +460,8 @@
     <div class="stats-card p-3 mb-4">
       <h2 class="text-base font-semibold text-gray-800 dark:text-white">
         Nombre: <span class="font-normal">{{ responsableSeleccionado.nombre }}</span> · 
-        Cargo: <span class="font-normal">{{ responsableSeleccionado.cargo }}</span> · 
+        Rol: <span class="font-normal">{{ responsableSeleccionado.rol || '-' }}</span> · 
+        Área: <span class="font-normal">{{ responsableSeleccionado.area || '-' }}</span> · 
         Antigüedad: <span class="font-normal">{{ responsableSeleccionado.antiguedad }}</span>
       </h2>
     </div>

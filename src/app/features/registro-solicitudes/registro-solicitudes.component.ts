@@ -435,10 +435,14 @@ export class RegistroSolicitudesComponent implements OnInit {
   onInfoProyectoActualizada(info: { costo: number; fechaInicio: string; fechaFin: string }): void {
     if (!this.proyectoActual) return;
 
-    this.proyectoActual.costo = info.costo;
-    this.proyectoActual.fechaInicio = info.fechaInicio;
-    this.proyectoActual.fechaFinalizacion = info.fechaFin || this.proyectoActual.fechaFinalizacion;
-    this.onProyectoActualizado(this.proyectoActual);
+    const proyectoActualizado: Proyecto = {
+      ...this.proyectoActual,
+      costo: info.costo,
+      fechaInicio: info.fechaInicio,
+      fechaFinalizacion: info.fechaFin || this.proyectoActual.fechaFinalizacion
+    };
+
+    this.sincronizarProyectoEnMemoria(proyectoActualizado);
   }
 
   onProyectoActualizado(proyectoActualizado: Proyecto): void {

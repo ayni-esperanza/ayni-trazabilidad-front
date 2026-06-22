@@ -77,7 +77,7 @@ export class EstadisticasIndicadoresService {
       map((items) => (items || []).map((item) => ({
         id: Number(item?.id || 0),
         nombre: item?.nombre || 'Responsable',
-        descripcion: item?.cargo || '',
+        descripcion: item?.rol || '',
         categoria: 'Responsables',
         valor: Number(item?.eficienciaGeneral || 0),
         fechaCalculo: new Date(),
