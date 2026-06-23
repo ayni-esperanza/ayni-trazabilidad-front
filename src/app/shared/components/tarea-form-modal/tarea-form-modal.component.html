@@ -49,9 +49,7 @@
           </div>
         }
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          
-          <!-- Nombre de la Actividad - En modo creacion ocupa col normal -->
+        <div [ngClass]="modoEdicion ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-3'">
           @if (!modoEdicion) {
             <div>
               <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -71,38 +69,69 @@
               </div>
               <span *ngIf="tieneError('nombre')" class="text-xs text-red-500 mt-1">{{ errores['nombre'] }}</span>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Fecha de registro <span class="text-red-500">*</span>
+                </label>
+                <app-date-picker
+                  [value]="formData.fechaInicio"
+                  (valueChange)="formData.fechaInicio = $event"
+                  [hasError]="tieneError('fechaInicio')"
+                  [enableTime]="true"
+                  [inputClass]="'w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 cursor-pointer bg-white dark:bg-gray-800'">
+                </app-date-picker>
+                <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-1">{{ errores['fechaInicio'] }}</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Responsable <span class="text-red-500">*</span>
+                </label>
+                <app-responsable-select
+                  [responsables]="responsables"
+                  [value]="formData.responsableId || ''"
+                  (valueChange)="formData.responsableId = '' + $event"
+                  [placeholder]="'Seleccionar Resp.'"
+                  [emptyValue]="''"
+                  [hasError]="tieneError('responsableId')"
+                  [inputClass]="'w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed'">
+                </app-responsable-select>
+                <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-1">{{ errores['responsableId'] }}</span>
+              </div>
+            </div>
+          } @else {
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Fecha de registro <span class="text-red-500">*</span>
+              </label>
+              <app-date-picker
+                [value]="formData.fechaInicio"
+                (valueChange)="formData.fechaInicio = $event"
+                [hasError]="tieneError('fechaInicio')"
+                [enableTime]="true"
+                [inputClass]="'w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 cursor-pointer bg-white dark:bg-gray-800'">
+              </app-date-picker>
+              <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-1">{{ errores['fechaInicio'] }}</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Responsable <span class="text-red-500">*</span>
+              </label>
+              <app-responsable-select
+                [responsables]="responsables"
+                [value]="formData.responsableId || ''"
+                (valueChange)="formData.responsableId = '' + $event"
+                [placeholder]="'Seleccionar Resp.'"
+                [emptyValue]="''"
+                [hasError]="tieneError('responsableId')"
+                [inputClass]="'w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed'">
+              </app-responsable-select>
+              <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-1">{{ errores['responsableId'] }}</span>
+            </div>
           }
-
-          <!-- Responsable -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Responsable <span class="text-red-500">*</span>
-            </label>
-            <app-responsable-select
-              [responsables]="responsables"
-              [value]="formData.responsableId || ''"
-              (valueChange)="formData.responsableId = '' + $event"
-              [placeholder]="'Seleccionar Resp.'"
-              [emptyValue]="''">
-            </app-responsable-select>
-            <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-1">{{ errores['responsableId'] }}</span>
-          </div>
-
-          <!-- Fecha y Hora de Inicio -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de registro <span class="text-red-500">*</span>
-            </label>
-            <app-date-picker
-              [value]="formData.fechaInicio"
-              (valueChange)="formData.fechaInicio = $event"
-              [hasError]="tieneError('fechaInicio')"
-              [enableTime]="true"
-              [inputClass]="'w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 outline-none dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 cursor-pointer bg-white dark:bg-gray-800'">
-            </app-date-picker>
-            <span *ngIf="tieneError('fechaInicio')" class="text-xs text-red-500 mt-1">{{ errores['fechaInicio'] }}</span>
-          </div>
-
         </div>
 
         <div class="mt-4">
@@ -319,3 +348,4 @@
     </div>
   </div>
 }
+

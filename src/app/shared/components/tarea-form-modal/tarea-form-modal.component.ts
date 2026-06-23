@@ -165,10 +165,21 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
+  private obtenerFechaRegistroActual(): string {
+    const ahora = new Date();
+    const yyyy = ahora.getFullYear();
+    const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dd = String(ahora.getDate()).padStart(2, '0');
+    const hh = String(ahora.getHours()).padStart(2, '0');
+    const min = String(ahora.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  }
   private cargarFormularioDesdeInput(): void {
     if (this.tarea) {
+      const fechaInicio = this.tarea.fechaInicio || (!this.modoEdicion ? this.obtenerFechaRegistroActual() : '');
       this.formData = {
         ...this.tarea,
+        fechaInicio,
         descripcion: this.tarea.descripcion || '',
         archivosAdjuntos: this.tarea.archivosAdjuntos ? [...this.tarea.archivosAdjuntos] : []
       };
@@ -185,7 +196,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.formData = {
       nombre: '',
       responsableId: '',
-      fechaInicio: '',
+      fechaInicio: this.obtenerFechaRegistroActual(),
       fechaFin: undefined,
       descripcion: '',
       archivosAdjuntos: [],
@@ -768,3 +779,4 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.liberarFuenteVistaPrevia();
   }
 }
+

@@ -16,7 +16,8 @@ import { Responsable } from '../../../features/registro-solicitudes/models/solic
         [disabled]="disabled"
         [ngClass]="{
           'text-gray-500 dark:text-gray-300': isPlaceholderActive(),
-          'text-gray-900 dark:text-gray-100': !isPlaceholderActive()
+          'text-gray-900 dark:text-gray-100': !isPlaceholderActive(),
+          '!border-red-500': hasError
         }"
         (mousedown)="onAbrirDropdown()"
         (focus)="onAbrirDropdown()"
@@ -24,7 +25,7 @@ import { Responsable } from '../../../features/registro-solicitudes/models/solic
         (keydown.escape)="onCerrarDropdown()"
         (keydown.tab)="onCerrarDropdown()"
         style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-        class="w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed">
+        [class]="inputClass">
         <option [ngValue]="emptyValue" class="text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-700">{{ placeholder }}</option>
         <option *ngFor="let resp of responsables" [ngValue]="resp.id" class="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700">{{ resp.nombre }}</option>
       </select>
@@ -47,6 +48,8 @@ export class ResponsableSelectComponent {
   @Input() placeholder = 'Seleccionar Responsable de AYNI';
   @Input() emptyValue: number | string = 0;
   @Input() disabled = false;
+  @Input() hasError = false;
+  @Input() inputClass = 'w-full appearance-none px-3 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-800 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed';
   dropdownAbierto = false;
 
   @Output() valueChange = new EventEmitter<number | string>();
