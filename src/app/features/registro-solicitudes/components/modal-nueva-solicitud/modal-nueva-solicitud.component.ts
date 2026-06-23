@@ -84,7 +84,6 @@ export class ModalNuevaSolicitudComponent implements OnInit {
               'italic',
               'highlight',
               '|',
-              'link',
               'insertTable',
               '|',
               'bulletedList',

@@ -38,7 +38,7 @@ export class DescripcionCardComponent implements OnInit {
       this.ckeditorConfig = {
         licenseKey: 'GPL',
         toolbar: {
-          items: ['undo','redo','|','heading','|','fontSize','fontColor','fontBackgroundColor','|','bold','italic','highlight','|','link','insertTable','|','bulletedList','numberedList','indent','outdent'],
+          items: ['undo','redo','|','heading','|','fontSize','fontColor','fontBackgroundColor','|','bold','italic','highlight','|','insertTable','|','bulletedList','numberedList','indent','outdent'],
           shouldNotGroupWhenFull: true
         },
         plugins: [Bold, Essentials, FontBackgroundColor, FontColor, FontSize, Heading, Highlight, Indent, IndentBlock, Italic, Link, List, Paragraph, Table, Undo],

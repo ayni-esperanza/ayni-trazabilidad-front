@@ -145,7 +145,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
       this.ckeditorConfig = {
         licenseKey: 'GPL',
         toolbar: {
-          items: ['undo', 'redo', '|', 'bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList', '|', 'link'],
+          items: ['undo', 'redo', '|', 'bold', 'italic', 'underline', '|', 'bulletedList', 'numberedList'],
           shouldNotGroupWhenFull: true
         },
         plugins: [Bold, Essentials, Italic, Link, List, Paragraph, Underline, Undo],
@@ -779,4 +779,3 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.liberarFuenteVistaPrevia();
   }
 }
-
