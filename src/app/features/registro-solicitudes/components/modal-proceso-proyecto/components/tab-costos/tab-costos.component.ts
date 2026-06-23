@@ -104,7 +104,7 @@ export class TabCostosComponent implements OnChanges {
       id: nuevoId,
       fecha: this.formatDate(new Date()),
       nroComprobante: '',
-      tipo: this.opcionesTipoMaterial[0] || '',
+      tipo: '',
       producto: '',
       cantidad: null,
       costoUnitario: null,
@@ -236,7 +236,7 @@ export class TabCostosComponent implements OnChanges {
     this.manoObra.push({
       id: nuevoId,
       trabajador: '',
-      oficio: this.opcionesOficioManoObra[0] || '',
+      oficio: '',
       diasTrabajando: null,
       costoPorDia: null,
       costoTotal: 0,
