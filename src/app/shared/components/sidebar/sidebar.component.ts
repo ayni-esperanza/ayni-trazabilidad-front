@@ -50,6 +50,7 @@ interface MenuItem {
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   private readonly SIDEBAR_STATE_KEY = 'ayni:ui:sidebar-expanded';
+  private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
   protected themeService = inject(ThemeService);
   protected authService = inject(AuthService);
   private alertasService = inject(AlertasActividadesService);
@@ -169,6 +170,15 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this.mostrarModalAlertas()) {
       this.actualizarAlertasRecientes();
     }
+  }
+
+  @HostListener('window:storage', ['$event'])
+  onStorageChange(event: StorageEvent): void {
+    if (!event.key || !event.key.startsWith(this.flujoStoragePrefix)) {
+      return;
+    }
+
+    this.onAlertasUpdated();
   }
 
   private actualizarAlertasPendientes(): void {
