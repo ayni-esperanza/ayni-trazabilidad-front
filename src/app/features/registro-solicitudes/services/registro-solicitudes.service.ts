@@ -149,16 +149,23 @@ type ResponsableHistorialProyectoApi = {
   id?: number;
   responsableAnteriorId?: number;
   responsableIdAnterior?: number;
+  anteriorResponsableId?: number;
+  responsable_id_anterior?: number;
   responsable_anterior_id?: number;
   responsableAnteriorNombre?: string;
+  anteriorResponsableNombre?: string;
   responsableNombreAnterior?: string;
   nombreResponsableAnterior?: string;
   responsable_anterior_nombre?: string;
+  responsable_nombre_anterior?: string;
+  nombre_responsable_anterior?: string;
   responsableNombre?: string;
   responsableAnterior?: { id?: number; nombre?: string; name?: string };
   fechaCambio?: string;
   fechaAsignacion?: string;
   fechaRegistro?: string;
+  fechaCreacion?: string;
+  updatedAt?: string;
   fecha_cambio?: string;
   fecha_asignacion?: string;
   createdAt?: string;
@@ -194,6 +201,9 @@ type ProyectoApi = {
   responsablesHistorial?: ResponsableHistorialProyectoApi[];
   historialResponsables?: ResponsableHistorialProyectoApi[];
   proyectosResponsablesHistorial?: ResponsableHistorialProyectoApi[];
+  responsables_historial?: ResponsableHistorialProyectoApi[];
+  historial_responsables?: ResponsableHistorialProyectoApi[];
+  proyectos_responsables_historial?: ResponsableHistorialProyectoApi[];
 };
 
 type CostoMaterialApi = {
@@ -718,10 +728,16 @@ export class RegistroSolicitudesService {
       responsablesHistorial?: ResponsableHistorialProyectoApi[];
       historialResponsables?: ResponsableHistorialProyectoApi[];
       proyectosResponsablesHistorial?: ResponsableHistorialProyectoApi[];
+      responsables_historial?: ResponsableHistorialProyectoApi[];
+      historial_responsables?: ResponsableHistorialProyectoApi[];
+      proyectos_responsables_historial?: ResponsableHistorialProyectoApi[];
     };
     const historial = proyectoConHistorial.responsablesHistorial
       || proyectoConHistorial.historialResponsables
       || proyectoConHistorial.proyectosResponsablesHistorial
+      || proyectoConHistorial.responsables_historial
+      || proyectoConHistorial.historial_responsables
+      || proyectoConHistorial.proyectos_responsables_historial
       || [];
 
     return historial
@@ -729,15 +745,20 @@ export class RegistroSolicitudesService {
         const responsableAnteriorId = Number(
           registro.responsableAnteriorId
           ?? registro.responsableIdAnterior
+          ?? registro.anteriorResponsableId
+          ?? registro.responsable_id_anterior
           ?? registro.responsable_anterior_id
           ?? registro.responsableAnterior?.id
           ?? 0
         );
         const responsableAnteriorNombre = String(
           registro.responsableAnteriorNombre
+          || registro.anteriorResponsableNombre
           || registro.responsableNombreAnterior
           || registro.nombreResponsableAnterior
           || registro.responsable_anterior_nombre
+          || registro.responsable_nombre_anterior
+          || registro.nombre_responsable_anterior
           || registro.responsableNombre
           || registro.responsableAnterior?.nombre
           || registro.responsableAnterior?.name
@@ -747,6 +768,8 @@ export class RegistroSolicitudesService {
           registro.fechaCambio
           || registro.fechaAsignacion
           || registro.fechaRegistro
+          || registro.fechaCreacion
+          || registro.updatedAt
           || registro.fecha_cambio
           || registro.fecha_asignacion
           || registro.createdAt
@@ -760,7 +783,7 @@ export class RegistroSolicitudesService {
           fechaCambio: fechaCambio || undefined
         };
       })
-      .filter((registro) => Boolean(registro.responsableAnteriorNombre || registro.fechaCambio));
+      .filter((registro) => Boolean(registro.responsableAnteriorId || registro.responsableAnteriorNombre || registro.fechaCambio));
   }
 
   private mapComentarioAdicional(comentario: ComentarioAdicionalApi): ComentarioAdicionalActividad {

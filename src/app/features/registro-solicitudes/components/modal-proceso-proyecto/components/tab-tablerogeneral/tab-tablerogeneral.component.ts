@@ -29,7 +29,7 @@ export class TabTableroGeneralComponent {
 
   get responsablesHistorialAnterior(): ResponsableHistorialProyecto[] {
     return (this.proyecto?.responsablesHistorial || []).filter((registro) =>
-      Boolean(registro.responsableAnteriorNombre || registro.fechaCambio)
+      Boolean(registro.responsableAnteriorId || registro.responsableAnteriorNombre || registro.fechaCambio)
     );
   }
 
