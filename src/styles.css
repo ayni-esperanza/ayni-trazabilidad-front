@@ -3,6 +3,7 @@
 /* Todos los @import deben ir primero */
 @import "tailwindcss";
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import "@angular/cdk/overlay-prebuilt.css";
 @import "quill/dist/quill.snow.css";
 @import "ckeditor5/ckeditor5.css";
 @import "flowbite/src/themes/default";
@@ -150,6 +151,15 @@ html.dark body::-webkit-scrollbar-thumb:hover {
 
 .dark *::-webkit-scrollbar-thumb:hover {
   background-color: #64748b;
+}
+
+.scrollbar-invisible {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-invisible::-webkit-scrollbar {
+  display: none;
 }
 
 /* Combobox animado para filtros */
@@ -733,4 +743,3 @@ html.dark body::-webkit-scrollbar-thumb:hover {
   animation: dropdownFadeIn 0.15s ease-out forwards;
   transform-origin: bottom;
 }
-

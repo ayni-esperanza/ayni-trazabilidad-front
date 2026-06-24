@@ -1,5 +1,5 @@
 <!-- Tareas de los Encargados / Gastos del Proyecto -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all duration-300 ease-out overflow-hidden"
+<div class="bg-white dark:bg-gray-800 rounded-[1.15rem] shadow-sm p-3 transition-all duration-300 ease-out overflow-hidden border border-slate-200/70 dark:border-slate-700/70"
   [ngClass]="{
     'flex flex-col flex-1 min-h-0': tablaVisible,
     'h-12 flex-shrink-0': !tablaVisible
@@ -72,7 +72,7 @@
   
   @if (metricaSeleccionada === 'gastos') {
     <!-- Cards resumen por categorÃ­as - clickeables para filtrar -->
-    <div class="grid grid-cols-3 gap-2 mb-3 flex-shrink-0 animate-ui-in">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 flex-shrink-0 animate-ui-in">
       <div (click)="onSeleccionarCategoria('Materiales')" 
         class="p-2 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
         [ngClass]="{
@@ -118,86 +118,87 @@
   @if (tablaVisible) {
     <div class="flex-1 overflow-auto animate-ui-in">
       @if (metricaSeleccionada === 'gastos') {
-        <!-- Tabla de gastos -->
-        <table class="w-full text-xs">
-          <thead class="sticky top-0 bg-white dark:bg-gray-800">
-          <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Fecha</th>
-            <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">DescripciÃ³n</th>
-            <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-            <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">CategorÃ­a</th>
-            <th class="text-right py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Monto</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-          @for (gasto of gastosFiltrados; track gasto.id) {
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-              <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha | date:'dd/MM/yyyy' }}</td>
-              <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
-              <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.responsable }}</td>
-              <td class="py-1.5 px-2">
-                <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
-                  [ngClass]="{
-                    'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400': gasto.categoria === 'Materiales',
-                    'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400': gasto.categoria === 'Mano de Obra',
-                    'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400': gasto.categoria === 'Otros Costos'
-                  }">
-                  {{ gasto.categoria }}
-                </span>
-              </td>
-              <td class="py-1.5 px-2 text-right font-medium text-gray-700 dark:text-gray-300">
-                <span class="block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">
-                  S/ {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
-                </span>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
-                No hay gastos para el proyecto seleccionado
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    } @else {
-      <!-- Tabla de tareas o vista timeline -->
-      @if (modoVisualizacion === 'tabla') {
-        <!-- Vista de tabla -->
-        <table class="w-full text-xs">
-          <thead class="sticky top-0 bg-white dark:bg-gray-800">
-            <tr class="border-b border-gray-200 dark:border-gray-700">
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Actividad</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha de registro - Ultima actualizacion</th>
-              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (tarea of tareasFiltradas; track tarea.id) {
-              <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
-                <td class="py-1.5 px-1">
-                  <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoTareaClass(tarea.estado)">
-                    {{ tarea.estado }}
-                  </span>
-                </td>
+        <div class="min-w-[720px] overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-white dark:bg-gray-800">
+              <tr class="border-b border-gray-200 dark:border-gray-700">
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Fecha</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Descripción</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-500 dark:text-gray-400">Categoría</th>
+                <th class="text-right py-2 px-2 font-semibold text-gray-500 dark:text-gray-400 w-24">Monto</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
-                  No hay tareas para el proyecto seleccionado
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (gasto of gastosFiltrados; track gasto.id) {
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha | date:'dd/MM/yyyy' }}</td>
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
+                  <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.responsable }}</td>
+                  <td class="py-1.5 px-2">
+                    <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
+                      [ngClass]="{
+                        'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400': gasto.categoria === 'Materiales',
+                        'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400': gasto.categoria === 'Mano de Obra',
+                        'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400': gasto.categoria === 'Otros Costos'
+                      }">
+                      {{ gasto.categoria }}
+                    </span>
+                  </td>
+                  <td class="py-1.5 px-2 text-right font-medium text-gray-700 dark:text-gray-300">
+                    <span class="block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">
+                      S/ {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                    No hay gastos para el proyecto seleccionado
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       } @else {
-        <!-- Vista de timeline -->
+        @if (modoVisualizacion === 'tabla') {
+          <div class="min-w-[720px] overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead class="sticky top-0 bg-white dark:bg-gray-800">
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Actividad</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha de registro - Ultima actualizacion</th>
+                  <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tarea of tareasFiltradas; track tarea.id) {
+                  <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.responsable }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.tarea }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.proyecto }}</td>
+                    <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ tarea.fechas }}</td>
+                    <td class="py-1.5 px-1">
+                      <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoTareaClass(tarea.estado)">
+                        {{ tarea.estado }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                      No hay tareas para el proyecto seleccionado
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <!-- Vista de timeline -->
         <div class="space-y-2 px-2">
           @for (tarea of tareasFiltradas; track tarea.id; let isFirst = $first; let isLast = $last) {
             <div class="relative pl-8 pb-4 timeline-item">

@@ -82,9 +82,10 @@
     </div>
 
     <!-- Navegación Tabs -->
-    <div class="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+    <div class="overflow-x-auto overflow-y-hidden scrollbar-invisible border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex min-w-max">
       <button (click)="cambiarTab('tablero')"
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
+        class="flex-none min-w-[170px] px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'tablero',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'tablero'
@@ -95,7 +96,7 @@
         Tablero General
       </button>
       <button (click)="cambiarTab('proceso')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
+        class="flex-none min-w-[170px] px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'proceso',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'proceso'
@@ -107,7 +108,7 @@
         <span class="inline-flex items-center justify-center h-4 min-w-[1rem] px-1 text-[10px] font-bold rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 leading-none">{{ totalActividadesFlujoNav }}</span>
       </button>
       <button (click)="cambiarTab('informacion')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
+        class="flex-none min-w-[170px] px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'informacion',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'informacion'
@@ -119,7 +120,7 @@
       </button>
 
       <button *ngIf="costosHabilitados" (click)="cambiarTab('costos')" 
-        class="flex-1 px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
+        class="flex-none min-w-[170px] px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out flex items-center justify-center gap-2 hover:-translate-y-[1px]"
         [ngClass]="{
           'text-green-600 border-b-2 border-green-500 bg-white dark:bg-gray-800 shadow-sm': tabActiva === 'costos',
           'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': tabActiva !== 'costos'
@@ -136,12 +137,13 @@
       <button *ngIf="!costosHabilitados"
         type="button"
         (click)="habilitarSeccionCostos()"
-        class="px-4 py-2.5 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 flex items-center justify-center gap-2 border-l border-gray-200 dark:border-gray-700">
+        class="flex-none min-w-[170px] px-4 py-2.5 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 flex items-center justify-center gap-2 border-l border-gray-200 dark:border-gray-700">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
         Costos
       </button>
+      </div>
     </div>
 
     <!-- Body -->

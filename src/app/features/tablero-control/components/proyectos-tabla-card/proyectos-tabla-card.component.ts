@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProyectoEnCurso, EstadoProyecto } from '../../models/tablero.model';
 import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent } from '../../../../shared/components/select-searchable/select-searchable.component';
 
 @Component({
   selector: 'app-proyectos-tabla-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './proyectos-tabla-card.component.html',
   styleUrls: ['./proyectos-tabla-card.component.css']
 })
@@ -65,24 +66,24 @@ export class ProyectosTablaCardComponent {
     this.limpiarFiltros.emit();
   }
   
-  onEmpresaChange(empresa: string | null): void {
+  onEmpresaChange(empresa: string | number | null): void {
     this.cerrarDropdownFiltro('empresa');
-    this.empresaSeleccionadaChange.emit(empresa);
+    this.empresaSeleccionadaChange.emit(this.normalizeFilterValue(empresa));
   }
 
-  onLugarChange(lugar: string | null): void {
+  onLugarChange(lugar: string | number | null): void {
     this.cerrarDropdownFiltro('lugar');
-    this.lugarSeleccionadoChange.emit(lugar);
+    this.lugarSeleccionadoChange.emit(this.normalizeFilterValue(lugar));
   }
 
-  onAreaChange(area: string | null): void {
+  onAreaChange(area: string | number | null): void {
     this.cerrarDropdownFiltro('area');
-    this.areaSeleccionadaChange.emit(area);
+    this.areaSeleccionadaChange.emit(this.normalizeFilterValue(area));
   }
 
-  onEstadoProyectoChange(estado: string | null): void {
+  onEstadoProyectoChange(estado: string | number | null): void {
     this.cerrarDropdownFiltro('estado');
-    this.estadoProyectoChange.emit(estado);
+    this.estadoProyectoChange.emit(this.normalizeFilterValue(estado));
   }
 
   abrirDropdownFiltro(nombre: keyof ProyectosTablaCardComponent['dropdownFiltrosAbiertos']): void {
@@ -103,6 +104,11 @@ export class ProyectosTablaCardComponent {
   
   onSelectProyecto(proyecto: ProyectoEnCurso): void {
     this.selectProyecto.emit(proyecto);
+  }
+
+  private normalizeFilterValue(value: string | number | null): string | null {
+    if (value === null || value === '') return null;
+    return String(value);
   }
 
   get hayFiltrosActivos(): boolean {

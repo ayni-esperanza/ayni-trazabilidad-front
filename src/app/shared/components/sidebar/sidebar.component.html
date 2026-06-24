@@ -249,12 +249,12 @@
 
 <nav class="sidebar-mobile-nav fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
   <div
-    class="grid items-end gap-1 px-2 pb-[max(env(safe-area-inset-bottom),0.65rem)] pt-2"
+    class="grid items-center gap-2 px-2 pb-[max(env(safe-area-inset-bottom),0.7rem)] pt-2.5"
     [ngClass]="authService.isAdminUser() ? 'grid-cols-5' : 'grid-cols-4'">
     @for (item of visibleMenuItems; track item.route) {
       <a
         [routerLink]="item.route"
-        class="relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        class="relative flex min-w-0 items-center justify-center rounded-2xl px-1 py-2.5 text-gray-500 transition-all duration-200 hover:-translate-y-[1px] hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         [ngClass]="isActiveRoute(item.route) ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''">
         @switch (item.icon) {
           @case ('dashboard') {
@@ -278,9 +278,6 @@
             </svg>
           }
         }
-        <span class="max-w-full truncate">
-          {{ item.route === '/tablero-control' ? 'Inicio' : item.route === '/registro-solicitudes' ? 'Solicitudes' : item.route === '/estadisticas-indicadores' ? 'Estadisticas' : 'Usuarios' }}
-        </span>
       </a>
     }
 
@@ -288,7 +285,7 @@
       <button
         type="button"
         (click)="toggleUserMenu()"
-        class="relative flex w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        class="relative flex w-full items-center justify-center rounded-2xl px-1 py-2.5 text-gray-500 transition-all duration-200 hover:-translate-y-[1px] hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         [ngClass]="showUserMenu() ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ''">
         <div class="relative flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -300,7 +297,6 @@
             </span>
           }
         </div>
-        <span>Cuenta</span>
       </button>
 
       @if (showUserMenu()) {

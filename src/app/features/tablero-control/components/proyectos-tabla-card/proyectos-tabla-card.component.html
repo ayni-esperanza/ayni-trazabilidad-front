@@ -1,12 +1,12 @@
 <!-- Tabla Proyectos en Curso -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 transition-all duration-300 ease-out overflow-hidden"
+<div class="bg-white dark:bg-gray-800 rounded-[1.15rem] shadow-sm p-3 transition-all duration-300 ease-out overflow-visible border border-slate-200/70 dark:border-slate-700/70"
   [ngClass]="{
     'flex flex-col flex-1 min-h-0': tablaVisible,
     'h-12 flex-shrink-0': !tablaVisible
   }">
   <div class="flex justify-between items-center flex-shrink-0" [class.mb-2]="tablaVisible">
     <div class="flex items-center gap-2 min-w-0 flex-1">
-      <button (click)="onToggleTabla()" 
+      <button (click)="onToggleTabla()"
         class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0"
         [class.rotate-180]="!tablaVisible"
         title="{{ tablaVisible ? 'Ocultar tabla' : 'Mostrar tabla' }}">
@@ -30,131 +30,71 @@
     <div class="flex items-center gap-1.5 mb-2 flex-wrap animate-ui-in">
 
       <!-- Filtro Empresa -->
-      <div class="relative min-w-[140px] max-w-[180px]">
-        <select
-          [ngModel]="empresaSeleccionada"
-          (ngModelChange)="onEmpresaChange($event)"
-          (mousedown)="abrirDropdownFiltro('empresa')"
-          (focus)="abrirDropdownFiltro('empresa')"
-          (blur)="cerrarDropdownFiltro('empresa')"
-          (keydown.escape)="cerrarDropdownFiltro('empresa')"
-          (keydown.tab)="cerrarDropdownFiltro('empresa')"
-          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
-          <option [ngValue]="null">Todas las empresas</option>
-          @for (empresa of empresas; track empresa) {
-            <option [ngValue]="empresa">{{ empresa }}</option>
-          }
-        </select>
-        <svg
-          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
-          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.empresa }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+      <app-select-searchable
+        class="block w-[180px] max-w-full"
+        [options]="empresas"
+        [value]="empresaSeleccionada"
+        placeholder="Todas las empresas"
+        searchPlaceholder="Buscar empresa..."
+        [emptyValue]="null"
+        [allowEmpty]="true"
+        buttonClass="h-7 rounded-lg border-gray-200 bg-white px-2 py-0 text-[11px] leading-4 text-gray-700 focus:border-green-500 focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+        (valueChange)="onEmpresaChange($event)">
+      </app-select-searchable>
 
       <!-- Filtro Estado -->
-      <div class="relative min-w-[130px] max-w-[170px]">
-        <select
-          [ngModel]="estadoProyecto"
-          (ngModelChange)="onEstadoProyectoChange($event)"
-          (mousedown)="abrirDropdownFiltro('estado')"
-          (focus)="abrirDropdownFiltro('estado')"
-          (blur)="cerrarDropdownFiltro('estado')"
-          (keydown.escape)="cerrarDropdownFiltro('estado')"
-          (keydown.tab)="cerrarDropdownFiltro('estado')"
-          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
-          <option [ngValue]="null">Todos los estados</option>
-          @for (estado of estadosDisponibles; track estado) {
-            <option [ngValue]="estado">{{ estado }}</option>
-          }
-        </select>
-        <svg
-          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
-          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.estado }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+      <app-select-searchable
+        class="block w-[170px] max-w-full"
+        [options]="estadosDisponibles"
+        [value]="estadoProyecto"
+        placeholder="Todos los estados"
+        searchPlaceholder="Buscar estado..."
+        [emptyValue]="null"
+        [allowEmpty]="true"
+        buttonClass="h-7 rounded-lg border-gray-200 bg-white px-2 py-0 text-[11px] leading-4 text-gray-700 focus:border-green-500 focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+        (valueChange)="onEstadoProyectoChange($event)">
+      </app-select-searchable>
 
       <!-- Filtro Lugar -->
-      <div class="relative min-w-[120px] max-w-[160px]">
-        <select
-          [ngModel]="lugarSeleccionado"
-          (ngModelChange)="onLugarChange($event)"
-          (mousedown)="abrirDropdownFiltro('lugar')"
-          (focus)="abrirDropdownFiltro('lugar')"
-          (blur)="cerrarDropdownFiltro('lugar')"
-          (keydown.escape)="cerrarDropdownFiltro('lugar')"
-          (keydown.tab)="cerrarDropdownFiltro('lugar')"
-          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
-          <option [ngValue]="null">Todas las ubicaciones</option>
-          @for (lugar of lugares; track lugar) {
-            <option [ngValue]="lugar">{{ lugar }}</option>
-          }
-        </select>
-        <svg
-          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
-          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.lugar }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+      <app-select-searchable
+        class="block w-[160px] max-w-full"
+        [options]="lugares"
+        [value]="lugarSeleccionado"
+        placeholder="Todas las ubicaciones"
+        searchPlaceholder="Buscar ubicación..."
+        [emptyValue]="null"
+        [allowEmpty]="true"
+        buttonClass="h-7 rounded-lg border-gray-200 bg-white px-2 py-0 text-[11px] leading-4 text-gray-700 focus:border-green-500 focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+        (valueChange)="onLugarChange($event)">
+      </app-select-searchable>
 
       <!-- Filtro Área -->
-      <div class="relative min-w-[120px] max-w-[160px]">
-        <select
-          [ngModel]="areaSeleccionada"
-          (ngModelChange)="onAreaChange($event)"
-          (mousedown)="abrirDropdownFiltro('area')"
-          (focus)="abrirDropdownFiltro('area')"
-          (blur)="cerrarDropdownFiltro('area')"
-          (keydown.escape)="cerrarDropdownFiltro('area')"
-          (keydown.tab)="cerrarDropdownFiltro('area')"
-          style="appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:none;"
-          class="w-full text-xs pl-2 pr-6 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none">
-          <option [ngValue]="null">Todas las áreas</option>
-          @for (area of areas; track area) {
-            <option [ngValue]="area">{{ area }}</option>
-          }
-        </select>
-        <svg
-          class="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-300 transition-transform duration-200 ease-out"
-          [ngClass]="{ 'rotate-180': dropdownFiltrosAbiertos.area }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+      <app-select-searchable
+        class="block w-[160px] max-w-full"
+        [options]="areas"
+        [value]="areaSeleccionada"
+        placeholder="Todas las áreas"
+        searchPlaceholder="Buscar área..."
+        [emptyValue]="null"
+        [allowEmpty]="true"
+        buttonClass="h-7 rounded-lg border-gray-200 bg-white px-2 py-0 text-[11px] leading-4 text-gray-700 focus:border-green-500 focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+        (valueChange)="onAreaChange($event)">
+      </app-select-searchable>
 
-      <!-- Alternar Filtros de Fecha -->
-      <button 
+      <!-- Alternar filtros de fecha -->
+      <button
         type="button"
         (click)="toggleFiltrosFecha()"
         title="Filtrar por fechas"
-        class="bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-center">
+        class="h-7 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-1.5 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </button>
 
-      <!-- Filtros de Fecha: Desde y Hasta agrupados (ocultos por defecto) -->
+      <!-- Filtros de fecha: Desde y Hasta agrupados (ocultos por defecto) -->
       @if (mostrarFiltrosFecha || fechaDesde || fechaHasta) {
-        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded px-2 py-0.5 animate-ui-in">
+        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-0.5 animate-ui-in">
           <app-date-picker
             class="w-[112px]"
             [value]="fechaDesde ?? ''"
@@ -188,50 +128,52 @@
   }
   @if (tablaVisible) {
     <div class="flex-1 overflow-auto animate-ui-in">
-    <table class="w-full text-xs">
-      <thead class="sticky top-0 bg-white dark:bg-gray-800">
-        <tr class="border-b border-gray-200 dark:border-gray-700">
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Empresa</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Ubicación</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha de registro - Ultima actualizacion</th>
-          <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
-          @if (metricaSeleccionada === 'gastos') {
-            <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Gasto Total</th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (proyecto of proyectosFiltrados; track proyecto.id) {
-          <tr (click)="onSelectProyecto(proyecto)" 
-              class="border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors"
-              [ngClass]="{'bg-green-50 dark:bg-green-900/20': proyectoSeleccionado?.id === proyecto.id, 'hover:bg-gray-50 dark:hover:bg-gray-700/50': proyectoSeleccionado?.id !== proyecto.id}">
-            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
-            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.empresa }}</td>
-            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
-            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.lugar || '—' }}</td>
-            <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
-            <td class="py-1.5 px-1">
-              <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoClass(proyecto.estado)">
-                {{ proyecto.estado }}
-              </span>
-            </td>
-            @if (metricaSeleccionada === 'gastos') {
-              <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300 font-medium">
-                S/. {{ proyecto.gastoTotal?.toLocaleString('es-PE') || '0.00' }}
-              </td>
+      <div class="min-w-[760px] overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="sticky top-0 bg-white dark:bg-gray-800">
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Proyecto</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Empresa</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Responsable</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Ubicación</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Fecha de registro / Última actualización</th>
+              <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Estado</th>
+              @if (metricaSeleccionada === 'gastos') {
+                <th class="text-left py-2 px-1 font-semibold text-gray-500 dark:text-gray-400">Gasto total</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (proyecto of proyectosFiltrados; track proyecto.id) {
+              <tr (click)="onSelectProyecto(proyecto)"
+                  class="border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors"
+                  [ngClass]="{'bg-green-50 dark:bg-green-900/20': proyectoSeleccionado?.id === proyecto.id, 'hover:bg-gray-50 dark:hover:bg-gray-700/50': proyectoSeleccionado?.id !== proyecto.id}">
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.proyecto }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.empresa }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.lugar || '-' }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
+                <td class="py-1.5 px-1">
+                  <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoClass(proyecto.estado)">
+                    {{ proyecto.estado }}
+                  </span>
+                </td>
+                @if (metricaSeleccionada === 'gastos') {
+                  <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300 font-medium">
+                    S/ {{ proyecto.gastoTotal?.toLocaleString('es-PE') || '0.00' }}
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 7 : 6" class="py-4 text-center text-gray-500 dark:text-gray-400">
+                  No hay proyectos para el mes seleccionado.
+                </td>
+              </tr>
             }
-          </tr>
-        } @empty {
-          <tr>
-            <td [attr.colspan]="metricaSeleccionada === 'gastos' ? 7 : 6" class="py-4 text-center text-gray-500 dark:text-gray-400">
-              No hay proyectos para el mes seleccionado
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   }
 </div>
