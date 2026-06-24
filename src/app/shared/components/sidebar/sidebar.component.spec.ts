@@ -77,4 +77,36 @@ describe('SidebarComponent', () => {
     expect(alertasServiceMock.refrescarAlertas).toHaveBeenCalled();
     expect(fixture.componentInstance.alertasPendientes()).toBe(1);
   });
+
+  it('refreshes alerts on storage changes for project flow keys', () => {
+    alertasServiceMock.refrescarAlertas.and.returnValue(of([]));
+    authServiceMock.getAccessToken.and.returnValue('token-activo');
+
+    const fixture = TestBed.createComponent(SidebarComponent);
+    fixture.detectChanges();
+    alertasServiceMock.refrescarAlertas.calls.reset();
+
+    fixture.componentInstance.onStorageChange(new StorageEvent('storage', {
+      key: 'ayni:registro-solicitudes:flujo:15',
+      newValue: '{"nodos":[]}',
+    }));
+
+    expect(alertasServiceMock.refrescarAlertas).toHaveBeenCalled();
+  });
+
+  it('ignores unrelated storage changes', () => {
+    alertasServiceMock.refrescarAlertas.and.returnValue(of([]));
+    authServiceMock.getAccessToken.and.returnValue('token-activo');
+
+    const fixture = TestBed.createComponent(SidebarComponent);
+    fixture.detectChanges();
+    alertasServiceMock.refrescarAlertas.calls.reset();
+
+    fixture.componentInstance.onStorageChange(new StorageEvent('storage', {
+      key: 'ayni:ui:sidebar-expanded',
+      newValue: 'true',
+    }));
+
+    expect(alertasServiceMock.refrescarAlertas).not.toHaveBeenCalled();
+  });
 });

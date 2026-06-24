@@ -11,6 +11,7 @@ import { AlertasActividadesService, AlertaActividadGlobal } from '../../core/ser
 })
 export class AlertasComponent implements OnInit, OnDestroy {
   private readonly alertasService = inject(AlertasActividadesService);
+  private readonly flujoStoragePrefix = 'ayni:registro-solicitudes:flujo:';
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
 
   alertas: AlertaActividadGlobal[] = [];
@@ -34,6 +35,15 @@ export class AlertasComponent implements OnInit, OnDestroy {
 
   @HostListener('window:ayni-alertas-updated')
   onAlertasUpdated(): void {
+    this.cargarAlertas();
+  }
+
+  @HostListener('window:storage', ['$event'])
+  onStorageChange(event: StorageEvent): void {
+    if (!event.key || !event.key.startsWith(this.flujoStoragePrefix)) {
+      return;
+    }
+
     this.cargarAlertas();
   }
 

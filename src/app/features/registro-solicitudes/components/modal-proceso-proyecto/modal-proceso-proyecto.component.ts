@@ -196,6 +196,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.generarEtapas();
       this.cargarProyectoInfoForm();
       this.prepararFlujo();
+      this.persistirFlujoProyecto(false);
       this.cargarCostosProyecto();
 
       if (this.tabActiva === 'costos' && !this.costosHabilitados) {
@@ -900,7 +901,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }));
   }
 
-  private persistirFlujoProyecto(): void {
+  private persistirFlujoProyecto(notificarAlertas = true): void {
     if (!this.proyecto) return;
     this.proyecto.flujo = {
       nodos: this.flujoNodos.map(nodo => ({
@@ -908,6 +909,27 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         siguientesIds: [...nodo.siguientesIds]
       }))
     };
+    this.persistirFlujoProyectoEnLocalStorage();
+    if (notificarAlertas) {
+      this.notificarActualizacionAlertas();
+    }
+  }
+
+  private persistirFlujoProyectoEnLocalStorage(): void {
+    const storageKey = this.obtenerClaveFlujoStorage();
+    if (!storageKey || !this.proyecto || typeof window === 'undefined') return;
+
+    window.localStorage.setItem(storageKey, JSON.stringify(this.proyecto.flujo));
+  }
+
+  private obtenerClaveFlujoStorage(): string | null {
+    if (!this.proyecto || typeof window === 'undefined') return null;
+    return `${this.flujoStoragePrefix}${this.proyecto.id}`;
+  }
+
+  private notificarActualizacionAlertas(): void {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('ayni-alertas-updated'));
   }
 
   private calcularPosicionNuevoNodo(nodoPadreId?: number): { x: number; y: number } {
@@ -1147,15 +1169,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
 
   get totalMateriales(): number {
-    return this.materiales.reduce((sum, m) => sum + m.costoTotal, 0);
+    return this.materiales.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0);
   }
 
   get totalManoObra(): number {
-    return this.manoObra.reduce((sum, m) => sum + m.costoTotal, 0);
+    return this.manoObra.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0);
   }
 
   get totalOtrosCostos(): number {
-    return this.tablasCostosExtras.reduce((sum, t) => sum + t.items.reduce((s, i) => s + i.costoTotal, 0), 0);
+    return this.tablasCostosExtras.reduce(
+      (sum, t) => sum + t.items.reduce((s, i) => s + (Number(i.costoTotal) || 0), 0),
+      0
+    );
   }
 
   get otrosCostosItems(): OtroCosto[] {

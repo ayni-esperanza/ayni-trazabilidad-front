@@ -129,7 +129,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   get totalMateriales(): number {
-    return this.materiales?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
+    return this.materiales?.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0) ?? 0;
   }
 
   get materialesPorTipo(): ResumenCostoItem[] {
@@ -259,7 +259,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   get totalManoObra(): number {
-    return this.manoObra?.reduce((sum, m) => sum + m.costoTotal, 0) ?? 0;
+    return this.manoObra?.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0) ?? 0;
   }
 
   get manoObraPorOficio(): ResumenCostoItem[] {
@@ -407,7 +407,7 @@ export class TabCostosComponent implements OnChanges {
   }
 
   getTotalTablaExtra(tabla: TablaCostoExtra): number {
-    return tabla.items.reduce((sum, i) => sum + i.costoTotal, 0);
+    return tabla.items.reduce((sum, i) => sum + (Number(i.costoTotal) || 0), 0);
   }
 
   get totalOtrosCostos(): number {
