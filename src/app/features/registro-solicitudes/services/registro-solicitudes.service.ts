@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, of } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
-import { ComentarioAdicionalActividad, EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, Solicitud } from '../models/solicitud.model';
+import { ComentarioAdicionalActividad, EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, ResponsableHistorialProyecto, Solicitud } from '../models/solicitud.model';
 
 type PaginatedResponse<T> = {
   content: T[];
@@ -145,6 +145,25 @@ type EtapaProyectoApi = {
   estado: string;
 };
 
+type ResponsableHistorialProyectoApi = {
+  id?: number;
+  responsableAnteriorId?: number;
+  responsableIdAnterior?: number;
+  responsable_anterior_id?: number;
+  responsableAnteriorNombre?: string;
+  responsableNombreAnterior?: string;
+  nombreResponsableAnterior?: string;
+  responsable_anterior_nombre?: string;
+  responsableNombre?: string;
+  responsableAnterior?: { id?: number; nombre?: string; name?: string };
+  fechaCambio?: string;
+  fechaAsignacion?: string;
+  fechaRegistro?: string;
+  fecha_cambio?: string;
+  fecha_asignacion?: string;
+  createdAt?: string;
+};
+
 type ProyectoApi = {
   id: number;
   solicitudId: number;
@@ -172,6 +191,9 @@ type ProyectoApi = {
     nodos: FlujoNodoApi[];
   };
   comentariosAdicionalesActividad?: ComentarioAdicionalApi[];
+  responsablesHistorial?: ResponsableHistorialProyectoApi[];
+  historialResponsables?: ResponsableHistorialProyectoApi[];
+  proyectosResponsablesHistorial?: ResponsableHistorialProyectoApi[];
 };
 
 type CostoMaterialApi = {
@@ -686,8 +708,59 @@ export class RegistroSolicitudesService {
       etapas: (item.etapasProyecto || []).map((etapa) => this.mapEtapa(etapa, item.id)),
       flujo: this.mapFlujo(item.flujo),
       fechaActualizacion: this.toDate(item.fechaActualizacion),
-      comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario) => this.mapComentarioAdicional(comentario))
+      comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario) => this.mapComentarioAdicional(comentario)),
+      responsablesHistorial: this.mapResponsablesHistorial(item)
     };
+  }
+
+  private mapResponsablesHistorial(item: ProyectoApi): ResponsableHistorialProyecto[] {
+    const proyectoConHistorial = item as ProyectoApi & {
+      responsablesHistorial?: ResponsableHistorialProyectoApi[];
+      historialResponsables?: ResponsableHistorialProyectoApi[];
+      proyectosResponsablesHistorial?: ResponsableHistorialProyectoApi[];
+    };
+    const historial = proyectoConHistorial.responsablesHistorial
+      || proyectoConHistorial.historialResponsables
+      || proyectoConHistorial.proyectosResponsablesHistorial
+      || [];
+
+    return historial
+      .map((registro): ResponsableHistorialProyecto => {
+        const responsableAnteriorId = Number(
+          registro.responsableAnteriorId
+          ?? registro.responsableIdAnterior
+          ?? registro.responsable_anterior_id
+          ?? registro.responsableAnterior?.id
+          ?? 0
+        );
+        const responsableAnteriorNombre = String(
+          registro.responsableAnteriorNombre
+          || registro.responsableNombreAnterior
+          || registro.nombreResponsableAnterior
+          || registro.responsable_anterior_nombre
+          || registro.responsableNombre
+          || registro.responsableAnterior?.nombre
+          || registro.responsableAnterior?.name
+          || ''
+        ).trim();
+        const fechaCambio = String(
+          registro.fechaCambio
+          || registro.fechaAsignacion
+          || registro.fechaRegistro
+          || registro.fecha_cambio
+          || registro.fecha_asignacion
+          || registro.createdAt
+          || ''
+        ).trim();
+
+        return {
+          id: registro.id,
+          responsableAnteriorId: responsableAnteriorId > 0 ? responsableAnteriorId : undefined,
+          responsableAnteriorNombre: responsableAnteriorNombre || undefined,
+          fechaCambio: fechaCambio || undefined
+        };
+      })
+      .filter((registro) => Boolean(registro.responsableAnteriorNombre || registro.fechaCambio));
   }
 
   private mapComentarioAdicional(comentario: ComentarioAdicionalApi): ComentarioAdicionalActividad {

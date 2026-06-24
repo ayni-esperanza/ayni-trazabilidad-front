@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, Responsable } from '../../../../models/solicitud.model';
+import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, Responsable, ResponsableHistorialProyecto } from '../../../../models/solicitud.model';
 import { DocumentoResumen } from '../../models/documento-resumen.model';
 import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
@@ -27,6 +27,12 @@ export class TabTableroGeneralComponent {
   @Output() descargarDocumentoEvt = new EventEmitter<DocumentoResumen>();
   @Output() descargarTodosDocumentosEvt = new EventEmitter<void>();
 
+  get responsablesHistorialAnterior(): ResponsableHistorialProyecto[] {
+    return (this.proyecto?.responsablesHistorial || []).filter((registro) =>
+      Boolean(registro.responsableAnteriorNombre || registro.fechaCambio)
+    );
+  }
+
   get totalAdjuntosResumen(): number {
     return this.documentosActividadResumen.length;
   }
@@ -39,6 +45,12 @@ export class TabTableroGeneralComponent {
     if (index === 0) return true;
     const anterior = this.flujoTimelineResumen[index - 1];
     return (anterior.tipoActividad?.toUpperCase() || '') !== 'SEGUIMIENTO';
+  }
+
+  getResponsableHistorialNombre(historial: ResponsableHistorialProyecto): string {
+    if (historial.responsableAnteriorNombre) return historial.responsableAnteriorNombre;
+    if (historial.responsableAnteriorId) return this.getResponsableNombre(historial.responsableAnteriorId);
+    return 'Sin responsable registrado';
   }
 
   getResponsableNombre(responsableId: number): string {

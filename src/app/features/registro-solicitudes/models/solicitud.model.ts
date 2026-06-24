@@ -90,6 +90,13 @@ export interface Solicitud {
   estado: EstadoSolicitud;
 }
 
+export interface ResponsableHistorialProyecto {
+  id?: number;
+  responsableAnteriorId?: number;
+  responsableAnteriorNombre?: string;
+  fechaCambio?: string;
+}
+
 export interface Proyecto {
   id: number;
   solicitudId: number;
@@ -115,6 +122,7 @@ export interface Proyecto {
   flujo?: FlujoProyecto;
   fechaActualizacion?: Date | string;
   comentariosAdicionalesActividad?: ComentarioAdicionalActividad[];
+  responsablesHistorial?: ResponsableHistorialProyecto[];
 }
 
 export interface EtapaProyecto {

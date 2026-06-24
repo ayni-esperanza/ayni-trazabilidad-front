@@ -76,7 +76,6 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   filtroCategoria: 'responsables' | 'proyectos' = 'responsables';
   proyectoSeleccionado: ProyectoIndicador | null = null;
   responsableSeleccionado: ResponsableIndicador | null = null;
-  graficoSeleccionado: 'inversion' | 'gasto' | 'retorno' = 'inversion';
   
   // Control de modo de visualización de tareas
   modoVisualizacionTareas: 'tabla' | 'timeline' = 'tabla';
@@ -84,9 +83,6 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   
   // Filtro de proyecto en vista de responsable
   proyectoResponsableSeleccionado: number | null = null;
-  
-  // Control para mostrar dashboard de gastos
-  mostrarDashboardGastos = false;
   
   // Control para expandir/compactar descripción del proyecto
   descripcionProyectoExpandida = false;
@@ -341,19 +337,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     this.sincronizarResumenCostosProyecto(proyecto.id);
     this.sincronizarActividadesProyecto(proyecto);
   }
-
-  cambiarGrafico(tipo: 'inversion' | 'gasto' | 'retorno'): void {
-    this.graficoSeleccionado = tipo;
-  }
-  
-  /**
-   * Alterna la visualización del dashboard de gastos
-   */
-  toggleDashboardGastos(): void {
-    this.mostrarDashboardGastos = !this.mostrarDashboardGastos;
-  }
-  
-  /**
+/**
    * Cambia la etapa seleccionada para el cálculo del ROI
    */
   cambiarEtapa(etapa: string | null): void {
@@ -556,20 +540,6 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     }));
   }
 
-  // Getter para obtener los datos del gráfico según el tipo seleccionado
-  get datosGrafico(): any[] {
-    switch (this.graficoSeleccionado) {
-      case 'inversion':
-        return this.inversionData;
-      case 'gasto':
-        return this.gastoData;
-      case 'retorno':
-        return this.retornoData;
-      default:
-        return this.inversionData;
-    }
-  }
-  
   /**
    * Actualiza los datos de métricas para el responsable seleccionado
    */
