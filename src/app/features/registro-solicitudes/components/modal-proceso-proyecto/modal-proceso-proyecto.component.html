@@ -172,9 +172,9 @@
       <div *ngIf="tabActiva === 'proceso'"
         class="animate-ui-in"
         [ngClass]="mostrarModalActividad
-          ? 'grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_26rem] gap-4 items-start'
+          ? 'grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,26rem)] gap-4 items-start'
           : 'block'">
-        <div class="min-w-0">
+        <div class="min-w-0 overflow-x-auto">
           <app-tab-proceso
             [proyecto]="proyecto"
             [responsables]="responsables"
@@ -197,7 +197,7 @@
           </app-tab-proceso>
         </div>
 
-        <div *ngIf="mostrarModalActividad" class="min-w-0 lg:sticky lg:top-0">
+        <div *ngIf="mostrarModalActividad" class="relative z-10 min-w-0 xl:sticky xl:top-0">
           <app-tarea-form-modal
             [visible]="mostrarModalActividad"
             [embedded]="true"
