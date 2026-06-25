@@ -122,6 +122,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   fuenteVistaPreviaDocumentoSafe: SafeResourceUrl | null = null;
   htmlVistaPreviaDocumento: SafeHtml | null = null;
   cargandoVistaPreviaDocumento = false;
+  imagenVistaPreviaDocumentoCargada = false;
   private fuenteVistaPreviaDocumentoEsBlob = false;
 
   // Navegación de tabs
@@ -1369,6 +1370,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.liberarFuenteVistaPreviaDocumento();
     this.htmlVistaPreviaDocumento = null;
     this.cargandoVistaPreviaDocumento = false;
+    this.imagenVistaPreviaDocumentoCargada = false;
     this.fuenteVistaPreviaDocumentoSafe = null;
     const esPdf = this.esPdfDocumento(doc);
 
@@ -1410,6 +1412,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       this.fuenteVistaPreviaDocumentoSafe = esPdf
         ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento)
         : null;
+      this.imagenVistaPreviaDocumentoCargada = esPdf;
       this.documentoVistaPrevia = doc;
       this.mostrarVistaPreviaDocumento = true;
       return;
@@ -1438,6 +1441,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.fuenteVistaPreviaDocumentoSafe = esPdf
       ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPreviaDocumento)
       : null;
+    this.imagenVistaPreviaDocumentoCargada = !this.esImagenDocumento(doc);
 
     this.documentoVistaPrevia = doc;
     this.mostrarVistaPreviaDocumento = true;
@@ -1489,6 +1493,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     this.fuenteVistaPreviaDocumentoSafe = null;
     this.htmlVistaPreviaDocumento = null;
     this.cargandoVistaPreviaDocumento = false;
+    this.imagenVistaPreviaDocumentoCargada = false;
     this.fuenteVistaPreviaDocumentoEsBlob = false;
     this.documentoVistaPrevia = null;
     this.mostrarVistaPreviaDocumento = false;
@@ -1500,6 +1505,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   obtenerFuenteVistaPreviaDocumentoPdf(): SafeResourceUrl | null {
     return this.fuenteVistaPreviaDocumentoSafe;
+  }
+
+  marcarImagenVistaPreviaDocumentoCargada(): void {
+    this.imagenVistaPreviaDocumentoCargada = true;
   }
 
   obtenerHtmlVistaPreviaDocumento(): SafeHtml {

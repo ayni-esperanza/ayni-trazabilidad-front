@@ -83,6 +83,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   fuenteVistaPreviaAdjuntoTimelinePdf: SafeResourceUrl | null = null;
   htmlVistaPreviaAdjuntoTimeline: SafeHtml | null = null;
   cargandoVistaPreviaAdjuntoTimeline = false;
+  imagenVistaPreviaAdjuntoTimelineCargada = false;
   private fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
   private adjuntoVistaPreviaTimelineEsPdf = false;
   private adjuntoVistaPreviaTimelineEsOffice = false;
@@ -625,6 +626,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
     this.cerrarVistaPreviaAdjuntoTimeline();
     this.cargandoVistaPreviaAdjuntoTimeline = false;
+    this.imagenVistaPreviaAdjuntoTimelineCargada = false;
     this.htmlVistaPreviaAdjuntoTimeline = null;
 
     const fuente = this.getAdjuntoUrl(adjunto);
@@ -667,6 +669,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.fuenteVistaPreviaAdjuntoTimelinePdf = this.adjuntoVistaPreviaTimelineEsPdf
       ? this.sanitizer.bypassSecurityTrustResourceUrl(fuente)
       : null;
+    this.imagenVistaPreviaAdjuntoTimelineCargada = this.adjuntoVistaPreviaTimelineEsPdf;
     this.mostrarVistaPreviaAdjuntoTimeline = true;
   }
 
@@ -685,6 +688,10 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   obtenerFuenteVistaPreviaAdjuntoTimelineImagen(): string {
     return this.fuenteVistaPreviaAdjuntoTimeline;
+  }
+
+  marcarImagenVistaPreviaAdjuntoTimelineCargada(): void {
+    this.imagenVistaPreviaAdjuntoTimelineCargada = true;
   }
 
   obtenerHtmlVistaPreviaAdjuntoTimeline(): SafeHtml {
@@ -711,6 +718,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.fuenteVistaPreviaAdjuntoTimelinePdf = null;
     this.htmlVistaPreviaAdjuntoTimeline = null;
     this.cargandoVistaPreviaAdjuntoTimeline = false;
+    this.imagenVistaPreviaAdjuntoTimelineCargada = false;
     this.fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
     this.adjuntoVistaPreviaTimelineEsPdf = false;
     this.adjuntoVistaPreviaTimelineEsOffice = false;

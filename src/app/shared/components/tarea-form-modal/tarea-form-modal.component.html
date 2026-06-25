@@ -341,8 +341,21 @@
           <iframe class="w-full h-full" [src]="fuenteVistaPreviaPdf"></iframe>
         </div>
       } @else {
-        <div class="h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
-          <img class="block w-auto h-auto max-w-[98vw] max-h-[calc(100vh-73px)] object-contain" [src]="obtenerFuenteVistaPreviaImagen()" [alt]="adjuntoVistaPrevia.nombre" />
+        <div class="relative h-[calc(100vh-57px)] bg-gray-100 dark:bg-gray-950 p-2 flex items-center justify-center">
+          @if (!imagenVistaPreviaCargada) {
+            <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
+              <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300"></div>
+              <p class="text-sm">Cargando imagen...</p>
+            </div>
+          }
+          <img
+            class="block w-auto h-auto max-w-[98vw] max-h-[calc(100vh-73px)] object-contain transition-opacity duration-150"
+            [class.opacity-0]="!imagenVistaPreviaCargada"
+            [class.opacity-100]="imagenVistaPreviaCargada"
+            [src]="obtenerFuenteVistaPreviaImagen()"
+            [alt]="adjuntoVistaPrevia.nombre"
+            (load)="marcarImagenVistaPreviaCargada()"
+            (error)="marcarImagenVistaPreviaCargada()" />
         </div>
       }
     </div>

@@ -114,6 +114,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
   htmlVistaPrevia: SafeHtml | null = null;
   cargandoVistaPrevia = false;
   vistaPreviaOffice = false;
+  imagenVistaPreviaCargada = false;
   private fuenteVistaPreviaEsBlob = false;
 
   constructor(
@@ -400,6 +401,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.htmlVistaPrevia = null;
     this.cargandoVistaPrevia = false;
     this.vistaPreviaOffice = false;
+    this.imagenVistaPreviaCargada = false;
 
     if (this.adjuntosPreviewService.esOffice(adjunto)) {
       this.adjuntoVistaPrevia = adjunto;
@@ -449,6 +451,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.fuenteVistaPreviaPdf = this.adjuntosPreviewService.esPdf(adjunto)
       ? this.sanitizer.bypassSecurityTrustResourceUrl(this.fuenteVistaPrevia)
       : null;
+    this.imagenVistaPreviaCargada = !this.adjuntosPreviewService.esImagen(adjunto);
 
     this.adjuntoVistaPrevia = adjunto;
     this.mostrarVistaPrevia = true;
@@ -463,6 +466,7 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     this.htmlVistaPrevia = null;
     this.cargandoVistaPrevia = false;
     this.vistaPreviaOffice = false;
+    this.imagenVistaPreviaCargada = false;
     this.fuenteVistaPreviaEsBlob = false;
   }
 
@@ -472,6 +476,10 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
 
   obtenerFuenteVistaPreviaPdf(): SafeResourceUrl | null {
     return this.fuenteVistaPreviaPdf;
+  }
+
+  marcarImagenVistaPreviaCargada(): void {
+    this.imagenVistaPreviaCargada = true;
   }
 
   obtenerHtmlVistaPrevia(): SafeHtml {
