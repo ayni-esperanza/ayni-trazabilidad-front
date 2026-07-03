@@ -110,6 +110,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   cargandoCancelacion = false;
   configCancelarModal: ConfirmDeleteConfig = {};
 
+  // Modal de confirmacion para eliminacion multiple de actividades
+  mostrarConfirmacionEliminarActividades = false;
+  cargandoEliminacionActividades = false;
+  configEliminarActividadesModal: ConfirmDeleteConfig = {};
+  eliminacionActividadesPendiente: { ids: number[]; flujoActualizado: FlujoNodo[] } | null = null;
+
   // Modal de confirmación de finalización
   mostrarConfirmacionFinalizar = false;
   cargandoFinalizacion = false;
@@ -671,17 +677,43 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onEliminarActividadesSeleccionadas(evento: { ids: number[]; flujoActualizado: FlujoNodo[] }): void {
     if (!this.proyecto || !evento.ids.length) return;
 
+    const cantidad = evento.ids.length;
+    this.eliminacionActividadesPendiente = evento;
+    this.configEliminarActividadesModal = {
+      titulo: 'Eliminar actividades',
+      mensaje: '¿Estás seguro de que deseas eliminar ' + cantidad + ' ' + (cantidad === 1 ? 'actividad' : 'actividades') + '?',
+      cantidadElementos: cantidad,
+      tipoElemento: cantidad === 1 ? 'actividad' : 'actividades',
+      textoConfirmar: 'Eliminar'
+    };
+    this.mostrarConfirmacionEliminarActividades = true;
+  }
+
+  confirmarEliminacionActividades(): void {
+    const evento = this.eliminacionActividadesPendiente;
+    if (!this.proyecto || !evento?.ids.length || this.cargandoEliminacionActividades) return;
+
+    this.cargandoEliminacionActividades = true;
     forkJoin(evento.ids.map((id) => this.registroSolicitudesService.eliminarActividad(this.proyecto!.id, id)))
+      .pipe(finalize(() => this.cargandoEliminacionActividades = false))
       .subscribe({
         next: () => {
           this.flujoNodos = evento.flujoActualizado;
           this.persistirFlujoProyecto();
           this.marcarActualizacionProyecto();
+          this.mostrarConfirmacionEliminarActividades = false;
+          this.eliminacionActividadesPendiente = null;
         },
         error: (error) => {
           console.error('Error eliminando actividades:', error);
         }
       });
+  }
+
+  cancelarEliminacionActividades(): void {
+    if (this.cargandoEliminacionActividades) return;
+    this.mostrarConfirmacionEliminarActividades = false;
+    this.eliminacionActividadesPendiente = null;
   }
 
   onCerrarModalActividad(): void {

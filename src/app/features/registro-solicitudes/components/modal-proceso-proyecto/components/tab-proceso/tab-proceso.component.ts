@@ -239,7 +239,6 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
         siguientesIds: (nodo.siguientesIds || []).filter((id) => !idsSeleccionados.has(id))
       }));
 
-    this.actividadesSeleccionadasIds.clear();
     this.eliminarActividadesEvt.emit({
       ids: Array.from(idsSeleccionados),
       flujoActualizado

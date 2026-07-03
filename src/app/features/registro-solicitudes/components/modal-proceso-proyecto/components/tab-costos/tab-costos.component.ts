@@ -438,7 +438,7 @@ export class TabCostosComponent implements OnChanges {
     return this.formatearFechaResumen(this.proyectoInfoForm?.fechaFinalizacion);
   }
 
-  get mostrarFechaFinResumen(): boolean {
+  get esProyectoCerrado(): boolean {
     return this.proyectoFinalizado || this.proyectoCancelado;
   }
 

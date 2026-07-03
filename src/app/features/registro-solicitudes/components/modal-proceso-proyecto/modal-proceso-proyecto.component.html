@@ -24,7 +24,7 @@
 </div>
 <div *ngIf="visible"
   [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
-  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar"
+  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
     [ngClass]="embedded
@@ -370,6 +370,14 @@
   </div>
 }
 
+<!-- Modal de confirmación para eliminación múltiple de actividades -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionEliminarActividades"
+  [loading]="cargandoEliminacionActividades"
+  [config]="configEliminarActividadesModal"
+  (confirmar)="confirmarEliminacionActividades()"
+  (cancelar)="cancelarEliminacionActividades()">
+</app-confirm-delete-modal>
 <!-- Modal de confirmación de cancelación (sobremodal) -->
 <app-confirm-delete-modal
   [visible]="mostrarConfirmacionCancelar"
