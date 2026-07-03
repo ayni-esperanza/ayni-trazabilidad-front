@@ -38,6 +38,8 @@ export class TabCostosComponent implements OnChanges {
   @Input() tablasCostosExtras!: TablaCostoExtra[];
   @Input() proyectoInfoForm: ProyectoCostosResumen | null = null;
   @Input() proyectoId: number | null | undefined = null;
+  @Input() proyectoFinalizado = false;
+  @Input() proyectoCancelado = false;
   @Input() responsableNombre = '';
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
@@ -434,6 +436,10 @@ export class TabCostosComponent implements OnChanges {
 
   get fechaFinResumen(): string {
     return this.formatearFechaResumen(this.proyectoInfoForm?.fechaFinalizacion);
+  }
+
+  get mostrarFechaFinResumen(): boolean {
+    return this.proyectoFinalizado || this.proyectoCancelado;
   }
 
   trackResumenItem(_: number, item: ResumenCostoItem): string {

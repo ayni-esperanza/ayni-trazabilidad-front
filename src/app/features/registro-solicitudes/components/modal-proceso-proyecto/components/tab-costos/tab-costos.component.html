@@ -86,12 +86,12 @@
         </div>
 
         <div class="rounded-2xl border border-emerald-100 dark:border-emerald-900/50 bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-slate-800 dark:via-slate-800 dark:to-emerald-950/40 p-4">
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid gap-3" [class.grid-cols-2]="mostrarFechaFinResumen" [class.grid-cols-1]="!mostrarFechaFinResumen">
             <div class="rounded-xl border border-blue-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/35 px-4 py-3">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">Inicio</p>
               <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ fechaInicioResumen || 'Sin fecha' }}</p>
             </div>
-            <div class="rounded-xl border border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/35 px-4 py-3">
+            <div *ngIf="mostrarFechaFinResumen" class="rounded-xl border border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/35 px-4 py-3">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">Fin</p>
               <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ fechaFinResumen || 'Sin fecha' }}</p>
             </div>
@@ -218,7 +218,7 @@
             <span class="px-2 py-1 font-bold uppercase">Inicio:</span>
             <span class="px-2 py-1 text-center border-l-2 border-slate-900 dark:border-slate-300">{{ fechaInicioResumen }}</span>
           </div>
-          <div class="grid grid-cols-[45%_55%]">
+          <div *ngIf="mostrarFechaFinResumen" class="grid grid-cols-[45%_55%]">
             <span class="px-2 py-1 font-bold uppercase">Fin:</span>
             <span class="px-2 py-1 text-center border-l-2 border-slate-900 dark:border-slate-300">{{ fechaFinResumen }}</span>
           </div>
