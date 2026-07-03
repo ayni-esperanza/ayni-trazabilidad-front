@@ -96,6 +96,10 @@ app-root {
   height: 100%;
 }
 
+.app-shell-main {
+  scrollbar-gutter: stable;
+}
+
 html.dark,
 html.dark body {
   color-scheme: dark;

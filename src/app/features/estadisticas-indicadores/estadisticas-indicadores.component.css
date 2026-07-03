@@ -46,3 +46,8 @@
 .dark .timeline-line {
   background: linear-gradient(to bottom, #4b5563, #374151);
 }
+
+
+.stats-page-shell {
+  scrollbar-gutter: stable;
+}
