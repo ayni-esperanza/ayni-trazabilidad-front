@@ -1549,6 +1549,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     );
   }
 
+  formatoTamanoDocumento(bytes?: number): string {
+    const valor = Number(bytes || 0);
+    if (!Number.isFinite(valor) || valor <= 0) return 'Tamaño no disponible';
+    if (valor < 1024) return `${valor} B`;
+    if (valor < 1024 * 1024) return `${(valor / 1024).toFixed(1)} KB`;
+    return `${(valor / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   async descargarTodosDocumentosResumen(): Promise<void> {
     if (typeof window === 'undefined') return;
 

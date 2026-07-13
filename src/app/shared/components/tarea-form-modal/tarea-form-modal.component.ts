@@ -388,6 +388,16 @@ export class TareaFormModalComponent implements OnChanges, OnInit, OnDestroy {
     return this.adjuntosPreviewService.esOffice(adjunto);
   }
 
+  esImagenAdjunto(adjunto: ArchivoAdjuntoActividad | null): boolean {
+    if (!adjunto) return false;
+    return this.adjuntosPreviewService.esImagen(adjunto);
+  }
+
+  obtenerMiniaturaAdjunto(adjunto: ArchivoAdjuntoActividad): string | null {
+    if (!this.esImagenAdjunto(adjunto)) return null;
+    return this.adjuntosPreviewService.getAdjuntoUrl(adjunto);
+  }
+
   async abrirVistaPrevia(adjunto: ArchivoAdjuntoActividad): Promise<void> {
     if (!this.esVistaPreviaSoportada(adjunto)) return;
     if (!this.puedeDescargarAdjunto(adjunto)) return;
