@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { AdjuntosPreviewService } from '../../shared/services/adjuntos-preview.service';
 import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
@@ -87,13 +88,16 @@ export class RegistroSolicitudesComponent implements OnInit {
   private fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
   private adjuntoVistaPreviaTimelineEsPdf = false;
   private adjuntoVistaPreviaTimelineEsOffice = false;
+  private readonly proyectoQueryParam = 'proyectoId';
 
   constructor(
     private solicitudesService: RegistroSolicitudesService,
     private readonly sanitizer: DomSanitizer,
     private readonly adjuntosPreviewService: AdjuntosPreviewService,
     private readonly authService: AuthService,
-    private readonly gestionUsuariosService: GestionUsuariosService
+    private readonly gestionUsuariosService: GestionUsuariosService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -350,6 +354,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.solicitudes = solicitudes || [];
         this.proyectos = proyectos || [];
         this.aplicarFiltros();
+        this.abrirProyectoDesdeQueryParam();
       },
       error: (error) => {
         console.error('Error al cargar datos de registro de solicitudes:', error);
@@ -366,6 +371,7 @@ export class RegistroSolicitudesComponent implements OnInit {
             this.solicitudes = solicitudes || [];
             this.proyectos = proyectos || [];
             this.aplicarFiltros();
+            this.abrirProyectoDesdeQueryParam();
           },
           error: (fallbackError) => {
             console.error('Error al cargar datos de registro de solicitudes:', fallbackError);
@@ -400,7 +406,10 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   // Modal Proceso Proyecto
-  cerrarProcesoProyecto(): void { this.showProcesoProyectoModal = false; }
+  cerrarProcesoProyecto(): void {
+    this.showProcesoProyectoModal = false;
+    this.limpiarProyectoEnUrl();
+  }
 
   onCancelarProyectoDesdeModal(evento: {motivo: string}): void {
     if (!this.proyectoActual) return;
@@ -462,6 +471,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         if (solicitud) {
           this.solicitudActual = solicitud;
         }
+        this.sincronizarProyectoEnUrl(proyecto.id);
       },
       error: (error) => console.error('Error al cambiar proyecto:', error)
     });
@@ -472,6 +482,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.solicitudActual = solicitud;
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (proyecto) {
+      this.sincronizarProyectoEnUrl(proyecto.id);
       this.solicitudesService.obtenerProyectoPorId(proyecto.id).subscribe({
         next: (proyectoActualizado) => {
           this.sincronizarProyectoEnMemoria(proyectoActualizado);
@@ -486,7 +497,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       return;
     }
 
-    this.iniciarProyectoDesdeSolicitud(solicitud, true);
+    this.iniciarProyectoDesdeSolicitud(solicitud, true, true);
   }
 
   // Helpers
@@ -893,7 +904,62 @@ export class RegistroSolicitudesComponent implements OnInit {
     return solicitud.fechaSolicitud;
   }
 
-  private iniciarProyectoDesdeSolicitud(solicitud: Solicitud, abrirModal = false): void {
+  private abrirProyectoDesdeQueryParam(): void {
+    const proyectoId = Number(this.route.snapshot.queryParamMap.get(this.proyectoQueryParam));
+    if (!Number.isFinite(proyectoId) || proyectoId <= 0) {
+      return;
+    }
+
+    if (this.proyectoActual?.id === proyectoId && this.showProcesoProyectoModal) {
+      return;
+    }
+
+    const proyectoResumen = this.proyectos.find((proyecto) => proyecto.id === proyectoId);
+    this.solicitudesService.obtenerProyectoPorId(proyectoId).subscribe({
+      next: (proyecto) => this.abrirProyectoCargado(proyecto),
+      error: (error) => {
+        console.error('Error al abrir proyecto desde la URL:', error);
+        if (proyectoResumen) {
+          this.abrirProyectoCargado(proyectoResumen);
+        } else {
+          this.limpiarProyectoEnUrl();
+        }
+      }
+    });
+  }
+
+  private abrirProyectoCargado(proyecto: Proyecto): void {
+    this.sincronizarProyectoEnMemoria(proyecto);
+    this.proyectoActual = proyecto;
+    const solicitud = this.solicitudes.find((item) => item.id === proyecto.solicitudId);
+    if (solicitud) {
+      this.solicitudActual = solicitud;
+    }
+    this.showProcesoProyectoModal = true;
+  }
+
+  private sincronizarProyectoEnUrl(proyectoId: number): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [this.proyectoQueryParam]: proyectoId },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  private limpiarProyectoEnUrl(): void {
+    if (!this.route.snapshot.queryParamMap.has(this.proyectoQueryParam)) {
+      return;
+    }
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [this.proyectoQueryParam]: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  private iniciarProyectoDesdeSolicitud(solicitud: Solicitud, abrirModal = false, actualizarUrl = false): void {
     this.solicitudesService.iniciarProyecto(solicitud).subscribe({
       next: (proyectoCreado) => {
         this.sincronizarProyectoEnMemoria(proyectoCreado);
@@ -901,6 +967,9 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.solicitudActual = this.solicitudes.find(s => s.id === proyectoCreado.solicitudId) || solicitud;
         if (abrirModal) {
           this.showProcesoProyectoModal = true;
+          if (actualizarUrl) {
+            this.sincronizarProyectoEnUrl(proyectoCreado.id);
+          }
         }
       },
       error: (error) => {
