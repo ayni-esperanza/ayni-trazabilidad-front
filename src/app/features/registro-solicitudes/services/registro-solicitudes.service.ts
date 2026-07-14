@@ -3,7 +3,7 @@ import { Observable, map, of } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
 import { ComentarioAdicionalActividad, EtapaProyecto, FlujoNodo, FlujoProyecto, ProcesoSimple, Proyecto, Responsable, ResponsableHistorialProyecto, Solicitud } from '../models/solicitud.model';
 
-type PaginatedResponse<T> = {
+export type PaginatedResponse<T> = {
   content: T[];
   totalElements: number;
   totalPages: number;
@@ -258,9 +258,21 @@ export type CostoCatalogoApi = {
 export class RegistroSolicitudesService {
   constructor(private readonly http: HttpService) {}
 
-  obtenerSolicitudes(): Observable<Solicitud[]> {
-    return this.http.get<PaginatedResponse<SolicitudApi>>('/v1/solicitudes', { size: 500 }).pipe(
-      map((response) => (response.content || []).map((item) => this.mapSolicitud(item)))
+  obtenerSolicitudes(params: {
+    page?: number;
+    size?: number;
+    search?: string;
+    estado?: string;
+    cliente?: string;
+    responsableId?: number;
+    fechaDesde?: string;
+    fechaHasta?: string;
+  } = {}): Observable<PaginatedResponse<Solicitud>> {
+    return this.http.get<PaginatedResponse<SolicitudApi>>('/v1/solicitudes', params).pipe(
+      map((response) => ({
+        ...response,
+        content: (response.content || []).map((item) => this.mapSolicitud(item))
+      }))
     );
   }
 

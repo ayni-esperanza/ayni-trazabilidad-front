@@ -477,7 +477,7 @@
 </div>
 
 @if (vistaFlujo === 'tabla' && ctx.totalActividadesFlujo > 0) {
-  <div class="relative z-10 mt-2">
+  <div class="relative z-50 mt-2">
     <app-paginacion
       [config]="paginacionTablaFlujo"
       [opcionesPorPagina]="opcionesPorPaginaTablaFlujo"
@@ -485,8 +485,7 @@
       [mostrarSelector]="true"
       [mostrarNavegacion]="true"
       [integradoEnTabla]="false"
-      (cambioPagina)="onCambioPaginaTablaFlujo($event)"
-      (cambioTamano)="onCambioTamanoTablaFlujo($event)">
+      (cambioPagina)="onCambioPaginaTablaFlujo($event)">
     </app-paginacion>
   </div>
 }

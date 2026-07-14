@@ -102,7 +102,6 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
-    this.aplicarFiltros();
   }
 
   // ==================== SELECCIÓN MÚLTIPLE ====================
@@ -197,65 +196,81 @@ export class RegistroSolicitudesComponent implements OnInit {
   // ==================== FILTROS Y PAGINACIÓN ====================
 
   aplicarFiltros(): void {
-    let resultado = [...this.solicitudes];
-
-    // Filtro de búsqueda
-    if (this.busqueda.trim()) {
-      const termino = this.busqueda.toLowerCase();
-      resultado = resultado.filter(s => 
-        s.nombreProyecto.toLowerCase().includes(termino) ||
-        s.cliente.toLowerCase().includes(termino) ||
-        (s.responsableNombre || '').toLowerCase().includes(termino)
-      );
-    }
-
-    // Filtro de estado
-    if (this.estadoFiltro) {
-      resultado = resultado.filter(s => s.estado === this.estadoFiltro);
-    }
-
-    // Filtro de empresa
-    if (this.empresaFiltro) {
-      resultado = resultado.filter(s => s.cliente === this.empresaFiltro);
-    }
-
-    // Filtro de responsable
-    if (this.responsableFiltro) {
-      resultado = resultado.filter(s => s.responsableId?.toString() === this.responsableFiltro);
-    }
-
-    // Filtro por rango de fechas de registro
-    if (this.fechaDesdeFiltro || this.fechaHastaFiltro) {
-      const fechaDesde = this.fechaDesdeFiltro ? this.parseDateAtStart(this.fechaDesdeFiltro) : null;
-      const fechaHasta = this.fechaHastaFiltro ? this.parseDateAtEnd(this.fechaHastaFiltro) : null;
-
-      resultado = resultado.filter(solicitud => {
-        if (!solicitud.fechaSolicitud) return false;
-        const fechaRegistro = new Date(solicitud.fechaSolicitud);
-        if (Number.isNaN(fechaRegistro.getTime())) return false;
-
-        if (fechaDesde && fechaRegistro < fechaDesde) return false;
-        if (fechaHasta && fechaRegistro > fechaHasta) return false;
-        return true;
-      });
-    }
-
-    this.solicitudesFiltradas = resultado;
-    this.limpiarSolicitudesSeleccionadasInvalidas();
-    this.actualizarPaginacion();
-    this.calcularEstadisticas();
+    this.cargarSolicitudesPagina();
   }
 
-  actualizarPaginacion(): void {
-    this.paginacionConfig.totalElementos = this.solicitudesFiltradas.length;
-    this.paginacionConfig.totalPaginas = Math.ceil(
-      this.solicitudesFiltradas.length / this.paginacionConfig.porPagina
-    );
+  private obtenerParametrosSolicitudes(): {
+    page: number;
+    size: number;
+    search?: string;
+    estado?: string;
+    cliente?: string;
+    responsableId?: number;
+    fechaDesde?: string;
+    fechaHasta?: string;
+  } {
+    const params: {
+      page: number;
+      size: number;
+      search?: string;
+      estado?: string;
+      cliente?: string;
+      responsableId?: number;
+      fechaDesde?: string;
+      fechaHasta?: string;
+    } = {
+      page: this.paginacionConfig.paginaActual,
+      size: this.paginacionConfig.porPagina
+    };
+
+    if (this.busqueda.trim()) params.search = this.busqueda.trim();
+    if (this.estadoFiltro) params.estado = this.mapEstadoSolicitudFiltroApi(this.estadoFiltro);
+    if (this.empresaFiltro) params.cliente = this.empresaFiltro;
+    if (this.responsableFiltro) params.responsableId = Number(this.responsableFiltro);
+    if (this.fechaDesdeFiltro) params.fechaDesde = this.fechaDesdeFiltro;
+    if (this.fechaHastaFiltro) params.fechaHasta = this.fechaHastaFiltro;
+
+    return params;
+  }
+
+
+  private mapEstadoSolicitudFiltroApi(estado: string): string {
+    const estadosApi: Record<string, string> = {
+      'En Proceso': 'EN_PROCESO',
+      Completado: 'COMPLETADO',
+      Cancelado: 'CANCELADO'
+    };
+
+    return estadosApi[estado] || estado;
+  }
+  private cargarSolicitudesPagina(): void {
+
+    this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()).subscribe({
+      next: (response) => {
+        this.solicitudes = response.content || [];
+        this.solicitudesFiltradas = this.solicitudes;
+        this.limpiarSolicitudesSeleccionadasInvalidas();
+        this.actualizarPaginacionDesdeRespuesta(response.totalElements, response.totalPages);
+        this.calcularEstadisticas();
+      },
+      error: (error) => {
+        console.error('Error al cargar solicitudes:', error);
+        this.solicitudes = [];
+        this.solicitudesFiltradas = [];
+        this.actualizarPaginacionDesdeRespuesta(0, 0);
+        this.calcularEstadisticas();
+      }
+    });
+  }
+
+  private actualizarPaginacionDesdeRespuesta(totalElementos: number, totalPaginas: number): void {
+    this.paginacionConfig.totalElementos = totalElementos || 0;
+    this.paginacionConfig.totalPaginas = totalPaginas || 0;
   }
 
   calcularEstadisticas(): void {
     this.estadisticas = {
-      total: this.solicitudesFiltradas.length,
+      total: this.paginacionConfig.totalElementos,
       enProceso: this.solicitudesFiltradas.filter(s => s.estado === 'En Proceso').length,
       completadas: this.solicitudesFiltradas.filter(s => s.estado === 'Completado').length,
       canceladas: this.solicitudesFiltradas.filter(s => s.estado === 'Cancelado').length
@@ -274,42 +289,45 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   get empresasDisponibles(): string[] {
-    return [...new Set(this.solicitudes.map(s => s.cliente).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return [
+      ...new Set([
+        ...this.proyectos.map((p) => p.cliente),
+        ...this.solicitudes.map((s) => s.cliente)
+      ].filter((cliente): cliente is string => !!cliente))
+    ].sort((a, b) => a.localeCompare(b));
   }
 
   get solicitudesPaginadas(): Solicitud[] {
-    const inicio = this.paginacionConfig.paginaActual * this.paginacionConfig.porPagina;
-    const fin = inicio + this.paginacionConfig.porPagina;
-    return this.solicitudesFiltradas.slice(inicio, fin);
+    return this.solicitudesFiltradas;
   }
 
   onCambioPagina(event: CambioPaginaEvent): void {
     this.paginacionConfig.paginaActual = event.pagina;
     this.paginacionConfig.porPagina = event.porPagina;
-    this.actualizarPaginacion();
+    this.cargarSolicitudesPagina();
   }
 
   onBuscar(): void {
     this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
+    this.cargarSolicitudesPagina();
   }
 
   onFiltrarEstado(): void {
     this.cerrarDropdownFiltro('estado');
     this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
+    this.cargarSolicitudesPagina();
   }
 
   onFiltrarEmpresa(): void {
     this.cerrarDropdownFiltro('empresa');
     this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
+    this.cargarSolicitudesPagina();
   }
 
   onFiltrarResponsable(): void {
     this.cerrarDropdownFiltro('responsable');
     this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
+    this.cargarSolicitudesPagina();
   }
 
   abrirDropdownFiltro(nombre: keyof RegistroSolicitudesComponent['dropdownFiltrosAbiertos']): void {
@@ -322,7 +340,7 @@ export class RegistroSolicitudesComponent implements OnInit {
 
   onFiltrarRangoFechas(): void {
     this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
+    this.cargarSolicitudesPagina();
   }
 
   toggleFiltroFechas(): void {
@@ -335,25 +353,21 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.onFiltrarRangoFechas();
   }
 
-  onCambioTamano(nuevoTamano: number): void {
-    this.paginacionConfig.porPagina = nuevoTamano;
-    this.paginacionConfig.paginaActual = 0;
-    this.aplicarFiltros();
-  }
-
   cargarDatosIniciales(): void {
     forkJoin({
       responsables: this.solicitudesService.obtenerResponsables(),
-      solicitudes: this.solicitudesService.obtenerSolicitudes(),
+      solicitudes: this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()),
       proyectos: this.solicitudesService.obtenerProyectos(),
       usuarios: this.gestionUsuariosService.obtenerUsuarios({ page: 0, size: 500 })
     }).subscribe({
       next: ({ responsables, solicitudes, proyectos, usuarios }) => {
         this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios?.content || []);
         this.procesos = [];
-        this.solicitudes = solicitudes || [];
+        this.solicitudes = solicitudes?.content || [];
+        this.solicitudesFiltradas = this.solicitudes;
         this.proyectos = proyectos || [];
-        this.aplicarFiltros();
+        this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
+        this.calcularEstadisticas();
         this.abrirProyectoDesdeQueryParam();
       },
       error: (error) => {
@@ -361,16 +375,18 @@ export class RegistroSolicitudesComponent implements OnInit {
 
         forkJoin({
           responsables: this.solicitudesService.obtenerResponsables(),
-          solicitudes: this.solicitudesService.obtenerSolicitudes(),
+          solicitudes: this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()),
           proyectos: this.solicitudesService.obtenerProyectos(),
           usuarios: of({ content: [] as Usuario[] })
         }).subscribe({
           next: ({ responsables, solicitudes, proyectos, usuarios }) => {
             this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios.content || []);
             this.procesos = [];
-            this.solicitudes = solicitudes || [];
+            this.solicitudes = solicitudes?.content || [];
+            this.solicitudesFiltradas = this.solicitudes;
             this.proyectos = proyectos || [];
-            this.aplicarFiltros();
+            this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
+            this.calcularEstadisticas();
             this.abrirProyectoDesdeQueryParam();
           },
           error: (fallbackError) => {
@@ -378,8 +394,10 @@ export class RegistroSolicitudesComponent implements OnInit {
             this.responsables = [];
             this.procesos = [];
             this.solicitudes = [];
+            this.solicitudesFiltradas = [];
             this.proyectos = [];
-            this.aplicarFiltros();
+            this.actualizarPaginacionDesdeRespuesta(0, 0);
+            this.calcularEstadisticas();
           }
         });
       }

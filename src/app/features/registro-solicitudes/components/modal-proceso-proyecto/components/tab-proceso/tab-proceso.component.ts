@@ -278,6 +278,14 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.actualizarPaginacionTablaFlujo();
   }
 
+
+  reiniciarPaginacionTablaFlujo(): void {
+    this.paginacionTablaFlujo = {
+      ...this.paginacionTablaFlujo,
+      paginaActual: 0
+    };
+    this.actualizarPaginacionTablaFlujo();
+  }
   onCambioTamanoTablaFlujo(nuevoTamano: number): void {
     this.paginacionTablaFlujo = {
       ...this.paginacionTablaFlujo,
@@ -350,6 +358,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   seleccionarFiltroEstado(estado: EstadoTarea | ''): void {
     this.filtroEstadoActividad = estado;
+    this.reiniciarPaginacionTablaFlujo();
     this.cerrarDropdownFiltroFlujo('estado');
   }
 
@@ -361,6 +370,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.filtroFechaHasta = '';
     this.mostrarFiltrosAvanzados = false;
     this.mostrarFiltroFechas = false;
+    this.reiniciarPaginacionTablaFlujo();
     this.cerrarDropdownFiltroFlujo('responsable');
     this.cerrarDropdownFiltroFlujo('estado');
   }

@@ -11,6 +11,7 @@
 			<input
 				type="search"
 				[(ngModel)]="filtroBusqueda"
+				(ngModelChange)="reiniciarPaginacionTablaFlujo()"
 				placeholder="Buscar..."
 				class="h-7 w-full pl-8 pr-3 text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:focus:ring-blue-600 focus:border-blue-400 dark:focus:border-blue-600 transition"
 			/>
@@ -42,6 +43,7 @@
 				<div class="relative min-w-0">
 					<select
 						[(ngModel)]="filtroResponsableId"
+						(ngModelChange)="reiniciarPaginacionTablaFlujo()"
 						[attr.tabindex]="mostrarFiltrosAvanzados ? null : -1"
 						(mousedown)="abrirDropdownFiltroFlujo('responsable')"
 						(focus)="abrirDropdownFiltroFlujo('responsable')"
@@ -137,19 +139,21 @@
 				<app-date-picker
 					class="w-[112px] animate-ui-in"
 					[(value)]="filtroFechaDesde"
+					(valueChange)="reiniciarPaginacionTablaFlujo()"
 					[placeholder]="'Desde'"
 					[inputClass]="'h-7 w-full px-2 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer'">
 				</app-date-picker>
 				<app-date-picker
 					class="w-[112px] animate-ui-in"
 					[(value)]="filtroFechaHasta"
+					(valueChange)="reiniciarPaginacionTablaFlujo()"
 					[placeholder]="'Hasta'"
 					[inputClass]="'h-7 w-full px-2 text-[10px] border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-400 focus:border-blue-400 outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 cursor-pointer'">
 				</app-date-picker>
 				<button
 					*ngIf="filtroFechaDesde || filtroFechaHasta"
 					type="button"
-					(click)="filtroFechaDesde = ''; filtroFechaHasta = ''"
+					(click)="filtroFechaDesde = ''; filtroFechaHasta = ''; reiniciarPaginacionTablaFlujo()"
 					class="h-7 px-2 text-[10px] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 animate-ui-in">
 					Limpiar
 				</button>

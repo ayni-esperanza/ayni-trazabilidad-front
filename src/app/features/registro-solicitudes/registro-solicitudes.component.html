@@ -100,7 +100,7 @@
       <div class="relative">
         <select
           [(ngModel)]="estadoFiltro"
-          (change)="onFiltrarEstado()"
+          (ngModelChange)="onFiltrarEstado()"
           (mousedown)="abrirDropdownFiltro('estado')"
           (focus)="abrirDropdownFiltro('estado')"
           (blur)="cerrarDropdownFiltro('estado')"
@@ -127,7 +127,7 @@
       <div class="relative">
         <select
           [(ngModel)]="empresaFiltro"
-          (change)="onFiltrarEmpresa()"
+          (ngModelChange)="onFiltrarEmpresa()"
           (mousedown)="abrirDropdownFiltro('empresa')"
           (focus)="abrirDropdownFiltro('empresa')"
           (blur)="cerrarDropdownFiltro('empresa')"
@@ -152,7 +152,7 @@
       <div class="relative">
         <select
           [(ngModel)]="responsableFiltro"
-          (change)="onFiltrarResponsable()"
+          (ngModelChange)="onFiltrarResponsable()"
           (mousedown)="abrirDropdownFiltro('responsable')"
           (focus)="abrirDropdownFiltro('responsable')"
           (blur)="cerrarDropdownFiltro('responsable')"
@@ -472,8 +472,7 @@
     <app-paginacion
       [config]="paginacionConfig"
       [integradoEnTabla]="false"
-      (cambioPagina)="onCambioPagina($event)"
-      (cambioTamano)="onCambioTamano($event)">
+      (cambioPagina)="onCambioPagina($event)">
     </app-paginacion>
   </div>
   }
