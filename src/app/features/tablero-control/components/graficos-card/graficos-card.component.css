@@ -1,4 +1,4 @@
-/* Estilos específicos para los gráficos - Tailwind maneja la mayoría */
+ï»¿/* Estilos especï¿½ficos para los grï¿½ficos - Tailwind maneja la mayorï¿½a */
 
 :host {
   display: flex;
@@ -12,9 +12,6 @@
   box-shadow: 0 20px 45px -34px rgba(15, 23, 42, 0.35);
 }
 
-.chart-frame {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
 
 .chart-stage {
   width: 100%;
@@ -48,3 +45,4 @@
     font-size: 10px;
   }
 }
+
