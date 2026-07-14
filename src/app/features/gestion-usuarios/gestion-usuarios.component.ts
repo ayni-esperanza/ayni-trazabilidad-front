@@ -58,7 +58,7 @@ interface Filtros {
   styleUrls: ['./gestion-usuarios.component.css'],
 })
 export class GestionUsuariosComponent implements OnInit, OnDestroy {
-  private readonly rolesPermitidos = new Set(['ADMINISTRADOR', 'INGENIERO', 'CONTADOR']);
+  private readonly rolesPermitidos = new Set(['ADMINISTRADOR', 'INGENIERO', 'GERENTE', 'ASISTENTE']);
   private destroy$ = new Subject<void>();
   private busqueda$ = new Subject<string>();
   rolDropdownAbierto = false;
@@ -297,8 +297,10 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     switch (nombre) {
       case 'INGENIERO':
         return 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
-      case 'CONTADOR':
+      case 'GERENTE':
         return 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300';
+      case 'ASISTENTE':
+        return 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300';
       case 'ADMINISTRADOR':
         return 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300';
       default:
