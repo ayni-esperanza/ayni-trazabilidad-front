@@ -416,6 +416,24 @@ export class RegistroSolicitudesService {
     );
   }
 
+  obtenerActividadesPaginadas(proyectoId: number, params: {
+    page?: number;
+    size?: number;
+    search?: string;
+    estado?: string;
+    responsableId?: number;
+    fechaDesde?: string;
+    fechaHasta?: string;
+    sortBy?: string;
+    direction?: 'asc' | 'desc';
+  }): Observable<PaginatedResponse<FlujoNodo>> {
+    return this.http.get<PaginatedResponse<FlujoNodoApi>>(`/v1/proyectos/${proyectoId}/actividades`, params).pipe(
+      map((response) => ({
+        ...response,
+        content: this.mapFlujo({ nodos: response.content || [] }).nodos
+      }))
+    );
+  }
   crearActividad(proyectoId: number, payload: ActividadRequestApi): Observable<FlujoNodo> {
     return this.http.post<FlujoNodoApi>(`/v1/proyectos/${proyectoId}/actividades`, payload).pipe(
       map((item) => this.mapFlujo({ nodos: [item] }).nodos[0])

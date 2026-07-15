@@ -112,6 +112,8 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   private readonly detallesActividadAbiertos = new Set<string>();
   private readonly estadoDropdownAbierto: Record<number, boolean> = {};
   private nodosOrdenCompraCache: FlujoNodo[] = [];
+  private flujoTablaServidor: FlujoNodo[] | null = null;
+  private secuenciaCargaTablaFlujo = 0;
 
   constructor(
     @Inject(PLATFORM_ID) platformId: object,
@@ -125,12 +127,12 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['flujoNodos'] || changes['ordenesCompra']) {
+    if (changes['flujoNodos'] || changes['ordenesCompra'] || changes['proyecto']) {
       if (changes['ordenesCompra']) {
         this.nodosOrdenCompraCache = this.mapearOrdenesCompraANodos();
       }
       this.limpiarSeleccionActividadesInexistentes();
-      this.actualizarPaginacionTablaFlujo();
+      this.refrescarPaginacionTablaFlujo();
     }
   }
 
@@ -180,7 +182,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   cambiarVistaFlujo(vista: 'timeline' | 'tabla'): void {
     this.vistaFlujo = vista;
     if (vista === 'tabla') {
-      this.actualizarPaginacionTablaFlujo();
+      this.refrescarPaginacionTablaFlujo();
       this.limpiarSeleccionActividadesInexistentes();
     }
   }
@@ -248,11 +250,15 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   alternarOrdenFlujo(): void {
     this.ordenRecientePrimero = !this.ordenRecientePrimero;
     if (this.vistaFlujo === 'tabla') {
-      this.actualizarPaginacionTablaFlujo();
+      this.refrescarPaginacionTablaFlujo();
     }
   }
 
   get flujoTablaPaginada(): FlujoNodo[] {
+    if (this.usarPaginacionBackendFlujo() && this.flujoTablaServidor) {
+      return this.flujoTablaServidor;
+    }
+
     const nodos = this.flujoTimeline;
     const totalPaginas = Math.ceil(nodos.length / this.paginacionTablaFlujo.porPagina);
     const paginaMaxima = Math.max(totalPaginas - 1, 0);
@@ -275,7 +281,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       paginaActual: event.pagina,
       porPagina: event.porPagina
     };
-    this.actualizarPaginacionTablaFlujo();
+    this.refrescarPaginacionTablaFlujo();
   }
 
 
@@ -284,18 +290,92 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       ...this.paginacionTablaFlujo,
       paginaActual: 0
     };
-    this.actualizarPaginacionTablaFlujo();
-  }
-  onCambioTamanoTablaFlujo(nuevoTamano: number): void {
-    this.paginacionTablaFlujo = {
-      ...this.paginacionTablaFlujo,
-      porPagina: nuevoTamano,
-      paginaActual: 0
-    };
-    this.actualizarPaginacionTablaFlujo();
+    this.refrescarPaginacionTablaFlujo();
   }
 
-  private actualizarPaginacionTablaFlujo(): void {
+  private refrescarPaginacionTablaFlujo(): void {
+    if (this.usarPaginacionBackendFlujo()) {
+      void this.cargarTablaFlujoDesdeBackend();
+      return;
+    }
+
+    this.flujoTablaServidor = null;
+    this.actualizarPaginacionTablaFlujoLocal();
+  }
+
+  private async cargarTablaFlujoDesdeBackend(): Promise<void> {
+    const proyectoId = Number(this.proyecto?.id || 0);
+    if (!Number.isFinite(proyectoId) || proyectoId <= 0) {
+      this.flujoTablaServidor = null;
+      this.actualizarPaginacionTablaFlujoLocal();
+      return;
+    }
+
+    const secuencia = ++this.secuenciaCargaTablaFlujo;
+
+    try {
+      const response = await firstValueFrom(
+        this.registroSolicitudesService.obtenerActividadesPaginadas(proyectoId, this.obtenerParametrosTablaFlujo())
+      );
+
+      if (secuencia !== this.secuenciaCargaTablaFlujo) return;
+
+      this.flujoTablaServidor = response.content || [];
+      this.paginacionTablaFlujo = {
+        ...this.paginacionTablaFlujo,
+        totalElementos: response.totalElements || 0,
+        totalPaginas: response.totalPages || 0,
+        paginaActual: response.page || 0,
+        porPagina: response.size || this.paginacionTablaFlujo.porPagina
+      };
+      this.limpiarSeleccionActividadesInexistentes();
+    } catch (error) {
+      console.error('Error cargando actividades paginadas del proyecto:', error);
+      if (secuencia !== this.secuenciaCargaTablaFlujo) return;
+      this.flujoTablaServidor = null;
+      this.actualizarPaginacionTablaFlujoLocal();
+    }
+  }
+
+  private obtenerParametrosTablaFlujo(): {
+    page: number;
+    size: number;
+    search?: string;
+    estado?: string;
+    responsableId?: number;
+    fechaDesde?: string;
+    fechaHasta?: string;
+    sortBy: string;
+    direction: 'asc' | 'desc';
+  } {
+    const params: {
+      page: number;
+      size: number;
+      search?: string;
+      estado?: string;
+      responsableId?: number;
+      fechaDesde?: string;
+      fechaHasta?: string;
+      sortBy: string;
+      direction: 'asc' | 'desc';
+    } = {
+      page: this.paginacionTablaFlujo.paginaActual,
+      size: this.paginacionTablaFlujo.porPagina,
+      sortBy: 'fechaInicio',
+      direction: this.ordenRecientePrimero ? 'desc' : 'asc'
+    };
+
+    const search = this.filtroBusqueda.trim();
+    if (search) params.search = search;
+    if (this.filtroEstadoActividad) params.estado = this.filtroEstadoActividad;
+    if (this.filtroResponsableId) params.responsableId = Number(this.filtroResponsableId);
+    if (this.filtroFechaDesde) params.fechaDesde = this.filtroFechaDesde;
+    if (this.filtroFechaHasta) params.fechaHasta = this.filtroFechaHasta;
+
+    return params;
+  }
+
+  private actualizarPaginacionTablaFlujoLocal(): void {
     const totalElementos = this.flujoTimeline.length;
     const totalPaginas = Math.ceil(totalElementos / this.paginacionTablaFlujo.porPagina);
     const paginaActual = Math.min(this.paginacionTablaFlujo.paginaActual, Math.max(totalPaginas - 1, 0));
@@ -306,6 +386,11 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       totalPaginas,
       paginaActual
     };
+  }
+
+  private usarPaginacionBackendFlujo(): boolean {
+    const proyectoId = Number(this.proyecto?.id || 0);
+    return Number.isFinite(proyectoId) && proyectoId > 0;
   }
 
   private limpiarSeleccionActividadesInexistentes(): void {
@@ -381,6 +466,10 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   get totalActividadesFlujo(): number {
+    if (this.usarPaginacionBackendFlujo() && this.flujoTablaServidor) {
+      return this.paginacionTablaFlujo.totalElementos;
+    }
+
     const timeline = this.flujoTimeline;
     return Array.isArray(timeline) ? timeline.length : 0;
   }
@@ -1235,10 +1324,13 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
         // Filtro fechas (sobre fechaInicio del nodo)
         if (this.filtroFechaDesde || this.filtroFechaHasta) {
           const fechaInicioStr = typeof nodo.fechaInicio === 'string' ? nodo.fechaInicio.slice(0, 10) : '';
-          if (this.filtroFechaDesde && fechaInicioStr && fechaInicioStr < this.filtroFechaDesde) {
+          if (!fechaInicioStr) {
             return false;
           }
-          if (this.filtroFechaHasta && fechaInicioStr && fechaInicioStr > this.filtroFechaHasta) {
+          if (this.filtroFechaDesde && fechaInicioStr < this.filtroFechaDesde) {
+            return false;
+          }
+          if (this.filtroFechaHasta && fechaInicioStr > this.filtroFechaHasta) {
             return false;
           }
         }

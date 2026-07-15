@@ -50,9 +50,4 @@ export class ProcesoTablaComponent {
   onCambioPaginaTablaFlujo(event: CambioPaginaEvent): void {
     this.ctx.onCambioPaginaTablaFlujo(event);
   }
-
-  onCambioTamanoTablaFlujo(nuevoTamano: number): void {
-    this.ctx.onCambioTamanoTablaFlujo(nuevoTamano);
-  }
-
 }
