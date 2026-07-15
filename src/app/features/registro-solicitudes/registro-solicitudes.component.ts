@@ -13,6 +13,7 @@ import { PaginacionComponent, PaginacionConfig, CambioPaginaEvent } from '../../
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/components/select-searchable/select-searchable.component';
 import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { GestionUsuariosService } from '../gestion-usuarios/services/gestion-usuarios.service';
@@ -21,7 +22,7 @@ import { Usuario } from '../gestion-usuarios/models/usuario.model';
 @Component({
   selector: 'app-registro-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe, VideoTutorialComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, ModalNuevaSolicitudComponent, ModalProcesoProyectoComponent, PaginacionComponent, ConfirmDeleteModalComponent, LinkifyPipe, VideoTutorialComponent, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './registro-solicitudes.component.html',
   styleUrls: ['./registro-solicitudes.component.css']
 })
@@ -51,6 +52,25 @@ export class RegistroSolicitudesComponent implements OnInit {
   fechaDesdeFiltro = '';
   fechaHastaFiltro = '';
   mostrarFiltroFechas = false;
+  get estadoFiltroOptions(): SelectSearchableOption[] {
+    return [
+      { value: 'En Proceso', label: 'En Proceso' },
+      { value: 'Completado', label: 'Completado' },
+      { value: 'Cancelado', label: 'Cancelado' }
+    ];
+  }
+
+  get empresaFiltroOptions(): SelectSearchableOption[] {
+    return this.empresasDisponibles.map((empresa) => ({ value: empresa, label: empresa }));
+  }
+
+  get responsableFiltroOptions(): SelectSearchableOption[] {
+    return this.responsables.map((responsable) => ({ value: responsable.id, label: responsable.nombre }));
+  }
+
+  normalizarValorFiltro(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value);
+  }
 
   // Paginación
   paginacionConfig: PaginacionConfig = {

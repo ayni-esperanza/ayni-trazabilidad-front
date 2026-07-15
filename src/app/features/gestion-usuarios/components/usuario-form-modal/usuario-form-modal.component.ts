@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Usuario, Rol } from '../../models/usuario.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../shared/components/select-searchable/select-searchable.component';
 
 export interface UsuarioFormData {
   id?: number;
@@ -21,7 +22,7 @@ export interface UsuarioFormData {
 @Component({
   selector: 'app-usuario-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, SelectSearchableComponent],
   templateUrl: './usuario-form-modal.component.html',
   styleUrls: ['./usuario-form-modal.component.css']
 })
@@ -38,6 +39,22 @@ export class UsuarioFormModalComponent implements OnChanges {
   @Input() visible = false;
   @Input() usuario: Usuario | null = null;
   @Input() roles: Rol[] = [];
+  get areaOptions(): SelectSearchableOption[] {
+    return this.areasDisponibles.map((area) => ({ value: area, label: area }));
+  }
+
+  get rolOptions(): SelectSearchableOption[] {
+    return this.roles.map((rol) => ({ value: rol.id, label: rol.nombre }));
+  }
+
+  normalizarTextoSeleccion(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value);
+  }
+
+  normalizarNumeroSeleccion(value: unknown): number | null {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+  }
   @Input() mensajeErrorGuardado: string | null = null;
   @Input() erroresGuardadoPorCampo: Record<string, string> | null = null;
   @Input() guardando = false;

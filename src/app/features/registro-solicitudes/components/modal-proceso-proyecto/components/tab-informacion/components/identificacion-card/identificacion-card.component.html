@@ -96,12 +96,17 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Áreas involucradas</label>
         <ng-container *ngIf="!modoSoloLectura; else infoAreasReadonly">
           <div class="flex items-center gap-2">
-            <select
-              [(ngModel)]="areaSeleccionadaParaAgregar"
-              class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-              <option value="">Seleccionar área</option>
-              <option *ngFor="let area of areasPendientesParaAgregar" [ngValue]="area">{{ area }}</option>
-            </select>
+            <app-select-searchable
+              class="w-full"
+              [options]="areasPendientesOptions"
+              [value]="areaSeleccionadaParaAgregar"
+              placeholder="Seleccionar área"
+              searchPlaceholder="Buscar área..."
+              [emptyValue]="''"
+              [allowEmpty]="true"
+              buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+              (valueChange)="areaSeleccionadaParaAgregar = normalizarAreaSeleccionada($event)">
+            </app-select-searchable>
             <button
               type="button"
               (click)="agregarAreaSeleccionada()"

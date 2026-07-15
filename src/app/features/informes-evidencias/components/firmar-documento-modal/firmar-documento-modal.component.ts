@@ -7,6 +7,7 @@ import { FirmaFormData, FirmaFormModalComponent } from '../firma-form-modal/firm
 import { ADJUNTO_MAX_DOCUMENTO_BYTES } from '../../../../shared/services/adjunto-upload-policy';
 import { AdjuntoUploadOptimizerService } from '../../../../shared/services/adjunto-upload-optimizer.service';
 import { PDFDocument, rgb } from 'pdf-lib';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../shared/components/select-searchable/select-searchable.component';
 
 type PosicionFirma = 'superior-izquierda' | 'superior-centro' | 'superior-derecha' | 
                      'centro-izquierda' | 'centro-centro' | 'centro-derecha' |
@@ -37,7 +38,7 @@ interface PosicionConfig {
 @Component({
   selector: 'app-firmar-documento-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, FirmaFormModalComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, FirmaFormModalComponent, SelectSearchableComponent],
   templateUrl: './firmar-documento-modal.component.html',
   styleUrls: ['./firmar-documento-modal.component.css'],
 })
@@ -61,6 +62,18 @@ export class FirmarDocumentoModalComponent implements OnChanges, AfterViewInit, 
   // Estado de la firma
   protected firmaSeleccionadaId: number | null = null;
   protected firmaSeleccionada: Firma | null = null;
+  protected get firmaDisponibleOptions(): SelectSearchableOption[] {
+    return this.firmasDisponibles.map((firma) => ({
+      value: firma.id,
+      label: `${firma.nombre}${firma.cargo ? ' - ' + firma.cargo : ''}`
+    }));
+  }
+
+  protected onFirmaDisponibleSeleccionada(value: unknown): void {
+    const numericValue = Number(value);
+    this.firmaSeleccionadaId = Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+    this.onFirmaSeleccionada();
+  }
   protected posicionFirma: PosicionFirma = 'inferior-derecha';
   protected tamanoFirma = 100;
 

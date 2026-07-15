@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { EstadisticasIndicadoresService, ResumenCostosProyecto } from './services/estadisticas-indicadores.service';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/components/select-searchable/select-searchable.component';
 import { forkJoin } from 'rxjs';
 import { FlujoNodo } from '../registro-solicitudes/models/solicitud.model';
 import { RegistroSolicitudesService } from '../registro-solicitudes/services/registro-solicitudes.service';
@@ -67,7 +68,7 @@ interface ROIData {
 @Component({
   selector: 'app-estadisticas-indicadores',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxChartsModule, VideoTutorialComponent],
+  imports: [CommonModule, FormsModule, NgxChartsModule, VideoTutorialComponent, SelectSearchableComponent],
   templateUrl: './estadisticas-indicadores.component.html',
   styleUrls: ['./estadisticas-indicadores.component.css']
 })
@@ -80,6 +81,36 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   // Control de modo de visualización de tareas
   modoVisualizacionTareas: 'tabla' | 'timeline' = 'tabla';
   modoVisualizacionTareasResponsable: 'tabla' | 'timeline' = 'tabla';
+  get categoriaOptions(): SelectSearchableOption[] {
+    return [
+      { value: 'responsables', label: 'Responsables' },
+      { value: 'proyectos', label: 'Proyectos' }
+    ];
+  }
+
+  get proyectoOptions(): SelectSearchableOption[] {
+    return this.proyectos.map((proyecto) => ({ value: proyecto, label: proyecto.nombre }));
+  }
+
+  get responsableOptions(): SelectSearchableOption[] {
+    return this.responsables.map((responsable) => ({ value: responsable, label: responsable.nombre }));
+  }
+
+  onCategoriaSeleccionada(value: unknown): void {
+    this.cambiarFiltro(value === 'proyectos' ? 'proyectos' : 'responsables');
+  }
+
+  onProyectoSeleccionado(value: unknown): void {
+    if (value) {
+      this.seleccionarProyecto(value as ProyectoIndicador);
+    }
+  }
+
+  onResponsableSeleccionado(value: unknown): void {
+    if (value) {
+      this.seleccionarResponsable(value as ResponsableIndicador);
+    }
+  }
   
   // Filtro de proyecto en vista de responsable
   proyectoResponsableSeleccionado: number | null = null;

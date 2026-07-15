@@ -9,18 +9,17 @@
   <!-- Filtros rápidos -->
   <div class="stats-card p-4 mb-6" *ngIf="!proyectoSeleccionado && !responsableSeleccionado">
     <div class="flex flex-wrap gap-3 items-center">
-      <div class="relative group">
-        <select #selectCategoria
-          [(ngModel)]="filtroCategoria"
-          (ngModelChange)="cambiarFiltro($event)"
-          (change)="selectCategoria.blur()"
-          class="appearance-none peer pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none [background-image:none] bg-white dark:bg-gray-800 dark:text-white min-w-[150px] cursor-pointer transition-all">
-          <option value="responsables">Responsables</option>
-          <option value="proyectos">Proyectos</option>
-        </select>
-        <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none transition-transform duration-200 peer-focus:-rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
+      <div class="min-w-[170px]">
+        <app-select-searchable
+          [options]="categoriaOptions"
+          [value]="filtroCategoria"
+          placeholder="Responsables"
+          searchPlaceholder="Buscar categoría..."
+          [emptyValue]="'responsables'"
+          [allowEmpty]="false"
+          buttonClass="w-full px-4 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"
+          (valueChange)="onCategoriaSeleccionada($event)">
+        </app-select-searchable>
       </div>
     </div>
   </div>
@@ -95,17 +94,16 @@
     <!-- Filtros rápidos con selector de proyecto -->
     <div class="stats-card p-4 mb-6">
       <div class="flex flex-wrap gap-3 items-center">
-        <div class="relative group max-w-full sm:max-w-[15rem] md:max-w-lg lg:max-w-2xl">
-          <select #selectProyecto
-            class="appearance-none peer pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none [background-image:none] bg-white dark:bg-gray-800 dark:text-white w-full truncate cursor-pointer transition-all"
-            [(ngModel)]="proyectoSeleccionado"
-            (ngModelChange)="seleccionarProyecto($event)"
-            (change)="selectProyecto.blur()">
-            <option *ngFor="let p of proyectos" [ngValue]="p">{{ p.nombre }}</option>
-          </select>
-          <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none transition-transform duration-200 peer-focus:-rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+        <div class="max-w-full sm:max-w-[15rem] md:max-w-lg lg:max-w-2xl">
+          <app-select-searchable
+            [options]="proyectoOptions"
+            [value]="proyectoSeleccionado"
+            placeholder="Seleccionar proyecto"
+            searchPlaceholder="Buscar proyecto..."
+            [allowEmpty]="false"
+            buttonClass="w-full px-4 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 truncate"
+            (valueChange)="onProyectoSeleccionado($event)">
+          </app-select-searchable>
         </div>
         <button
           (click)="cerrarDetalle()"
@@ -369,17 +367,16 @@
     <!-- Filtros rápidos con selector de responsable -->
     <div class="stats-card p-4 mb-6">
       <div class="flex flex-wrap gap-3 items-center">
-        <div class="relative group">
-          <select #selectResponsable
-            class="appearance-none peer pl-4 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none [background-image:none] bg-white dark:bg-gray-800 dark:text-white min-w-[200px] cursor-pointer transition-all"
-            [(ngModel)]="responsableSeleccionado"
-            (ngModelChange)="seleccionarResponsable($event)"
-            (change)="selectResponsable.blur()">
-            <option *ngFor="let r of responsables" [ngValue]="r">{{ r.nombre }}</option>
-          </select>
-          <svg xmlns="http://www.w3.org/2000/svg" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 pointer-events-none transition-transform duration-200 peer-focus:-rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+        <div class="min-w-[200px]">
+          <app-select-searchable
+            [options]="responsableOptions"
+            [value]="responsableSeleccionado"
+            placeholder="Seleccionar responsable"
+            searchPlaceholder="Buscar responsable..."
+            [allowEmpty]="false"
+            buttonClass="w-full min-w-[200px] px-4 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"
+            (valueChange)="onResponsableSeleccionado($event)">
+          </app-select-searchable>
         </div>
         <button
           (click)="cerrarDetalle()"
@@ -414,9 +411,13 @@
             <div class="flex items-center gap-1">
               @if (proyectoResponsableSeleccionado && participacionProyectosVisible) {
                 <button 
-                  (click)="limpiarFiltroProyectoResponsable()" 
-                  class="text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
-                  Limpiar filtro
+                  (click)="limpiarFiltroProyectoResponsable()"
+                  title="Limpiar filtros"
+                  aria-label="Limpiar filtros"
+                  class="inline-flex h-7 w-7 items-center justify-center rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               }
               <button 

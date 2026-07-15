@@ -136,32 +136,29 @@
         <div class="grid grid-cols-2 gap-2 mb-3">
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Área</label>
-            <select
-              [(ngModel)]="formData.area"
-              name="area"
-              [class.border-red-500]="tieneError('area')"
-              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-              <option value="">Seleccionar área</option>
-              @for (area of areasDisponibles; track area) {
-                <option [value]="area">{{ area }}</option>
-              }
-            </select>
-            <span *ngIf="tieneError('area')" class="text-xs text-red-500">{{ obtenerErrorCampo('area') }}</span>
+            <app-select-searchable
+              [options]="areaOptions"
+              [value]="formData.area"
+              placeholder="Seleccionar área"
+              searchPlaceholder="Buscar área..."
+              [emptyValue]="''"
+              [allowEmpty]="true"
+              [buttonClass]="'w-full px-2.5 py-1.5 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 ' + (tieneError('area') ? '!border-red-500' : '')"
+              (valueChange)="formData.area = normalizarTextoSeleccion($event)">
+            </app-select-searchable><span *ngIf="tieneError('area')" class="text-xs text-red-500">{{ obtenerErrorCampo('area') }}</span>
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">Rol *</label>
-            <select 
-              [(ngModel)]="formData.rolId" 
-              name="rolId" 
-              required
-              [class.border-red-500]="tieneError('rolId')"
-              class="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-              <option [ngValue]="null" disabled>Seleccionar Rol</option>
-              @for (rol of roles; track rol.id) {
-                <option [ngValue]="rol.id">{{ rol.nombre }}</option>
-              }
-            </select>
-            <span *ngIf="tieneError('rolId')" class="text-xs text-red-500">{{ obtenerErrorCampo('rolId') }}</span>
+            <app-select-searchable
+              [options]="rolOptions"
+              [value]="formData.rolId"
+              placeholder="Seleccionar Rol"
+              searchPlaceholder="Buscar rol..."
+              [emptyValue]="null"
+              [allowEmpty]="true"
+              [buttonClass]="'w-full px-2.5 py-1.5 text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 ' + (tieneError('rolId') ? '!border-red-500' : '')"
+              (valueChange)="formData.rolId = normalizarNumeroSeleccion($event)">
+            </app-select-searchable><span *ngIf="tieneError('rolId')" class="text-xs text-red-500">{{ obtenerErrorCampo('rolId') }}</span>
           </div>
         </div>
         

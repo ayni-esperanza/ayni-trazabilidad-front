@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-type SelectSearchableOption = string | number | { value: string | number | null; label: string };
+export type SelectSearchableOption = string | number | { value: unknown; label: string };
 
 @Component({
   selector: 'app-select-searchable',
@@ -18,11 +18,10 @@ type SelectSearchableOption = string | number | { value: string | number | null;
         type="button"
         [disabled]="disabled"
         (click)="toggleDropdown()"
-        class="flex w-full items-center justify-between gap-2 rounded border border-gray-300 bg-white px-2 py-0.5 text-left text-xs text-gray-900 transition-colors hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:border-gray-500"
-        [ngClass]="buttonClass">
-        <span class="truncate" [ngClass]="selectedLabel ? '' : 'text-gray-500 dark:text-gray-300'">{{ selectedLabel || placeholder }}</span>
+        [class]="buttonBaseClass + ' ' + resolvedButtonClass">
+        <span class="block min-w-0 flex-1 truncate pr-6" [ngClass]="selectedLabel ? '' : 'text-gray-500 dark:text-gray-300'">{{ selectedLabel || placeholder }}</span>
         <svg
-          class="h-3.5 w-3.5 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-300"
+          class="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-300"
           [ngClass]="{ 'rotate-180': isOpen }"
           fill="none"
           stroke="currentColor"
@@ -38,12 +37,11 @@ type SelectSearchableOption = string | number | { value: string | number | null;
         [cdkConnectedOverlayOpen]="isOpen"
         [cdkConnectedOverlayPositions]="dropdownPositions"
         [cdkConnectedOverlayWidth]="dropdownWidth"
-        [cdkConnectedOverlayHasBackdrop]="true"
+        [cdkConnectedOverlayHasBackdrop]="false"
         [cdkConnectedOverlayPush]="true"
         [cdkConnectedOverlayViewportMargin]="8"
         [cdkConnectedOverlayScrollStrategy]="scrollStrategy"
-        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-        (backdropClick)="closeDropdown()"
+        (overlayOutsideClick)="closeDropdown()"
         (detach)="closeDropdown()">
         <div
           class="z-[10000] overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
@@ -86,15 +84,15 @@ type SelectSearchableOption = string | number | { value: string | number | null;
 })
 export class SelectSearchableComponent implements OnChanges, OnDestroy {
   @Input() options: SelectSearchableOption[] = [];
-  @Input() value: string | number | null = '';
+  @Input() value: unknown = '';
   @Input() placeholder = 'Seleccionar';
   @Input() searchPlaceholder = 'Buscar...';
-  @Input() emptyValue: string | number | null = '';
+  @Input() emptyValue: unknown = '';
   @Input() allowEmpty = true;
   @Input() disabled = false;
   @Input() buttonClass = '';
 
-  @Output() valueChange = new EventEmitter<string | number | null>();
+  @Output() valueChange = new EventEmitter<any>();
 
   @ViewChild('triggerButton') triggerButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
@@ -104,6 +102,8 @@ export class SelectSearchableComponent implements OnChanges, OnDestroy {
   filteredOptions: SelectSearchableOption[] = [];
   dropdownWidth: number | string = 'auto';
   readonly scrollStrategy: ScrollStrategy;
+  readonly buttonBaseClass = 'relative flex w-full items-center justify-between gap-2 border text-left transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-60';
+  readonly defaultButtonClass = 'rounded border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:border-gray-500';
   readonly dropdownPositions: ConnectedPosition[] = [
     {
       originX: 'start',
@@ -147,12 +147,31 @@ export class SelectSearchableComponent implements OnChanges, OnDestroy {
     this.closeDropdown();
   }
 
+  get resolvedButtonClass(): string {
+    const customClass = String(this.buttonClass || '').trim();
+    if (!customClass) return this.defaultButtonClass;
+
+    const hasVisualClass = /(^|\s)(px-|py-|h-|rounded|border-|bg-|text-|leading-|focus:|hover:|dark:)/.test(customClass);
+    if (!hasVisualClass) {
+      return `${this.defaultButtonClass} ${customClass}`;
+    }
+
+    const fallbackClasses = [
+      /(^|\s)bg-/.test(customClass) ? '' : 'bg-white',
+      /(^|\s)(text-|dark:text-)/.test(customClass) ? '' : 'text-gray-900 dark:text-white',
+      /(^|\s)hover:/.test(customClass) ? '' : 'hover:border-gray-400 dark:hover:border-gray-500',
+      /(^|\s)focus:/.test(customClass) ? '' : 'focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+    ].filter(Boolean).join(' ');
+
+    return `${fallbackClasses} ${customClass}`.trim();
+  }
+
   get selectedLabel(): string {
-    if (this.value === null || this.value === undefined || String(this.value) == String(this.emptyValue)) {
+    if (this.value === null || this.value === undefined || this.valuesEqual(this.value, this.emptyValue)) {
       return '';
     }
 
-    const match = this.options.find((option) => String(this.getOptionValue(option)) === String(this.value));
+    const match = this.options.find((option) => this.valuesEqual(this.getOptionValue(option), this.value));
     return match !== undefined ? this.getOptionLabel(match) : String(this.value || '');
   }
 
@@ -183,7 +202,7 @@ export class SelectSearchableComponent implements OnChanges, OnDestroy {
     );
   }
 
-  seleccionar(value: string | number | null): void {
+  seleccionar(value: unknown): void {
     this.value = value;
     this.valueChange.emit(value);
     this.closeDropdown();
@@ -201,7 +220,7 @@ export class SelectSearchableComponent implements OnChanges, OnDestroy {
       : String(option ?? '');
   }
 
-  getOptionValue(option: SelectSearchableOption): string | number | null {
+  getOptionValue(option: SelectSearchableOption): unknown {
     return typeof option === 'object' && option !== null
       ? (option.value ?? null)
       : option;
@@ -210,4 +229,16 @@ export class SelectSearchableComponent implements OnChanges, OnDestroy {
   readonly trackByOption = (_index: number, option: SelectSearchableOption): string => {
     return String(this.getOptionValue(option));
   };
+
+  private valuesEqual(left: unknown, right: unknown): boolean {
+    if (left === right) return true;
+    if (this.isPrimitive(left) && this.isPrimitive(right)) {
+      return String(left) === String(right);
+    }
+    return false;
+  }
+
+  private isPrimitive(value: unknown): boolean {
+    return value === null || value === undefined || ['string', 'number', 'boolean'].includes(typeof value);
+  }
 }

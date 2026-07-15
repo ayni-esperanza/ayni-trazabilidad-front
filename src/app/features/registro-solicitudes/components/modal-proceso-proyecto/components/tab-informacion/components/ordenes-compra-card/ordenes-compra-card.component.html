@@ -34,10 +34,15 @@
               <div class="grid grid-cols-6 gap-2">
                 <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
                   class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
-                <select [(ngModel)]="oc.tipo"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white">
-                  <option *ngFor="let tipo of tiposOrdenCompra" [ngValue]="tipo">{{ tipo }}</option>
-                </select>
+                <app-select-searchable
+                  [options]="tiposOrdenCompraOptions"
+                  [value]="oc.tipo"
+                  placeholder="Tipo"
+                  searchPlaceholder="Buscar tipo..."
+                  [allowEmpty]="false"
+                  buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  (valueChange)="oc.tipo = normalizarTipoOrdenCompra($event)">
+                </app-select-searchable>
                 <input type="text" [(ngModel)]="oc.numeroLicitacion" placeholder="N° de licitación (opcional)"
                   class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
                 <input type="text" [(ngModel)]="oc.numeroSolicitud" placeholder="N° de solicitud (opcional)"

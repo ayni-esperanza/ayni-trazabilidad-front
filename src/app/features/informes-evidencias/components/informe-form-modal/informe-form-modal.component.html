@@ -86,15 +86,16 @@
               <div class="col-span-2">
                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Firmas</label>
                 <div class="flex items-center gap-2 mb-2">
-                  <select
-                    [(ngModel)]="form.firma"
-                    class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                    @for (f of opcionesFirma; track f) {
-                      <option [ngValue]="f">{{ f }}</option>
-                    }
-                  </select>
-
-                  <button
+                  <app-select-searchable
+                    class="flex-1"
+                    [options]="firmaOptions"
+                    [value]="form.firma"
+                    placeholder="Seleccionar firma"
+                    searchPlaceholder="Buscar firma..."
+                    [allowEmpty]="false"
+                    buttonClass="w-full px-3 py-2 text-sm rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                    (valueChange)="onFirmaInformeSeleccionada($event)">
+                  </app-select-searchable><button
                     type="button"
                     class="px-3 py-2 text-sm font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
                     [disabled]="firmasAgregadas.length >= 3"

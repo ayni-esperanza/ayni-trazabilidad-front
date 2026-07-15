@@ -3,6 +3,7 @@ import { Component, EventEmitter, Inject, Input, OnChanges, Output, PLATFORM_ID,
 import { FormsModule } from '@angular/forms';
 import { OrdenCompra, FlujoAdjunto } from '../../../../../../models/solicitud.model';
 import { DatePickerComponent } from '../../../../../../../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../../../../../shared/components/select-searchable/select-searchable.component';
 import { AdjuntoUploadOptimizerService } from '../../../../../../../../shared/services/adjunto-upload-optimizer.service';
 import { ADJUNTO_ACCEPT_TIPOS } from '../../../../../../../../shared/services/adjunto-upload-policy';
 import { AdjuntosPreviewService } from '../../../../../../../../shared/services/adjuntos-preview.service';
@@ -12,7 +13,7 @@ import { ProyectoInfoFormData } from '../../tab-informacion.models';
 @Component({
   selector: 'app-ordenes-compra-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './ordenes-compra-card.component.html'
 })
 export class OrdenesCompraCardComponent implements OnChanges {
@@ -22,6 +23,13 @@ export class OrdenesCompraCardComponent implements OnChanges {
 
   expandida = false;
   readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
+  get tiposOrdenCompraOptions(): SelectSearchableOption[] {
+    return this.tiposOrdenCompra.map((tipo) => ({ value: tipo, label: tipo }));
+  }
+
+  normalizarTipoOrdenCompra(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value);
+  }
   readonly acceptTiposArchivo = ADJUNTO_ACCEPT_TIPOS;
   erroresAdjuntosOrdenCompra: Record<number, string> = {};
   private readonly isBrowser: boolean;

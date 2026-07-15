@@ -192,15 +192,17 @@
                           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                             <div>
                               <label class="block mb-1 font-medium">Responsable</label>
-                              <select
-                                [ngModel]="comentario.responsableId"
-                                (ngModelChange)="ctx.actualizarResponsableComentario(comentario.id, $event)"
+                              <app-select-searchable
+                                [options]="ctx.responsableComentarioOptions"
+                                [value]="comentario.responsableId || ''"
+                                placeholder="Sin asignar"
+                                searchPlaceholder="Buscar responsable..."
+                                [emptyValue]="''"
+                                [allowEmpty]="true"
                                 [disabled]="!ctx.puedeModificarComentario(comentario)"
-                                class="w-full h-6 px-2 py-0.5 text-[10px] leading-tight border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-60">
-                                <option [ngValue]="undefined">Sin asignar</option>
-                                <option *ngFor="let resp of ctx.responsables" [ngValue]="resp.id">{{ resp.nombre }}</option>
-                              </select>
-                            </div>
+                                buttonClass="w-full h-6 px-2 py-0.5 text-[10px] leading-tight rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-60"
+                                (valueChange)="ctx.actualizarResponsableComentario(comentario.id, ctx.normalizarResponsableComentarioSeleccion($event))">
+                              </app-select-searchable></div>
 
                             <div>
                               <label class="block mb-1 font-medium">Fecha de comentario</label>

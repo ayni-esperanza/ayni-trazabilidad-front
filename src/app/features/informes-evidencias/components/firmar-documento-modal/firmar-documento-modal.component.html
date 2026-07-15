@@ -139,19 +139,16 @@
               </div>
 
               <div class="space-y-2">
-                <select
-                  [(ngModel)]="firmaSeleccionadaId"
-                  (change)="onFirmaSeleccionada()"
-                  [class.border-red-500]="tieneError('firma')"
-                  class="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                  <option [value]="null">-- Seleccionar firma --</option>
-                  @for (firma of firmasDisponibles; track firma.id) {
-                    <option [value]="firma.id">
-                      {{ firma.nombre }}{{ firma.cargo ? ' - ' + firma.cargo : '' }}
-                    </option>
-                  }
-                </select>
-                @if (tieneError('firma')) {
+                <app-select-searchable
+                  [options]="firmaDisponibleOptions"
+                  [value]="firmaSeleccionadaId"
+                  placeholder="-- Seleccionar firma --"
+                  searchPlaceholder="Buscar firma..."
+                  [emptyValue]="null"
+                  [allowEmpty]="true"
+                  [buttonClass]="'w-full px-2 py-1.5 text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 ' + (tieneError('firma') ? '!border-red-500' : '')"
+                  (valueChange)="onFirmaDisponibleSeleccionada($event)">
+                </app-select-searchable>@if (tieneError('firma')) {
                   <span class="text-xs text-red-500 mt-1 block">{{ errores['firma'] }}</span>
                 }
 
@@ -282,11 +279,11 @@
                   <div class="flex items-center gap-1">
                     <kbd class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[9px] font-mono">Ctrl</kbd>
                     <span>+</span>
-                    <span>🖱️ Zoom</span>
+                    <span>Zoom</span>
                   </div>
                   <div class="border-l border-gray-300 dark:border-gray-600 h-4"></div>
                   <div class="flex items-center gap-1">
-                    <span>🖐️ Arrastra para navegar</span>
+                    <span>Arrastra para navegar</span>
                   </div>
                   <div class="border-l border-gray-300 dark:border-gray-600 h-4"></div>
                   <div>
@@ -310,7 +307,7 @@
                       draggable="true"
                       (dragstart)="onDragStartFirma($event)">
                       <div class="text-center">
-                        <p class="text-[10px] text-green-600 font-semibold mb-1">⬇️ Arrastra sobre cualquier página</p>
+                        <p class="text-[10px] text-green-600 font-semibold mb-1">Arrastra sobre cualquier página</p>
                         <img 
                           [src]="firmaSeleccionada.imagenBase64" 
                           alt="Firma"
@@ -417,7 +414,7 @@
               </span>
             } @else if (firmaSeleccionada && archivoSubido) {
               <span class="text-amber-600 dark:text-amber-500 font-medium">
-                ⚠️ Arrastra la firma al documento
+                Arrastra la firma al documento
               </span>
             }
           </div>

@@ -12,12 +12,13 @@ import { AdjuntoUploadOptimizerService } from '../../../../../../shared/services
 import { ADJUNTO_ACCEPT_TIPOS } from '../../../../../../shared/services/adjunto-upload-policy';
 import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shared/components/paginacion/paginacion.component';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../../../shared/components/select-searchable/select-searchable.component';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements OnChanges, OnDestroy {
@@ -45,15 +46,28 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   ordenRecientePrimero = true;
   filtroBusqueda = '';
   filtroResponsableId: number | '' = '';
+  get responsableFiltroOptions(): SelectSearchableOption[] {
+    return this.responsables.map((responsable) => ({ value: responsable.id, label: responsable.nombre }));
+  }
+
+  get responsableComentarioOptions(): SelectSearchableOption[] {
+    return this.responsables.map((responsable) => ({ value: responsable.id, label: responsable.nombre }));
+  }
+
+  seleccionarFiltroResponsable(value: unknown): void {
+    const numericValue = Number(value);
+    this.filtroResponsableId = Number.isFinite(numericValue) && numericValue > 0 ? numericValue : '';
+    this.reiniciarPaginacionTablaFlujo();
+  }
+
+  normalizarResponsableComentarioSeleccion(value: unknown): number | undefined {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : undefined;
+  }
   filtroEstadoActividad: EstadoTarea | '' = '';
   filtroFechaDesde = '';
   filtroFechaHasta = '';
   public mostrarFiltrosAvanzados = false;
-  public mostrarFiltroFechas = false;
-  dropdownFiltrosFlujoAbiertos: Record<'responsable' | 'estado', boolean> = {
-    responsable: false,
-    estado: false
-  };
   actividadesSeleccionadasIds = new Set<number>();
   paginacionTablaFlujo: PaginacionConfig = {
     paginaActual: 0,
@@ -425,26 +439,13 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     return total;
   }
 
-  abrirDropdownFiltroFlujo(nombre: keyof TabProcesoComponent['dropdownFiltrosFlujoAbiertos']): void {
-    this.dropdownFiltrosFlujoAbiertos[nombre] = true;
-  }
 
-  cerrarDropdownFiltroFlujo(nombre: keyof TabProcesoComponent['dropdownFiltrosFlujoAbiertos']): void {
-    this.dropdownFiltrosFlujoAbiertos[nombre] = false;
-  }
-
-  alternarDropdownFiltroEstado(): void {
-    this.dropdownFiltrosFlujoAbiertos.estado = !this.dropdownFiltrosFlujoAbiertos.estado;
-  }
-
-  cerrarDropdownFiltroEstadoConRetraso(): void {
-    setTimeout(() => this.cerrarDropdownFiltroFlujo('estado'), 120);
-  }
-
-  seleccionarFiltroEstado(estado: EstadoTarea | ''): void {
-    this.filtroEstadoActividad = estado;
+  seleccionarFiltroEstado(estado: unknown): void {
+    const estadoNormalizado = typeof estado === 'string' && this.estadosActividad.includes(estado as EstadoTarea)
+      ? estado as EstadoTarea
+      : '';
+    this.filtroEstadoActividad = estadoNormalizado;
     this.reiniciarPaginacionTablaFlujo();
-    this.cerrarDropdownFiltroFlujo('estado');
   }
 
   limpiarFiltros(): void {
@@ -454,10 +455,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     this.filtroFechaDesde = '';
     this.filtroFechaHasta = '';
     this.mostrarFiltrosAvanzados = false;
-    this.mostrarFiltroFechas = false;
     this.reiniciarPaginacionTablaFlujo();
-    this.cerrarDropdownFiltroFlujo('responsable');
-    this.cerrarDropdownFiltroFlujo('estado');
   }
 
   getEstadoActividad(nodo: FlujoNodo): EstadoTarea {

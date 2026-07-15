@@ -25,6 +25,7 @@ import { FirmaFormModalComponent, FirmaFormData } from '../firma-form-modal/firm
 import { FirmasService } from '../../services/firmas.service';
 import { Firma } from '../../models/firma.model';
 import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../shared/components/select-searchable/select-searchable.component';
 
 export interface InformeFormData {
   id?: string;
@@ -39,7 +40,7 @@ export interface InformeFormData {
 @Component({
   selector: 'app-informe-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, FirmaFormModalComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, ModalDismissDirective, CKEditorModule, FirmaFormModalComponent, DatePickerComponent, SelectSearchableComponent],
   templateUrl: './informe-form-modal.component.html',
   styleUrls: ['./informe-form-modal.component.css'],
 })
@@ -111,6 +112,14 @@ export class InformeFormModalComponent implements OnChanges, OnInit {
   // Firmas disponibles (cargadas del backend/servicio)
   protected firmasDisponibles: Firma[] = [];
   protected opcionesFirma: string[] = ['Firma 1', 'Firma 2', 'Firma 3'];
+  protected get firmaOptions(): SelectSearchableOption[] {
+    return this.opcionesFirma.map((firma) => ({ value: firma, label: firma }));
+  }
+
+  protected onFirmaInformeSeleccionada(value: unknown): void {
+    this.form.firma = value === null || value === undefined ? '' : String(value);
+    this.actualizarPreview();
+  }
 
   // Modal de nueva firma
   protected mostrarModalFirma = false;

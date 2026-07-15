@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ResponsableSelectComponent } from '../../../../../../../../shared/components/responsable-select/responsable-select.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../../../../../shared/components/select-searchable/select-searchable.component';
 import { UbicacionSelectComponent } from '../../../../../../../../shared/components/ubicacion-select/ubicacion-select.component';
 import { Proyecto, Responsable } from '../../../../../../models/solicitud.model';
 import { ProyectoInfoFormData } from '../../tab-informacion.models';
@@ -9,7 +10,7 @@ import { ProyectoInfoFormData } from '../../tab-informacion.models';
 @Component({
   selector: 'app-identificacion-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, UbicacionSelectComponent, ResponsableSelectComponent],
+  imports: [CommonModule, FormsModule, UbicacionSelectComponent, ResponsableSelectComponent, SelectSearchableComponent],
   templateUrl: './identificacion-card.component.html'
 })
 export class IdentificacionCardComponent {
@@ -51,6 +52,14 @@ export class IdentificacionCardComponent {
       : d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
+
+  get areasPendientesOptions(): SelectSearchableOption[] {
+    return this.areasPendientesParaAgregar.map((area) => ({ value: area, label: area }));
+  }
+
+  normalizarAreaSeleccionada(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value);
+  }
   get areasPendientesParaAgregar(): string[] {
     const seleccionadas = new Set(this.proyectoInfoForm.areas || []);
     return this.areasDisponibles.filter(area => !seleccionadas.has(area));

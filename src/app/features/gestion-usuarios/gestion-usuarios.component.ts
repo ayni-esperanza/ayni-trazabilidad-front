@@ -36,6 +36,7 @@ import {
   ConfirmDeleteConfig,
 } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/components/select-searchable/select-searchable.component';
 
 interface Filtros {
   busqueda: string;
@@ -53,6 +54,7 @@ interface Filtros {
     PaginacionComponent,
     ConfirmDeleteModalComponent,
     VideoTutorialComponent,
+    SelectSearchableComponent,
   ],
   templateUrl: './gestion-usuarios.component.html',
   styleUrls: ['./gestion-usuarios.component.css'],
@@ -94,6 +96,14 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     busqueda: '',
     rol: '',
   };
+
+  get rolesFiltroOptions(): SelectSearchableOption[] {
+    return this.roles.map((rol) => ({ value: rol.id, label: rol.nombre }));
+  }
+
+  normalizarValorFiltro(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value);
+  }
 
   // Paginación
   paginacion: PaginacionConfig = {

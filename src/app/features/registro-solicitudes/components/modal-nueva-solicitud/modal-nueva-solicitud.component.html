@@ -36,7 +36,9 @@
             [value]="solicitud.responsableId || 0"
             (valueChange)="solicitud.responsableId = +$event"
             [placeholder]="'Seleccionar Responsable de AYNI'"
-            [emptyValue]="0">
+            [emptyValue]="0"
+            [hasError]="tieneError('responsableId')"
+            inputClass="h-[34px] w-full px-2 pr-9 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-gray-700 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed">
           </app-responsable-select>
           <span *ngIf="tieneError('responsableId')" class="text-xs text-red-500 mt-0.5 block">{{ errores['responsableId'] }}</span>
         </div>
