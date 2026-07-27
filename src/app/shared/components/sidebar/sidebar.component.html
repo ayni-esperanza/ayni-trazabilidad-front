@@ -1,7 +1,19 @@
 <aside
-  class="hidden h-screen max-w-full flex-col border-r border-gray-200 bg-white transition-[width] duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-900 md:flex"
+  class="relative hidden h-screen max-w-full flex-col border-r border-gray-200 bg-white transition-[width] duration-300 ease-in-out dark:border-gray-700 dark:bg-gray-900 md:flex"
   [class.w-56]="isExpanded()"
   [class.w-16]="!isExpanded()">
+
+
+  <button
+    type="button"
+    (click)="toggleSidebar()"
+    class="absolute right-0 top-9 z-50 flex h-8 w-8 translate-x-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:scale-105 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800 dark:hover:text-white"
+    [attr.aria-label]="isExpanded() ? 'Colapsar sidebar' : 'Expandir sidebar'"
+    [title]="isExpanded() ? 'Colapsar sidebar' : 'Expandir sidebar'">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="isExpanded() ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'" />
+    </svg>
+  </button>
 
   <div class="border-b border-gray-200 p-2.5 dark:border-gray-700">
     @if (isExpanded()) {
@@ -10,23 +22,9 @@
           <img src="logoayni.png" alt="AYNI Logo" class="h-7 w-7 object-contain">
           <span class="text-sm font-semibold text-gray-800 dark:text-white">Modulo de Trazabilidad</span>
         </div>
-        <button
-          (click)="toggleSidebar()"
-          class="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
-        </button>
       </div>
     } @else {
       <div class="flex flex-col items-center gap-2">
-        <button
-          (click)="toggleSidebar()"
-          class="mx-auto rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-          </svg>
-        </button>
         <img src="logoayni.png" alt="AYNI Logo" class="h-8 w-8 object-contain">
       </div>
     }
