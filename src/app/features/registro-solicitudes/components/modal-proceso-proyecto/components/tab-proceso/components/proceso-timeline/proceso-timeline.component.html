@@ -14,7 +14,9 @@
 				class="relative rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 p-2.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/60"
 				[ngClass]="{
 					'cursor-default': !ctx.puedeAbrirNodo(nodo),
-					'!border-amber-300 dark:!border-amber-700 !bg-amber-50/80 dark:!bg-amber-900/20 hover:!bg-amber-50 dark:hover:!bg-amber-900/25': ctx.esNodoOrdenCompra(nodo)
+					'!border-amber-300 dark:!border-amber-700 !bg-amber-50/80 dark:!bg-amber-900/20 hover:!bg-amber-50 dark:hover:!bg-amber-900/25': ctx.esNodoOrdenCompra(nodo),
+					'z-[80]': ctx.isEstadoDropdownAbierto(nodo.id),
+					'z-0': !ctx.isEstadoDropdownAbierto(nodo.id)
 				}"
 				(click)="ctx.abrirNodo(nodo)">
 				<div class="absolute -left-6 top-3 w-4 h-4 rounded-full border-2 border-white dark:border-gray-900"
@@ -45,7 +47,7 @@
 						<span>•</span>
 					</ng-container>
 					<span class="truncate">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || 'Sin fecha') : ((ctx.formatDateStandar(nodo.fechaInicio) || '—') + ' - ' + (ctx.formatDateStandar(nodo.fechaFin) || '—')) }}</span>
-					<div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group" (focusout)="ctx.cerrarEstadoDropdownConRetraso(nodo.id)">
+					<div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative z-10 inline-flex items-center group" [ngClass]="{ 'z-[90]': ctx.isEstadoDropdownAbierto(nodo.id) }" (focusout)="ctx.cerrarEstadoDropdownConRetraso(nodo.id)">
 						<button
 							type="button"
 							(click)="ctx.toggleEstadoDropdown(nodo.id)"
@@ -61,7 +63,7 @@
 						</svg>
 						<div
 							*ngIf="ctx.isEstadoDropdownAbierto(nodo.id)"
-							class="absolute left-0 top-full z-[1000] mt-1 w-32 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+							class="absolute left-0 top-full z-[9999] mt-1 w-32 rounded-md border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
 							<button
 								*ngFor="let estado of ctx.estadosActividad"
 								type="button"

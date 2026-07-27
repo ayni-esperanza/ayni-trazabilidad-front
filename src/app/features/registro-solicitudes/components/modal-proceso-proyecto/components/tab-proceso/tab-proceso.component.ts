@@ -575,6 +575,10 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     return !!this.estadoDropdownAbierto[nodoId];
   }
 
+  hayEstadoDropdownActividadAbierto(): boolean {
+    return Object.values(this.estadoDropdownAbierto).some(Boolean);
+  }
+
   getCostoDependenciaActividad(nodoId: number): number {
     return this.obtenerCostoPorDependencia(this.costosMateriales, nodoId)
       + this.obtenerCostoPorDependencia(this.costosManoObra, nodoId)

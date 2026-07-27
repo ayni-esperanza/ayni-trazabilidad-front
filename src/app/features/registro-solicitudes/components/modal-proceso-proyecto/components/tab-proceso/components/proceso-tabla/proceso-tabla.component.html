@@ -1,4 +1,4 @@
-<div *ngIf="vistaFlujo === 'tabla'" class="relative z-20 border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-visible bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in">
+<div *ngIf="vistaFlujo === 'tabla'" class="relative border border-gray-200 dark:border-[#1f3554] rounded-lg overflow-visible bg-white dark:bg-[oklch(0.21_0.034_264.665)] animate-ui-in" [ngClass]="ctx.hayEstadoDropdownActividadAbierto() ? 'z-[80]' : 'z-20'">
   <div class="overflow-visible">
     <table class="w-full text-xs">
       <thead class="sticky top-0 bg-gray-50 dark:bg-[oklch(0.373_0.034_259.733)] border-b border-gray-200 dark:border-[#2a3f5f]">
@@ -37,7 +37,9 @@
           (click)="ctx.abrirNodo(nodo)"
           [ngClass]="{
             'cursor-pointer hover:bg-gray-50 dark:hover:bg-[oklch(0.373_0.034_259.733/.22)]': ctx.puedeAbrirNodo(nodo),
-            'bg-amber-50/70 dark:bg-amber-900/20': ctx.esNodoOrdenCompra(nodo)
+            'bg-amber-50/70 dark:bg-amber-900/20': ctx.esNodoOrdenCompra(nodo),
+            'relative z-[80]': ctx.isEstadoDropdownAbierto(nodo.id),
+            'relative z-0': !ctx.isEstadoDropdownAbierto(nodo.id)
           }">
           <td class="py-2 px-2 text-center" (click)="$event.stopPropagation()">
             <input
@@ -437,7 +439,7 @@
           <td class="py-2 px-2 text-gray-600 dark:text-gray-300">{{ ctx.esNodoOrdenCompra(nodo) ? (ctx.formatDateStandar(nodo.fechaInicio) || '—') : (nodo.fechaCambioEstado ? (nodo.fechaCambioEstado | date:'dd-MM-yyyy HH:mm') : '—') }}</td>
           <td class="py-2 px-2">
             <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
-              <div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative inline-flex items-center group" (focusout)="ctx.cerrarEstadoDropdownConRetraso(nodo.id)">
+              <div *ngIf="nodo.tipo !== 'inicio' && !ctx.esNodoOrdenCompra(nodo)" class="relative z-10 inline-flex items-center group" [ngClass]="{ 'z-[90]': ctx.isEstadoDropdownAbierto(nodo.id) }" (focusout)="ctx.cerrarEstadoDropdownConRetraso(nodo.id)">
                 <button
                   type="button"
                   (click)="ctx.toggleEstadoDropdown(nodo.id)"
@@ -453,7 +455,7 @@
                 </svg>
                 <div
                   *ngIf="ctx.isEstadoDropdownAbierto(nodo.id)"
-                  class="absolute left-0 top-full z-[1000] mt-1 min-w-full w-max overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                  class="absolute left-0 bottom-full z-[9999] mb-1 min-w-full w-max overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
                   <button
                     *ngFor="let estado of ctx.estadosActividad"
                     type="button"
