@@ -142,9 +142,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['flujoNodos'] || changes['ordenesCompra'] || changes['proyecto']) {
-      if (changes['ordenesCompra']) {
-        this.nodosOrdenCompraCache = this.mapearOrdenesCompraANodos();
-      }
+      this.nodosOrdenCompraCache = this.mapearOrdenesCompraANodos();
       this.limpiarSeleccionActividadesInexistentes();
       this.refrescarPaginacionTablaFlujo();
     }
@@ -334,13 +332,20 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
 
       if (secuencia !== this.secuenciaCargaTablaFlujo) return;
 
-      this.flujoTablaServidor = response.content || [];
+      const ordenesCompraFiltradas = this.ordenarYFiltrarNodos(this.nodosOrdenCompraCache || []);
+      const totalElementos = Number(response.totalElements || 0) + ordenesCompraFiltradas.length;
+      const porPagina = response.size || this.paginacionTablaFlujo.porPagina;
+
+      this.flujoTablaServidor = this.ordenarYFiltrarNodos([
+        ...(response.content || []),
+        ...ordenesCompraFiltradas
+      ]);
       this.paginacionTablaFlujo = {
         ...this.paginacionTablaFlujo,
-        totalElementos: response.totalElements || 0,
-        totalPaginas: response.totalPages || 0,
+        totalElementos,
+        totalPaginas: Math.ceil(totalElementos / porPagina),
         paginaActual: response.page || 0,
-        porPagina: response.size || this.paginacionTablaFlujo.porPagina
+        porPagina
       };
       this.limpiarSeleccionActividadesInexistentes();
     } catch (error) {
@@ -1271,73 +1276,77 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       const nodosBase = Array.isArray(this.flujoNodos) ? this.flujoNodos : [];
       const nodos = nodosBase.filter((nodo): nodo is FlujoNodo => !!nodo && typeof nodo === 'object');
       const nodosOrdenCompra = this.nodosOrdenCompraCache || [];
-      const direction = this.ordenRecientePrimero ? -1 : 1;
-
-      const todos = [...nodos.filter((nodo) => String(nodo.tipo || '').toLowerCase() !== 'inicio'), ...nodosOrdenCompra]
-        .sort((a, b) => {
-          const esSegA = this.esNodoSeguimiento(a);
-          const esSegB = this.esNodoSeguimiento(b);
-
-          if (esSegA !== esSegB) {
-            return (esSegA ? 1 : -1) * direction;
-          }
-
-          const fechaA = this.obtenerSortFechaNodo(a);
-          const fechaB = this.obtenerSortFechaNodo(b);
-
-          if (fechaA !== fechaB) {
-            return (fechaA - fechaB) * direction;
-          }
-
-          return (this.obtenerSortSecundarioNodo(a) - this.obtenerSortSecundarioNodo(b)) * direction;
-        });
-
-      return todos.filter(nodo => {
-        // Filtro texto (nombre, descripción, responsable)
-        const termino = (this.filtroBusqueda || '').trim().toLowerCase();
-        if (termino) {
-          const nombre = (nodo.nombre || '').toLowerCase();
-          const descripcion = (nodo.descripcion || '').toLowerCase();
-          const responsable = (nodo.responsableNombre || '').toLowerCase();
-          if (!nombre.includes(termino) && !descripcion.includes(termino) && !responsable.includes(termino)) {
-            return false;
-          }
-        }
-
-        // Filtro responsable
-        if (this.filtroResponsableId !== '' && this.filtroResponsableId !== null) {
-          if (Number(nodo.responsableId) !== Number(this.filtroResponsableId)) {
-            return false;
-          }
-        }
-
-        // Filtro estado
-        if (this.filtroEstadoActividad) {
-          const estadoNodo = this.esNodoOrdenCompra(nodo) ? 'Completado' : this.normalizarEstadoActividad(nodo.estadoActividad);
-          if (estadoNodo !== this.filtroEstadoActividad) {
-            return false;
-          }
-        }
-
-        // Filtro fechas (sobre fechaInicio del nodo)
-        if (this.filtroFechaDesde || this.filtroFechaHasta) {
-          const fechaInicioStr = typeof nodo.fechaInicio === 'string' ? nodo.fechaInicio.slice(0, 10) : '';
-          if (!fechaInicioStr) {
-            return false;
-          }
-          if (this.filtroFechaDesde && fechaInicioStr < this.filtroFechaDesde) {
-            return false;
-          }
-          if (this.filtroFechaHasta && fechaInicioStr > this.filtroFechaHasta) {
-            return false;
-          }
-        }
-
-        return true;
-      });
+      return this.ordenarYFiltrarNodos([
+        ...nodos.filter((nodo) => String(nodo.tipo || '').toLowerCase() !== 'inicio'),
+        ...nodosOrdenCompra
+      ]);
     } catch {
       return [];
     }
+  }
+
+  private ordenarYFiltrarNodos(nodos: FlujoNodo[]): FlujoNodo[] {
+    const direction = this.ordenRecientePrimero ? -1 : 1;
+
+    return [...(nodos || [])]
+      .sort((a, b) => {
+        const esSegA = this.esNodoSeguimiento(a);
+        const esSegB = this.esNodoSeguimiento(b);
+
+        if (esSegA !== esSegB) {
+          return (esSegA ? 1 : -1) * direction;
+        }
+
+        const fechaA = this.obtenerSortFechaNodo(a);
+        const fechaB = this.obtenerSortFechaNodo(b);
+
+        if (fechaA !== fechaB) {
+          return (fechaA - fechaB) * direction;
+        }
+
+        return (this.obtenerSortSecundarioNodo(a) - this.obtenerSortSecundarioNodo(b)) * direction;
+      })
+      .filter((nodo) => this.cumpleFiltrosFlujo(nodo));
+  }
+
+  private cumpleFiltrosFlujo(nodo: FlujoNodo): boolean {
+    const termino = (this.filtroBusqueda || '').trim().toLowerCase();
+    if (termino) {
+      const nombre = (nodo.nombre || '').toLowerCase();
+      const descripcion = (nodo.descripcion || '').toLowerCase();
+      const responsable = (nodo.responsableNombre || '').toLowerCase();
+      if (!nombre.includes(termino) && !descripcion.includes(termino) && !responsable.includes(termino)) {
+        return false;
+      }
+    }
+
+    if (this.filtroResponsableId !== '' && this.filtroResponsableId !== null) {
+      if (Number(nodo.responsableId) !== Number(this.filtroResponsableId)) {
+        return false;
+      }
+    }
+
+    if (this.filtroEstadoActividad) {
+      const estadoNodo = this.esNodoOrdenCompra(nodo) ? 'Completado' : this.normalizarEstadoActividad(nodo.estadoActividad);
+      if (estadoNodo !== this.filtroEstadoActividad) {
+        return false;
+      }
+    }
+
+    if (this.filtroFechaDesde || this.filtroFechaHasta) {
+      const fechaInicioStr = typeof nodo.fechaInicio === 'string' ? nodo.fechaInicio.slice(0, 10) : '';
+      if (!fechaInicioStr) {
+        return false;
+      }
+      if (this.filtroFechaDesde && fechaInicioStr < this.filtroFechaDesde) {
+        return false;
+      }
+      if (this.filtroFechaHasta && fechaInicioStr > this.filtroFechaHasta) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   esActividadSeguimiento(nodo: FlujoNodo): boolean {
