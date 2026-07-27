@@ -127,13 +127,16 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   // Gastos por proyecto (para vista de gastos)
   gastosProyectos: GastoProyecto[] = [];
   gastosFiltrados: GastoProyecto[] = [];
-
   readonly areasCatalogo: string[] = [
+    'Administracion',
     'Metalmecanica',
-    'Mecanica',
+    'Mecanica automotriz',
     'Fibra',
-    'Electrico',
+    'Electricidad',
     'Lineas de vida',
+    'Polimeros',
+    'Torres de enfriamiento',
+    'Perforación',
     'Sistemas'
   ];
   

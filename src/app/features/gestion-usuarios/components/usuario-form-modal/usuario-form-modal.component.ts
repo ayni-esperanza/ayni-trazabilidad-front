@@ -28,11 +28,15 @@ export interface UsuarioFormData {
 })
 export class UsuarioFormModalComponent implements OnChanges {
   readonly areasDisponibles: string[] = [
+    'Administracion',
     'Metalmecanica',
-    'Mecanica',
+    'Mecanica automotriz',
     'Fibra',
-    'Electrico',
+    'Electricidad',
     'Lineas de vida',
+    'Polimeros',
+    'Torres de enfriamiento',
+    'Perforación',
     'Sistemas'
   ];
   

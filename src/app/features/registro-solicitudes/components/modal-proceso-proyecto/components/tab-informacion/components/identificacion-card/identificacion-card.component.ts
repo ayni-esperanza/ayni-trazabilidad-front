@@ -21,16 +21,17 @@ export class IdentificacionCardComponent {
 
   expandida = true;
   areaSeleccionadaParaAgregar = '';
-
   readonly areasDisponibles: string[] = [
+    'Administracion',
     'Civil',
     'Electricidad',
     'Extrusión - Inyección',
     'Fibra',
     'Líneas de vida',
-    'Mecánica',
+    'Mecanica automotriz',
     'Metalmecánica',
-    'Perforación de pozos',
+    'Perforación',
+    'Polimeros',
     'Sistemas',
     'Torres de enfriamiento',
   ];
