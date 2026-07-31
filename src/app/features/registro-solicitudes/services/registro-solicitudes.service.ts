@@ -515,7 +515,7 @@ export class RegistroSolicitudesService {
 
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
     return this.http.get<CostoMaterialApi[]>(`/v1/proyectos/${proyectoId}/costos/materiales`).pipe(
-      map((items) => (items || []).map((item) => ({
+      map((items) => this.ordenarPorFechaDesc((items || []).map((item) => ({
         id: item.id,
         fecha: item.fecha,
         nroComprobante: item.nroComprobante,
@@ -526,7 +526,7 @@ export class RegistroSolicitudesService {
         costoTotal: Number(item.costoTotal || 0),
         encargado: item.encargado,
         dependenciaActividadId: item.dependenciaActividadId ?? null
-      })))
+      }))))
     );
   }
 
@@ -633,7 +633,7 @@ export class RegistroSolicitudesService {
 
   obtenerCostosAdicionales(proyectoId: number): Observable<CostoAdicionalApi[]> {
     return this.http.get<CostoAdicionalApi[]>(`/v1/proyectos/${proyectoId}/costos/adicionales`).pipe(
-      map((items) => (items || []).map((item) => ({
+      map((items) => this.ordenarPorFechaDesc((items || []).map((item) => ({
         id: item.id,
         fecha: item.fecha,
         categoria: item.categoria,
@@ -643,7 +643,7 @@ export class RegistroSolicitudesService {
         costoTotal: Number(item.costoTotal || 0),
         encargado: item.encargado,
         dependenciaActividadId: item.dependenciaActividadId ?? null
-      })))
+      }))))
     );
   }
 
@@ -950,6 +950,14 @@ export class RegistroSolicitudesService {
     const date = new Date(raw);
     if (Number.isNaN(date.getTime())) return undefined;
     return date;
+  }
+
+  private ordenarPorFechaDesc<T extends { fecha?: string }>(items: T[]): T[] {
+    return [...items].sort((a, b) => this.obtenerTimestampFecha(b.fecha) - this.obtenerTimestampFecha(a.fecha));
+  }
+
+  private obtenerTimestampFecha(value?: string): number {
+    return this.toDate(value)?.getTime() ?? Number.NEGATIVE_INFINITY;
   }
 
   private toIsoDate(value?: Date | string): string | null {
