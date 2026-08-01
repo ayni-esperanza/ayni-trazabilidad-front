@@ -24,7 +24,7 @@
 </div>
 <div *ngIf="visible"
   [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
-  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades"
+  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades && !mostrarConfirmacionGuardarCostos && !mostrarConfirmacionEliminarCategoriaCostos"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
     [ngClass]="embedded
@@ -388,6 +388,24 @@
   [config]="configCancelarModal"
   (confirmar)="confirmarCancelacion()"
   (cancelar)="onCancelarConfirmacionCancelar()">
+</app-confirm-delete-modal>
+
+<!-- Modal de confirmacion para guardar costos con eliminaciones -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionGuardarCostos"
+  [loading]="sincronizandoCostos"
+  [config]="configGuardarCostosModal"
+  (confirmar)="confirmarGuardadoCostosConEliminaciones()"
+  (cancelar)="cancelarGuardadoCostosConEliminaciones()">
+</app-confirm-delete-modal>
+
+<!-- Modal de confirmacion para eliminar categorias de costos -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionEliminarCategoriaCostos"
+  [loading]="cargandoEliminarCategoriaCostos"
+  [config]="configEliminarCategoriaCostosModal"
+  (confirmar)="confirmarEliminacionCategoriaCostos()"
+  (cancelar)="cancelarEliminacionCategoriaCostos()">
 </app-confirm-delete-modal>
 
 <!-- Modal de confirmación de finalización (sobremodal) -->

@@ -68,6 +68,15 @@ export interface TablaCostoExtra {
   expandida: boolean;
 }
 
+type ResumenEliminacionCostos = {
+  materiales: number;
+  manoObra: number;
+  adicionales: number;
+  total: number;
+};
+
+type AccionCostosPendiente = 'guardar' | 'cerrar';
+
 @Component({
   selector: 'app-modal-proceso-proyecto',
   standalone: true,
@@ -120,6 +129,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   mostrarConfirmacionFinalizar = false;
   cargandoFinalizacion = false;
   configFinalizarModal: ConfirmFinalizeConfig = {};
+
+  // Modal de confirmacion para eliminaciones de costos
+  mostrarConfirmacionGuardarCostos = false;
+  cargandoConfirmacionGuardarCostos = false;
+  configGuardarCostosModal: ConfirmDeleteConfig = {};
+  accionCostosPendiente: AccionCostosPendiente | null = null;
+
+  // Modal de confirmacion para eliminar categorias de otros costos
+  mostrarConfirmacionEliminarCategoriaCostos = false;
+  cargandoEliminarCategoriaCostos = false;
+  configEliminarCategoriaCostosModal: ConfirmDeleteConfig = {};
+  categoriaCostosPendiente: TablaCostoExtra | null = null;
 
   // Vista previa de documentos
   mostrarVistaPreviaDocumento = false;
@@ -187,7 +208,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
-      this.proyectoFinalizado = this.proyecto.estado === 'Completado' || this.proyecto.estado === 'Finalizado';
+      this.proyectoFinalizado = this.proyecto.estado === 'Completado' || this.proyecto.estado === 'Finalizado' || this.proyecto.estado === 'Archivado';
       this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
       // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
       this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
@@ -262,23 +283,40 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onCerrar(): void {
-    if (this.sincronizandoCostos) return;
+    if (this.sincronizandoCostos || this.cargandoConfirmacionGuardarCostos) return;
 
     // Persistir etapas en el proyecto al cerrar
     this.guardarEtapasEnProyecto();
-    this.sincronizarCostosProyecto().subscribe({
-      complete: () => this.cerrar.emit(),
-      error: () => this.cerrar.emit()
-    });
+
+    if (!this.proyecto) {
+      this.cerrar.emit();
+      return;
+    }
+
+    this.confirmarSincronizacionCostosSiElimina('cerrar');
   }
 
   guardarCostosProyecto(): void {
-    if (!this.proyecto || this.modoSoloLectura || this.sincronizandoCostos) return;
+    if (!this.proyecto || this.sincronizandoCostos || this.cargandoConfirmacionGuardarCostos) return;
 
-    this.sincronizarCostosProyecto().subscribe({
-      next: () => this.marcarActualizacionProyecto(),
-      error: (error) => console.error('Error sincronizando costos:', error)
-    });
+    this.confirmarSincronizacionCostosSiElimina('guardar');
+  }
+
+  confirmarGuardadoCostosConEliminaciones(): void {
+    const accion = this.accionCostosPendiente;
+    this.mostrarConfirmacionGuardarCostos = false;
+    this.accionCostosPendiente = null;
+
+    if (accion) {
+      this.ejecutarSincronizacionCostos(accion);
+    }
+  }
+
+  cancelarGuardadoCostosConEliminaciones(): void {
+    this.mostrarConfirmacionGuardarCostos = false;
+    this.cargandoConfirmacionGuardarCostos = false;
+    this.accionCostosPendiente = null;
+    this.cargarCostosProyecto();
   }
 
   onCancelarProyecto(): void {
@@ -1760,6 +1798,37 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onEliminarCategoriaCostos(tabla: TablaCostoExtra): void {
     if (!this.proyecto || this.modoSoloLectura) return;
 
+    const cantidad = tabla.items?.length || 0;
+    const nombre = (tabla.nombre || '').trim() || 'Sin categoria';
+    this.categoriaCostosPendiente = tabla;
+    this.configEliminarCategoriaCostosModal = {
+      titulo: 'Eliminar categoria de costos',
+      mensaje: cantidad > 0
+        ? `Estas seguro que deseas eliminar la categoria "${nombre}"? Se quitaran ${cantidad} dato(s) de costos asociados.`
+        : `Estas seguro que deseas eliminar la categoria "${nombre}"?`,
+      textoConfirmar: 'Eliminar categoria'
+    };
+    this.mostrarConfirmacionEliminarCategoriaCostos = true;
+  }
+
+  confirmarEliminacionCategoriaCostos(): void {
+    const tabla = this.categoriaCostosPendiente;
+    if (!tabla) return;
+
+    this.mostrarConfirmacionEliminarCategoriaCostos = false;
+    this.categoriaCostosPendiente = null;
+    this.aplicarEliminacionCategoriaCostos(tabla);
+  }
+
+  cancelarEliminacionCategoriaCostos(): void {
+    this.mostrarConfirmacionEliminarCategoriaCostos = false;
+    this.cargandoEliminarCategoriaCostos = false;
+    this.categoriaCostosPendiente = null;
+  }
+
+  private aplicarEliminacionCategoriaCostos(tabla: TablaCostoExtra): void {
+    if (!this.proyecto) return;
+
     const nombre = (tabla.nombre || '').trim().toLowerCase();
     this.tablasCostosExtras = this.tablasCostosExtras.filter((item) => item.id !== tabla.id);
 
@@ -1767,13 +1836,18 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       return;
     }
 
+    this.cargandoEliminarCategoriaCostos = true;
     this.registroSolicitudesService.eliminarCategoriaAdicional(this.proyecto.id, tabla.categoriaId).subscribe({
       error: (error) => {
-        console.error('Error eliminando categoría adicional:', error);
+        this.cargandoEliminarCategoriaCostos = false;
+        console.error('Error eliminando categoria adicional:', error);
         const existeRestaurada = this.tablasCostosExtras.some((item) => item.nombre.trim().toLowerCase() === nombre);
         if (!existeRestaurada) {
           this.tablasCostosExtras = [...this.tablasCostosExtras, tabla].sort((a, b) => a.nombre.localeCompare(b.nombre));
         }
+      },
+      complete: () => {
+        this.cargandoEliminarCategoriaCostos = false;
       }
     });
   }
@@ -1783,6 +1857,101 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return Math.max(...tablas.map((tabla) => tabla.id)) + 1;
   }
 
+  private confirmarSincronizacionCostosSiElimina(accion: AccionCostosPendiente): void {
+    this.cargandoConfirmacionGuardarCostos = true;
+    this.obtenerResumenEliminacionCostos().subscribe({
+      next: (resumen) => {
+        this.cargandoConfirmacionGuardarCostos = false;
+        if (resumen.total > 0) {
+          this.accionCostosPendiente = accion;
+          this.configGuardarCostosModal = this.crearConfigConfirmacionEliminacionCostos(resumen, accion);
+          this.mostrarConfirmacionGuardarCostos = true;
+          return;
+        }
+
+        this.ejecutarSincronizacionCostos(accion);
+      },
+      error: (error) => {
+        this.cargandoConfirmacionGuardarCostos = false;
+        console.error('Error verificando eliminaciones de costos:', error);
+        this.accionCostosPendiente = accion;
+        this.configGuardarCostosModal = {
+          titulo: 'No se pudo verificar costos',
+          mensaje: 'No se pudo comprobar si el guardado eliminara costos existentes. Confirma solo si deseas continuar de todas formas.',
+          textoConfirmar: accion === 'cerrar' ? 'Continuar y volver' : 'Continuar y guardar'
+        };
+        this.mostrarConfirmacionGuardarCostos = true;
+      }
+    });
+  }
+
+  private ejecutarSincronizacionCostos(accion: AccionCostosPendiente): void {
+    this.sincronizarCostosProyecto().subscribe({
+      next: () => {
+        if (accion === 'guardar') {
+          this.marcarActualizacionProyecto();
+        }
+      },
+      complete: () => {
+        if (accion === 'cerrar') {
+          this.cerrar.emit();
+        }
+      },
+      error: (error) => {
+        console.error('Error sincronizando costos:', error);
+        if (accion === 'cerrar') {
+          this.cerrar.emit();
+        }
+      }
+    });
+  }
+
+  private obtenerResumenEliminacionCostos(): Observable<ResumenEliminacionCostos> {
+    if (!this.proyecto) {
+      return of({ materiales: 0, manoObra: 0, adicionales: 0, total: 0 });
+    }
+
+    const proyectoId = this.proyecto.id;
+    const materialesIdsLocales = new Set(this.materiales.map((item) => item.id));
+    const manoObraIdsLocales = new Set(this.manoObra.map((item) => item.id));
+    const adicionalesIdsLocales = new Set(
+      this.tablasCostosExtras.flatMap((tabla) => tabla.items.map((item) => item.id))
+    );
+
+    return forkJoin({
+      materiales: this.registroSolicitudesService.obtenerCostosMateriales(proyectoId),
+      manoObra: this.registroSolicitudesService.obtenerCostosManoObra(proyectoId),
+      adicionales: this.registroSolicitudesService.obtenerCostosAdicionales(proyectoId)
+    }).pipe(
+      map(({ materiales, manoObra, adicionales }) => {
+        const resumen = {
+          materiales: (materiales || []).filter((item) => !materialesIdsLocales.has(item.id)).length,
+          manoObra: (manoObra || []).filter((item) => !manoObraIdsLocales.has(item.id)).length,
+          adicionales: (adicionales || []).filter((item) => !adicionalesIdsLocales.has(item.id)).length,
+          total: 0
+        };
+        resumen.total = resumen.materiales + resumen.manoObra + resumen.adicionales;
+        return resumen;
+      })
+    );
+  }
+
+  private crearConfigConfirmacionEliminacionCostos(
+    resumen: ResumenEliminacionCostos,
+    accion: AccionCostosPendiente
+  ): ConfirmDeleteConfig {
+    const detalles = [
+      resumen.materiales ? `${resumen.materiales} material(es)` : '',
+      resumen.manoObra ? `${resumen.manoObra} registro(s) de mano de obra` : '',
+      resumen.adicionales ? `${resumen.adicionales} otro(s) costo(s)` : ''
+    ].filter(Boolean).join(', ');
+
+    return {
+      titulo: 'Confirmar eliminacion de costos',
+      mensaje: `Estas seguro que deseas eliminar ${resumen.total} dato(s) de costos? Se eliminaran: ${detalles}.`,
+      textoConfirmar: accion === 'cerrar' ? 'Eliminar y volver' : 'Eliminar y guardar'
+    };
+  }
   private sincronizarCostosProyecto(): Observable<unknown> {
     if (!this.proyecto || this.sincronizandoCostos) return of(null);
 
