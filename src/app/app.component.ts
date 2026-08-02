@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router, NavigationEnd, NavigationStart, RouterOutlet } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
+import { LoadingLogoComponent } from './shared/components/loading-logo/loading-logo.component';
 import { ThemeService } from './core/services/theme.service';
 import { FlowbiteService } from './core/services/flowbite.service';
 import { AuthService } from './core/services/auth.service';
@@ -9,13 +10,14 @@ import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, SidebarComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, LoadingLogoComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   title = 'trazabilidad-front';
   showSidebar = false;
+  initialNavigationComplete = false;
   private readonly isBrowser: boolean;
   private readonly firstOpenLoaderKey = 'ayni-first-open-loader-seen-v1';
   
@@ -55,6 +57,10 @@ export class AppComponent implements OnInit {
       }
 
       this.actualizarVisibilidadSidebar(url);
+
+      if (event instanceof NavigationEnd) {
+        this.initialNavigationComplete = true;
+      }
     });
   }
 

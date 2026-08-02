@@ -1,11 +1,17 @@
-<div class="flex h-screen bg-gray-50 dark:bg-gray-800">
-  <!-- Sidebar (solo visible cuando no es login) -->
-  @if (showSidebar) {
-    <app-sidebar class="relative z-[90] isolate" ngSkipHydration></app-sidebar>
-  }
-  
-  <!-- Main Content -->
-  <main class="app-shell-main flex-1 overflow-y-auto pb-20 md:pb-0">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+@if (!initialNavigationComplete) {
+  <section class="flex min-h-screen items-center justify-center bg-[#eef5f0] px-4 dark:bg-slate-950" aria-live="polite" aria-label="Cargando AYNI">
+    <app-loading-logo size="lg" mode="stroke-fill" text="Cargando"></app-loading-logo>
+  </section>
+} @else {
+  <div class="flex h-screen bg-gray-50 dark:bg-gray-800">
+    <!-- Sidebar (solo visible cuando no es login) -->
+    @if (showSidebar) {
+      <app-sidebar class="relative z-[90] isolate" ngSkipHydration></app-sidebar>
+    }
+
+    <!-- Main Content -->
+    <main class="app-shell-main flex-1 overflow-y-auto pb-20 md:pb-0">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+}
