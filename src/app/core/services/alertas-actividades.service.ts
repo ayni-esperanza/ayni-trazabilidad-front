@@ -34,7 +34,19 @@ type ProyectoNombreApi = {
 
 type PaginatedResponse<T> = {
   content: T[];
+  totalElements?: number;
+  totalPages?: number;
+  page?: number;
+  size?: number;
 };
+
+export interface AlertasActividadesPaginadas {
+  content: AlertaActividadGlobal[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -59,29 +71,7 @@ export class AlertasActividadesService {
 
   refrescarAlertas(): Observable<AlertaActividadGlobal[]> {
     return this.http.get<AlertaActividadApi[]>(this.endpoint).pipe(
-      map((items) => (items || []).map((item) => ({
-        ...item,
-        proyectoNombre: this.resolveProyectoNombre(item),
-        estado: this.normalizarEstado(item.estado),
-      }))),
-      switchMap((items) => {
-        const sinNombre = items.filter((item) => !item.proyectoNombre);
-        if (!sinNombre.length) {
-          return of(items);
-        }
-
-        const ids = [...new Set(sinNombre.map((item) => Number(item.proyectoId || 0)).filter((id) => id > 0))];
-        if (!ids.length) {
-          return of(items);
-        }
-
-        return this.obtenerMapaNombresProyecto(ids).pipe(
-          map((mapaNombres) => items.map((item) => ({
-            ...item,
-            proyectoNombre: item.proyectoNombre || mapaNombres.get(Number(item.proyectoId || 0)) || undefined,
-          })))
-        );
-      }),
+      switchMap((items) => this.normalizarAlertas(items || [])),
       tap((items) => {
         this.alertasCache = items;
       }),
@@ -90,6 +80,60 @@ export class AlertasActividadesService {
         this.alertasCache = local;
         return of(local);
       })
+    );
+  }
+
+  refrescarAlertasPaginadas(page: number, size: number): Observable<AlertasActividadesPaginadas> {
+    const pageValue = Number.isFinite(page) && page >= 0 ? page : 0;
+    const sizeValue = Number.isFinite(size) && size > 0 ? size : 100;
+
+    return this.http.get<PaginatedResponse<AlertaActividadApi>>(this.endpoint, { page: pageValue, size: sizeValue }).pipe(
+      switchMap((response) => this.normalizarAlertas(response?.content || []).pipe(
+        map((items) => ({
+          content: items,
+          totalElements: Number(response?.totalElements ?? items.length),
+          totalPages: Number(response?.totalPages ?? Math.ceil(items.length / sizeValue)),
+          page: Number(response?.page ?? pageValue),
+          size: Number(response?.size ?? sizeValue),
+        }))
+      )),
+      catchError(() => {
+        const local = this.obtenerAlertasDesdeLocalStorage();
+        const inicio = pageValue * sizeValue;
+        const content = local.slice(inicio, inicio + sizeValue);
+        return of({
+          content,
+          totalElements: local.length,
+          totalPages: Math.ceil(local.length / sizeValue),
+          page: pageValue,
+          size: sizeValue,
+        });
+      })
+    );
+  }
+
+  private normalizarAlertas(items: AlertaActividadApi[]): Observable<AlertaActividadGlobal[]> {
+    const normalizadas = (items || []).map((item) => ({
+      ...item,
+      proyectoNombre: this.resolveProyectoNombre(item),
+      estado: this.normalizarEstado(item.estado),
+    }));
+
+    const sinNombre = normalizadas.filter((item) => !item.proyectoNombre);
+    if (!sinNombre.length) {
+      return of(normalizadas);
+    }
+
+    const ids = [...new Set(sinNombre.map((item) => Number(item.proyectoId || 0)).filter((id) => id > 0))];
+    if (!ids.length) {
+      return of(normalizadas);
+    }
+
+    return this.obtenerMapaNombresProyecto(ids).pipe(
+      map((mapaNombres) => normalizadas.map((item) => ({
+        ...item,
+        proyectoNombre: item.proyectoNombre || mapaNombres.get(Number(item.proyectoId || 0)) || undefined,
+      })))
     );
   }
 

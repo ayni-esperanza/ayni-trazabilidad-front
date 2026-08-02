@@ -128,3 +128,13 @@ nav::-webkit-scrollbar-thumb:hover {
   max-height: min(32rem, calc(100vh - 1.5rem));
   overflow: hidden;
 }
+:host-context(.dark) .sidebar-alertas-panel {
+  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  border-color: rgba(71, 85, 105, 0.55);
+  box-shadow: 0 20px 45px -24px rgba(0, 0, 0, 0.9);
+}
+
+:host-context(.dark) .sidebar-alertas-inline {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(15, 23, 42, 0.98));
+  border-color: rgba(71, 85, 105, 0.45);
+}

@@ -1,28 +1,33 @@
 <div class="p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
-  <div class="flex items-center justify-between mb-4">
-    <div>
+  <div class="flex items-start justify-between gap-3 mb-4">
+    <div class="flex items-center gap-2">
       <h1 class="text-xl font-bold text-gray-800 dark:text-white">Alertas</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Seguimiento de actividades sin cambios y proyectos archivados automaticamente</p>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+        {{ paginacion.totalElementos }} activa(s)
+      </span>
+
+      <div class="relative z-50">
+        <button
+          type="button"
+          aria-label="Informacion sobre alertas"
+          class="peer alertas-info-icon">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
+          </svg>
+        </button>
+        <div class="hidden pointer-events-none absolute left-0 top-full mt-3 z-50 w-72 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-lg peer-hover:block">
+          <p class="text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
+            Seguimiento de actividades sin cambios y proyectos archivados automaticamente.
+          </p>
+        </div>
+      </div>
     </div>
-
-    <button
-      type="button"
-      (click)="cargarAlertas()"
-      class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-800">
-      Actualizar
-    </button>
   </div>
 
-  <div class="mb-3">
-    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-      {{ alertas.length }} alerta(s) activa(s)
-    </span>
-  </div>
-
-  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+  <div class="alertas-table-card bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden dark:border-gray-700">
     <div class="overflow-x-auto">
       <table class="w-full text-xs">
-        <thead class="bg-gray-50 dark:bg-gray-800/60">
+        <thead class="alertas-table-head bg-gray-50 dark:bg-gray-800/60">
           <tr>
             <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Proyecto</th>
             <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Referencia</th>
@@ -31,7 +36,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-          <tr *ngFor="let alerta of alertas">
+          <tr *ngFor="let alerta of alertasPaginadas" class="alertas-table-row">
             <td class="px-3 py-2 text-gray-700 dark:text-gray-200">{{ alerta.proyectoNombre || ('#' + alerta.proyectoId) }}</td>
             <td class="px-3 py-2 text-gray-700 dark:text-gray-200 font-medium">{{ alerta.nombreActividad }}</td>
             <td class="px-3 py-2 text-gray-700 dark:text-gray-200">{{ alerta.estado }}</td>
@@ -50,5 +55,14 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <div class="mt-2">
+    <app-paginacion
+      [config]="paginacion"
+      [opcionesPorPagina]="[100, 500, 1000]"
+      [integradoEnTabla]="false"
+      (cambioPagina)="onCambioPagina($event)">
+    </app-paginacion>
   </div>
 </div>

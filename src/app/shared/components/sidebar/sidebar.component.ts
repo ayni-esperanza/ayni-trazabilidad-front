@@ -198,6 +198,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const nuevoEstado = !this.mostrarModalAlertas();
     this.mostrarModalAlertas.set(nuevoEstado);
     if (nuevoEstado) {
+      this.showUserMenu.set(false);
       this.actualizarAlertasRecientes();
     }
   }
