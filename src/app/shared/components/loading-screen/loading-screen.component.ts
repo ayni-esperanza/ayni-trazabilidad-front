@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
@@ -10,7 +10,8 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrl: './loading-screen.component.css',
 })
 export class LoadingScreenComponent implements OnInit, OnDestroy {
-  loadingText = 'Cargando';
+  @Input() loadingText = 'Cargando';
+  @Input() autoNavigate = true;
 
   private navigationTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -20,6 +21,9 @@ export class LoadingScreenComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    if (!this.autoNavigate) {
+      return;
+    }
     const source = this.route.snapshot.queryParamMap.get('source') || 'generic';
     const nextRaw = this.route.snapshot.queryParamMap.get('next') || '/login';
     const nextUrl = this.sanitizeNextUrl(nextRaw);

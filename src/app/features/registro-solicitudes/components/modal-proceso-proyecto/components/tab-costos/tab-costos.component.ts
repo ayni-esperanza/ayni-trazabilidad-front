@@ -2,7 +2,7 @@ import { Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, Output, S
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
-import { SelectSearchableComponent } from '../../../../../../shared/components/select-searchable/select-searchable.component';
+import { SelectSearchableComponent, SelectSearchableOption } from '../../../../../../shared/components/select-searchable/select-searchable.component';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
@@ -341,6 +341,14 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     }));
   }
 
+  opcionesTipoMaterialPara(material: MaterialCosto): SelectSearchableOption[] {
+    return this.incluirValorHistorico(this.opcionesGestionTipoMaterial, material.tipo);
+  }
+
+  opcionesOficioManoObraPara(item: ManoObraCosto): SelectSearchableOption[] {
+    return this.incluirValorHistorico(this.opcionesGestionOficioManoObra, item.oficio);
+  }
+
   agregarOpcionOficioManoObra(): void {
     if (this.modoSoloLectura) return;
 
@@ -673,6 +681,18 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
           .filter((item) => !!item)
       )
     ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+  }
+
+  private incluirValorHistorico(opcionesActivas: string[], valorActual?: string): SelectSearchableOption[] {
+    const valor = (valorActual || '').trim();
+    if (!valor || opcionesActivas.some((item) => item.toLowerCase() === valor.toLowerCase())) {
+      return opcionesActivas;
+    }
+
+    return [
+      { value: valor, label: valor },
+      ...opcionesActivas
+    ];
   }
 
   private formatearFechaResumen(date: Date | string | undefined): string {

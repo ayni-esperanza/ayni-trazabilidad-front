@@ -335,7 +335,7 @@
               </td>
               <td class="py-1 px-1">
                 <app-select-searchable
-                  [options]="opcionesTipoMaterial"
+                  [options]="opcionesTipoMaterialPara(mat)"
                   [value]="mat.tipo || ''"
                   (valueChange)="mat.tipo = normalizarTextoSeleccion($event); emitirCambios()"
                   [placeholder]="'Seleccionar tipo'"
@@ -439,7 +439,7 @@
               </td>
               <td class="py-1 px-1">
                 <app-select-searchable
-                  [options]="opcionesOficioManoObra"
+                  [options]="opcionesOficioManoObraPara(mo)"
                   [value]="mo.oficio || ''"
                   (valueChange)="mo.oficio = normalizarTextoSeleccion($event); emitirCambios()"
                   [placeholder]="'Seleccionar oficio'"

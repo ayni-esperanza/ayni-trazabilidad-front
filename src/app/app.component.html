@@ -1,7 +1,5 @@
 @if (!initialNavigationComplete) {
-  <section class="flex min-h-screen items-center justify-center bg-[#eef5f0] px-4 dark:bg-slate-950" aria-live="polite" aria-label="Cargando AYNI">
-    <app-loading-logo size="lg" mode="stroke-fill" text="Cargando"></app-loading-logo>
-  </section>
+  <app-loading-screen [autoNavigate]="false" loadingText="Cargando"></app-loading-screen>
 } @else {
   <div class="flex h-screen bg-gray-50 dark:bg-gray-800">
     <!-- Sidebar (solo visible cuando no es login) -->
