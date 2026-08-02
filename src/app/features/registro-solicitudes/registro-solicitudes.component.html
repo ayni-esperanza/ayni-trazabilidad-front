@@ -135,17 +135,31 @@
           (valueChange)="responsableFiltro = normalizarValorFiltro($event); onFiltrarResponsable()">
         </app-select-searchable>
       </div>
-      <button
-        type="button"
-        (click)="toggleFiltroFechas()"
-        class="inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap sm:w-auto"
-        [attr.aria-expanded]="mostrarFiltroFechas"
-        aria-label="Mostrar filtro de fechas">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z"/>
-        </svg>
-        Fechas
-      </button>
+      <div class="flex w-full items-center gap-1 sm:w-auto">
+        <button
+          type="button"
+          (click)="toggleFiltroFechas()"
+          class="inline-flex flex-1 items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap sm:flex-none"
+          [attr.aria-expanded]="mostrarFiltroFechas"
+          aria-label="Mostrar filtro de fechas">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z"/>
+          </svg>
+          Fechas
+        </button>
+        @if (tieneFiltrosActivos()) {
+          <button
+            type="button"
+            (click)="limpiarFiltros()"
+            title="Limpiar todos los filtros"
+            aria-label="Limpiar todos los filtros"
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+      </div>
     </div>
 
     @if (mostrarFiltroFechas) {
@@ -171,24 +185,23 @@
             [inputClass]="'w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 dark:text-white cursor-pointer'">
           </app-date-picker>
         </div>
-
-        <button
-          *ngIf="fechaDesdeFiltro || fechaHastaFiltro"
-          type="button"
-          (click)="limpiarFiltroFechas()"
-          title="Limpiar filtros"
-          aria-label="Limpiar filtros"
-          class="col-span-2 inline-flex h-10 w-10 justify-self-end items-center justify-center text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 sm:col-auto">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </div>
     }
   </div>
 
   <!-- Tabla de solicitudes -->
-  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden animate-ui-in">
+  <div class="relative bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden animate-ui-in">
+    @if (cargandoSolicitudes) {
+      <div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-gray-800/70">
+        <div class="flex items-center gap-3">
+          <svg class="h-6 w-6 animate-spin text-green-500" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-sm text-gray-600 dark:text-gray-300">Cargando solicitudes...</span>
+        </div>
+      </div>
+    }
     <!-- Barra de acciones para elementos seleccionados -->
     @if (solicitudesSeleccionadas.size > 0) {
       <div class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex items-center justify-between">

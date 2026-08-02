@@ -173,7 +173,8 @@
         [puedeDescargarDocumentoFn]="puedeDescargarDocumento.bind(this)"
         (abrirVistaPreviaDocumentoEvt)="abrirVistaPreviaDocumento($event)"
         (descargarDocumentoEvt)="descargarDocumento($event)"
-        (descargarTodosDocumentosEvt)="descargarTodosDocumentosResumen()">
+        (descargarTodosDocumentosEvt)="descargarTodosDocumentosResumen()"
+        (navegarACostosEvt)="navegarACostos($event)">
       </app-tab-tablero-general>
 
       <!-- ========== TAB PROCESO ========== -->
@@ -247,6 +248,7 @@
         [responsableNombre]="getResponsableNombre(proyectoInfoForm.responsableId)"
         [actividadesDisponibles]="actividadesDisponiblesCostos"
         [modoSoloLectura]="modoSoloLectura"
+        [subTabInicial]="subTabCostosInicial"
         (agregarCategoria)="onAgregarCategoriaCostos($event)"
         (eliminarCategoria)="onEliminarCategoriaCostos($event)">
       </app-tab-costos>

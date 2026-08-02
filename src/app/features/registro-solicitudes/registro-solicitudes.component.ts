@@ -41,6 +41,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Listas de datos
   solicitudes: Solicitud[] = [];
   solicitudesFiltradas: Solicitud[] = [];
+  cargandoSolicitudes = false;
   proyectos: Proyecto[] = [];
   responsables: Responsable[] = [];
   procesos: ProcesoSimple[] = [];
@@ -268,6 +269,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     return estadosApi[estado] || estado;
   }
   private cargarSolicitudesPagina(): void {
+    this.cargandoSolicitudes = true;
 
     this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()).subscribe({
       next: (response) => {
@@ -276,6 +278,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.limpiarSolicitudesSeleccionadasInvalidas();
         this.actualizarPaginacionDesdeRespuesta(response.totalElements, response.totalPages);
         this.calcularEstadisticas();
+        this.cargandoSolicitudes = false;
       },
       error: (error) => {
         console.error('Error al cargar solicitudes:', error);
@@ -283,6 +286,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.solicitudesFiltradas = [];
         this.actualizarPaginacionDesdeRespuesta(0, 0);
         this.calcularEstadisticas();
+        this.cargandoSolicitudes = false;
       }
     });
   }
@@ -312,6 +316,16 @@ export class RegistroSolicitudesComponent implements OnInit {
     );
   }
 
+  limpiarFiltros(): void {
+    this.busqueda = '';
+    this.estadoFiltro = '';
+    this.empresaFiltro = '';
+    this.responsableFiltro = '';
+    this.fechaDesdeFiltro = '';
+    this.fechaHastaFiltro = '';
+    this.paginacionConfig.paginaActual = 0;
+    this.cargarSolicitudesPagina();
+  }
   get empresasDisponibles(): string[] {
     return [
       ...new Set([
@@ -378,6 +392,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   cargarDatosIniciales(): void {
+    this.cargandoSolicitudes = true;
     forkJoin({
       responsables: this.solicitudesService.obtenerResponsables(),
       solicitudes: this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()),
@@ -392,6 +407,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         this.proyectos = proyectos || [];
         this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
         this.calcularEstadisticas();
+        this.cargandoSolicitudes = false;
         this.abrirProyectoDesdeQueryParam();
       },
       error: (error) => {
@@ -411,6 +427,7 @@ export class RegistroSolicitudesComponent implements OnInit {
             this.proyectos = proyectos || [];
             this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
             this.calcularEstadisticas();
+            this.cargandoSolicitudes = false;
             this.abrirProyectoDesdeQueryParam();
           },
           error: (fallbackError) => {
@@ -422,6 +439,7 @@ export class RegistroSolicitudesComponent implements OnInit {
             this.proyectos = [];
             this.actualizarPaginacionDesdeRespuesta(0, 0);
             this.calcularEstadisticas();
+            this.cargandoSolicitudes = false;
           }
         });
       }

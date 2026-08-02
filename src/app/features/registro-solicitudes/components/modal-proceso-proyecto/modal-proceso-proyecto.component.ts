@@ -78,6 +78,7 @@ type ResumenEliminacionCostos = {
 type AccionCostosPendiente = 'guardar' | 'cerrar';
 type TabSolicitud = 'tablero' | 'proceso' | 'informacion' | 'costos';
 type SeccionConCambios = 'informacion' | 'costos';
+type SubTabCostos = 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos';
 
 @Component({
   selector: 'app-modal-proceso-proyecto',
@@ -160,6 +161,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
   // Navegación de tabs
   tabActiva: TabSolicitud = 'tablero';
+  subTabCostosInicial: SubTabCostos = 'resumen';
   private tabPendienteTrasDescartar: TabSolicitud | null = null;
   private seccionPendienteTrasDescartar: SeccionConCambios | null = null;
   private resolverNavegacionExterna: ((permitir: boolean) => void) | null = null;
@@ -291,6 +293,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     this.tabActiva = nuevoTab;
+  }
+
+  navegarACostos(subTab: Exclude<SubTabCostos, 'resumen'>): void {
+    if (!this.costosHabilitados) return;
+    this.subTabCostosInicial = subTab;
+    this.tabActiva = 'costos';
   }
 
   formatDate(date: Date | string | undefined): string {

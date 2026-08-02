@@ -28,7 +28,15 @@
   <div *ngIf="!proyectoSeleccionado && !responsableSeleccionado" class="flex-1 overflow-auto animate-ui-in">
 
     <!-- Tabla de Responsables -->
-    <div *ngIf="filtroCategoria === 'responsables'" class="stats-card overflow-hidden">
+    <div *ngIf="filtroCategoria === 'responsables'" class="stats-card relative overflow-hidden">
+      @if (cargandoIndicadores) {
+        <div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-gray-800/70">
+          <div class="flex items-center gap-3">
+            <svg class="h-6 w-6 animate-spin text-green-500" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-sm text-gray-600 dark:text-gray-300">Cargando indicadores...</span>
+          </div>
+        </div>
+      }
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50 dark:bg-gray-800/60">
@@ -53,7 +61,15 @@
     </div>
 
     <!-- Tabla de Proyectos -->
-    <div *ngIf="filtroCategoria === 'proyectos'" class="stats-card overflow-hidden">
+    <div *ngIf="filtroCategoria === 'proyectos'" class="stats-card relative overflow-hidden">
+      @if (cargandoIndicadores) {
+        <div class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-gray-800/70">
+          <div class="flex items-center gap-3">
+            <svg class="h-6 w-6 animate-spin text-green-500" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-sm text-gray-600 dark:text-gray-300">Cargando indicadores...</span>
+          </div>
+        </div>
+      }
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-gray-50 dark:bg-gray-800/60">

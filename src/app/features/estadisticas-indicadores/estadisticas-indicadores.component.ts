@@ -131,6 +131,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   etapaSeleccionada: string | null = null;
   
   responsables: ResponsableIndicador[] = [];
+  cargandoIndicadores = false;
 
   proyectos: ProyectoIndicador[] = [];
 
@@ -182,6 +183,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   }
 
   cargarDatos(): void {
+    this.cargandoIndicadores = true;
     forkJoin({
       responsables: this.estadisticasService.obtenerIndicadoresRendimiento(),
       proyectos: this.estadisticasService.obtenerIndicadoresPorProyecto(0),
@@ -201,10 +203,12 @@ export class EstadisticasIndicadoresComponent implements OnInit {
         }
         this.actualizarROI();
         this.aplicarFiltrosTareas();
+        this.cargandoIndicadores = false;
       },
       error: () => {
         this.actualizarROI();
         this.aplicarFiltrosTareas();
+        this.cargandoIndicadores = false;
       }
     });
   }

@@ -26,7 +26,12 @@ export class TabTableroGeneralComponent {
   @Output() abrirVistaPreviaDocumentoEvt = new EventEmitter<DocumentoResumen>();
   @Output() descargarDocumentoEvt = new EventEmitter<DocumentoResumen>();
   @Output() descargarTodosDocumentosEvt = new EventEmitter<void>();
+  @Output() navegarACostosEvt = new EventEmitter<'materiales' | 'manoObra' | 'otrosCostos'>();
 
+  navegarACostos(seccion: 'materiales' | 'manoObra' | 'otrosCostos'): void {
+    if (window.getSelection()?.toString().trim()) return;
+    this.navegarACostosEvt.emit(seccion);
+  }
   get responsablesHistorialAnterior(): ResponsableHistorialProyecto[] {
     return (this.proyecto?.responsablesHistorial || []).filter((registro) =>
       Boolean(registro.responsableAnteriorId || registro.responsableAnteriorNombre || registro.fechaCambio)

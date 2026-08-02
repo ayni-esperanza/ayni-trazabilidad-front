@@ -46,6 +46,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   @Input() responsableNombre = '';
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
+  @Input() subTabInicial: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
   @Output() costosChange = new EventEmitter<void>();
   @Output() agregarCategoria = new EventEmitter<string>();
   @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
@@ -76,6 +77,9 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['subTabInicial']) {
+      this.subTabCostosActiva = this.subTabInicial;
+    }
     if (changes['proyectoId']) {
       this.cargarCatalogosProyecto();
     }
