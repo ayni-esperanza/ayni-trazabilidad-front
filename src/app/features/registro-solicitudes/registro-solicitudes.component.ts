@@ -316,6 +316,15 @@ export class RegistroSolicitudesComponent implements OnInit {
     );
   }
 
+  filtrarPorMetrica(metrica: 'todos' | 'En Proceso' | 'Completado' | 'Cancelado'): void {
+    if (metrica === 'todos') {
+      this.limpiarFiltros();
+      return;
+    }
+    this.estadoFiltro = metrica;
+    this.paginacionConfig.paginaActual = 0;
+    this.cargarSolicitudesPagina();
+  }
   limpiarFiltros(): void {
     this.busqueda = '';
     this.estadoFiltro = '';

@@ -39,7 +39,7 @@
 
   <!-- Tarjetas de estadísticas -->
   <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="summary-accent-card summary-accent-card--blue">
+    <div class="summary-accent-card summary-accent-card--blue cursor-pointer" (click)="filtrarPorMetrica('todos')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Solicitudes Registradas</p>
         <h3 class="summary-accent-card__value">{{ estadisticas.total }}</h3>
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <div class="summary-accent-card summary-accent-card--amber">
+    <div class="summary-accent-card summary-accent-card--amber cursor-pointer" (click)="filtrarPorMetrica('En Proceso')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">En Proceso</p>
         <h3 class="summary-accent-card__value">{{ estadisticas.enProceso }}</h3>
@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <div class="summary-accent-card summary-accent-card--emerald">
+    <div class="summary-accent-card summary-accent-card--emerald cursor-pointer" (click)="filtrarPorMetrica('Completado')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Completadas</p>
         <h3 class="summary-accent-card__value">{{ estadisticas.completadas }}</h3>
@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <div class="summary-accent-card summary-accent-card--red">
+    <div class="summary-accent-card summary-accent-card--red cursor-pointer" (click)="filtrarPorMetrica('Cancelado')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Canceladas</p>
         <h3 class="summary-accent-card__value">{{ estadisticas.canceladas }}</h3>

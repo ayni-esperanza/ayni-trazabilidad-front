@@ -41,6 +41,7 @@ import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/
 interface Filtros {
   busqueda: string;
   rol: string;
+  activo: boolean | null;
 }
 
 @Component({
@@ -95,6 +96,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   filtros: Filtros = {
     busqueda: '',
     rol: '',
+    activo: null,
   };
 
   get rolesFiltroOptions(): SelectSearchableOption[] {
@@ -195,6 +197,9 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
     if (this.filtros.rol) {
       params.rolId = parseInt(this.filtros.rol);
     }
+    if (this.filtros.activo !== null) {
+      params.activo = this.filtros.activo;
+    }
 
     this.usuariosService
       .obtenerUsuarios(params)
@@ -263,7 +268,7 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   }
 
   tieneFiltrosActivos(): boolean {
-    return !!(this.filtros.busqueda.trim() || this.filtros.rol);
+    return !!(this.filtros.busqueda.trim() || this.filtros.rol || this.filtros.activo !== null);
   }
 
   // ==================== FILTROS ====================
@@ -287,11 +292,20 @@ export class GestionUsuariosComponent implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
-    this.filtros = { busqueda: '', rol: '' };
+    this.filtros = { busqueda: '', rol: '', activo: null };
     this.paginacion.paginaActual = 0;
     this.cargarUsuarios();
   }
 
+  filtrarPorMetrica(metrica: 'todos' | 'administradores' | 'ingenieros' | 'activos'): void {
+    this.filtros = { busqueda: '', rol: '', activo: metrica === 'activos' ? true : null };
+    if (metrica === 'administradores' || metrica === 'ingenieros') {
+      const nombreRol = metrica === 'administradores' ? 'ADMINISTRADOR' : 'INGENIERO';
+      this.filtros.rol = String(this.roles.find((rol) => rol.nombre.toUpperCase() === nombreRol)?.id || '');
+    }
+    this.paginacion.paginaActual = 0;
+    this.cargarUsuarios();
+  }
   // ==================== PAGINACIÓN ====================
 
   onCambioPagina(evento: CambioPaginaEvent): void {

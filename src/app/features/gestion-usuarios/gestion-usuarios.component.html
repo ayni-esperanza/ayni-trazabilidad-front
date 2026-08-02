@@ -19,7 +19,7 @@
   <!-- Tarjetas de estadísticas -->
   <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <!-- Total Usuarios -->
-    <div class="summary-accent-card summary-accent-card--blue">
+    <div class="summary-accent-card summary-accent-card--blue cursor-pointer" (click)="filtrarPorMetrica('todos')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Total Usuarios</p>
         <h3 class="summary-accent-card__value">{{ tieneFiltrosActivos() ? estadisticasFiltradas.totalUsuarios : estadisticas.totalUsuarios }}</h3>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Administradores -->
-    <div class="summary-accent-card summary-accent-card--cyan">
+    <div class="summary-accent-card summary-accent-card--cyan cursor-pointer" (click)="filtrarPorMetrica('administradores')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Administradores</p>
         <h3 class="summary-accent-card__value">{{ tieneFiltrosActivos() ? estadisticasFiltradas.administradores : estadisticas.administradores }}</h3>
@@ -49,7 +49,7 @@
     </div>
 
     <!-- Ingenieros -->
-    <div class="summary-accent-card summary-accent-card--amber">
+    <div class="summary-accent-card summary-accent-card--amber cursor-pointer" (click)="filtrarPorMetrica('ingenieros')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Ingenieros</p>
         <h3 class="summary-accent-card__value">{{ tieneFiltrosActivos() ? estadisticasFiltradas.ingenieros : estadisticas.ingenieros }}</h3>
@@ -67,7 +67,7 @@
     </div>
 
     <!-- Usuarios Activos -->
-    <div class="summary-accent-card summary-accent-card--emerald">
+    <div class="summary-accent-card summary-accent-card--emerald cursor-pointer" (click)="filtrarPorMetrica('activos')">
       <div class="summary-accent-card__copy">
         <p class="summary-accent-card__label">Usuarios Activos</p>
         <h3 class="summary-accent-card__value">{{ tieneFiltrosActivos() ? estadisticasFiltradas.usuariosActivos : estadisticas.usuariosActivos }}</h3>
