@@ -40,17 +40,19 @@
   filter: drop-shadow(0 8px 12px rgba(0, 90, 40, 0.12));
 }
 
+.logo-frame,
 .logo-path {
   fill: transparent;
   stroke: #009d45;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1800;
-  stroke-dashoffset: 1800;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
   animation: logoStrokeDraw 2.4s ease-in-out infinite;
 }
 
+:host-context(.dark) .logo-frame,
 :host-context(.dark) .logo-path {
   stroke: #28d17c;
 }
@@ -76,7 +78,7 @@
 
 @keyframes logoStrokeDraw {
   0% {
-    stroke-dashoffset: 1800;
+    stroke-dashoffset: 100;
     opacity: 0.2;
   }
   25% {
