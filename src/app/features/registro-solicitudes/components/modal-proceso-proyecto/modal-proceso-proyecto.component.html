@@ -23,7 +23,7 @@
   </div>
 </div>
 <div *ngIf="visible"
-  [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-overlay-in'"
+  [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 animate-overlay-in'"
   [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades && !mostrarConfirmacionGuardarCostos && !mostrarConfirmacionEliminarCategoriaCostos"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
