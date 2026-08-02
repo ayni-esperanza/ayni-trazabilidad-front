@@ -527,7 +527,7 @@
         </div>
 
         <div class="max-h-72 space-y-2 overflow-y-auto">
-          <div *ngFor="let tipo of opcionesTipoMaterial; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+          <div *ngFor="let tipo of opcionesGestionTipoMaterial; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
             <div class="min-w-0 flex-1">
               <ng-container *ngIf="tipoMaterialEnEdicion !== tipo; else editarTipoTpl">
                 <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ tipo }}</p>
@@ -550,8 +550,8 @@
                   Editar
                 </button>
                 <button type="button"
-                  (click)="eliminarOpcionTipoMaterial(tipo)"
-                  [disabled]="modoSoloLectura || estaTipoMaterialEnUso(tipo)"
+                  (click)="solicitarEliminarOpcionCatalogo('tipoMaterial', tipo)"
+                  [disabled]="modoSoloLectura"
                   class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
                   Eliminar
                 </button>
@@ -571,7 +571,7 @@
               </ng-template>
             </div>
           </div>
-          <p *ngIf="!opcionesTipoMaterial.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+          <p *ngIf="!opcionesGestionTipoMaterial.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
             Aun no hay tipos registrados.
           </p>
         </div>
@@ -594,7 +594,7 @@
         </div>
 
         <div class="max-h-72 space-y-2 overflow-y-auto">
-          <div *ngFor="let oficio of opcionesOficioManoObra; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+          <div *ngFor="let oficio of opcionesGestionOficioManoObra; trackBy: trackOpcion" class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
             <div class="min-w-0 flex-1">
               <ng-container *ngIf="oficioManoObraEnEdicion !== oficio; else editarOficioTpl">
                 <p class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ oficio }}</p>
@@ -617,8 +617,8 @@
                   Editar
                 </button>
                 <button type="button"
-                  (click)="eliminarOpcionOficioManoObra(oficio)"
-                  [disabled]="modoSoloLectura || estaOficioManoObraEnUso(oficio)"
+                  (click)="solicitarEliminarOpcionCatalogo('oficioManoObra', oficio)"
+                  [disabled]="modoSoloLectura"
                   class="rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-red-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed dark:text-slate-300">
                   Eliminar
                 </button>
@@ -638,7 +638,7 @@
               </ng-template>
             </div>
           </div>
-          <p *ngIf="!opcionesOficioManoObra.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+          <p *ngIf="!opcionesGestionOficioManoObra.length" class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
             Aun no hay oficios registrados.
           </p>
         </div>
@@ -653,6 +653,13 @@
   </div>
 </div>
 </ng-template>
+
+  <app-confirm-delete-modal
+    [visible]="mostrarConfirmacionEliminarCatalogo"
+    [config]="configEliminarCatalogo"
+    (confirmar)="confirmarEliminarOpcionCatalogo()"
+    (cancelar)="cancelarEliminarOpcionCatalogo()">
+  </app-confirm-delete-modal>
 
 <!-- ===== SUB-TAB OTROS COSTOS ===== -->
 <div [class.hidden]="subTabCostosActiva !== 'otrosCostos'" class="space-y-3">

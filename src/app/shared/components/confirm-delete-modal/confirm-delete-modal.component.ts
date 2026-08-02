@@ -26,6 +26,7 @@ export interface ConfirmDeleteConfig {
   textoCancelar?: string;
   soloCerrar?: boolean;
   ocultarAdvertencia?: boolean;
+  tono?: 'peligro' | 'informacion';
 }
 
 @Component({
@@ -94,6 +95,10 @@ export class ConfirmDeleteModalComponent implements AfterViewInit, OnChanges, On
 
   get textoCancelar(): string {
     return this.config.textoCancelar || 'Cancelar';
+  }
+
+  get esInformativa(): boolean {
+    return this.config.tono === 'informacion';
   }
 
   get mostrarConfirmar(): boolean {

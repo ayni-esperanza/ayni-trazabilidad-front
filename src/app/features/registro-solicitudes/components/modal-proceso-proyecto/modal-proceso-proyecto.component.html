@@ -24,7 +24,7 @@
 </div>
 <div *ngIf="visible"
   [ngClass]="embedded ? 'w-full h-full' : 'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 animate-overlay-in'"
-  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades && !mostrarConfirmacionGuardarCostos && !mostrarConfirmacionEliminarCategoriaCostos"
+  [appModalDismiss]="!embedded && visible && !mostrarModalCancelacion && !mostrarConfirmacionCancelar && !mostrarConfirmacionFinalizar && !mostrarConfirmacionEliminarActividades && !mostrarConfirmacionSalirSinGuardarCostos && !mostrarConfirmacionGuardarCostos && !mostrarConfirmacionEliminarCategoriaCostos"
   (dismissed)="onCerrar()">
   <div [attr.data-modal-content]="embedded ? null : ''"
     [ngClass]="embedded
@@ -398,6 +398,13 @@
   (cancelar)="onCancelarConfirmacionCancelar()">
 </app-confirm-delete-modal>
 
+<!-- Modal para descartar cambios sin guardar de costos o información -->
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionSalirSinGuardarCostos"
+  [config]="configSalirSinGuardarCostosModal"
+  (confirmar)="confirmarSalirSinGuardarCostos()"
+  (cancelar)="cancelarSalirSinGuardarCostos()">
+</app-confirm-delete-modal>
 <!-- Modal de confirmacion para guardar costos con eliminaciones -->
 <app-confirm-delete-modal
   [visible]="mostrarConfirmacionGuardarCostos"

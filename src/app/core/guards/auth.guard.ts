@@ -1,6 +1,6 @@
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router, CanActivateFn } from '@angular/router';
+import { Router, CanActivateFn, CanDeactivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
@@ -22,3 +22,10 @@ export const authGuard: CanActivateFn = (route, state) => {
   router.navigate(['/login']);
   return false;
 };
+
+type ComponenteConCambiosPendientes = {
+  confirmarNavegacionConCambiosPendientes(): Promise<boolean>;
+};
+
+export const pendingChangesGuard: CanDeactivateFn<ComponenteConCambiosPendientes> = (component) =>
+  component.confirmarNavegacionConCambiosPendientes();

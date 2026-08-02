@@ -14,7 +14,7 @@
         style="box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
         
         <!-- Header -->
-        <div class="flex items-center justify-between px-5 py-3 bg-red-600 text-white">
+        <div class="flex items-center justify-between px-5 py-3 text-white" [ngClass]="esInformativa ? 'bg-sky-600' : 'bg-red-600'">
           <div class="text-sm font-semibold">
             {{ titulo }}
           </div>
@@ -35,11 +35,16 @@
         <div class="p-5">
           <!-- Icono de advertencia -->
           <div class="flex justify-center mb-4">
-            <div class="flex items-center justify-center w-14 h-14 bg-red-100 rounded-full dark:bg-red-900/30">
-              <svg class="w-7 h-7 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full" [ngClass]="esInformativa ? 'bg-sky-100 dark:bg-sky-900/30' : 'bg-red-100 dark:bg-red-900/30'">
+              @if (esInformativa) {
+                <svg class="w-7 h-7 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21h14a2 2 0 002-2V7l-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2zm3-10h8v10H8V11zm1-8h6v5H9V3z" />
+                </svg>
+              } @else {
+                <svg class="w-7 h-7 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              }
             </div>
           </div>
 
@@ -87,7 +92,7 @@
           @if (mostrarConfirmar) {
             <button
               type="button"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50" [ngClass]="esInformativa ? 'bg-sky-600 hover:bg-sky-700 focus:ring-sky-500' : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'"
               [disabled]="loading"
               (click)="onConfirmar()">
               @if (loading) {

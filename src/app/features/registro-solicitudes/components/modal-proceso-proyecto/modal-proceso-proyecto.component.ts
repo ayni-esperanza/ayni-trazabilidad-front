@@ -76,6 +76,8 @@ type ResumenEliminacionCostos = {
 };
 
 type AccionCostosPendiente = 'guardar' | 'cerrar';
+type TabSolicitud = 'tablero' | 'proceso' | 'informacion' | 'costos';
+type SeccionConCambios = 'informacion' | 'costos';
 
 @Component({
   selector: 'app-modal-proceso-proyecto',
@@ -136,6 +138,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   configGuardarCostosModal: ConfirmDeleteConfig = {};
   accionCostosPendiente: AccionCostosPendiente | null = null;
 
+  // Confirmación para salir sin persistir cambios locales de costos
+  mostrarConfirmacionSalirSinGuardarCostos = false;
+  configSalirSinGuardarCostosModal: ConfirmDeleteConfig = {};
+
   // Modal de confirmacion para eliminar categorias de otros costos
   mostrarConfirmacionEliminarCategoriaCostos = false;
   cargandoEliminarCategoriaCostos = false;
@@ -153,7 +159,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private fuenteVistaPreviaDocumentoEsBlob = false;
 
   // Navegación de tabs
-  tabActiva: 'tablero' | 'proceso' | 'informacion' | 'costos' = 'tablero';
+  tabActiva: TabSolicitud = 'tablero';
+  private tabPendienteTrasDescartar: TabSolicitud | null = null;
+  private seccionPendienteTrasDescartar: SeccionConCambios | null = null;
+  private resolverNavegacionExterna: ((permitir: boolean) => void) | null = null;
 
   // Modal de actividades
   mostrarModalActividad = false;
@@ -268,7 +277,19 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     })) || [];
   }
 
-  cambiarTab(nuevoTab: 'tablero' | 'proceso' | 'informacion' | 'costos'): void {
+  cambiarTab(nuevoTab: TabSolicitud): void {
+    if (nuevoTab === this.tabActiva || this.mostrarConfirmacionSalirSinGuardarCostos) return;
+
+    if (this.tabActiva === 'costos' && this.tieneCambiosCostos()) {
+      this.solicitarDescartarCambiosAlCambiarTab('costos', nuevoTab);
+      return;
+    }
+
+    if (this.tabActiva === 'informacion' && this.tieneCambiosInformacion()) {
+      this.solicitarDescartarCambiosAlCambiarTab('informacion', nuevoTab);
+      return;
+    }
+
     this.tabActiva = nuevoTab;
   }
 
@@ -285,6 +306,16 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   onCerrar(): void {
     if (this.sincronizandoCostos || this.cargandoConfirmacionGuardarCostos) return;
 
+    if (this.tieneCambiosCostos()) {
+      this.solicitarDescartarCambiosAlCerrar('costos');
+      return;
+    }
+
+    if (this.tieneCambiosInformacion()) {
+      this.solicitarDescartarCambiosAlCerrar('informacion');
+      return;
+    }
+
     // Persistir etapas en el proyecto al cerrar
     this.guardarEtapasEnProyecto();
 
@@ -294,6 +325,90 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }
 
     this.confirmarSincronizacionCostosSiElimina('cerrar');
+  }
+
+  confirmarSalirSinGuardarCostos(): void {
+    const tabPendiente = this.tabPendienteTrasDescartar;
+    const seccionPendiente = this.seccionPendienteTrasDescartar;
+    this.limpiarConfirmacionDescartarCambios();
+
+    if (seccionPendiente === 'costos') {
+      this.cargarCostosProyecto();
+    } else if (seccionPendiente === 'informacion') {
+      this.cargarProyectoInfoForm();
+    }
+
+    if (tabPendiente) {
+      this.tabActiva = tabPendiente;
+      return;
+    }
+
+    const resolver = this.resolverNavegacionExterna;
+    this.resolverNavegacionExterna = null;
+    if (resolver) {
+      resolver(true);
+      return;
+    }
+
+    this.cerrar.emit();
+  }
+
+  cancelarSalirSinGuardarCostos(): void {
+    const resolver = this.resolverNavegacionExterna;
+    this.resolverNavegacionExterna = null;
+    this.limpiarConfirmacionDescartarCambios();
+    resolver?.(false);
+  }
+
+  confirmarNavegacionExterna(): Promise<boolean> {
+    if (this.mostrarConfirmacionSalirSinGuardarCostos) {
+      return Promise.resolve(false);
+    }
+
+    const seccion: SeccionConCambios | null = this.tieneCambiosCostos()
+      ? 'costos'
+      : this.tieneCambiosInformacion()
+        ? 'informacion'
+        : null;
+    if (!seccion) return Promise.resolve(true);
+
+    return new Promise<boolean>((resolve) => {
+      this.resolverNavegacionExterna = resolve;
+      this.solicitarDescartarCambiosAlCerrar(seccion);
+    });
+  }
+
+  private solicitarDescartarCambiosAlCambiarTab(seccion: SeccionConCambios, nuevoTab: TabSolicitud): void {
+    this.tabPendienteTrasDescartar = nuevoTab;
+    this.seccionPendienteTrasDescartar = seccion;
+    this.configurarConfirmacionDescartarCambios(seccion, 'cambiar de sección');
+  }
+
+  private solicitarDescartarCambiosAlCerrar(seccion: SeccionConCambios): void {
+    this.tabPendienteTrasDescartar = null;
+    this.seccionPendienteTrasDescartar = seccion;
+    this.configurarConfirmacionDescartarCambios(seccion, 'salir de la solicitud');
+  }
+
+  private configurarConfirmacionDescartarCambios(seccion: SeccionConCambios, accion: string): void {
+    const esCostos = seccion === 'costos';
+    this.configSalirSinGuardarCostosModal = {
+      titulo: esCostos ? 'Salir sin guardar costos' : 'Salir sin guardar información',
+      mensaje: esCostos
+        ? `Hay cambios en materiales, mano de obra u otros costos que aún no se han guardado. ¿Deseas ${accion} y descartarlos?`
+        : `Hay cambios en la información del proyecto que aún no se han guardado. ¿Deseas ${accion} y descartarlos?`,
+      textoConfirmar: 'Descartar cambios',
+      textoCancelar: 'Seguir editando',
+      ocultarAdvertencia: true,
+      tono: 'informacion'
+    };
+    this.mostrarConfirmacionSalirSinGuardarCostos = true;
+  }
+
+  private limpiarConfirmacionDescartarCambios(): void {
+    this.mostrarConfirmacionSalirSinGuardarCostos = false;
+    this.tabPendienteTrasDescartar = null;
+    this.seccionPendienteTrasDescartar = null;
   }
 
   guardarCostosProyecto(): void {

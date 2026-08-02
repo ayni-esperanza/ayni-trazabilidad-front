@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -34,6 +34,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   };
 
   // Estados de las modales
+  @ViewChild(ModalProcesoProyectoComponent) private modalProcesoProyecto?: ModalProcesoProyectoComponent;
   showNuevaSolicitudModal = false;
   showProcesoProyectoModal = false;
 
@@ -68,6 +69,9 @@ export class RegistroSolicitudesComponent implements OnInit {
     return this.responsables.map((responsable) => ({ value: responsable.id, label: responsable.nombre }));
   }
 
+  confirmarNavegacionConCambiosPendientes(): Promise<boolean> {
+    return this.modalProcesoProyecto?.confirmarNavegacionExterna() ?? Promise.resolve(true);
+  }
   normalizarValorFiltro(value: unknown): string {
     return value === null || value === undefined ? '' : String(value);
   }

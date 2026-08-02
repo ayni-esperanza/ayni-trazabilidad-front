@@ -13,6 +13,7 @@ import {
   TablaCostoExtra
 } from '../../modal-proceso-proyecto.component';
 import { CostoCatalogoApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
+import { ConfirmDeleteConfig, ConfirmDeleteModalComponent } from '../../../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 type ProyectoCostosResumen = {
   nombreProyecto?: string;
@@ -31,7 +32,7 @@ type ResumenCostoItem = {
 @Component({
   selector: 'app-tab-costos',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent, OverlayModule],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent, OverlayModule, ConfirmDeleteModalComponent],
   templateUrl: './tab-costos.component.html'
 })
 export class TabCostosComponent implements OnChanges, OnDestroy {
@@ -64,6 +65,9 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   nuevoNombreTipoMaterialEdicion = '';
   oficioManoObraEnEdicion: string | null = null;
   nuevoNombreOficioManoObraEdicion = '';
+  mostrarConfirmacionEliminarCatalogo = false;
+  configEliminarCatalogo: ConfirmDeleteConfig = {};
+  eliminacionCatalogoPendiente: { tipo: 'tipoMaterial' | 'oficioManoObra'; nombre: string } | null = null;
 
   constructor(
     private readonly registroSolicitudesService: RegistroSolicitudesService,
@@ -195,8 +199,44 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     this.catalogoOverlayRef = null;
   }
 
+  solicitarEliminarOpcionCatalogo(tipo: 'tipoMaterial' | 'oficioManoObra', nombre: string): void {
+    const enUso = tipo === 'tipoMaterial'
+      ? this.estaTipoMaterialEnUso(nombre)
+      : this.estaOficioManoObraEnUso(nombre);
+    if (this.modoSoloLectura) return;
+
+    this.eliminacionCatalogoPendiente = { tipo, nombre };
+    this.configEliminarCatalogo = {
+      titulo: tipo === 'tipoMaterial' ? 'Eliminar tipo de material' : 'Eliminar oficio',
+      mensaje: enUso
+        ? `Se quitara "${nombre}" de las opciones nuevas. Los registros existentes conservaran este valor.`
+        : `Estas seguro que deseas eliminar "${nombre}"?`,
+      textoConfirmar: 'Eliminar',
+      ocultarAdvertencia: enUso
+    };
+    this.mostrarConfirmacionEliminarCatalogo = true;
+  }
+
+  confirmarEliminarOpcionCatalogo(): void {
+    const pendiente = this.eliminacionCatalogoPendiente;
+    this.mostrarConfirmacionEliminarCatalogo = false;
+    this.eliminacionCatalogoPendiente = null;
+    if (!pendiente) return;
+
+    if (pendiente.tipo === 'tipoMaterial') {
+      this.eliminarOpcionTipoMaterial(pendiente.nombre);
+    } else {
+      this.eliminarOpcionOficioManoObra(pendiente.nombre);
+    }
+  }
+
+  cancelarEliminarOpcionCatalogo(): void {
+    this.mostrarConfirmacionEliminarCatalogo = false;
+    this.eliminacionCatalogoPendiente = null;
+  }
+
   eliminarOpcionTipoMaterial(nombre: string): void {
-    if (this.modoSoloLectura || this.estaTipoMaterialEnUso(nombre)) return;
+    if (this.modoSoloLectura) return;
 
     const tipoPersistido = this.buscarCatalogoPorNombre(this.tiposMaterialPersistidos, nombre);
     if (!tipoPersistido) {
@@ -323,7 +363,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   }
 
   eliminarOpcionOficioManoObra(nombre: string): void {
-    if (this.modoSoloLectura || this.estaOficioManoObraEnUso(nombre)) return;
+    if (this.modoSoloLectura) return;
 
     const oficioPersistido = this.buscarCatalogoPorNombre(this.oficiosManoObraPersistidos, nombre);
     if (!oficioPersistido) {
@@ -553,33 +593,31 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   }
 
   private aplicarCambioTipoMaterial(nombreAnterior: string, nombreNuevo: string): void {
-    this.opcionesTipoMaterial = this.normalizarOpciones(
-      this.opcionesTipoMaterial.map((item) => item === nombreAnterior ? nombreNuevo : item)
-    );
-
-    for (const material of this.materiales || []) {
-      if ((material.tipo || '').trim() === nombreAnterior) {
-        material.tipo = nombreNuevo;
-      }
-    }
-
-    this.emitirCambios();
+    this.opcionesTipoMaterial = this.normalizarOpciones([
+      ...this.opcionesTipoMaterial.map((item) => item === nombreAnterior ? nombreNuevo : item),
+      ...((this.materiales || []).map((item) => item.tipo || ''))
+    ]);
     this.cancelarEdicionTipoMaterial();
   }
 
   private aplicarCambioOficioManoObra(nombreAnterior: string, nombreNuevo: string): void {
-    this.opcionesOficioManoObra = this.normalizarOpciones(
-      this.opcionesOficioManoObra.map((item) => item === nombreAnterior ? nombreNuevo : item)
-    );
-
-    for (const item of this.manoObra || []) {
-      if ((item.oficio || '').trim() === nombreAnterior) {
-        item.oficio = nombreNuevo;
-      }
-    }
-
-    this.emitirCambios();
+    this.opcionesOficioManoObra = this.normalizarOpciones([
+      ...this.opcionesOficioManoObra.map((item) => item === nombreAnterior ? nombreNuevo : item),
+      ...((this.manoObra || []).map((item) => item.oficio || ''))
+    ]);
     this.cancelarEdicionOficioManoObra();
+  }
+
+  get opcionesGestionTipoMaterial(): string[] {
+    return this.obtenerProyectoIdValido()
+      ? this.tiposMaterialPersistidos.map((item) => item.nombre)
+      : this.opcionesTipoMaterial;
+  }
+
+  get opcionesGestionOficioManoObra(): string[] {
+    return this.obtenerProyectoIdValido()
+      ? this.oficiosManoObraPersistidos.map((item) => item.nombre)
+      : this.opcionesOficioManoObra;
   }
 
   private actualizarTiposMaterialPersistidos(tipo: CostoCatalogoApi, limpiarEdicion: boolean, nombreAnterior?: string): void {

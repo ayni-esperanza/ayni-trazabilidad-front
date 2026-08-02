@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, pendingChangesGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 import { submoduleLockGuard } from './core/guards/submodule-lock.guard';
 
@@ -44,6 +44,7 @@ export const routes: Routes = [
       ),
     title: 'Módulo de Trazabilidad',
     canActivate: [authGuard],
+    canDeactivate: [pendingChangesGuard],
   },
   {
     path: 'informes-evidencias',
