@@ -10,7 +10,7 @@ import { isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [],
   styles: [':host { display: block; }'],
-  template: `<input #inp type="text" autocomplete="off" class="hidden">`
+  template: `<input #inp type="text" autocomplete="off" style="display: none">`
 })
 export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() value = '';
@@ -43,6 +43,7 @@ export class DatePickerComponent implements AfterViewInit, OnChanges, OnDestroy 
       this.fp = flatpickr(this.inp.nativeElement, {
         dateFormat: this.enableTime ? 'Y-m-d H:i' : 'Y-m-d',
         altInput: true,
+        disableMobile: true,
         altFormat: this.enableTime ? 'd/m/Y H:i' : 'd/m/Y',
         altInputClass: this.inputClass + ' pr-9' + (this.hasError ? ' !border-red-500' : ''),
         enableTime: this.enableTime,

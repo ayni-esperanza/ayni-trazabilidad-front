@@ -43,41 +43,49 @@
     </div>
 
     <!-- Header interfaz embebida -->
-    <div *ngIf="embedded" class="bg-green-500 px-4 py-3 flex items-center justify-between rounded-lg mb-4">
-      <h2 class="text-xl font-semibold text-white">{{ proyecto?.nombreProyecto || 'Proyecto sin nombre' }}</h2>
-      <div class="flex items-center gap-2">
+    <div *ngIf="embedded" class="mb-4 flex flex-col gap-3 rounded-lg bg-green-500 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+      <div class="flex min-w-0 items-center gap-2">
+        <button
+          type="button"
+          (click)="onCerrar()"
+          class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded border border-white/70 text-white hover:bg-white/10"
+          title="Volver a solicitudes"
+          aria-label="Volver a solicitudes">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m7 7l-7-7 7-7" /></svg>
+        </button>
+        <h2 class="min-w-0 break-words text-base font-semibold leading-tight text-white sm:text-xl">{{ proyecto?.nombreProyecto || 'Proyecto sin nombre' }}</h2>
+      </div>
+      <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
         <button
           *ngIf="tabActiva === 'informacion' && !proyectoCancelado"
           (click)="guardarInfoProyecto()"
           [disabled]="!tieneCambiosInformacion() || guardandoInfo"
-          class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
+          class="min-w-0 flex-1 rounded bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none">
           {{ guardandoInfo ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
         <button
           *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
           (click)="onFinalizarProyecto()"
-          class="px-3 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          Finalizar Proyecto
+          class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 sm:flex-none">
+          <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <span class="sm:hidden">Finalizar</span>
+          <span class="hidden sm:inline">Finalizar Proyecto</span>
         </button>
         <button
           *ngIf="!proyectoFinalizado && !proyectoCancelado && (tabActiva === 'proceso' || tabActiva === 'tablero')"
           (click)="onCancelarProyecto()"
-          class="px-3 py-1.5 text-sm text-white bg-red-500 rounded hover:bg-red-600">
-          Cancelar Proyecto
+          class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded bg-red-500 px-3 py-1.5 text-sm text-white hover:bg-red-600 sm:flex-none">
+          <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+          <span>Cancelar<span class="hidden sm:inline"> Proyecto</span></span>
         </button>
         <button
           *ngIf="tabActiva === 'costos' && !modoSoloLectura && tieneCambiosCostos()"
           (click)="guardarCostosProyecto()"
           [disabled]="sincronizandoCostos"
-          class="px-3 py-1.5 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed">
+          class="min-w-0 flex-1 rounded bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none">
           {{ sincronizandoCostos ? 'Guardando...' : 'Guardar Costos' }}
         </button>
-        <button (click)="onCerrar()" class="px-3 py-1.5 text-sm text-white border border-white/70 rounded hover:bg-white/10">
-          Volver
-        </button>
+
       </div>
     </div>
 
