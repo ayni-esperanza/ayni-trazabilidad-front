@@ -208,7 +208,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
-      this.proyectoFinalizado = this.proyecto.estado === 'Completado' || this.proyecto.estado === 'Finalizado' || this.proyecto.estado === 'Archivado';
+      this.proyectoFinalizado = this.proyecto.estado === 'Completado' || this.proyecto.estado === 'Finalizado';
       this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
       // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
       this.infoProyectoExpandida = this.proyectoFinalizado || this.proyectoCancelado;
