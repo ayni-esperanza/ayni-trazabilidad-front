@@ -6,6 +6,21 @@
   overflow: hidden;
 }
 
+:host-context(.dark) ::ng-deep .ckeditor-host {
+  border-color: #334155;
+  background-color: #0f172a;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-toolbar {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+:host-context(.dark) ::ng-deep .ck.ck-editor__main > .ck-editor__editable {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
 :host ::ng-deep .ck-editor__editable {
   min-height: 120px;
   max-height: 280px;
@@ -31,15 +46,15 @@
 
 .dark :host ::ng-deep .ck.ck-editor__main>.ck-editor__editable,
 :host ::ng-deep .dark .ck.ck-editor__main>.ck-editor__editable {
-  background-color: #374151;
+  background-color: #1e293b;
   color: #f3f4f6;
-  border-color: #4b5563;
+  border-color: #334155;
 }
 
 :host ::ng-deep .dark .ck.ck-toolbar,
 .dark :host ::ng-deep .ck.ck-toolbar {
-  background-color: #1f2937;
-  border-color: #4b5563;
+  background-color: #0f172a;
+  border-color: #334155;
 }
 
 /* Contenedor del confeti */

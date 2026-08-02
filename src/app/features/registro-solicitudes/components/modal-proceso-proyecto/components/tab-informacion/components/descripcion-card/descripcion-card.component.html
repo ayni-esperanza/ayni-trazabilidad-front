@@ -1,8 +1,8 @@
-<div class="mb-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+<div class="mb-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden">
   <button
     type="button"
     (click)="toggle()"
-    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
     [attr.aria-expanded]="expandida">
     <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,15 +23,15 @@
             [(ngModel)]="proyectoInfoForm.descripcion"
             [editor]="Editor"
             [config]="ckeditorConfig"
-            class="ckeditor-host">
+            class="ckeditor-host dark:!border-slate-700 dark:!bg-slate-900 dark:[--ck-color-base-border:#334155]">
           </ckeditor>
         } @else {
           <textarea [(ngModel)]="proyectoInfoForm.descripcion" rows="4" placeholder="Descripción del proyecto..."
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white resize-none"></textarea>
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white resize-none"></textarea>
         }
       </ng-container>
       <ng-template #infoDescripcionReadonly>
-        <div class="linkified-content text-sm text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg min-h-[60px]"
+        <div class="linkified-content text-sm text-gray-600 dark:text-gray-300 prose prose-sm dark:prose-invert max-w-none bg-gray-50 dark:bg-slate-800 p-3 rounded-lg min-h-[60px]"
           [innerHTML]="(proyectoInfoForm.descripcion || '<em>Sin descripción</em>') | linkify">
         </div>
       </ng-template>

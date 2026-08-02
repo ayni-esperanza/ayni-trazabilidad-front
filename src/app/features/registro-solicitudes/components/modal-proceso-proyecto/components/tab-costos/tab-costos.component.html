@@ -288,8 +288,8 @@
 
 <!-- ===== SUB-TAB MATERIALES ===== -->
 <div [class.hidden]="subTabCostosActiva !== 'materiales'" class="space-y-3">
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20">
+  <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+    <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-blue-50 dark:bg-slate-900">
       <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">Materiales</span>
       <button type="button"
         (click)="abrirCatalogo('tipoMaterial')"
@@ -306,7 +306,7 @@
     <div class="p-2">
       <div class="overflow-x-auto overflow-y-visible touch-pan-x">
         <table class="min-w-[1050px] w-full text-xs">
-          <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <thead class="bg-gray-50 dark:bg-slate-900">
             <tr>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Fecha</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-24">Nº Comprobante</th>
@@ -320,18 +320,18 @@
               <th class="py-1.5 px-2 w-8"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr *ngFor="let mat of materiales" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+            <tr *ngFor="let mat of materiales" class="hover:bg-gray-50 dark:hover:bg-slate-800">
               <td class="py-1 px-1 w-32">
                 <app-date-picker
                   [value]="mat.fecha"
                   (valueChange)="mat.fecha = $event; emitirCambios()"
-                  [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                  [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white cursor-pointer bg-white dark:bg-slate-800'">
                 </app-date-picker>
               </td>
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mat.nroComprobante" (ngModelChange)="emitirCambios()" placeholder="000-000"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
               </td>
               <td class="py-1 px-1">
                 <app-select-searchable
@@ -346,24 +346,24 @@
               </td>
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mat.producto" (ngModelChange)="emitirCambios()" placeholder="Nombre del producto"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
               </td>
               <td class="py-1 px-1">
                 <input type="number" [(ngModel)]="mat.cantidad" (ngModelChange)="calcularCostoTotalMaterial(mat)" min="0" placeholder="0"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
               </td>
               <td class="py-1 px-1">
                 <input type="number" [(ngModel)]="mat.costoUnitario" (ngModelChange)="calcularCostoTotalMaterial(mat)" min="0" step="0.01" placeholder="0"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
               </td>
               <td class="py-1 px-1">
-                <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded text-right">
+                <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-800 rounded text-right">
                   S/ {{ mat.costoTotal | number:'1.2-2' }}
                 </span>
               </td>
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mat.encargado" (ngModelChange)="emitirCambios()" placeholder="Nombre"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
               </td>
               <td class="py-1 px-1">
                 <app-select-searchable
@@ -402,8 +402,8 @@
 
 <!-- ===== SUB-TAB MANO DE OBRA ===== -->
 <div [class.hidden]="subTabCostosActiva !== 'manoObra'" class="space-y-3">
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20">
+  <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+    <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-green-50 dark:bg-slate-900">
       <span class="text-xs font-semibold text-green-700 dark:text-green-300">Mano de Obra</span>
       <button type="button"
         (click)="abrirCatalogo('oficioManoObra')"
@@ -420,7 +420,7 @@
     <div class="p-2">
       <div class="overflow-x-auto overflow-y-visible">
         <table class="w-full text-xs">
-          <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <thead class="bg-gray-50 dark:bg-slate-900">
             <tr>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Trabajador</th>
               <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Oficio</th>
@@ -431,11 +431,11 @@
               <th class="py-1.5 px-2 w-8"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr *ngFor="let mo of manoObra" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+            <tr *ngFor="let mo of manoObra" class="hover:bg-gray-50 dark:hover:bg-slate-800">
               <td class="py-1 px-1">
                 <input type="text" [(ngModel)]="mo.trabajador" (ngModelChange)="emitirCambios()" placeholder="Nombre del trabajador"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
               </td>
               <td class="py-1 px-1">
                 <app-select-searchable
@@ -450,14 +450,14 @@
               </td>
               <td class="py-1 px-1">
                 <input type="number" [(ngModel)]="mo.diasTrabajando" (ngModelChange)="calcularCostoTotalManoObra(mo)" min="0" placeholder="0"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
               </td>
               <td class="py-1 px-1">
                 <input type="number" [(ngModel)]="mo.costoPorDia" (ngModelChange)="calcularCostoTotalManoObra(mo)" min="0" step="0.01" placeholder="0"
-                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                  class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
               </td>
               <td class="py-1 px-1">
-                <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded text-right">
+                <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-800 rounded text-right">
                   S/ {{ mo.costoTotal | number:'1.2-2' }}
                 </span>
               </td>
@@ -656,14 +656,14 @@
 
 <!-- ===== SUB-TAB OTROS COSTOS ===== -->
 <div [class.hidden]="subTabCostosActiva !== 'otrosCostos'" class="space-y-3">
-  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="px-3 py-2 bg-amber-50 dark:bg-amber-900/20">
+  <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+    <div class="px-3 py-2 bg-amber-50 dark:bg-slate-900">
       <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">Categorías de Otros Costos</span>
     </div>
     <div class="p-2 space-y-3">
       <!-- Tablas dinámicas existentes -->
-      <div *ngFor="let tabla of tablasCostosExtras" class="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800/40">
+      <div *ngFor="let tabla of tablasCostosExtras" class="border border-dashed border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-slate-900">
           <button (click)="tabla.expandida = !tabla.expandida" class="flex items-center gap-2 text-left flex-1">
             <svg class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform"
               [ngClass]="{'rotate-180': tabla.expandida}"
@@ -685,7 +685,7 @@
         <div *ngIf="tabla.expandida" class="p-2">
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
-              <thead class="bg-gray-50 dark:bg-gray-800/60">
+              <thead class="bg-gray-50 dark:bg-slate-900">
                 <tr>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200 w-32">Fecha</th>
                   <th class="py-1.5 px-2 text-left font-semibold text-gray-500 dark:text-gray-200">Descripción</th>
@@ -697,35 +697,35 @@
                   <th class="py-1.5 px-2 w-8"></th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                <tr *ngFor="let item of tabla.items" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+              <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+                <tr *ngFor="let item of tabla.items" class="hover:bg-gray-50 dark:hover:bg-slate-800">
                   <td class="py-1 px-1 w-32">
                     <app-date-picker
                       [value]="item.fecha"
                       (valueChange)="item.fecha = $event; emitirCambios()"
-                      [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                      [inputClass]="'w-full min-w-[120px] px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white cursor-pointer bg-white dark:bg-slate-800'">
                     </app-date-picker>
                   </td>
                   <td class="py-1 px-1">
                     <input type="text" [(ngModel)]="item.descripcion" (ngModelChange)="emitirCambios()" placeholder="Descripción"
-                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
                   </td>
                   <td class="py-1 px-1">
                     <input type="number" [(ngModel)]="item.cantidad" (ngModelChange)="calcularCostoTotalOtro(item)" min="0" placeholder="0"
-                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
                   </td>
                   <td class="py-1 px-1">
                     <input type="number" [(ngModel)]="item.costoUnitario" (ngModelChange)="calcularCostoTotalOtro(item)" min="0" step="0.01" placeholder="0"
-                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white text-right">
+                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white text-right">
                   </td>
                   <td class="py-1 px-1">
-                    <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded text-right">
+                    <span class="block px-1 py-0.5 text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-800 rounded text-right">
                       S/ {{ item.costoTotal | number:'1.2-2' }}
                     </span>
                   </td>
                   <td class="py-1 px-1">
                     <input type="text" [(ngModel)]="item.encargado" (ngModelChange)="emitirCambios()" placeholder="Nombre"
-                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                      class="w-full px-1 py-0.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white">
                   </td>
                   <td class="py-1 px-1">
                     <app-select-searchable
@@ -763,10 +763,10 @@
       </div>
 
       <!-- Agregar nueva categoría -->
-      <div class="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-slate-700">
         <input type="text" [(ngModel)]="nuevoNombreTablaExtra" placeholder="Nombre de la nueva categoría de costos"
           [disabled]="modoSoloLectura"
-          class="flex-1 px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+          class="flex-1 px-2 py-1.5 text-xs border border-gray-300 dark:border-slate-600 rounded dark:bg-slate-800 dark:text-white"
           (keyup.enter)="agregarTablaExtra()">
         <button (click)="agregarTablaExtra()"
           [disabled]="modoSoloLectura || !nuevoNombreTablaExtra.trim()"

@@ -1,8 +1,8 @@
-<div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+<div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden">
   <button
     type="button"
     (click)="toggle()"
-    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
     [attr.aria-expanded]="expandida">
     <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,10 +21,10 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Proyecto</label>
         <ng-container *ngIf="!modoSoloLectura; else infoNombreReadonly">
           <input type="text" [(ngModel)]="proyectoInfoForm.nombreProyecto" placeholder="Nombre del proyecto"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
         </ng-container>
         <ng-template #infoNombreReadonly>
-          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ proyectoInfoForm.nombreProyecto || '—' }}</p>
+          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">{{ proyectoInfoForm.nombreProyecto || '—' }}</p>
         </ng-template>
       </div>
 
@@ -40,7 +40,7 @@
           </app-responsable-select>
         </ng-container>
         <ng-template #infoResponsableReadonly>
-          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ getResponsableNombre(proyectoInfoForm.responsableId) }}</p>
+          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">{{ getResponsableNombre(proyectoInfoForm.responsableId) }}</p>
         </ng-template>
       </div>
 
@@ -48,10 +48,10 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa</label>
         <ng-container *ngIf="!modoSoloLectura; else infoClienteReadonly">
           <input type="text" [(ngModel)]="proyectoInfoForm.cliente" placeholder="Nombre de la empresa"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
         </ng-container>
         <ng-template #infoClienteReadonly>
-          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ proyectoInfoForm.cliente || '—' }}</p>
+          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">{{ proyectoInfoForm.cliente || '—' }}</p>
         </ng-template>
       </div>
 
@@ -59,10 +59,10 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Encargado de Proyecto</label>
         <ng-container *ngIf="!modoSoloLectura; else infoRepresentanteReadonly">
           <input type="text" [(ngModel)]="proyectoInfoForm.representante" placeholder="Nombre del encargado del proyecto"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
         </ng-container>
         <ng-template #infoRepresentanteReadonly>
-          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">{{ proyectoInfoForm.representante || '—' }}</p>
+          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">{{ proyectoInfoForm.representante || '—' }}</p>
         </ng-template>
       </div>
 
@@ -75,7 +75,7 @@
           </app-ubicacion-select>
         </ng-container>
         <ng-template #infoUbicacionReadonly>
-          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded flex items-center gap-1">
+          <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded flex items-center gap-1">
             {{ proyectoInfoForm.ubicacion || '—' }}
           </p>
         </ng-template>
@@ -85,10 +85,10 @@
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Costo Total (S/)</label>
         <ng-container *ngIf="!modoSoloLectura; else infoCostoReadonly">
           <input type="number" [(ngModel)]="proyectoInfoForm.costo" min="0" step="0.01" placeholder="0.00"
-            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
         </ng-container>
         <ng-template #infoCostoReadonly>
-          <p class="px-2 py-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-gray-50 dark:bg-gray-700/50 rounded">{{ proyectoInfoForm.costo | currency:'S/ ' }}</p>
+          <p class="px-2 py-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-gray-50 dark:bg-slate-800 rounded">{{ proyectoInfoForm.costo | currency:'S/ ' }}</p>
         </ng-template>
       </div>
 
@@ -104,7 +104,7 @@
               searchPlaceholder="Buscar área..."
               [emptyValue]="''"
               [allowEmpty]="true"
-              buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+              buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-slate-800"
               (valueChange)="areaSeleccionadaParaAgregar = normalizarAreaSeleccionada($event)">
             </app-select-searchable>
             <button
@@ -116,7 +116,7 @@
             </button>
           </div>
 
-          <div class="mt-2 min-h-[38px] px-2 py-1.5 border border-dashed border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700/20">
+          <div class="mt-2 min-h-[38px] px-2 py-1.5 border border-dashed border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-slate-800">
             <div *ngIf="(proyectoInfoForm.areas || []).length > 0" class="flex flex-wrap gap-1">
               <span *ngFor="let area of proyectoInfoForm.areas" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                 {{ area }}
@@ -131,7 +131,7 @@
           </div>
         </ng-container>
         <ng-template #infoAreasReadonly>
-          <div class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded min-h-[38px]">
+          <div class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded min-h-[38px]">
             <div *ngIf="(proyectoInfoForm.areas || []).length > 0" class="flex flex-wrap gap-1">
               <span *ngFor="let area of proyectoInfoForm.areas" class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">{{ area }}</span>
             </div>
@@ -142,14 +142,14 @@
 
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de registro</label>
-        <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">
+        <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">
           {{ formatDisplayDate(proyecto?.fechaRegistro || proyecto?.fechaInicio) || '—' }}
         </p>
       </div>
 
       <div>
         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Último registro</label>
-        <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50 rounded">
+        <p class="px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-800 rounded">
           {{ formatDisplayDate(proyecto?.fechaActualizacion || proyecto?.fechaFinalizacion) || '—' }}
         </p>
       </div>

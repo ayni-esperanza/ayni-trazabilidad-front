@@ -1,8 +1,8 @@
-<div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+<div class="mb-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 overflow-hidden">
   <button
     type="button"
     (click)="toggle()"
-    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+    class="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
     [attr.aria-expanded]="expandida">
     <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,29 +24,29 @@
             <div class="flex-1 space-y-1.5">
               <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
                 <input type="text" [(ngModel)]="oc.numero" placeholder="Ej: OC-2026-001"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
                 <app-select-searchable
                   [options]="tiposOrdenCompraOptions"
                   [value]="oc.tipo"
                   placeholder="Tipo"
                   searchPlaceholder="Buscar tipo..."
                   [allowEmpty]="false"
-                  buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  buttonClass="w-full px-2 py-1.5 text-sm rounded border-gray-300 dark:border-gray-600 dark:bg-slate-800"
                   (valueChange)="oc.tipo = normalizarTipoOrdenCompra($event)">
                 </app-select-searchable>
                 <input type="text" [(ngModel)]="oc.numeroLicitacion" placeholder="N° de licitación (opcional)"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white">
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white">
                 <input type="text" [(ngModel)]="oc.numeroSolicitud" placeholder="N° de solicitud (opcional)"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white order-5 sm:order-4">
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white order-5 sm:order-4">
                 <app-date-picker
                   class="w-full order-6 sm:order-5"
                   [value]="oc.fecha"
                   (valueChange)="oc.fecha = $event"
-                  [inputClass]="'w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white cursor-pointer bg-white dark:bg-gray-700'">
+                  [inputClass]="'w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white cursor-pointer bg-white dark:bg-slate-800'">
                 </app-date-picker>
                 <input type="number" [(ngModel)]="oc.total" min="0" step="0.01" placeholder="Total sin IGV"
                   (focus)="oc.total === 0 ? oc.total = undefined : null"
-                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-700 dark:text-white order-4 sm:order-6">
+                  class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-green-500 outline-none dark:bg-slate-800 dark:text-white order-4 sm:order-6">
               </div>
 
               <div class="flex items-start gap-2 flex-wrap" *ngIf="(oc.adjuntos || []).length > 0">
@@ -112,7 +112,7 @@
 
       <ng-template #infoOrdenCompraReadonly>
         <div *ngIf="proyectoInfoForm.ordenesCompra.length > 0" class="space-y-1">
-          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra" class="grid grid-cols-6 gap-3 px-2 py-1.5 text-sm bg-gray-50 dark:bg-gray-700/50 rounded">
+          <div *ngFor="let oc of proyectoInfoForm.ordenesCompra" class="grid grid-cols-6 gap-3 px-2 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 rounded">
             <span class="font-medium text-gray-700 dark:text-gray-200">{{ oc.numero || '—' }}</span>
             <span class="text-gray-600 dark:text-gray-300">{{ oc.tipo || '—' }}</span>
             <span class="text-gray-600 dark:text-gray-300">{{ oc.numeroLicitacion || '—' }}</span>
@@ -121,7 +121,7 @@
             <span class="text-blue-600 dark:text-blue-400 font-semibold text-right">{{ (oc.total ?? 0) | currency:'S/ ' }}</span>
           </div>
         </div>
-        <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded">—</p>
+        <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 rounded">—</p>
       </ng-template>
     </div>
   </div>
