@@ -1,8 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, Output, SimpleChanges, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { SelectSearchableComponent } from '../../../../../../shared/components/select-searchable/select-searchable.component';
+import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import {
   ActividadCostoOption,
   MaterialCosto,
@@ -29,10 +31,10 @@ type ResumenCostoItem = {
 @Component({
   selector: 'app-tab-costos',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent, OverlayModule],
   templateUrl: './tab-costos.component.html'
 })
-export class TabCostosComponent implements OnChanges {
+export class TabCostosComponent implements OnChanges, OnDestroy {
   @Input() materiales!: MaterialCosto[];
   @Input() manoObra!: ManoObraCosto[];
   @Input() tablasCostosExtras!: TablaCostoExtra[];
@@ -49,6 +51,8 @@ export class TabCostosComponent implements OnChanges {
 
   subTabCostosActiva: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
   catalogoActivo: 'tipoMaterial' | 'oficioManoObra' | null = null;
+  @ViewChild('catalogoTemplate') private catalogoTemplate!: TemplateRef<void>;
+  private catalogoOverlayRef: OverlayRef | null = null;
   nuevoNombreTablaExtra = '';
   nuevoTipoMaterial = '';
   nuevoOficioManoObra = '';
@@ -61,7 +65,11 @@ export class TabCostosComponent implements OnChanges {
   oficioManoObraEnEdicion: string | null = null;
   nuevoNombreOficioManoObraEdicion = '';
 
-  constructor(private readonly registroSolicitudesService: RegistroSolicitudesService) {}
+  constructor(
+    private readonly registroSolicitudesService: RegistroSolicitudesService,
+    @Inject(Overlay) private readonly overlay: Overlay,
+    @Inject(ViewContainerRef) private readonly viewContainerRef: ViewContainerRef,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyectoId']) {
@@ -161,12 +169,30 @@ export class TabCostosComponent implements OnChanges {
 
   abrirCatalogo(tipo: 'tipoMaterial' | 'oficioManoObra'): void {
     this.catalogoActivo = tipo;
+
+    if (this.catalogoOverlayRef) return;
+
+    this.catalogoOverlayRef = this.overlay.create({
+      width: '100%',
+      height: '100%',
+      positionStrategy: this.overlay.position().global().top('0').left('0'),
+      scrollStrategy: this.overlay.scrollStrategies.block(),
+      disposeOnNavigation: true,
+    });
+    this.catalogoOverlayRef.attach(new TemplatePortal(this.catalogoTemplate, this.viewContainerRef));
   }
 
   cerrarCatalogo(): void {
     this.cancelarEdicionTipoMaterial();
     this.cancelarEdicionOficioManoObra();
     this.catalogoActivo = null;
+    this.catalogoOverlayRef?.dispose();
+    this.catalogoOverlayRef = null;
+  }
+
+  ngOnDestroy(): void {
+    this.catalogoOverlayRef?.dispose();
+    this.catalogoOverlayRef = null;
   }
 
   eliminarOpcionTipoMaterial(nombre: string): void {
