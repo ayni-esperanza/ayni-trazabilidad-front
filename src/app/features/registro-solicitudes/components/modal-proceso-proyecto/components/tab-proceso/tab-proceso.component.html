@@ -187,3 +187,9 @@
 
 <app-proceso-timeline *ngIf="vistaFlujo === 'timeline'" [ctx]="this"></app-proceso-timeline>
 <app-proceso-tabla *ngIf="vistaFlujo === 'tabla'" [ctx]="this"></app-proceso-tabla>
+<app-confirm-delete-modal
+  [visible]="mostrarConfirmacionEliminarComentario"
+  [config]="configEliminarComentario"
+  (confirmar)="confirmarEliminacionComentarioActividad()"
+  (cancelar)="cancelarEliminacionComentario()">
+</app-confirm-delete-modal>

@@ -9,11 +9,12 @@ import { ADJUNTO_ACCEPT_TIPOS } from '../../../../../../../../shared/services/ad
 import { AdjuntosPreviewService } from '../../../../../../../../shared/services/adjuntos-preview.service';
 import { DocumentoResumen } from '../../../../models/documento-resumen.model';
 import { ProyectoInfoFormData } from '../../tab-informacion.models';
+import { ConfirmDeleteConfig, ConfirmDeleteModalComponent } from '../../../../../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-ordenes-compra-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent, ConfirmDeleteModalComponent],
   templateUrl: './ordenes-compra-card.component.html'
 })
 export class OrdenesCompraCardComponent implements OnChanges {
@@ -22,6 +23,9 @@ export class OrdenesCompraCardComponent implements OnChanges {
   @Output() abrirVistaPreviaDocumentoEvt = new EventEmitter<DocumentoResumen>();
 
   expandida = false;
+  mostrarConfirmacionEliminarOrden = false;
+  ordenPendienteEliminar: number | null = null;
+  configEliminarOrden: ConfirmDeleteConfig = {};
   readonly tiposOrdenCompra = ['SUMINISTRO', 'SERVICIO', 'OTROS'];
   get tiposOrdenCompraOptions(): SelectSearchableOption[] {
     return this.tiposOrdenCompra.map((tipo) => ({ value: tipo, label: tipo }));
@@ -70,9 +74,34 @@ export class OrdenesCompraCardComponent implements OnChanges {
   eliminarOrdenCompra(index: number, event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
+    const orden = (this.proyectoInfoForm.ordenesCompra || [])[index];
+    if (!orden) return;
+
+    this.ordenPendienteEliminar = index;
+    this.configEliminarOrden = {
+      titulo: 'Eliminar orden de compra',
+      mensaje: `¿Deseas eliminar la orden ${orden.numero?.trim() || `#${index + 1}`}?`,
+      itemNombre: orden.numero?.trim() || `Orden #${index + 1}`,
+      tipoElemento: 'orden de compra',
+      textoConfirmar: 'Eliminar orden',
+      textoCancelar: 'Cancelar',
+    };
+    this.mostrarConfirmacionEliminarOrden = true;
+  }
+
+  confirmarEliminarOrdenCompra(): void {
+    const index = this.ordenPendienteEliminar;
     const ordenes = this.proyectoInfoForm.ordenesCompra || [];
-    if (index < 0 || index >= ordenes.length) return;
-    this.proyectoInfoForm.ordenesCompra = ordenes.filter((_, i) => i !== index);
+    if (index !== null && index >= 0 && index < ordenes.length) {
+      this.proyectoInfoForm.ordenesCompra = ordenes.filter((_, i) => i !== index);
+    }
+    this.cancelarEliminarOrdenCompra();
+  }
+
+  cancelarEliminarOrdenCompra(): void {
+    this.mostrarConfirmacionEliminarOrden = false;
+    this.ordenPendienteEliminar = null;
+    this.configEliminarOrden = {};
   }
 
   async onSeleccionarAdjuntosOrdenCompra(event: Event, index: number): Promise<void> {

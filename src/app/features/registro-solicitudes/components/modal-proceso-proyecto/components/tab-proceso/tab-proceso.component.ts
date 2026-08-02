@@ -14,11 +14,12 @@ import type { CambioPaginaEvent, PaginacionConfig } from '../../../../../../shar
 import { DatePickerComponent } from '../../../../../../shared/components/date-picker/date-picker.component';
 import { SelectSearchableComponent, SelectSearchableOption } from '../../../../../../shared/components/select-searchable/select-searchable.component';
 import { firstValueFrom } from 'rxjs';
+import { ConfirmDeleteConfig, ConfirmDeleteModalComponent } from '../../../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 @Component({
   selector: 'app-tab-proceso',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent, DatePickerComponent, SelectSearchableComponent],
+  imports: [CommonModule, FormsModule, ProcesoTablaComponent, ProcesoTimelineComponent, DatePickerComponent, SelectSearchableComponent, ConfirmDeleteModalComponent],
   templateUrl: './tab-proceso.component.html'
 })
 export class TabProcesoComponent implements OnChanges, OnDestroy {
@@ -105,6 +106,9 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     'xlsx', 'xls', 'pdf', 'docx', 'doc', 'pptx', 'ppt', 'txt', 'csv', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'zip', 'rar'
   ]);
   erroresAdjuntosComentario: Record<number, string> = {};
+  mostrarConfirmacionEliminarComentario = false;
+  comentarioPendienteEliminarId: number | null = null;
+  configEliminarComentario: ConfirmDeleteConfig = {};
   // Compatibilidad defensiva para plantillas previas en hot-reload.
   readonly alertasActividades: unknown[] = [];
 
@@ -854,6 +858,31 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
   }
 
   eliminarComentarioActividad(comentarioId: number): void {
+    if (this.proyectoCancelado || this.actividadModalAbierta || !this.puedeModificarComentarioPorId(comentarioId)) return;
+
+    const comentario = (this.comentariosAdicionalesActividad || []).find((item) => item.id === comentarioId);
+    this.comentarioPendienteEliminarId = comentarioId;
+    this.configEliminarComentario = {
+      titulo: 'Eliminar comentario',
+      mensaje: '¿Deseas eliminar este comentario? Esta acción no se puede deshacer.',
+      itemNombre: (comentario?.texto || '').trim().slice(0, 80) || 'Comentario sin texto',
+      tipoElemento: 'comentario',
+      textoConfirmar: 'Eliminar comentario',
+      textoCancelar: 'Cancelar',
+    };
+    this.mostrarConfirmacionEliminarComentario = true;
+  }
+
+  cancelarEliminacionComentario(): void {
+    this.mostrarConfirmacionEliminarComentario = false;
+    this.comentarioPendienteEliminarId = null;
+    this.configEliminarComentario = {};
+  }
+  confirmarEliminacionComentarioActividad(): void {
+    const comentarioId = this.comentarioPendienteEliminarId;
+    if (comentarioId === null) return;
+    this.cancelarEliminacionComentario();
+
     if (this.proyectoCancelado || this.actividadModalAbierta || !this.puedeModificarComentarioPorId(comentarioId)) return;
 
     if (!this.proyecto?.id || comentarioId <= 0) {
