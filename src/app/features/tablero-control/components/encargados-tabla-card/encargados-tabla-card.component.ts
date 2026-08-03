@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TareaEncargado, GastoProyecto, ProyectoEnCurso } from '../../models/tablero.model';
+import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
 
 @Component({
   selector: 'app-encargados-tabla-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PaginadorCompactoComponent],
   templateUrl: './encargados-tabla-card.component.html',
   styleUrls: ['./encargados-tabla-card.component.css']
 })
@@ -25,10 +26,18 @@ export class EncargadosTablaCardComponent {
   @Input() totalMateriales: number = 0;
   @Input() totalManoObra: number = 0;
   @Input() totalOtrosCostos: number = 0;
+  @Input() page = 0;
+  @Input() size: 100 | 500 | 1000 = 100;
+  @Input() totalElements = 0;
+  @Input() totalPages = 0;
+  @Input() loading = false;
   
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() cambiarModo = new EventEmitter<'tabla' | 'timeline'>();
   @Output() seleccionarCategoria = new EventEmitter<string>();
+  @Output() paginaAnterior = new EventEmitter<void>();
+  @Output() paginaSiguiente = new EventEmitter<void>();
+  @Output() pageSizeChange = new EventEmitter<100 | 500 | 1000>();
   
   onToggleTabla(): void {
     this.toggleTabla.emit();
@@ -56,3 +65,4 @@ export class EncargadosTablaCardComponent {
     return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
   }
 }
+

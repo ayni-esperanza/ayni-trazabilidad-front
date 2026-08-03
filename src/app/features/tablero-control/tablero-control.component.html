@@ -60,6 +60,11 @@
       [estadoProyecto]="estadoProyecto"
       [fechaDesde]="fechaDesde"
       [fechaHasta]="fechaHasta"
+      [page]="paginacionProyectos.page"
+      [size]="paginacionProyectos.size"
+      [totalElements]="totalProyectos"
+      [totalPages]="totalPaginasProyectos"
+      [loading]="cargandoProyectos"
       (toggleTabla)="toggleTablaProyectos()"
       (limpiarFiltros)="limpiarFiltros()"
       (selectProyecto)="onSelectProyecto($event)"
@@ -68,7 +73,10 @@
       (areaSeleccionadaChange)="onAreaChange($event)"
       (estadoProyectoChange)="onEstadoProyectoChange($event)"
       (fechaDesdeChange)="onFechaDesdeChange($event)"
-      (fechaHastaChange)="onFechaHastaChange($event)">
+      (fechaHastaChange)="onFechaHastaChange($event)"
+      (paginaAnterior)="cambiarPaginaProyectos(-1)"
+      (paginaSiguiente)="cambiarPaginaProyectos(1)"
+      (pageSizeChange)="cambiarTamanoProyectos($event)">
     </app-proyectos-tabla-card>
     
     <!-- Componente Tabla de Encargados/Gastos -->
@@ -84,11 +92,22 @@
       [totalMateriales]="getTotalPorCategoria('Materiales')"
       [totalManoObra]="getTotalPorCategoria('Mano de Obra')"
       [totalOtrosCostos]="getTotalPorCategoria('Otros Costos')"
+      [page]="paginaDetalle.page"
+      [size]="paginaDetalle.size"
+      [totalElements]="totalDetalle"
+      [totalPages]="totalPaginasDetalle"
+      [loading]="cargandoDetalle"
       (toggleTabla)="toggleTablaDetalle()"
       (cambiarModo)="cambiarModoVisualizacionTareas($event)"
-      (seleccionarCategoria)="seleccionarCategoria($event)">
+      (seleccionarCategoria)="seleccionarCategoria($event)"
+      (paginaAnterior)="cambiarPaginaDetalle(-1)"
+      (paginaSiguiente)="cambiarPaginaDetalle(1)"
+      (pageSizeChange)="cambiarTamanoDetalle($event)">
     </app-encargados-tabla-card>
     </div>
   </div>
 </div>
+
+
+
 

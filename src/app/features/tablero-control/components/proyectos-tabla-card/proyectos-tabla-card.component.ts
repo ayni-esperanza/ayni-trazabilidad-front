@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ProyectoEnCurso, EstadoProyecto } from '../../models/tablero.model';
 import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 import { SelectSearchableComponent } from '../../../../shared/components/select-searchable/select-searchable.component';
+import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
 
 @Component({
   selector: 'app-proyectos-tabla-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, SelectSearchableComponent, PaginadorCompactoComponent],
   templateUrl: './proyectos-tabla-card.component.html',
   styleUrls: ['./proyectos-tabla-card.component.css']
 })
@@ -24,6 +25,11 @@ export class ProyectosTablaCardComponent {
   @Input() mesSeleccionado: string | null = null;
   @Input() proyectoSeleccionado: ProyectoEnCurso | null = null;
   @Input() tablaVisible: boolean = true;
+  @Input() page = 0;
+  @Input() size: 100 | 500 | 1000 = 100;
+  @Input() totalElements = 0;
+  @Input() totalPages = 0;
+  @Input() loading = false;
 
   // Filtros adicionales para la vista de finalizados
   @Input() lugares: string[] = [];
@@ -52,6 +58,9 @@ export class ProyectosTablaCardComponent {
   @Output() estadoProyectoChange = new EventEmitter<string | null>();
   @Output() fechaDesdeChange = new EventEmitter<string | null>();
   @Output() fechaHastaChange = new EventEmitter<string | null>();
+  @Output() paginaAnterior = new EventEmitter<void>();
+  @Output() paginaSiguiente = new EventEmitter<void>();
+  @Output() pageSizeChange = new EventEmitter<100 | 500 | 1000>();
   
   toggleFiltrosFecha(): void {
     // Alternar visibilidad de filtros de fecha
@@ -137,3 +146,5 @@ export class ProyectosTablaCardComponent {
     return classes[estado] || 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400';
   }
 }
+
+

@@ -1,9 +1,10 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import { TableroControlService } from './services/tablero-control.service';
+import { DashboardConsultaService } from './services/dashboard-consulta.service';
+import { DashboardFiltros, DashboardPaginacion } from './models/dashboard-consulta.model';
 import { NgxChartsModule, Color, ScaleType, LegendPosition } from '@swimlane/ngx-charts';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { 
   ProyectoEnCurso, 
@@ -127,18 +128,8 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   // Gastos por proyecto (para vista de gastos)
   gastosProyectos: GastoProyecto[] = [];
   gastosFiltrados: GastoProyecto[] = [];
-  readonly areasCatalogo: string[] = [
-    'Administracion',
-    'Metalmecanica',
-    'Mecanica automotriz',
-    'Fibra',
-    'Electricidad',
-    'Lineas de vida',
-    'Polimeros',
-    'Torres de enfriamiento',
-    'Perforación',
-    'Sistemas'
-  ];
+  totalesGastosCategorias: Record<string, number> = {};
+
   
   /**
    * Obtiene la lista de empresas únicas de los proyectos (filtrados por métrica actual)
@@ -148,7 +139,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     
     // Filtrar por estado según la métrica seleccionada
     if (this.metricaSeleccionada === 'finalizados') {
-      proyectos = proyectos.filter(p => p.estado === 'Completado' || p.estado === 'Cancelado' || p.estado === 'Retrasado');
+      proyectos = proyectos.filter(p => p.estado === 'Completado' || p.estado === 'Cancelado');
     } else if (this.metricaSeleccionada === 'activos') {
       proyectos = proyectos.filter(p => p.estado === 'En Proceso' || p.estado === 'Pendiente');
     }
@@ -192,6 +183,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    * Obtiene los estados disponibles según la métrica actual
    */
   get estadosFinalizadosDisponibles(): string[] {
+    if (this.metricaSeleccionada === 'finalizados') {
+      return ['Completado', 'Cancelado'];
+    }
     const proyectosBase = this.proyectosEnCurso.filter(p => this.matchMetrica(p));
     const estadosSet = new Set(proyectosBase.map(p => p.estado));
     return Array.from(estadosSet).sort();
@@ -200,33 +194,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   /** Auxiliar: comprueba si un proyecto corresponde a la métrica seleccionada */
   private matchMetrica(p: ProyectoEnCurso): boolean {
     if (this.metricaSeleccionada === 'finalizados')
-      return p.estado === 'Completado';
+      return p.estado === 'Completado' || p.estado === 'Cancelado';
     if (this.metricaSeleccionada === 'activos')
       return p.estado === 'En Proceso' || p.estado === 'Pendiente';
     return true; // gastos: todos
-  }
-
-  private obtenerMesProyecto(proyecto: ProyectoEnCurso): string {
-    if (this.metricaSeleccionada === 'finalizados') {
-      return proyecto.mesFinalizado || proyecto.mes || '';
-    }
-    return proyecto.mesActivo || proyecto.mes || '';
-  }
-
-  private obtenerMesGasto(gasto: GastoProyecto): string {
-    if (gasto.mes) return gasto.mes;
-    const fecha = new Date(gasto.fecha);
-    if (Number.isNaN(fecha.getTime())) return '';
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return months[fecha.getMonth()] || '';
-  }
-
-  private obtenerFechaBaseProyecto(proyecto: ProyectoEnCurso): Date {
-    if (this.metricaSeleccionada === 'finalizados') {
-      return proyecto.fechaFinalizacion || proyecto.fechaRegistro || proyecto.fechaInicio || proyecto.fechaCreacion;
-    }
-
-    return proyecto.fechaRegistro || proyecto.fechaInicio || proyecto.fechaCreacion;
   }
 
   // Filtros de selección
@@ -241,6 +212,18 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   fechaDesde: string | null = null;
   fechaHasta: string | null = null;
   
+  paginacionProyectos: DashboardPaginacion = { page: 0, size: 100 };
+  paginacionActividades: DashboardPaginacion = { page: 0, size: 100 };
+  paginacionGastos: DashboardPaginacion = { page: 0, size: 100 };
+  cargandoProyectos = false;
+  cargandoActividades = false;
+  cargandoGastos = false;
+  totalProyectos = 0;
+  totalPaginasProyectos = 0;
+  totalActividades = 0;
+  totalPaginasActividades = 0;
+  totalGastos = 0;
+  totalPaginasGastos = 0;
   // Control de visibilidad de tablas (compactables)
   tablaProyectosVisible = true;
   tablaDetalleVisible = true;
@@ -249,7 +232,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   modoVisualizacionTareas: 'tabla' | 'timeline' = 'tabla';
   
   constructor(
-    private tableroService: TableroControlService,
+    private tableroService: DashboardConsultaService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -277,56 +260,108 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   private cargarDatos(): void {
     this.cargando = true;
     this.error = null;
-    
-    // Resetear filtros
-    this.mesSeleccionado = null;
-    this.proyectoSeleccionado = null;
-    this.empresaSeleccionada = null;
-    this.lugarSeleccionado = null;
-    this.areaSeleccionada = null;
-    this.estadoProyecto = null;
-    this.fechaDesde = null;
-    this.fechaHasta = null;
-    
-    // Cargar todos los datos en paralelo usando el resumen
-    this.tableroService.obtenerResumenTablero()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (resumen) => {
-          // Métricas principales
-          this.proyectosFinalizados = resumen.proyectosFinalizados;
-          this.proyectosActivos = resumen.proyectosActivos;
-          this.gastosMes = resumen.gastos.mes;
-          this.gastosHoy = resumen.gastos.hoy;
-          this.gastosAyer = resumen.gastos.ayer;
-          
-          // Datos de gráficos
-          this.datosProyectosFinalizados = resumen.datosProyectosFinalizados;
-          this.datosProyectosActivos = resumen.datosProyectosActivos;
-          this.datosGastos = resumen.datosGastos;
-          
-          // Tablas - ordenar por fecha de creación (más nuevo primero)
-          this.proyectosEnCurso = resumen.proyectosEnCurso.sort((a, b) => 
-            new Date(this.obtenerFechaBaseProyecto(b)).getTime() - new Date(this.obtenerFechaBaseProyecto(a)).getTime()
-          );
-          this.tareasEncargados = resumen.tareasEncargados;
-          this.gastosProyectos = resumen.gastosProyectos || [];
-          
-          // Inicializar datos filtrados con todos los datos
-          this.aplicarFiltros();
-          
-          this.cargando = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error al cargar datos del tablero:', err);
-          this.error = 'Error al cargar los datos del tablero. Por favor, intente nuevamente.';
-          this.cargando = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.cargarMetricas();
+    this.cargarGraficos();
+    this.cargarProyectos();
+    this.cargarActividades();
+    this.cargarGastos();
   }
-  
+
+  private filtrosGlobales(): DashboardFiltros {
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return { metrica: this.metricaSeleccionada, empresa: this.empresaSeleccionada, lugar: this.lugarSeleccionado,
+      area: this.areaSeleccionada, estado: this.estadoProyecto, fechaDesde: this.fechaDesde, fechaHasta: this.fechaHasta,
+      mes: this.mesSeleccionado ? meses.indexOf(this.mesSeleccionado) + 1 : null,
+      proyectoId: this.proyectoSeleccionado?.id ?? null, categoria: this.categoriaSeleccionada };
+  }
+
+  private filtrosResumen(): DashboardFiltros {
+    const filtros = this.filtrosGlobales();
+    return { ...filtros, proyectoId: null, categoria: null };
+  }
+  private cargarMetricas(): void {
+    this.tableroService.resumen({}).pipe(takeUntil(this.destroy$)).subscribe({
+      next: resumen => { this.proyectosFinalizados = resumen.proyectosFinalizados; this.proyectosActivos = resumen.proyectosActivos;
+        this.gastosMes = resumen.gastosMes; this.gastosHoy = resumen.gastosHoy; this.gastosAyer = resumen.gastosAyer;
+        this.cargando = false; this.cdr.detectChanges(); },
+      error: () => { this.error = 'Error al cargar el resumen del tablero.'; this.cargando = false; }
+    });
+  }
+
+  private cargarGraficos(): void {
+    this.tableroService.resumen(this.filtrosResumen()).pipe(takeUntil(this.destroy$)).subscribe({
+      next: resumen => {
+        this.datosProyectosFinalizados = resumen.datosProyectosFinalizados || [];
+        this.datosProyectosActivos = resumen.datosProyectosActivos || [];
+        this.datosGastos = resumen.datosGastos || [];
+        this.cdr.detectChanges();
+      },
+      error: () => { this.error = 'Error al cargar los gráficos del tablero.'; }
+    });
+  }
+
+  cargarProyectos(): void {
+    this.cargandoProyectos = true;
+    this.tableroService.proyectos(this.filtrosGlobales(), this.paginacionProyectos).pipe(takeUntil(this.destroy$)).subscribe({
+      next: pagina => { this.proyectosEnCurso = pagina.content.map(item => this.mapProyecto(item)); this.proyectosEnCursoFiltrados = this.proyectosEnCurso; this.totalProyectos = pagina.totalElements; this.totalPaginasProyectos = pagina.totalPages; this.cargandoProyectos = false; },
+      error: () => { this.cargandoProyectos = false; }
+    });
+  }
+
+  cambiarPaginaProyectos(delta: number): void {
+    const page = this.paginacionProyectos.page + delta;
+    if (page < 0 || page >= this.totalPaginasProyectos) return;
+    this.paginacionProyectos = { ...this.paginacionProyectos, page };
+    this.cargarProyectos();
+  }
+
+  cambiarTamanoProyectos(size: 100 | 500 | 1000): void {
+    this.paginacionProyectos = { page: 0, size };
+    this.cargarProyectos();
+  }
+  cargarActividades(): void {
+    this.cargandoActividades = true;
+    this.tableroService.actividades(this.filtrosGlobales(), this.paginacionActividades).pipe(takeUntil(this.destroy$)).subscribe({
+      next: pagina => { this.tareasEncargados = pagina.content; this.tareasFiltradas = pagina.content; this.totalActividades = pagina.totalElements; this.totalPaginasActividades = pagina.totalPages; this.cargandoActividades = false; }, error: () => { this.cargandoActividades = false; }
+    });
+  }
+
+  cargarGastos(): void {
+    this.cargandoGastos = true;
+    this.cargarTotalesGastos();
+    this.tableroService.gastos(this.filtrosGlobales(), this.paginacionGastos).pipe(takeUntil(this.destroy$)).subscribe({
+      next: pagina => { this.gastosProyectos = pagina.content; this.gastosFiltrados = pagina.content; this.totalGastos = pagina.totalElements; this.totalPaginasGastos = pagina.totalPages; this.cargandoGastos = false; }, error: () => { this.cargandoGastos = false; }
+    });
+  }
+
+  private cargarTotalesGastos(): void {
+    this.tableroService.totalesGastos(this.filtrosGlobales()).pipe(takeUntil(this.destroy$)).subscribe({
+      next: totales => { this.totalesGastosCategorias = totales || {}; },
+      error: () => { this.totalesGastosCategorias = {}; }
+    });
+  }
+  get paginaDetalle(): DashboardPaginacion { return this.metricaSeleccionada === 'gastos' ? this.paginacionGastos : this.paginacionActividades; }
+  get totalDetalle(): number { return this.metricaSeleccionada === 'gastos' ? this.totalGastos : this.totalActividades; }
+  get totalPaginasDetalle(): number { return this.metricaSeleccionada === 'gastos' ? this.totalPaginasGastos : this.totalPaginasActividades; }
+  get cargandoDetalle(): boolean { return this.metricaSeleccionada === 'gastos' ? this.cargandoGastos : this.cargandoActividades; }
+
+  cambiarPaginaDetalle(delta: number): void {
+    const actual = this.paginaDetalle;
+    const page = actual.page + delta;
+    if (page < 0 || page >= this.totalPaginasDetalle) return;
+    if (this.metricaSeleccionada === 'gastos') { this.paginacionGastos = { ...actual, page }; this.cargarGastos(); }
+    else { this.paginacionActividades = { ...actual, page }; this.cargarActividades(); }
+  }
+
+  cambiarTamanoDetalle(size: 100 | 500 | 1000): void {
+    if (this.metricaSeleccionada === 'gastos') { this.paginacionGastos = { page: 0, size }; this.cargarGastos(); }
+    else { this.paginacionActividades = { page: 0, size }; this.cargarActividades(); }
+  }
+  private mapProyecto(item: any): ProyectoEnCurso {
+    const inicio = item.durationStart ? new Date(item.durationStart) : new Date(); const fin = item.durationEnd ? new Date(item.durationEnd) : inicio;
+    const estado: EstadoProyecto = item.estado === 'PENDIENTE' ? 'Pendiente' : item.estado === 'CANCELADO' ? 'Cancelado' : item.estado === 'COMPLETADO' || item.estado === 'FINALIZADO' ? 'Completado' : 'En Proceso';
+    return { id: item.id, proyecto: item.nombre || 'Proyecto', empresa: item.cliente || '', responsable: item.responsable || 'Sin responsable', etapa: item.etapa || estado, fechas: '', estado, mes: '', fechaCreacion: inicio, fechaInicio: inicio, fechaFinalizacion: fin, lugar: item.ubicacion || '', areas: item.areas || [], area: item.areas?.[0] || '', gastoTotal: item.gasto || 0 };
+  }
   /**
    * Recargar los datos del tablero
    */
@@ -503,7 +538,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       this.proyectoSeleccionado = proyecto;
     }
     
-    this.aplicarFiltros();
+    this.paginacionActividades = { ...this.paginacionActividades, page: 0 };
+    this.paginacionGastos = { ...this.paginacionGastos, page: 0 };
+    this.cargarActividades();
+    this.cargarGastos();
   }
   
   /**
@@ -526,95 +564,14 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    * Aplica los filtros actuales a proyectos y tareas
    */
   private aplicarFiltros(): void {
-    let proyectosFiltrados = [...this.proyectosEnCurso];
-    
-    // Filtrar por estado según la métrica seleccionada
-    if (this.metricaSeleccionada === 'finalizados') {
-      proyectosFiltrados = proyectosFiltrados.filter(p => 
-        p.estado === 'Completado'
-      );
-    } else if (this.metricaSeleccionada === 'activos') {
-      proyectosFiltrados = proyectosFiltrados.filter(p => 
-        p.estado === 'En Proceso' || p.estado === 'Pendiente'
-      );
-    }
-    // Para 'gastos' mostramos todos los proyectos
-    
-    // Filtrar por mes si está seleccionado
-    if (this.mesSeleccionado) {
-      if (this.metricaSeleccionada === 'gastos') {
-        const idsProyectosMes = this.gastosProyectos
-          .filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado)
-          .map(g => g.proyectoId);
-        proyectosFiltrados = proyectosFiltrados.filter(p => idsProyectosMes.includes(p.id));
-      } else {
-        proyectosFiltrados = proyectosFiltrados.filter(p => this.obtenerMesProyecto(p) === this.mesSeleccionado);
-      }
-    }
-    
-    // Filtrar por empresa si está seleccionada
-    if (this.empresaSeleccionada) {
-      proyectosFiltrados = proyectosFiltrados.filter(p => p.empresa === this.empresaSeleccionada);
-    }
-
-    // Filtros adicionales (aplican a las 3 métricas)
-    if (this.lugarSeleccionado) {
-      proyectosFiltrados = proyectosFiltrados.filter(p => p.lugar === this.lugarSeleccionado);
-    }
-    if (this.areaSeleccionada) {
-      proyectosFiltrados = proyectosFiltrados.filter(
-        p => this.obtenerAreasProyecto(p).includes(this.areaSeleccionada as string)
-      );
-    }
-    if (this.estadoProyecto) {
-      proyectosFiltrados = proyectosFiltrados.filter(p => p.estado === this.estadoProyecto);
-    }
-    if (this.fechaDesde) {
-      const desde = new Date(this.fechaDesde);
-      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(this.obtenerFechaBaseProyecto(p)) >= desde);
-    }
-    if (this.fechaHasta) {
-      const hasta = new Date(this.fechaHasta);
-      hasta.setHours(23, 59, 59, 999);
-      proyectosFiltrados = proyectosFiltrados.filter(p => new Date(this.obtenerFechaBaseProyecto(p)) <= hasta);
-    }
-    
-    // Ordenar del más nuevo al más viejo
-    this.proyectosEnCursoFiltrados = proyectosFiltrados.sort((a, b) => 
-      new Date(this.obtenerFechaBaseProyecto(b)).getTime() - new Date(this.obtenerFechaBaseProyecto(a)).getTime()
-    );
-    
-    // Filtrar tareas o gastos por proyecto según la métrica
-    if (this.metricaSeleccionada === 'gastos') {
-      // Para gastos, mostramos los gastos detallados
-      let gastosTemp = [...this.gastosProyectos];
-      
-      // Filtrar por categoría si está seleccionada
-      if (this.categoriaSeleccionada) {
-        gastosTemp = gastosTemp.filter(g => g.categoria === this.categoriaSeleccionada);
-      }
-      
-      if (this.proyectoSeleccionado) {
-        this.gastosFiltrados = gastosTemp.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
-      } else if (this.mesSeleccionado) {
-        this.gastosFiltrados = gastosTemp.filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado);
-      } else {
-        this.gastosFiltrados = gastosTemp;
-      }
-      this.tareasFiltradas = [];
-    } else {
-      // Para otras métricas, mostramos tareas
-      if (this.proyectoSeleccionado) {
-        this.tareasFiltradas = this.tareasEncargados.filter(t => t.proyectoId === this.proyectoSeleccionado!.id);
-      } else {
-        // Filtrar tareas solo de los proyectos que están visibles en la tabla
-        const idsProyectosVisibles = this.proyectosEnCursoFiltrados.map(p => p.id);
-        this.tareasFiltradas = this.tareasEncargados.filter(t => idsProyectosVisibles.includes(t.proyectoId));
-      }
-      this.gastosFiltrados = [];
-    }
+    this.paginacionProyectos.page = 0;
+    this.paginacionActividades.page = 0;
+    this.paginacionGastos.page = 0;
+    this.cargarGraficos();
+    this.cargarProyectos();
+    this.cargarActividades();
+    this.cargarGastos();
   }
-  
   /**
    * Obtiene la clase CSS para el estado del proyecto
    */
@@ -674,17 +631,14 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    * Obtiene el total de gastos por categoría (considera el proyecto seleccionado)
    */
   getTotalPorCategoria(categoria: string): number {
-    let gastos = [...this.gastosProyectos];
-    
-    // Filtrar por proyecto si hay uno seleccionado
-    if (this.proyectoSeleccionado) {
-      gastos = gastos.filter(g => g.proyectoId === this.proyectoSeleccionado!.id);
-    } else if (this.mesSeleccionado) {
-      gastos = gastos.filter(g => this.obtenerMesGasto(g) === this.mesSeleccionado);
-    }
-    
-    return gastos
-      .filter(g => g.categoria === categoria)
-      .reduce((sum, g) => sum + g.monto, 0);
+    return Number(this.totalesGastosCategorias[categoria] || 0);
   }
 }
+
+
+
+
+
+
+
+
