@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -73,10 +73,23 @@ export class RegistroSolicitudesComponent implements OnInit {
   confirmarNavegacionConCambiosPendientes(): Promise<boolean> {
     return this.modalProcesoProyecto?.confirmarNavegacionExterna() ?? Promise.resolve(true);
   }
+
+  /**
+   * Los guards de Angular cubren navegaci?n interna y el bot?n Atr?s. Para
+   * recargar, cerrar la pesta?a o cerrar el navegador se requiere el aviso
+   * nativo del navegador.
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  advertirCambiosSinGuardar(event: BeforeUnloadEvent): void {
+    if (!this.modalProcesoProyecto?.tieneCambiosSinGuardar()) return;
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
   normalizarValorFiltro(value: unknown): string {
     return value === null || value === undefined ? '' : String(value);
-  }
 
+  }
   // Paginación
   paginacionConfig: PaginacionConfig = {
     paginaActual: 0,
@@ -113,7 +126,6 @@ export class RegistroSolicitudesComponent implements OnInit {
   private fuenteVistaPreviaAdjuntoTimelineEsBlob = false;
   private adjuntoVistaPreviaTimelineEsPdf = false;
   private adjuntoVistaPreviaTimelineEsOffice = false;
-  private readonly proyectoQueryParam = 'proyectoId';
 
   constructor(
     private solicitudesService: RegistroSolicitudesService,
@@ -126,6 +138,12 @@ export class RegistroSolicitudesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.route.data.subscribe((data) => {
+      const proyecto = data['proyecto'] as Proyecto | null;
+      if (proyecto) {
+        this.abrirProyectoCargado(proyecto);
+      }
+    });
     this.cargarDatosIniciales();
   }
 
@@ -532,18 +550,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   onCambiarProyecto(proyectoId: number): void {
-    this.solicitudesService.obtenerProyectoPorId(proyectoId).subscribe({
-      next: (proyecto) => {
-        this.sincronizarProyectoEnMemoria(proyecto);
-        this.proyectoActual = proyecto;
-        const solicitud = this.solicitudes.find(s => s.id === proyecto.solicitudId);
-        if (solicitud) {
-          this.solicitudActual = solicitud;
-        }
-        this.sincronizarProyectoEnUrl(proyecto.id);
-      },
-      error: (error) => console.error('Error al cambiar proyecto:', error)
-    });
+    this.sincronizarProyectoEnUrl(proyectoId);
   }
 
   // Acciones desde tabla
@@ -552,17 +559,6 @@ export class RegistroSolicitudesComponent implements OnInit {
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
     if (proyecto) {
       this.sincronizarProyectoEnUrl(proyecto.id);
-      this.solicitudesService.obtenerProyectoPorId(proyecto.id).subscribe({
-        next: (proyectoActualizado) => {
-          this.sincronizarProyectoEnMemoria(proyectoActualizado);
-          this.proyectoActual = proyectoActualizado;
-          this.showProcesoProyectoModal = true;
-        },
-        error: () => {
-          this.proyectoActual = proyecto;
-          this.showProcesoProyectoModal = true;
-        }
-      });
       return;
     }
 
@@ -974,7 +970,7 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   private abrirProyectoDesdeQueryParam(): void {
-    const proyectoId = Number(this.route.snapshot.queryParamMap.get(this.proyectoQueryParam));
+    const proyectoId = Number(this.route.snapshot.paramMap.get('proyectoId'));
     if (!Number.isFinite(proyectoId) || proyectoId <= 0) {
       return;
     }
@@ -1008,25 +1004,18 @@ export class RegistroSolicitudesComponent implements OnInit {
   }
 
   private sincronizarProyectoEnUrl(proyectoId: number): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { [this.proyectoQueryParam]: proyectoId },
-      queryParamsHandling: 'merge'
+    void this.router.navigate(['/registro-solicitudes', proyectoId], {
+      queryParams: this.route.snapshot.queryParams
     });
   }
 
   private limpiarProyectoEnUrl(): void {
-    if (!this.route.snapshot.queryParamMap.has(this.proyectoQueryParam)) {
-      return;
-    }
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { [this.proyectoQueryParam]: null },
-      queryParamsHandling: 'merge',
+    void this.router.navigate(['/registro-solicitudes'], {
+      queryParams: this.route.snapshot.queryParams,
       replaceUrl: true
     });
   }
+
 
   private iniciarProyectoDesdeSolicitud(solicitud: Solicitud, abrirModal = false, actualizarUrl = false): void {
     this.solicitudesService.iniciarProyecto(solicitud).subscribe({

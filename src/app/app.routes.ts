@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard, pendingChangesGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 import { submoduleLockGuard } from './core/guards/submodule-lock.guard';
+import { proyectoResolver } from './core/resolvers/proyecto.resolver';
 
 export const routes: Routes = [
   {
@@ -46,6 +47,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
     canDeactivate: [pendingChangesGuard],
   },
+  {
+    path: 'registro-solicitudes/:proyectoId',
+    loadComponent: () =>
+      import('./features/registro-solicitudes/registro-solicitudes.component').then(
+        (m) => m.RegistroSolicitudesComponent,
+      ),
+    title: 'Modulo de Trazabilidad',
+    canActivate: [authGuard],
+    resolve: { proyecto: proyectoResolver },
+    canDeactivate: [pendingChangesGuard],
+  },
+
   {
     path: 'informes-evidencias',
     loadComponent: () =>

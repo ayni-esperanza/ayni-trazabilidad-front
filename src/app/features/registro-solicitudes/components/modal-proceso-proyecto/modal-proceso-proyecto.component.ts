@@ -2300,6 +2300,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.hayCambiosCostos;
   }
 
+  /**
+   * Indica si hay informaci?n o costos que a?n no se han persistido.
+   */
+  tieneCambiosSinGuardar(): boolean {
+    return this.tieneCambiosInformacion() || this.tieneCambiosCostos();
+  }
+
+
   private crearSnapshotInformacionActual(): string {
     const ordenes = (this.proyectoInfoForm.ordenesCompra || [])
       .filter((o) => (o.numero || '').trim())
