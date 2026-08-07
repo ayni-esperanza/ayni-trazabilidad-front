@@ -14,7 +14,7 @@ import { TabInformacionComponent } from './components/tab-informacion/tab-inform
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
 import { AdjuntosPreviewService } from '../../../../shared/services/adjuntos-preview.service';
 import { DocumentoResumen } from './models/documento-resumen.model';
-import { CostoCategoriaAdicionalApi, RegistroSolicitudesService } from '../../services/registro-solicitudes.service';
+import { CostoCategoriaAdicionalApi, RegistroSolicitudesService, ResumenCostosApi } from '../../services/registro-solicitudes.service';
 import { HttpService } from '../../../../core/services/http.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
@@ -179,6 +179,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   costosHabilitados = false;
   private snapshotInfoBase = '';
   private snapshotCostosBase = '';
+  private costosModificadosPorUsuario = false;
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -203,6 +204,10 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   manoObra: ManoObraCosto[] = [];
   tablasCostosExtras: TablaCostoExtra[] = [];
   sincronizandoCostos = false;
+  cargandoCostos = false;
+  cargandoDetalleCostos = false;
+  detalleCostosCargado = false;
+  resumenCostos: ResumenCostosApi | null = null;
 
   get totalActividadesFlujoNav(): number {
     return (this.flujoNodos || []).filter((nodo) => String(nodo?.tipo || '').toLowerCase() !== 'inicio').length;
@@ -219,6 +224,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['proyecto'] && this.proyecto) {
       this.proyectoSeleccionadoId = this.proyecto.id;
+      this.detalleCostosCargado = false;
       this.proyectoFinalizado = this.proyecto.estado === 'Completado' || this.proyecto.estado === 'Finalizado';
       this.proyectoCancelado = this.proyecto.estado === 'Cancelado';
       // Expandir automáticamente la información cuando el proyecto está finalizado o cancelado
@@ -231,12 +237,17 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       } else {
         this.costosHabilitados = false;
       }
+      this.materiales = [];
+      this.manoObra = [];
+      this.tablasCostosExtras = [];
+      this.snapshotCostosBase = this.crearSnapshotCostosActual();
+      this.costosModificadosPorUsuario = false;
 
       this.generarEtapas();
       this.cargarProyectoInfoForm();
       this.prepararFlujo();
       this.persistirFlujoProyecto(false);
-      this.cargarCostosProyecto();
+      this.cargarResumenCostosProyecto();
 
       if (this.tabActiva === 'costos' && !this.costosHabilitados) {
         this.tabActiva = 'tablero';
@@ -420,7 +431,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   guardarCostosProyecto(): void {
-    if (!this.proyecto || this.sincronizandoCostos || this.cargandoConfirmacionGuardarCostos) return;
+    if (!this.proyecto || this.proyectoCancelado || this.sincronizandoCostos || this.cargandoConfirmacionGuardarCostos) return;
 
     this.confirmarSincronizacionCostosSiElimina('guardar');
   }
@@ -670,7 +681,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   abrirNuevaActividadDesdeProceso(payload: { nombre: string; nodoOrigenId?: number }): void {
-    if (!this.proyecto) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     // No crear nodo aún: la actividad se agrega al flujo recién al guardar en la modal.
     this.nodoPadreParaNuevoId = typeof payload.nodoOrigenId === 'number' ? payload.nodoOrigenId : null;
@@ -689,7 +700,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   async onGuardarActividad(actividad: Tarea): Promise<void> {
-    if (!this.proyecto) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     const fechaActualizacion = this.formatLocalDateTime(new Date());
     const responsableId = actividad.responsableId ? Number(actividad.responsableId) : undefined;
@@ -792,7 +803,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onEliminarActividad(nodoId: number): void {
-    if (!this.proyecto) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     this.registroSolicitudesService.eliminarActividad(this.proyecto.id, nodoId).subscribe({
       next: () => {
@@ -810,7 +821,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onFlujoActualizado(nodosActualizados: FlujoNodo[]): void {
-    if (!this.proyecto) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     const normalizados = nodosActualizados.map(nodo => ({
       ...nodo,
@@ -836,7 +847,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onEliminarActividadesSeleccionadas(evento: { ids: number[]; flujoActualizado: FlujoNodo[] }): void {
-    if (!this.proyecto || !evento.ids.length) return;
+    if (!this.proyecto || this.proyectoCancelado || !evento.ids.length) return;
 
     const cantidad = evento.ids.length;
     this.eliminacionActividadesPendiente = evento;
@@ -1382,6 +1393,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   get totalCostosGeneral(): number {
+    if (this.cargandoDetalleCostos && this.resumenCostos) {
+      return Number(this.resumenCostos.costoTotalProyecto) || 0;
+    }
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
   }
 
@@ -1390,6 +1404,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   habilitarSeccionCostos(): void {
+    this.cargarCostosProyecto();
     this.costosHabilitados = true;
     this.tabActiva = 'costos';
     this.guardarEstadoCostos();
@@ -1781,15 +1796,43 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return d.toLocaleDateString('es-PE');
   }
 
-  private cargarCostosProyecto(): void {
+  private cargarResumenCostosProyecto(): void {
     if (!this.proyecto) return;
+
+    const proyectoId = this.proyecto.id;
+    this.cargandoCostos = true;
+    this.resumenCostos = null;
+
+    this.registroSolicitudesService.obtenerResumenCostos(proyectoId).pipe(
+      finalize(() => {
+        if (this.proyecto?.id === proyectoId) this.cargandoCostos = false;
+      })
+    ).subscribe({
+      next: (resumen) => {
+        if (this.proyecto?.id !== proyectoId) return;
+        this.resumenCostos = resumen;
+        const hayCostos = (Number(resumen.cantidadItemsMateriales) || 0) > 0
+          || (Number(resumen.cantidadItemsManoObra) || 0) > 0
+          || (Number(resumen.cantidadItemsAdicionales) || 0) > 0;
+        this.costosHabilitados = this.costosHabilitados || hayCostos;
+        if (this.costosHabilitados) {
+          this.cargarCostosProyecto();
+        }
+      }
+    });
+  }
+
+  private cargarCostosProyecto(): void {
+    if (this.detalleCostosCargado || this.cargandoDetalleCostos) return;
+    if (!this.proyecto) return;
+    this.cargandoDetalleCostos = true;
 
     forkJoin({
       materiales: this.registroSolicitudesService.obtenerCostosMateriales(this.proyecto.id),
       manoObra: this.registroSolicitudesService.obtenerCostosManoObra(this.proyecto.id),
       adicionales: this.registroSolicitudesService.obtenerCostosAdicionales(this.proyecto.id),
       categoriasPersistidas: this.registroSolicitudesService.obtenerCategoriasAdicionales(this.proyecto.id)
-    }).subscribe({
+    }).pipe(finalize(() => { this.cargandoDetalleCostos = false; this.detalleCostosCargado = true; })).subscribe({
       next: ({ materiales, manoObra, adicionales, categoriasPersistidas }) => {
         this.materiales = (materiales || []).map((item) => ({
           id: item.id,
@@ -1817,6 +1860,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(adicionales || [], categoriasPersistidas || []);
         this.inicializarSeccionCostos();
         this.snapshotCostosBase = this.crearSnapshotCostosActual();
+        this.costosModificadosPorUsuario = false;
       },
       error: () => {
         this.materiales = [];
@@ -1824,6 +1868,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         this.tablasCostosExtras = [];
         this.inicializarSeccionCostos();
         this.snapshotCostosBase = this.crearSnapshotCostosActual();
+        this.costosModificadosPorUsuario = false;
       }
     });
   }
@@ -1890,7 +1935,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onAgregarCategoriaCostos(nombreCategoria: string): void {
-    if (!this.proyecto || this.modoSoloLectura) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     const nombre = (nombreCategoria || '').trim();
     if (!nombre) return;
@@ -1919,7 +1964,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   onEliminarCategoriaCostos(tabla: TablaCostoExtra): void {
-    if (!this.proyecto || this.modoSoloLectura) return;
+    if (!this.proyecto || this.proyectoCancelado) return;
 
     const cantidad = tabla.items?.length || 0;
     const nombre = (tabla.nombre || '').trim() || 'Sin categoria';
@@ -2190,6 +2235,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       }),
       map(() => {
         this.snapshotCostosBase = this.crearSnapshotCostosActual();
+        this.costosModificadosPorUsuario = false;
         return null;
       }),
       finalize(() => {
@@ -2293,11 +2339,15 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   tieneCambiosInformacion(): boolean {
-    return this.hayCambiosInformacion;
+    return !this.modoSoloLectura && this.hayCambiosInformacion;
+  }
+
+  marcarCostosModificados(): void {
+    if (!this.proyectoCancelado) this.costosModificadosPorUsuario = true;
   }
 
   tieneCambiosCostos(): boolean {
-    return this.hayCambiosCostos;
+    return this.costosModificadosPorUsuario && this.hayCambiosCostos;
   }
 
   /**

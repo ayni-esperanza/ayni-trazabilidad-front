@@ -11,6 +11,16 @@ export type PaginatedResponse<T> = {
   size: number;
 };
 
+export type ResumenCostosApi = {
+  totalMateriales: number;
+  totalManoObra: number;
+  totalAdicionales: number;
+  costoTotalProyecto: number;
+  cantidadItemsMateriales: number;
+  cantidadItemsManoObra: number;
+  cantidadItemsAdicionales: number;
+};
+
 type SolicitudApi = {
   id: number;
   nombreProyecto: string;
@@ -511,6 +521,10 @@ export class RegistroSolicitudesService {
 
   reemplazarOrdenesCompra(proyectoId: number, ordenes: OrdenCompraApi[]): Observable<OrdenCompraApi[]> {
     return this.http.put<OrdenCompraApi[]>(`/v1/proyectos/${proyectoId}/ordenes-compra`, ordenes);
+  }
+
+  obtenerResumenCostos(proyectoId: number): Observable<ResumenCostosApi> {
+    return this.http.get<ResumenCostosApi>(`/v1/proyectos/${proyectoId}/costos/resumen`);
   }
 
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {
