@@ -29,6 +29,9 @@ type ResumenCostoItem = {
   total: number;
 };
 
+type TipoImportacionCostos = 'materiales' | 'manoObra' | 'otrosCostos';
+type FilaExcel = Record<string, unknown>;
+
 @Component({
   selector: 'app-tab-costos',
   standalone: true,
@@ -69,6 +72,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   mostrarConfirmacionEliminarCatalogo = false;
   configEliminarCatalogo: ConfirmDeleteConfig = {};
   eliminacionCatalogoPendiente: { tipo: 'tipoMaterial' | 'oficioManoObra'; nombre: string } | null = null;
+  mensajeImportacion = '';
+  importacionConError = false;
 
   constructor(
     private readonly registroSolicitudesService: RegistroSolicitudesService,
@@ -146,6 +151,30 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     this.emitirCambios();
   }
 
+  onArchivoCostosSeleccionado(tipo: TipoImportacionCostos, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (archivo) void this.importarCostosDesdeExcel(tipo, archivo);
+  }
+
+  descargarFormatoExcel(tipo: TipoImportacionCostos): void {
+    void this.generarFormatoExcel(tipo);
+  }
+
+  private async generarFormatoExcel(tipo: TipoImportacionCostos): Promise<void> {
+    const XLSX = await import('xlsx');
+    const configuracion = tipo === 'materiales'
+      ? { hoja: 'Materiales', archivo: 'formato-materiales.xlsx', columnas: ['Fecha', 'Nº de comprobante', 'Producto', 'Cantidad', 'Costo unitario', 'Encargado'] }
+      : tipo === 'manoObra'
+        ? { hoja: 'Mano de Obra', archivo: 'formato-mano-de-obra.xlsx', columnas: ['Trabajador', 'Días trabajando', 'Costo por día'] }
+        : { hoja: 'Otros Costos', archivo: 'formato-otros-costos.xlsx', columnas: ['Fecha', 'Categoría', 'Descripción', 'Cantidad', 'Costo unitario', 'Encargado'] };
+    const hoja = XLSX.utils.aoa_to_sheet([configuracion.columnas]);
+    hoja['!cols'] = configuracion.columnas.map((columna) => ({ wch: Math.max(columna.length + 3, 16) }));
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, configuracion.hoja);
+    XLSX.writeFile(libro, configuracion.archivo);
+  }
   get totalMateriales(): number {
     return this.materiales?.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0) ?? 0;
   }
@@ -527,6 +556,109 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   trackOpcion(_: number, item: string): string {
     return item;
   }
+
+  private async importarCostosDesdeExcel(tipo: TipoImportacionCostos, archivo: File): Promise<void> {
+    if (this.modoSoloLectura) return;
+    this.mensajeImportacion = '';
+    this.importacionConError = false;
+    if (!/\.(xlsx|xls)$/i.test(archivo.name)) return this.mostrarResultadoImportacion('Selecciona un archivo de Excel (.xlsx o .xls).', true);
+
+    try {
+      const XLSX = await import('xlsx');
+      const libro = XLSX.read(await archivo.arrayBuffer(), { type: 'array', cellDates: true });
+      const nombreHoja = libro.SheetNames[0];
+      if (!nombreHoja) return this.mostrarResultadoImportacion('El archivo de Excel no contiene hojas para importar.', true);
+      const filas = XLSX.utils.sheet_to_json<FilaExcel>(libro.Sheets[nombreHoja], { defval: '', raw: true });
+      if (!filas.length) return this.mostrarResultadoImportacion('La primera hoja del Excel no contiene registros.', true);
+
+      const encabezados = new Set(Object.keys(filas[0]).map((encabezado) => this.normalizarEncabezado(encabezado)));
+      const faltantes = this.encabezadosRequeridos(tipo).filter((encabezado) => !encabezados.has(encabezado));
+      if (faltantes.length) return this.mostrarResultadoImportacion(`El Excel no tiene las columnas requeridas: ${faltantes.join(', ')}.`, true);
+
+      const importados = tipo === 'materiales' ? this.importarMateriales(filas) : tipo === 'manoObra' ? this.importarManoObra(filas) : this.importarOtrosCostos(filas);
+      if (!importados) return this.mostrarResultadoImportacion('No se encontraron filas con datos para importar.', true);
+      this.emitirCambios();
+      this.mostrarResultadoImportacion(`${importados} registro(s) importado(s) correctamente desde ${archivo.name}.`);
+    } catch (error) {
+      console.error('Error importando costos desde Excel:', error);
+      this.mostrarResultadoImportacion('No se pudo leer el archivo. Verifica que sea un Excel v?lido.', true);
+    }
+  }
+
+  private importarMateriales(filas: FilaExcel[]): number {
+    const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
+      const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
+      const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
+      return { id: this.siguienteId(this.materiales, indice), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), nroComprobante: this.texto(this.celda(fila, ['n de comprobante', 'nro comprobante', 'numero comprobante', 'comprobante'])), tipo: '', producto: this.texto(this.celda(fila, ['producto'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null } satisfies MaterialCosto;
+    });
+    this.materiales.push(...nuevos);
+    return nuevos.length;
+  }
+
+  private importarManoObra(filas: FilaExcel[]): number {
+    const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
+      const diasTrabajando = this.numeroExcel(this.celda(fila, ['dias trabajando', 'dias trabajados', 'dias']));
+      const costoPorDia = this.numeroExcel(this.celda(fila, ['costo por dia', 'costo dia']));
+      return { id: this.siguienteId(this.manoObra, indice), trabajador: this.texto(this.celda(fila, ['trabajador'])), oficio: '', diasTrabajando, costoPorDia, costoTotal: (diasTrabajando || 0) * (costoPorDia || 0), dependenciaActividadId: null } satisfies ManoObraCosto;
+    });
+    this.manoObra.push(...nuevos);
+    return nuevos.length;
+  }
+
+  private importarOtrosCostos(filas: FilaExcel[]): number {
+    let importados = 0;
+    for (const fila of filas.filter((item) => !this.filaVacia(item))) {
+      const categoria = this.texto(this.celda(fila, ['categoria'])) || 'OTROS';
+      let tabla = this.tablasCostosExtras.find((item) => item.nombre.trim().toLowerCase() === categoria.toLowerCase());
+      if (!tabla) {
+        tabla = { id: this.siguienteId(this.tablasCostosExtras), nombre: categoria, items: [], expandida: true };
+        this.tablasCostosExtras.push(tabla);
+      }
+      const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
+      const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
+      tabla.items.push({ id: this.siguienteId(tabla.items), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), descripcion: this.texto(this.celda(fila, ['descripcion'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null });
+      importados++;
+    }
+    return importados;
+  }
+
+  private encabezadosRequeridos(tipo: TipoImportacionCostos): string[] {
+    if (tipo === 'materiales') return ['fecha', 'n de comprobante', 'producto', 'cantidad', 'costo unitario', 'encargado'];
+    if (tipo === 'manoObra') return ['trabajador', 'dias trabajando', 'costo por dia'];
+    return ['fecha', 'categoria', 'descripcion', 'cantidad', 'costo unitario', 'encargado'];
+  }
+
+  private celda(fila: FilaExcel, aliases: string[]): unknown {
+    for (const alias of aliases) {
+      const encontrada = Object.entries(fila).find(([encabezado]) => this.normalizarEncabezado(encabezado) === alias);
+      if (encontrada) return encontrada[1];
+    }
+    return '';
+  }
+
+  private normalizarEncabezado(valor: string): string { return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+  private texto(valor: unknown): string { return String(valor ?? '').trim(); }
+  private numeroExcel(valor: unknown): number | null {
+    if (typeof valor === 'number') return Number.isFinite(valor) ? valor : null;
+    const texto = this.texto(valor).replace(/\s/g, '');
+    if (!texto) return null;
+    const normalizado = texto.includes(',') && texto.includes('.') ? texto.replace(/\./g, '').replace(',', '.') : texto.replace(',', '.');
+    const numero = Number(normalizado);
+    return Number.isFinite(numero) ? numero : null;
+  }
+  private fechaExcel(valor: unknown): string {
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) return this.formatDate(valor);
+    if (typeof valor === 'number') return this.formatDate(new Date(Date.UTC(1899, 11, 30) + valor * 86400000));
+    const texto = this.texto(valor);
+    const iso = texto.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    const latina = texto.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (iso) return `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}`;
+    if (latina) return `${latina[3]}-${latina[2].padStart(2, '0')}-${latina[1].padStart(2, '0')}`;
+    return '';
+  }
+  private filaVacia(fila: FilaExcel): boolean { return Object.values(fila).every((valor) => !this.texto(valor)); }
+  private siguienteId(items: Array<{ id: number }>, desplazamiento = 0): number { return items.reduce((mayor, item) => Math.max(mayor, Number(item.id) || 0), 0) + 1 + desplazamiento; }
+  private mostrarResultadoImportacion(mensaje: string, esError = false): void { this.mensajeImportacion = mensaje; this.importacionConError = esError; }
 
   private agruparPorNombre<T extends { costoTotal: number }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
     const acumulado = new Map<string, number>();
