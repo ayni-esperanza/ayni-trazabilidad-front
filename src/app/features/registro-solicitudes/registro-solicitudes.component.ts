@@ -14,10 +14,8 @@ import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../shared/c
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
 import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/components/select-searchable/select-searchable.component';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { GestionUsuariosService } from '../gestion-usuarios/services/gestion-usuarios.service';
-import { Usuario } from '../gestion-usuarios/models/usuario.model';
 
 @Component({
   selector: 'app-registro-solicitudes',
@@ -116,6 +114,8 @@ export class RegistroSolicitudesComponent implements OnInit {
   cargandoEliminacion = false;
   configEliminarModal: ConfirmDeleteConfig = {};
   private readonly proyectosConFlujoSolicitado = new Set<number>();
+  private readonly proyectosConFlujoCargando = new Set<number>();
+  timelineAbiertoSolicitudId: number | null = null;
   mostrarVistaPreviaAdjuntoTimeline = false;
   adjuntoVistaPreviaTimelineNombre = '';
   fuenteVistaPreviaAdjuntoTimeline = '';
@@ -132,7 +132,6 @@ export class RegistroSolicitudesComponent implements OnInit {
     private readonly sanitizer: DomSanitizer,
     private readonly adjuntosPreviewService: AdjuntosPreviewService,
     private readonly authService: AuthService,
-    private readonly gestionUsuariosService: GestionUsuariosService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
@@ -314,14 +313,7 @@ export class RegistroSolicitudesComponent implements OnInit {
     this.paginacionConfig.totalPaginas = totalPaginas || 0;
   }
 
-  calcularEstadisticas(): void {
-    this.estadisticas = {
-      total: this.paginacionConfig.totalElementos,
-      enProceso: this.solicitudesFiltradas.filter(s => s.estado === 'En Proceso').length,
-      completadas: this.solicitudesFiltradas.filter(s => s.estado === 'Completado').length,
-      canceladas: this.solicitudesFiltradas.filter(s => s.estado === 'Cancelado').length
-    };
-  }
+  calcularEstadisticas(): void {}
 
   tieneFiltrosActivos(): boolean {
     return !!(
@@ -423,56 +415,40 @@ export class RegistroSolicitudesComponent implements OnInit {
     forkJoin({
       responsables: this.solicitudesService.obtenerResponsables(),
       solicitudes: this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()),
-      proyectos: this.solicitudesService.obtenerProyectos(),
-      usuarios: this.gestionUsuariosService.obtenerUsuarios({ page: 0, size: 500 })
+      estadisticas: this.solicitudesService.obtenerEstadisticasSolicitudes()
     }).subscribe({
-      next: ({ responsables, solicitudes, proyectos, usuarios }) => {
-        this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios?.content || []);
+      next: ({ responsables, solicitudes, estadisticas }) => {
+        this.responsables = responsables || [];
         this.procesos = [];
         this.solicitudes = solicitudes?.content || [];
         this.solicitudesFiltradas = this.solicitudes;
-        this.proyectos = proyectos || [];
+        this.proyectos = [];
         this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
-        this.calcularEstadisticas();
+        this.actualizarEstadisticas(estadisticas);
         this.cargandoSolicitudes = false;
         this.abrirProyectoDesdeQueryParam();
       },
       error: (error) => {
         console.error('Error al cargar datos de registro de solicitudes:', error);
-
-        forkJoin({
-          responsables: this.solicitudesService.obtenerResponsables(),
-          solicitudes: this.solicitudesService.obtenerSolicitudes(this.obtenerParametrosSolicitudes()),
-          proyectos: this.solicitudesService.obtenerProyectos(),
-          usuarios: of({ content: [] as Usuario[] })
-        }).subscribe({
-          next: ({ responsables, solicitudes, proyectos, usuarios }) => {
-            this.responsables = this.enriquecerResponsablesConFotos(responsables || [], usuarios.content || []);
-            this.procesos = [];
-            this.solicitudes = solicitudes?.content || [];
-            this.solicitudesFiltradas = this.solicitudes;
-            this.proyectos = proyectos || [];
-            this.actualizarPaginacionDesdeRespuesta(solicitudes?.totalElements || 0, solicitudes?.totalPages || 0);
-            this.calcularEstadisticas();
-            this.cargandoSolicitudes = false;
-            this.abrirProyectoDesdeQueryParam();
-          },
-          error: (fallbackError) => {
-            console.error('Error al cargar datos de registro de solicitudes:', fallbackError);
-            this.responsables = [];
-            this.procesos = [];
-            this.solicitudes = [];
-            this.solicitudesFiltradas = [];
-            this.proyectos = [];
-            this.actualizarPaginacionDesdeRespuesta(0, 0);
-            this.calcularEstadisticas();
-            this.cargandoSolicitudes = false;
-          }
-        });
+        this.responsables = [];
+        this.procesos = [];
+        this.solicitudes = [];
+        this.solicitudesFiltradas = [];
+        this.proyectos = [];
+        this.actualizarPaginacionDesdeRespuesta(0, 0);
+        this.cargandoSolicitudes = false;
       }
     });
   }
 
+  private actualizarEstadisticas(estadisticas: { totalSolicitudes: number; enProceso: number; completadas: number; canceladas: number }): void {
+    this.estadisticas = {
+      total: Number(estadisticas?.totalSolicitudes || 0),
+      enProceso: Number(estadisticas?.enProceso || 0),
+      completadas: Number(estadisticas?.completadas || 0),
+      canceladas: Number(estadisticas?.canceladas || 0)
+    };
+  }
   // Modal Nueva Solicitud
   abrirNuevaSolicitud(): void { this.showNuevaSolicitudModal = true; }
   cerrarNuevaSolicitud(): void { this.showNuevaSolicitudModal = false; }
@@ -556,9 +532,8 @@ export class RegistroSolicitudesComponent implements OnInit {
   // Acciones desde tabla
   abrirProcesoDesdeTabla(solicitud: Solicitud): void {
     this.solicitudActual = solicitud;
-    const proyecto = this.proyectos.find(p => p.solicitudId === solicitud.id);
-    if (proyecto) {
-      this.sincronizarProyectoEnUrl(proyecto.id);
+    if (solicitud.proyectoId) {
+      this.sincronizarProyectoEnUrl(solicitud.proyectoId);
       return;
     }
 
@@ -580,12 +555,22 @@ export class RegistroSolicitudesComponent implements OnInit {
   getFlujoNodos(solicitudId: number | undefined): FlujoNodo[] {
     if (!solicitudId) return [];
     const proyecto = this.proyectos.find(p => p.solicitudId === solicitudId);
-    if (proyecto) {
-      this.cargarFlujoProyecto(proyecto.id);
-    }
     return proyecto?.flujo?.nodos || [];
   }
 
+  onToggleTimeline(solicitud: Solicitud, event: Event): void {
+    const abierto = (event.target as HTMLDetailsElement).open;
+    if (!abierto) {
+      if (this.timelineAbiertoSolicitudId === solicitud.id) this.timelineAbiertoSolicitudId = null;
+      return;
+    }
+
+    this.timelineAbiertoSolicitudId = solicitud.id;
+    if (solicitud.proyectoId) this.cargarFlujoProyecto(solicitud.proyectoId);
+  }
+  estaCargandoFlujoTimeline(solicitud: Solicitud): boolean {
+    return !!solicitud.proyectoId && this.proyectosConFlujoCargando.has(solicitud.proyectoId);
+  }
   getFlujoTimeline(solicitudId: number | undefined): FlujoNodo[] {
     const nodos = this.getFlujoNodos(solicitudId).filter((nodo) => nodo.tipo !== 'inicio');
     const proyecto = this.proyectos.find((item) => item.solicitudId === solicitudId);
@@ -895,18 +880,6 @@ export class RegistroSolicitudesComponent implements OnInit {
     return this.responsables.find((responsable) => responsable.id === responsableId);
   }
 
-  private enriquecerResponsablesConFotos(responsables: Responsable[], usuarios: Usuario[]): Responsable[] {
-    const usuariosPorId = new Map(usuarios.map((usuario) => [Number(usuario.id), usuario]));
-
-    return responsables.map((responsable) => {
-      const usuario = usuariosPorId.get(Number(responsable.id));
-      return {
-        ...responsable,
-        foto: String(usuario?.foto || responsable.foto || '').trim() || undefined
-      };
-    });
-  }
-
   getInicialesResponsable(nombre?: string): string {
     const texto = String(nombre || '').trim();
     if (!texto) return '?';
@@ -1076,15 +1049,17 @@ export class RegistroSolicitudesComponent implements OnInit {
     if (this.proyectosConFlujoSolicitado.has(proyectoId)) return;
 
     this.proyectosConFlujoSolicitado.add(proyectoId);
+    this.proyectosConFlujoCargando.add(proyectoId);
     this.solicitudesService.obtenerProyectoPorId(proyectoId).subscribe({
       next: (proyectoDetallado) => {
         const indexProyecto = this.proyectos.findIndex((p) => p.id === proyectoId);
         if (indexProyecto !== -1) {
-          this.proyectos[indexProyecto] = {
-            ...this.proyectos[indexProyecto],
-            ...proyectoDetallado
-          };
+          this.proyectos[indexProyecto] = { ...this.proyectos[indexProyecto], ...proyectoDetallado };
+        } else {
+          this.proyectos.push(proyectoDetallado);
         }
+
+        this.proyectosConFlujoCargando.delete(proyectoId);
 
         if (this.proyectoActual?.id === proyectoId) {
           this.proyectoActual = {
@@ -1096,6 +1071,7 @@ export class RegistroSolicitudesComponent implements OnInit {
       error: () => {
         // Permite reintentar automáticamente en próximos ciclos de render.
         this.proyectosConFlujoSolicitado.delete(proyectoId);
+        this.proyectosConFlujoCargando.delete(proyectoId);
       }
     });
   }

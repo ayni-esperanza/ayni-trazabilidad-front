@@ -88,6 +88,8 @@ export interface Solicitud {
   fechaInicio?: Date | string;
   fechaFin?: Date | string;
   estado: EstadoSolicitud;
+  tieneProyecto?: boolean;
+  proyectoId?: number;
 }
 
 export interface ResponsableHistorialProyecto {

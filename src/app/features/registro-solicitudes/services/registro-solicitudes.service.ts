@@ -11,6 +11,15 @@ export type PaginatedResponse<T> = {
   size: number;
 };
 
+export type EstadisticasSolicitud = {
+  totalSolicitudes: number;
+  pendientes: number;
+  enProceso: number;
+  completadas: number;
+  canceladas: number;
+  finalizadas: number;
+};
+
 export type ResumenCostosApi = {
   totalMateriales: number;
   totalManoObra: number;
@@ -39,6 +48,8 @@ type SolicitudApi = {
   fechaInicio?: string;
   fechaFin?: string;
   estado: string;
+  tieneProyecto?: boolean;
+  proyectoId?: number;
 };
 
 type OrdenCompraApi = {
@@ -284,6 +295,10 @@ export class RegistroSolicitudesService {
         content: (response.content || []).map((item) => this.mapSolicitud(item))
       }))
     );
+  }
+
+  obtenerEstadisticasSolicitudes(): Observable<EstadisticasSolicitud> {
+    return this.http.get<EstadisticasSolicitud>('/v1/solicitudes/estadisticas');
   }
 
   crearSolicitud(solicitud: Partial<Solicitud>): Observable<Solicitud> {
@@ -721,7 +736,9 @@ export class RegistroSolicitudesService {
       fechaActualizacion: this.toDate(item.fechaActualizacion),
       fechaInicio: this.toDate(item.fechaInicio),
       fechaFin: this.toDate(item.fechaFin),
-      estado: this.mapEstadoSolicitud(item.estado)
+      estado: this.mapEstadoSolicitud(item.estado),
+      tieneProyecto: Boolean(item.tieneProyecto),
+      proyectoId: item.proyectoId
     };
   }
 
