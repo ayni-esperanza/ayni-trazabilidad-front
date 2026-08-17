@@ -86,7 +86,7 @@
 						<p><span class="font-semibold">N° licitacion:</span> {{ ctx.getOrdenCompraMeta(nodo)?.numeroLicitacion || '-' }}</p>
 						<p><span class="font-semibold">N° solicitud:</span> {{ ctx.getOrdenCompraMeta(nodo)?.numeroSolicitud || '-' }}</p>
 						<p><span class="font-semibold">Fecha:</span> {{ ctx.formatDateStandar(ctx.getOrdenCompraMeta(nodo)?.fecha) || '-' }}</p>
-						<p><span class="font-semibold">Total sin IGV:</span> S/ {{ (ctx.getOrdenCompraMeta(nodo)?.total || 0) | number:'1.2-2' }}</p>
+						<p><span class="font-semibold">Total sin IGV:</span> {{ ctx.getOrdenCompraMeta(nodo)?.moneda === 'USD' ? '$' : 'S/' }} {{ (ctx.getOrdenCompraMeta(nodo)?.total || 0) | number:'1.2-2' }}</p>
 					</div>
 
 					<div>

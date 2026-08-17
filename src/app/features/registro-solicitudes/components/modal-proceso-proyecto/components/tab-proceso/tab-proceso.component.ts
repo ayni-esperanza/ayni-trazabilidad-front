@@ -1282,6 +1282,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
     numeroLicitacion?: string;
     numeroSolicitud?: string;
     total?: number;
+    moneda?: 'PEN' | 'USD';
     fecha?: string;
     fechaCreacion?: string;
     fechaActualizacion?: string;
@@ -1298,6 +1299,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
       numeroLicitacion: meta.numeroLicitacion,
       numeroSolicitud: meta.numeroSolicitud,
       total: Number(meta.total || 0),
+      moneda: meta.moneda === 'USD' ? 'USD' : 'PEN',
       fecha: meta.fecha,
       fechaCreacion: meta.fechaCreacion,
       fechaActualizacion: meta.fechaActualizacion
@@ -1461,6 +1463,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
         const numeroLicitacion = (orden.numeroLicitacion || '').trim();
         const numeroSolicitud = (orden.numeroSolicitud || '').trim();
         const total = Number(orden.total || 0);
+        const simboloMoneda = orden.moneda === 'USD' ? '$' : 'S/';
 
         if (!numero && !fecha && total <= 0) return null;
 
@@ -1473,7 +1476,7 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
           `Orden de compra: ${numero || '-'} (${tipo || 'OTROS'})`,
           `N° licitacion: ${numeroLicitacion || '-'}`,
           `N° solicitud: ${numeroSolicitud || '-'}`,
-          `Total sin IGV: S/ ${total.toFixed(2)}`
+          `Total sin IGV: ${simboloMoneda} ${total.toFixed(2)}`
         ].join('\n');
 
         return {

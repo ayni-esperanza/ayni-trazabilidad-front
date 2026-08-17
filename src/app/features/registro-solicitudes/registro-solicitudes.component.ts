@@ -1141,6 +1141,7 @@ export class RegistroSolicitudesComponent implements OnInit {
         const numeroLicitacion = (orden.numeroLicitacion || '').trim();
         const numeroSolicitud = (orden.numeroSolicitud || '').trim();
         const total = Number(orden.total || 0);
+        const simboloMoneda = orden.moneda === 'USD' ? '$' : 'S/';
 
         if (!numero && !fecha && total <= 0) return null;
 
@@ -1153,7 +1154,7 @@ export class RegistroSolicitudesComponent implements OnInit {
           `Tipo: ${tipo || 'OTROS'}`,
           `N° licitacion: ${numeroLicitacion || '-'}`,
           `N° solicitud: ${numeroSolicitud || '-'}`,
-          `Total sin IGV: S/ ${total.toFixed(2)}`
+          `Total sin IGV: ${simboloMoneda} ${total.toFixed(2)}`
         ].join(' | ');
 
         let fechaTimeline = fecha;

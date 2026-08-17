@@ -34,6 +34,14 @@ export class OrdenesCompraCardComponent implements OnChanges {
   normalizarTipoOrdenCompra(value: unknown): string {
     return value === null || value === undefined ? '' : String(value);
   }
+
+  simboloMoneda(orden: OrdenCompra): string {
+    return orden.moneda === 'USD' ? '$' : 'S/';
+  }
+
+  cambiarMoneda(orden: OrdenCompra): void {
+    orden.moneda = orden.moneda === 'USD' ? 'PEN' : 'USD';
+  }
   readonly acceptTiposArchivo = ADJUNTO_ACCEPT_TIPOS;
   erroresAdjuntosOrdenCompra: Record<number, string> = {};
   private readonly isBrowser: boolean;
@@ -65,7 +73,8 @@ export class OrdenesCompraCardComponent implements OnChanges {
       tipo: 'SUMINISTRO',
       numeroLicitacion: '',
       numeroSolicitud: '',
-      total: undefined
+      total: undefined,
+      moneda: 'PEN'
     });
     this.proyectoInfoForm.ordenesCompra = ordenes;
     if (!teniaOrdenes) this.expandida = true;

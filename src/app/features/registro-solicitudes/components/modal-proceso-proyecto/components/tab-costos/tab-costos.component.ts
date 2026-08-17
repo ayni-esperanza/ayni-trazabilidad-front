@@ -112,6 +112,15 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     return String(value || '').trim();
   }
 
+  simboloMoneda(moneda?: 'PEN' | 'USD'): string {
+    return moneda === 'USD' ? '$' : 'S/';
+  }
+
+  cambiarMoneda(item: MaterialCosto | ManoObraCosto | OtroCosto, moneda: string): void {
+    item.moneda = moneda === 'USD' ? 'USD' : 'PEN';
+    this.emitirCambios();
+  }
+
   normalizarSeleccionActividad(value: string | number | null): number | null {
     if (value === null || value === undefined || String(value).trim() === '') {
       return null;
@@ -132,6 +141,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
+      moneda: 'PEN',
       encargado: '',
       dependenciaActividadId: null
     });
@@ -341,6 +351,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       diasTrabajando: null,
       costoPorDia: null,
       costoTotal: 0,
+      moneda: 'PEN',
       dependenciaActividadId: null
     });
     this.emitirCambios();
@@ -496,6 +507,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
+      moneda: 'PEN',
       encargado: '',
       dependenciaActividadId: null
     });
@@ -589,7 +601,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
       const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
       const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
-      return { id: this.siguienteId(this.materiales, indice), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), nroComprobante: this.texto(this.celda(fila, ['n de comprobante', 'nro comprobante', 'numero comprobante', 'comprobante'])), tipo: '', producto: this.texto(this.celda(fila, ['producto'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null } satisfies MaterialCosto;
+      return { id: this.siguienteId(this.materiales, indice), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), nroComprobante: this.texto(this.celda(fila, ['n de comprobante', 'nro comprobante', 'numero comprobante', 'comprobante'])), tipo: '', producto: this.texto(this.celda(fila, ['producto'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), moneda: 'PEN' as const, encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null } satisfies MaterialCosto;
     });
     this.materiales.push(...nuevos);
     return nuevos.length;
@@ -599,7 +611,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
       const diasTrabajando = this.numeroExcel(this.celda(fila, ['dias trabajando', 'dias trabajados', 'dias']));
       const costoPorDia = this.numeroExcel(this.celda(fila, ['costo por dia', 'costo dia']));
-      return { id: this.siguienteId(this.manoObra, indice), trabajador: this.texto(this.celda(fila, ['trabajador'])), oficio: '', diasTrabajando, costoPorDia, costoTotal: (diasTrabajando || 0) * (costoPorDia || 0), dependenciaActividadId: null } satisfies ManoObraCosto;
+      return { id: this.siguienteId(this.manoObra, indice), trabajador: this.texto(this.celda(fila, ['trabajador'])), oficio: '', diasTrabajando, costoPorDia, costoTotal: (diasTrabajando || 0) * (costoPorDia || 0), moneda: 'PEN' as const, dependenciaActividadId: null } satisfies ManoObraCosto;
     });
     this.manoObra.push(...nuevos);
     return nuevos.length;
@@ -616,7 +628,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       }
       const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
       const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
-      tabla.items.push({ id: this.siguienteId(tabla.items), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), descripcion: this.texto(this.celda(fila, ['descripcion'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null });
+      tabla.items.push({ id: this.siguienteId(tabla.items), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), descripcion: this.texto(this.celda(fila, ['descripcion'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), moneda: 'PEN', encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null });
       importados++;
     }
     return importados;

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
-import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea } from '../../models/solicitud.model';
+import { Proyecto, EtapaProyecto, Responsable, ProcesoSimple, OrdenCompra, FlujoNodo, FlujoAdjunto, ComentarioAdicionalActividad, EstadoTarea, MonedaRegistro } from '../../models/solicitud.model';
 import { ModalDismissDirective } from '../../../../shared/directives/modal-dismiss.directive';
 import { ConfirmDeleteModalComponent, ConfirmDeleteConfig } from '../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { ConfirmFinalizeModalComponent, ConfirmFinalizeConfig } from '../../../../shared/components/confirm-finalize-modal/confirm-finalize-modal.component';
@@ -30,6 +30,7 @@ export interface MaterialCosto {
   cantidad: number | null;
   costoUnitario: number | null;
   costoTotal: number;
+  moneda?: MonedaRegistro;
   encargado: string;
   dependenciaActividadId?: number | null;
 }
@@ -41,6 +42,7 @@ export interface ManoObraCosto {
   diasTrabajando: number | null;
   costoPorDia: number | null;
   costoTotal: number;
+  moneda?: MonedaRegistro;
   dependenciaActividadId?: number | null;
 }
 
@@ -51,6 +53,7 @@ export interface OtroCosto {
   cantidad: number | null;
   costoUnitario: number | null;
   costoTotal: number;
+  moneda?: MonedaRegistro;
   encargado: string;
   dependenciaActividadId?: number | null;
 }
@@ -582,6 +585,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       areas: [...(this.proyecto.areas || [])],
       ordenesCompra: this.deduplicarOrdenesCompra((this.proyecto.ordenesCompra || []).map(o => ({
         ...o,
+        moneda: o.moneda === 'USD' ? 'USD' : 'PEN',
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         tipoActividad: this.normalizarTipoActividadOrdenCompra(o.tipoActividad),
         numeroLicitacion: o.numeroLicitacion || '',
@@ -1017,7 +1021,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }));
 
     return this.registroSolicitudesService.reemplazarOrdenesCompra(this.proyecto.id, payload).pipe(
-      map((items) => (items || []).map((orden) => ({
+      map((items) => (items || []).map((orden, index) => ({
         id: orden.id,
         numero: orden.numero || '',
         fecha: orden.fecha || '',
@@ -1026,6 +1030,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroLicitacion: orden.numeroLicitacion || '',
         numeroSolicitud: orden.numeroSolicitud || '',
         total: Number(orden.total || 0),
+        moneda: ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN',
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
@@ -1061,6 +1066,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           numeroLicitacion,
           numeroSolicitud,
           total,
+          moneda: orden.moneda === 'USD' ? 'USD' : 'PEN',
           fechaCreacion: orden.fechaCreacion,
           fechaActualizacion: orden.fechaActualizacion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
@@ -1843,6 +1849,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           cantidad: Number(item.cantidad || 0),
           costoUnitario: Number(item.costoUnitario || 0),
           costoTotal: Number(item.costoTotal || 0),
+          moneda: 'PEN',
           encargado: item.encargado || '',
           dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
@@ -1854,6 +1861,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       costoTotal: Number(item.costoTotal || 0),
+      moneda: 'PEN',
       dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
 
@@ -1926,6 +1934,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
+        moneda: 'PEN',
         encargado: item.encargado || '',
         dependenciaActividadId: item.dependenciaActividadId ?? null
       });
@@ -2369,6 +2378,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroLicitacion: (o.numeroLicitacion || '').trim(),
         numeroSolicitud: (o.numeroSolicitud || '').trim(),
         total: Number(o.total || 0),
+        moneda: o.moneda === 'USD' ? 'USD' : 'PEN',
         adjuntos: (o.adjuntos || []).map((adjunto) => ({
           nombre: (adjunto.nombre || '').trim(),
           tipo: (adjunto.tipo || '').trim(),
@@ -2405,6 +2415,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
       costoTotal: Number(item.costoTotal || 0),
+      moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
       encargado: (item.encargado || '').trim(),
       dependenciaActividadId: item.dependenciaActividadId ?? null
     }));
@@ -2416,6 +2427,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       costoTotal: Number(item.costoTotal || 0),
+      moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     }));
 
@@ -2429,6 +2441,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
+        moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
         encargado: (item.encargado || '').trim(),
         dependenciaActividadId: item.dependenciaActividadId ?? null
       }))

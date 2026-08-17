@@ -2,6 +2,7 @@
 export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Finalizado' | 'Archivado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado' | 'Retrasado';
 export type TipoActividadInterna = 'DESARROLLO' | 'SEGUIMIENTO';
+export type MonedaRegistro = 'PEN' | 'USD';
 
 export interface OrdenCompra {
   id?: number;
@@ -12,6 +13,7 @@ export interface OrdenCompra {
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  moneda?: MonedaRegistro;
   fechaCreacion?: string;
   fechaActualizacion?: string;
   adjuntos?: FlujoAdjunto[];
