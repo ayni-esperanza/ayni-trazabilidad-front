@@ -65,7 +65,7 @@ describe('TabCostosComponent', () => {
         expandida: true,
         items: [
           { id: 1, fecha: '', descripcion: 'Taxi', cantidad: 1, costoUnitario: 10, costoTotal: 10, encargado: '' },
-          { id: 2, fecha: '', descripcion: 'Peaje', cantidad: 1, costoUnitario: 5, costoTotal: 5, encargado: '' },
+          { id: 2, fecha: '', descripcion: 'Peaje', cantidad: 1, costoUnitario: 5, costoTotal: 5, moneda: 'USD', encargado: '' },
         ],
       },
       {
@@ -79,8 +79,22 @@ describe('TabCostosComponent', () => {
     ];
 
     expect(component.otrosCostosPorCategoria).toEqual([
-      { nombre: 'Hospedaje', total: 80 },
-      { nombre: 'Viaticos', total: 15 },
+      { nombre: 'Hospedaje', pen: 80, usd: 0 },
+      { nombre: 'Viaticos', pen: 10, usd: 5 },
     ]);
+    expect(component.totalOtrosCostosPorMoneda).toEqual({ pen: 90, usd: 5 });
+  });
+
+  it('keeps PEN and USD separated in the grand summary', () => {
+    const component = createComponent();
+    component.materiales = [
+      { id: 1, fecha: '', nroComprobante: '', producto: 'Cable', cantidad: 1, costoUnitario: 20, costoTotal: 20, moneda: 'PEN', encargado: '' },
+      { id: 2, fecha: '', nroComprobante: '', producto: 'Equipo', cantidad: 1, costoUnitario: 30, costoTotal: 30, moneda: 'USD', encargado: '' },
+    ];
+    component.manoObra = [
+      { id: 1, trabajador: 'Ana', oficio: 'Técnico', diasTrabajando: 1, costoPorDia: 15, costoTotal: 15, moneda: 'USD' },
+    ];
+
+    expect(component.totalCostosGeneralPorMoneda).toEqual({ pen: 20, usd: 45 });
   });
 });

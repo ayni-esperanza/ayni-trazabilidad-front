@@ -26,10 +26,17 @@ type ProyectoCostosResumen = {
 
 type ResumenCostoItem = {
   nombre: string;
-  total: number;
+  pen: number;
+  usd: number;
+};
+
+type ResumenMonedas = {
+  pen: number;
+  usd: number;
 };
 
 type TipoImportacionCostos = 'materiales' | 'manoObra' | 'otrosCostos';
+type CategoriaResumenCostos = 'materiales' | 'manoObra' | 'otrosCostos';
 type FilaExcel = Record<string, unknown>;
 
 @Component({
@@ -74,6 +81,11 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   eliminacionCatalogoPendiente: { tipo: 'tipoMaterial' | 'oficioManoObra'; nombre: string } | null = null;
   mensajeImportacion = '';
   importacionConError = false;
+  resumenDesgloseExpandido: Record<CategoriaResumenCostos, boolean> = {
+    materiales: false,
+    manoObra: false,
+    otrosCostos: false
+  };
 
   constructor(
     private readonly registroSolicitudesService: RegistroSolicitudesService,
@@ -106,6 +118,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   emitirCambios(): void {
     this.costosChange.emit();
+  }
+
+  alternarDesgloseResumen(categoria: CategoriaResumenCostos): void {
+    this.resumenDesgloseExpandido[categoria] = !this.resumenDesgloseExpandido[categoria];
   }
 
   normalizarTextoSeleccion(value: string | number | null): string {
@@ -187,6 +203,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   }
   get totalMateriales(): number {
     return this.materiales?.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0) ?? 0;
+  }
+
+  get totalMaterialesPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda(this.materiales || []);
   }
 
   get materialesPorTipo(): ResumenCostoItem[] {
@@ -374,6 +394,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     return this.manoObra?.reduce((sum, m) => sum + (Number(m.costoTotal) || 0), 0) ?? 0;
   }
 
+  get totalManoObraPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda(this.manoObra || []);
+  }
+
   get manoObraPorOficio(): ResumenCostoItem[] {
     return this.agruparPorNombre(this.manoObra || [], (item) => item.oficio || 'Sin oficio');
   }
@@ -539,14 +563,25 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     return (this.tablasCostosExtras || [])
       .map((tabla) => ({
         nombre: (tabla.nombre || '').trim() || 'Sin categoria',
-        total: this.getTotalTablaExtra(tabla)
+        ...this.resumirPorMoneda(tabla.items || [])
       }))
-      .filter((item) => item.total > 0)
+      .filter((item) => item.pen > 0 || item.usd > 0)
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  get totalOtrosCostosPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda((this.tablasCostosExtras || []).flatMap((tabla) => tabla.items || []));
   }
 
   get totalCostosGeneral(): number {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
+  }
+
+  get totalCostosGeneralPorMoneda(): ResumenMonedas {
+    return {
+      pen: this.totalMaterialesPorMoneda.pen + this.totalManoObraPorMoneda.pen + this.totalOtrosCostosPorMoneda.pen,
+      usd: this.totalMaterialesPorMoneda.usd + this.totalManoObraPorMoneda.usd + this.totalOtrosCostosPorMoneda.usd
+    };
   }
 
   get fechaInicioResumen(): string {
@@ -672,18 +707,29 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   private siguienteId(items: Array<{ id: number }>, desplazamiento = 0): number { return items.reduce((mayor, item) => Math.max(mayor, Number(item.id) || 0), 0) + 1 + desplazamiento; }
   private mostrarResultadoImportacion(mensaje: string, esError = false): void { this.mensajeImportacion = mensaje; this.importacionConError = esError; }
 
-  private agruparPorNombre<T extends { costoTotal: number }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
-    const acumulado = new Map<string, number>();
+  private agruparPorNombre<T extends { costoTotal: number; moneda?: 'PEN' | 'USD' }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
+    const acumulado = new Map<string, ResumenMonedas>();
 
     for (const item of items) {
       const nombre = (obtenerNombre(item) || '').trim() || 'Sin clasificar';
-      acumulado.set(nombre, (acumulado.get(nombre) || 0) + Number(item.costoTotal || 0));
+      const resumen = acumulado.get(nombre) || { pen: 0, usd: 0 };
+      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
+      resumen[moneda] += Number(item.costoTotal || 0);
+      acumulado.set(nombre, resumen);
     }
 
     return Array.from(acumulado.entries())
-      .map(([nombre, total]) => ({ nombre, total }))
-      .filter((item) => item.total > 0)
+      .map(([nombre, resumen]) => ({ nombre, ...resumen }))
+      .filter((item) => item.pen > 0 || item.usd > 0)
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
+
+  private resumirPorMoneda<T extends { costoTotal: number; moneda?: 'PEN' | 'USD' }>(items: T[]): ResumenMonedas {
+    return items.reduce<ResumenMonedas>((resumen, item) => {
+      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
+      resumen[moneda] += Number(item.costoTotal || 0);
+      return resumen;
+    }, { pen: 0, usd: 0 });
   }
 
   private cargarCatalogosProyecto(): void {
