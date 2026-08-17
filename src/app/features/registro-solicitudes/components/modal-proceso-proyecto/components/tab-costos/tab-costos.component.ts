@@ -37,6 +37,7 @@ type ResumenMonedas = {
 
 type TipoImportacionCostos = 'materiales' | 'manoObra' | 'otrosCostos';
 type CategoriaResumenCostos = 'materiales' | 'manoObra' | 'otrosCostos';
+type FiltroMonedaResumen = 'TODAS' | 'PEN' | 'USD';
 type FilaExcel = Record<string, unknown>;
 
 @Component({
@@ -86,6 +87,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     manoObra: false,
     otrosCostos: false
   };
+  filtroMonedaResumen: FiltroMonedaResumen = 'TODAS';
 
   constructor(
     private readonly registroSolicitudesService: RegistroSolicitudesService,
@@ -122,6 +124,19 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   alternarDesgloseResumen(categoria: CategoriaResumenCostos): void {
     this.resumenDesgloseExpandido[categoria] = !this.resumenDesgloseExpandido[categoria];
+  }
+
+  seleccionarFiltroMonedaResumen(filtro: FiltroMonedaResumen): void {
+    this.filtroMonedaResumen = filtro;
+  }
+
+  mostrarMonedaResumen(moneda: 'PEN' | 'USD'): boolean {
+    return this.filtroMonedaResumen === 'TODAS' || this.filtroMonedaResumen === moneda;
+  }
+
+  tieneMontoVisible(resumen: ResumenMonedas): boolean {
+    return (this.mostrarMonedaResumen('PEN') && resumen.pen > 0)
+      || (this.mostrarMonedaResumen('USD') && resumen.usd > 0);
   }
 
   normalizarTextoSeleccion(value: string | number | null): string {
@@ -211,6 +226,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   get materialesPorTipo(): ResumenCostoItem[] {
     return this.agruparPorNombre(this.materiales || [], (item) => item.tipo || 'Sin tipo');
+  }
+
+  get materialesPorTipoVisibles(): ResumenCostoItem[] {
+    return this.filtrarItemsResumen(this.materialesPorTipo);
   }
 
   agregarOpcionTipoMaterial(): void {
@@ -402,6 +421,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     return this.agruparPorNombre(this.manoObra || [], (item) => item.oficio || 'Sin oficio');
   }
 
+  get manoObraPorOficioVisibles(): ResumenCostoItem[] {
+    return this.filtrarItemsResumen(this.manoObraPorOficio);
+  }
+
   get actividadOptions(): Array<{ value: number; label: string }> {
     return (this.actividadesDisponibles || []).map((actividad) => ({
       value: actividad.id,
@@ -569,6 +592,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 
+  get otrosCostosPorCategoriaVisibles(): ResumenCostoItem[] {
+    return this.filtrarItemsResumen(this.otrosCostosPorCategoria);
+  }
+
   get totalOtrosCostosPorMoneda(): ResumenMonedas {
     return this.resumirPorMoneda((this.tablasCostosExtras || []).flatMap((tabla) => tabla.items || []));
   }
@@ -730,6 +757,12 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       resumen[moneda] += Number(item.costoTotal || 0);
       return resumen;
     }, { pen: 0, usd: 0 });
+  }
+
+  private filtrarItemsResumen(items: ResumenCostoItem[]): ResumenCostoItem[] {
+    if (this.filtroMonedaResumen === 'PEN') return items.filter((item) => item.pen > 0);
+    if (this.filtroMonedaResumen === 'USD') return items.filter((item) => item.usd > 0);
+    return items;
   }
 
   private cargarCatalogosProyecto(): void {

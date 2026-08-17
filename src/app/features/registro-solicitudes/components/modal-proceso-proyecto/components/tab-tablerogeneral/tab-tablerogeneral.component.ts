@@ -4,6 +4,18 @@ import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, Respon
 import { DocumentoResumen } from '../../models/documento-resumen.model';
 import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
+type CostoResumenMoneda = {
+  costoTotal: number;
+  moneda?: 'PEN' | 'USD';
+};
+
+type ResumenMonedas = {
+  pen: number;
+  usd: number;
+};
+
+type FiltroMoneda = 'TODAS' | 'PEN' | 'USD';
+
 @Component({
   selector: 'app-tab-tablero-general, app-tab-tablerogeneral',
   standalone: true,
@@ -17,6 +29,9 @@ export class TabTableroGeneralComponent {
   @Input() totalManoObra = 0;
   @Input() totalOtrosCostos = 0;
   @Input() totalCostosGeneral = 0;
+  @Input() costosMateriales: CostoResumenMoneda[] = [];
+  @Input() costosManoObra: CostoResumenMoneda[] = [];
+  @Input() costosOtros: Array<{ items: CostoResumenMoneda[] }> = [];
   @Input() flujoTimelineResumen: FlujoNodo[] = [];
   @Input() responsables: Responsable[] = [];
   @Input() comentariosAdicionalesActividad: ComentarioAdicionalActividad[] = [];
@@ -27,10 +42,43 @@ export class TabTableroGeneralComponent {
   @Output() descargarDocumentoEvt = new EventEmitter<DocumentoResumen>();
   @Output() descargarTodosDocumentosEvt = new EventEmitter<void>();
   @Output() navegarACostosEvt = new EventEmitter<'materiales' | 'manoObra' | 'otrosCostos'>();
+  filtroMonedaCostos: FiltroMoneda = 'TODAS';
 
   navegarACostos(seccion: 'materiales' | 'manoObra' | 'otrosCostos'): void {
     if (window.getSelection()?.toString().trim()) return;
     this.navegarACostosEvt.emit(seccion);
+  }
+
+  seleccionarFiltroMonedaCostos(filtro: FiltroMoneda): void {
+    this.filtroMonedaCostos = filtro;
+  }
+
+  mostrarMonedaCostos(moneda: 'PEN' | 'USD'): boolean {
+    return this.filtroMonedaCostos === 'TODAS' || this.filtroMonedaCostos === moneda;
+  }
+
+  tieneMontoCostosVisible(resumen: ResumenMonedas): boolean {
+    return (this.mostrarMonedaCostos('PEN') && resumen.pen > 0)
+      || (this.mostrarMonedaCostos('USD') && resumen.usd > 0);
+  }
+
+  get totalMaterialesPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda(this.costosMateriales);
+  }
+
+  get totalManoObraPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda(this.costosManoObra);
+  }
+
+  get totalOtrosCostosPorMoneda(): ResumenMonedas {
+    return this.resumirPorMoneda(this.costosOtros.flatMap((tabla) => tabla.items || []));
+  }
+
+  get totalCostosPorMoneda(): ResumenMonedas {
+    return {
+      pen: this.totalMaterialesPorMoneda.pen + this.totalManoObraPorMoneda.pen + this.totalOtrosCostosPorMoneda.pen,
+      usd: this.totalMaterialesPorMoneda.usd + this.totalManoObraPorMoneda.usd + this.totalOtrosCostosPorMoneda.usd
+    };
   }
   get responsablesHistorialAnterior(): ResponsableHistorialProyecto[] {
     return (this.proyecto?.responsablesHistorial || []).filter((registro) =>
@@ -116,5 +164,13 @@ export class TabTableroGeneralComponent {
     const year = date.getFullYear();
     
     return `${day}-${month}-${year}`;
+  }
+
+  private resumirPorMoneda(items: CostoResumenMoneda[]): ResumenMonedas {
+    return (items || []).reduce<ResumenMonedas>((resumen, item) => {
+      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
+      resumen[moneda] += Number(item.costoTotal || 0);
+      return resumen;
+    }, { pen: 0, usd: 0 });
   }
 }

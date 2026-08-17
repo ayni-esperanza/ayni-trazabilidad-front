@@ -61,7 +61,7 @@
 
 <!-- ===== SUB-TAB RESUMEN ===== -->
 <p *ngIf="mensajeImportacion" class="mb-4 rounded-lg border px-3 py-2 text-xs" [ngClass]="importacionConError ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'">{{ mensajeImportacion }}</p>
-<div [class.hidden]="subTabCostosActiva !== 'resumen'" class="space-y-5">
+<div *ngIf="subTabCostosActiva === 'resumen'" class="space-y-5 animate-ui-in">
   <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/70 p-4 sm:p-5 lg:p-6 shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]">
     <div class="space-y-5">
       <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)] gap-4">
@@ -99,15 +99,25 @@
           </div>
 
           <div class="mt-4 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 bg-white/85 dark:bg-slate-900/40 px-4 py-4">
-            <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Total registrado por moneda</p>
+              <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-[10px] dark:border-slate-700 dark:bg-slate-800" role="group" aria-label="Filtrar resumen por moneda">
+                <button type="button" (click)="seleccionarFiltroMonedaResumen('TODAS')" [attr.aria-pressed]="filtroMonedaResumen === 'TODAS'"
+                  class="rounded-md px-2 py-1 font-semibold transition-colors" [ngClass]="filtroMonedaResumen === 'TODAS' ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'">Todas</button>
+                <button type="button" (click)="seleccionarFiltroMonedaResumen('PEN')" [attr.aria-pressed]="filtroMonedaResumen === 'PEN'"
+                  class="rounded-md px-2 py-1 font-semibold transition-colors" [ngClass]="filtroMonedaResumen === 'PEN' ? 'bg-white text-emerald-700 shadow-sm dark:bg-slate-700 dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'">Soles</button>
+                <button type="button" (click)="seleccionarFiltroMonedaResumen('USD')" [attr.aria-pressed]="filtroMonedaResumen === 'USD'"
+                  class="rounded-md px-2 py-1 font-semibold transition-colors" [ngClass]="filtroMonedaResumen === 'USD' ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-700 dark:text-blue-300' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'">Dólares</button>
+              </div>
+            </div>
+            <div class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-4">
               <div class="flex min-w-0 flex-col">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Total registrado por moneda</p>
-                <p *ngIf="totalCostosGeneralPorMoneda.pen > 0 && totalCostosGeneralPorMoneda.usd > 0" class="flex flex-1 items-center justify-start pt-2 text-left text-sm text-slate-600 dark:text-slate-300">Costos separados sin conversión</p>
+                <p *ngIf="filtroMonedaResumen === 'TODAS' && totalCostosGeneralPorMoneda.pen > 0 && totalCostosGeneralPorMoneda.usd > 0" class="flex flex-1 items-center justify-start pt-2 text-left text-sm text-slate-600 dark:text-slate-300">Costos separados sin conversión</p>
               </div>
               <div class="self-center text-right text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-300">
-                <p *ngIf="totalCostosGeneralPorMoneda.pen > 0">S/ {{ totalCostosGeneralPorMoneda.pen | number:'1.2-2' }}</p>
-                <p *ngIf="totalCostosGeneralPorMoneda.usd > 0">$ {{ totalCostosGeneralPorMoneda.usd | number:'1.2-2' }}</p>
-                <p *ngIf="totalCostosGeneralPorMoneda.pen === 0 && totalCostosGeneralPorMoneda.usd === 0" class="text-base text-slate-500 dark:text-slate-400">Sin costos registrados</p>
+                <p *ngIf="mostrarMonedaResumen('PEN') && totalCostosGeneralPorMoneda.pen > 0">S/ {{ totalCostosGeneralPorMoneda.pen | number:'1.2-2' }}</p>
+                <p *ngIf="mostrarMonedaResumen('USD') && totalCostosGeneralPorMoneda.usd > 0">$ {{ totalCostosGeneralPorMoneda.usd | number:'1.2-2' }}</p>
+                <p *ngIf="!tieneMontoVisible(totalCostosGeneralPorMoneda)" class="text-base text-slate-500 dark:text-slate-400">Sin costos registrados</p>
               </div>
             </div>
           </div>
@@ -126,27 +136,27 @@
             <div class="text-right">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
               <div class="mt-1 text-lg font-extrabold text-blue-700 dark:text-blue-300">
-                <p *ngIf="totalMaterialesPorMoneda.pen > 0">S/ {{ totalMaterialesPorMoneda.pen | number:'1.2-2' }}</p>
-                <p *ngIf="totalMaterialesPorMoneda.usd > 0">$ {{ totalMaterialesPorMoneda.usd | number:'1.2-2' }}</p>
-                <p *ngIf="totalMaterialesPorMoneda.pen === 0 && totalMaterialesPorMoneda.usd === 0" class="text-sm text-slate-400">—</p>
+                <p *ngIf="mostrarMonedaResumen('PEN') && totalMaterialesPorMoneda.pen > 0">S/ {{ totalMaterialesPorMoneda.pen | number:'1.2-2' }}</p>
+                <p *ngIf="mostrarMonedaResumen('USD') && totalMaterialesPorMoneda.usd > 0">$ {{ totalMaterialesPorMoneda.usd | number:'1.2-2' }}</p>
+                <p *ngIf="!tieneMontoVisible(totalMaterialesPorMoneda)" class="text-sm text-slate-400">—</p>
               </div>
             </div>
           </div>
 
-          <button *ngIf="materialesPorTipo.length > 0" type="button" (click)="alternarDesgloseResumen('materiales')"
+          <button *ngIf="materialesPorTipoVisibles.length > 0" type="button" (click)="alternarDesgloseResumen('materiales')"
             class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-blue-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100/70 dark:border-blue-900/60 dark:bg-slate-900/30 dark:text-blue-300 dark:hover:bg-blue-950/40"
             [attr.aria-expanded]="resumenDesgloseExpandido.materiales">
             {{ resumenDesgloseExpandido.materiales ? 'Ocultar desglose' : 'Ver desglose' }}
             <svg class="h-3.5 w-3.5 transition-transform" [class.rotate-180]="resumenDesgloseExpandido.materiales" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          <p *ngIf="materialesPorTipo.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">Sin materiales registrados</p>
+          <p *ngIf="materialesPorTipoVisibles.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">{{ filtroMonedaResumen === 'TODAS' ? 'Sin materiales registrados' : 'Sin materiales registrados en esta moneda' }}</p>
 
-          <div *ngIf="resumenDesgloseExpandido.materiales && materialesPorTipo.length > 0" class="mt-3 space-y-2">
-            <div *ngFor="let item of materialesPorTipo; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+          <div *ngIf="resumenDesgloseExpandido.materiales && materialesPorTipoVisibles.length > 0" class="mt-3 space-y-2 animate-ui-in">
+            <div *ngFor="let item of materialesPorTipoVisibles; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
               <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
               <span class="text-right text-sm font-bold text-slate-900 dark:text-slate-100">
-                <span *ngIf="item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
-                <span *ngIf="item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('PEN') && item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('USD') && item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
               </span>
             </div>
           </div>
@@ -163,27 +173,27 @@
             <div class="text-right">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
               <div class="mt-1 text-lg font-extrabold text-emerald-700 dark:text-emerald-300">
-                <p *ngIf="totalManoObraPorMoneda.pen > 0">S/ {{ totalManoObraPorMoneda.pen | number:'1.2-2' }}</p>
-                <p *ngIf="totalManoObraPorMoneda.usd > 0">$ {{ totalManoObraPorMoneda.usd | number:'1.2-2' }}</p>
-                <p *ngIf="totalManoObraPorMoneda.pen === 0 && totalManoObraPorMoneda.usd === 0" class="text-sm text-slate-400">—</p>
+                <p *ngIf="mostrarMonedaResumen('PEN') && totalManoObraPorMoneda.pen > 0">S/ {{ totalManoObraPorMoneda.pen | number:'1.2-2' }}</p>
+                <p *ngIf="mostrarMonedaResumen('USD') && totalManoObraPorMoneda.usd > 0">$ {{ totalManoObraPorMoneda.usd | number:'1.2-2' }}</p>
+                <p *ngIf="!tieneMontoVisible(totalManoObraPorMoneda)" class="text-sm text-slate-400">—</p>
               </div>
             </div>
           </div>
 
-          <button *ngIf="manoObraPorOficio.length > 0" type="button" (click)="alternarDesgloseResumen('manoObra')"
+          <button *ngIf="manoObraPorOficioVisibles.length > 0" type="button" (click)="alternarDesgloseResumen('manoObra')"
             class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100/70 dark:border-emerald-900/60 dark:bg-slate-900/30 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
             [attr.aria-expanded]="resumenDesgloseExpandido.manoObra">
             {{ resumenDesgloseExpandido.manoObra ? 'Ocultar desglose' : 'Ver desglose' }}
             <svg class="h-3.5 w-3.5 transition-transform" [class.rotate-180]="resumenDesgloseExpandido.manoObra" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          <p *ngIf="manoObraPorOficio.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">Sin mano de obra registrada</p>
+          <p *ngIf="manoObraPorOficioVisibles.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">{{ filtroMonedaResumen === 'TODAS' ? 'Sin mano de obra registrada' : 'Sin mano de obra registrada en esta moneda' }}</p>
 
-          <div *ngIf="resumenDesgloseExpandido.manoObra && manoObraPorOficio.length > 0" class="mt-3 space-y-2">
-            <div *ngFor="let item of manoObraPorOficio; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+          <div *ngIf="resumenDesgloseExpandido.manoObra && manoObraPorOficioVisibles.length > 0" class="mt-3 space-y-2 animate-ui-in">
+            <div *ngFor="let item of manoObraPorOficioVisibles; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
               <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
               <span class="text-right text-sm font-bold text-slate-900 dark:text-slate-100">
-                <span *ngIf="item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
-                <span *ngIf="item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('PEN') && item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('USD') && item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
               </span>
             </div>
           </div>
@@ -200,27 +210,27 @@
             <div class="text-right">
               <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
               <div class="mt-1 text-lg font-extrabold text-amber-700 dark:text-amber-300">
-                <p *ngIf="totalOtrosCostosPorMoneda.pen > 0">S/ {{ totalOtrosCostosPorMoneda.pen | number:'1.2-2' }}</p>
-                <p *ngIf="totalOtrosCostosPorMoneda.usd > 0">$ {{ totalOtrosCostosPorMoneda.usd | number:'1.2-2' }}</p>
-                <p *ngIf="totalOtrosCostosPorMoneda.pen === 0 && totalOtrosCostosPorMoneda.usd === 0" class="text-sm text-slate-400">—</p>
+                <p *ngIf="mostrarMonedaResumen('PEN') && totalOtrosCostosPorMoneda.pen > 0">S/ {{ totalOtrosCostosPorMoneda.pen | number:'1.2-2' }}</p>
+                <p *ngIf="mostrarMonedaResumen('USD') && totalOtrosCostosPorMoneda.usd > 0">$ {{ totalOtrosCostosPorMoneda.usd | number:'1.2-2' }}</p>
+                <p *ngIf="!tieneMontoVisible(totalOtrosCostosPorMoneda)" class="text-sm text-slate-400">—</p>
               </div>
             </div>
           </div>
 
-          <button *ngIf="otrosCostosPorCategoria.length > 0" type="button" (click)="alternarDesgloseResumen('otrosCostos')"
+          <button *ngIf="otrosCostosPorCategoriaVisibles.length > 0" type="button" (click)="alternarDesgloseResumen('otrosCostos')"
             class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-amber-200/80 bg-white/60 px-3 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-100/70 dark:border-amber-900/60 dark:bg-slate-900/30 dark:text-amber-300 dark:hover:bg-amber-950/40"
             [attr.aria-expanded]="resumenDesgloseExpandido.otrosCostos">
             {{ resumenDesgloseExpandido.otrosCostos ? 'Ocultar desglose' : 'Ver desglose' }}
             <svg class="h-3.5 w-3.5 transition-transform" [class.rotate-180]="resumenDesgloseExpandido.otrosCostos" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          <p *ngIf="otrosCostosPorCategoria.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">Sin otros costos registrados</p>
+          <p *ngIf="otrosCostosPorCategoriaVisibles.length === 0" class="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">{{ filtroMonedaResumen === 'TODAS' ? 'Sin otros costos registrados' : 'Sin otros costos registrados en esta moneda' }}</p>
 
-          <div *ngIf="resumenDesgloseExpandido.otrosCostos && otrosCostosPorCategoria.length > 0" class="mt-3 space-y-2">
-            <div *ngFor="let item of otrosCostosPorCategoria; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
+          <div *ngIf="resumenDesgloseExpandido.otrosCostos && otrosCostosPorCategoriaVisibles.length > 0" class="mt-3 space-y-2 animate-ui-in">
+            <div *ngFor="let item of otrosCostosPorCategoriaVisibles; trackBy: trackResumenItem" class="flex items-center justify-between gap-3 rounded-xl border border-white/90 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/40 px-3 py-2.5">
               <span class="text-sm font-semibold uppercase text-slate-700 dark:text-slate-200">{{ item.nombre }}</span>
               <span class="text-right text-sm font-bold text-slate-900 dark:text-slate-100">
-                <span *ngIf="item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
-                <span *ngIf="item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('PEN') && item.pen > 0" class="block">S/ {{ item.pen | number:'1.2-2' }}</span>
+                <span *ngIf="mostrarMonedaResumen('USD') && item.usd > 0" class="block">$ {{ item.usd | number:'1.2-2' }}</span>
               </span>
             </div>
           </div>
@@ -328,7 +338,7 @@
 </div>
 
 <!-- ===== SUB-TAB MATERIALES ===== -->
-<div [class.hidden]="subTabCostosActiva !== 'materiales'" class="space-y-3">
+<div *ngIf="subTabCostosActiva === 'materiales'" class="space-y-3 animate-ui-in">
   <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
     <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/70">
       <span class="text-xs font-semibold text-blue-700 dark:text-blue-300 mr-auto">Materiales</span>
@@ -457,7 +467,7 @@
 </div>
 
 <!-- ===== SUB-TAB MANO DE OBRA ===== -->
-<div [class.hidden]="subTabCostosActiva !== 'manoObra'" class="space-y-3">
+<div *ngIf="subTabCostosActiva === 'manoObra'" class="space-y-3 animate-ui-in">
   <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
     <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-950/70">
       <span class="text-xs font-semibold text-green-700 dark:text-green-300 mr-auto">Mano de Obra</span>
@@ -733,7 +743,7 @@
   </app-confirm-delete-modal>
 
 <!-- ===== SUB-TAB OTROS COSTOS ===== -->
-<div [class.hidden]="subTabCostosActiva !== 'otrosCostos'" class="space-y-3">
+<div *ngIf="subTabCostosActiva === 'otrosCostos'" class="space-y-3 animate-ui-in">
   <div class="border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
     <div class="flex items-center justify-between gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-950/70">
       <span class="text-xs font-semibold text-amber-700 dark:text-amber-300 mr-auto">Categorías de Otros Costos</span>
