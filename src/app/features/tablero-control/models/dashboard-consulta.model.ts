@@ -1,8 +1,9 @@
-import { DatoGrafico, GastoProyecto, ProyectoEnCurso, TareaEncargado } from './tablero.model';
+import { DatoGrafico, GastoProyecto, MonedaDashboard, ProyectoEnCurso, TareaEncargado } from './tablero.model';
 
 export type DashboardMetrica = 'activos' | 'finalizados' | 'gastos';
 
 export interface DashboardFiltros {
+  moneda?: MonedaDashboard;
   empresa?: string | null;
   lugar?: string | null;
   area?: string | null;

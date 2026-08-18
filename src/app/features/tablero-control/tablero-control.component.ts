@@ -4,14 +4,17 @@ import localeEs from '@angular/common/locales/es';
 import { DashboardConsultaService } from './services/dashboard-consulta.service';
 import { DashboardFiltros, DashboardPaginacion } from './models/dashboard-consulta.model';
 import { NgxChartsModule, Color, ScaleType, LegendPosition } from '@swimlane/ngx-charts';
-import { Subject } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { 
   ProyectoEnCurso, 
   TareaEncargado, 
   DatoGrafico,
   GastoProyecto,
-  EstadoProyecto
+  EstadoProyecto,
+  FiltroMonedaDashboard,
+  MonedaDashboard,
+  SerieGrafico
 } from './models/tablero.model';
 
 // Importar componentes hijos
@@ -60,6 +63,12 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   gastosMes = 0;
   gastosHoy = 0;
   gastosAyer = 0;
+  gastosMesUSD: number | null = null;
+  gastosHoyUSD: number | null = null;
+  gastosAyerUSD: number | null = null;
+
+  // El tablero muestra una sola moneda a la vez. Los registros antiguos se consideran PEN.
+  monedaSeleccionada: FiltroMonedaDashboard = 'PEN';
   
   // Métrica seleccionada para el gráfico
   metricaSeleccionada: 'finalizados' | 'activos' | 'gastos' = 'activos';
@@ -68,6 +77,8 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   datosProyectosFinalizados: DatoGrafico[] = [];
   datosProyectosActivos: DatoGrafico[] = [];
   datosGastos: DatoGrafico[] = [];
+  datosGastosPEN: DatoGrafico[] = [];
+  datosGastosUSD: DatoGrafico[] = [];
   
   // Tipo de gráfico seleccionado
   tipoGrafico: 'barras' | 'linea' | 'pie' = 'barras';
@@ -115,6 +126,13 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     selectable: true,
     group: ScaleType.Ordinal,
     domain: ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8']
+  };
+
+  colorSchemeMonedas: Color = {
+    name: 'monedas',
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: ['#10b981', '#3b82f6']
   };
   
   // Proyectos en curso
@@ -269,7 +287,10 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
 
   private filtrosGlobales(): DashboardFiltros {
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return { metrica: this.metricaSeleccionada, empresa: this.empresaSeleccionada, lugar: this.lugarSeleccionado,
+    const moneda = this.metricaSeleccionada === 'gastos' && this.monedaSeleccionada !== 'TODAS'
+      ? this.monedaSeleccionada
+      : undefined;
+    return { moneda, metrica: this.metricaSeleccionada, empresa: this.empresaSeleccionada, lugar: this.lugarSeleccionado,
       area: this.areaSeleccionada, estado: this.estadoProyecto, fechaDesde: this.fechaDesde, fechaHasta: this.fechaHasta,
       mes: this.mesSeleccionado ? meses.indexOf(this.mesSeleccionado) + 1 : null,
       proyectoId: this.proyectoSeleccionado?.id ?? null, categoria: this.categoriaSeleccionada };
@@ -280,20 +301,64 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     return { ...filtros, proyectoId: null, categoria: null };
   }
   private cargarMetricas(): void {
-    this.tableroService.resumen({}).pipe(takeUntil(this.destroy$)).subscribe({
+    if (this.monedaSeleccionada === 'TODAS') {
+      forkJoin({
+        pen: this.tableroService.resumen({ moneda: 'PEN' }),
+        usd: this.tableroService.resumen({ moneda: 'USD' })
+      }).pipe(takeUntil(this.destroy$)).subscribe({
+        next: ({ pen, usd }) => {
+          this.proyectosFinalizados = pen.proyectosFinalizados;
+          this.proyectosActivos = pen.proyectosActivos;
+          this.gastosMes = pen.gastosMes;
+          this.gastosHoy = pen.gastosHoy;
+          this.gastosAyer = pen.gastosAyer;
+          this.gastosMesUSD = usd.gastosMes;
+          this.gastosHoyUSD = usd.gastosHoy;
+          this.gastosAyerUSD = usd.gastosAyer;
+          this.cargando = false;
+          this.cdr.detectChanges();
+        },
+        error: () => { this.error = 'Error al cargar el resumen del tablero.'; this.cargando = false; }
+      });
+      return;
+    }
+
+    this.tableroService.resumen({ moneda: this.monedaSeleccionada }).pipe(takeUntil(this.destroy$)).subscribe({
       next: resumen => { this.proyectosFinalizados = resumen.proyectosFinalizados; this.proyectosActivos = resumen.proyectosActivos;
         this.gastosMes = resumen.gastosMes; this.gastosHoy = resumen.gastosHoy; this.gastosAyer = resumen.gastosAyer;
+        this.gastosMesUSD = null; this.gastosHoyUSD = null; this.gastosAyerUSD = null;
         this.cargando = false; this.cdr.detectChanges(); },
       error: () => { this.error = 'Error al cargar el resumen del tablero.'; this.cargando = false; }
     });
   }
 
   private cargarGraficos(): void {
+    if (this.metricaSeleccionada === 'gastos' && this.monedaSeleccionada === 'TODAS') {
+      const filtros = this.filtrosResumen();
+      forkJoin({
+        pen: this.tableroService.resumen({ ...filtros, moneda: 'PEN' }),
+        usd: this.tableroService.resumen({ ...filtros, moneda: 'USD' })
+      }).pipe(takeUntil(this.destroy$)).subscribe({
+        next: ({ pen, usd }) => {
+          this.datosGastosPEN = pen.datosGastos || [];
+          this.datosGastosUSD = usd.datosGastos || [];
+          this.datosGastos = [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.error = 'Error al cargar los gráficos del tablero.'; }
+      });
+      return;
+    }
+
     this.tableroService.resumen(this.filtrosResumen()).pipe(takeUntil(this.destroy$)).subscribe({
       next: resumen => {
         this.datosProyectosFinalizados = resumen.datosProyectosFinalizados || [];
         this.datosProyectosActivos = resumen.datosProyectosActivos || [];
         this.datosGastos = resumen.datosGastos || [];
+        if (this.metricaSeleccionada === 'gastos') {
+          this.datosGastosPEN = this.monedaSeleccionada === 'PEN' ? this.datosGastos : [];
+          this.datosGastosUSD = this.monedaSeleccionada === 'USD' ? this.datosGastos : [];
+        }
         this.cdr.detectChanges();
       },
       error: () => { this.error = 'Error al cargar los gráficos del tablero.'; }
@@ -374,9 +439,60 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     switch (this.metricaSeleccionada) {
       case 'finalizados': return 'Proyectos Finalizados';
       case 'activos': return 'Proyectos Activos';
-      case 'gastos': return 'Gastos Mensuales';
+      case 'gastos': return this.monedaSeleccionada === 'TODAS'
+        ? 'Gastos Mensuales por Moneda'
+        : `Gastos Mensuales (${this.simboloMoneda})`;
       default: return 'Proyectos Finalizados';
     }
+  }
+
+  get simboloMoneda(): 'S/' | '$' {
+    return this.monedaSeleccionada === 'USD' ? '$' : 'S/';
+  }
+
+  get monedaVisual(): MonedaDashboard {
+    return this.monedaSeleccionada === 'USD' ? 'USD' : 'PEN';
+  }
+
+  get compararMonedas(): boolean {
+    return this.metricaSeleccionada === 'gastos' && this.monedaSeleccionada === 'TODAS';
+  }
+
+  get datosGastosComparativosBarras(): SerieGrafico[] {
+    const nombres = [...new Set([...this.datosGastosPEN, ...this.datosGastosUSD].map(dato => dato.name))];
+    const pen = new Map(this.datosGastosPEN.map(dato => [dato.name, dato.value]));
+    const usd = new Map(this.datosGastosUSD.map(dato => [dato.name, dato.value]));
+    return nombres.map(name => ({
+      name,
+      series: [
+        { name: 'Soles', value: pen.get(name) || 0 },
+        { name: 'Dólares', value: usd.get(name) || 0 }
+      ]
+    }));
+  }
+
+  get datosGastosComparativosLineas(): SerieGrafico[] {
+    return [
+      { name: 'Soles', series: this.datosGastosPEN },
+      { name: 'Dólares', series: this.datosGastosUSD }
+    ];
+  }
+
+  get datosGastosComparativosPie(): DatoGrafico[] {
+    return [
+      { name: 'Soles', value: this.datosGastosPEN.reduce((total, dato) => total + dato.value, 0) },
+      { name: 'Dólares', value: this.datosGastosUSD.reduce((total, dato) => total + dato.value, 0) }
+    ].filter(dato => dato.value > 0);
+  }
+
+  seleccionarMoneda(moneda: FiltroMonedaDashboard): void {
+    if (this.monedaSeleccionada === moneda) return;
+
+    this.monedaSeleccionada = moneda;
+    this.proyectoSeleccionado = null;
+    this.categoriaSeleccionada = null;
+    this.cargarMetricas();
+    this.aplicarFiltros();
   }
   
   // Getter para obtener los datos del gráfico según la métrica seleccionada
@@ -501,10 +617,11 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   }
   
   formatearMoneda(valor: number): string {
+    const simbolo = this.simboloMoneda;
     if (valor >= 1000) {
-      return 'S/. ' + (valor / 1000).toFixed(1) + 'k';
+      return simbolo + ' ' + (valor / 1000).toFixed(1) + 'k';
     }
-    return 'S/. ' + valor.toFixed(0);
+    return simbolo + ' ' + valor.toFixed(0);
   }
   
   /**
@@ -512,7 +629,13 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
    * Filtra los proyectos en curso por el mes seleccionado
    */
   onSelectGrafico(event: any): void {
-    const mes = event.name || event;
+    if (this.compararMonedas && this.tipoGrafico === 'pie') return;
+
+    const meses = new Set(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']);
+    const mes = this.compararMonedas
+      ? (meses.has(event?.name) ? event.name : meses.has(event?.series) ? event.series : null)
+      : (event.name || event);
+    if (!mes) return;
     
     // Si se hace clic en el mismo mes, deseleccionar
     if (this.mesSeleccionado === mes) {
@@ -634,9 +757,6 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     return Number(this.totalesGastosCategorias[categoria] || 0);
   }
 }
-
-
-
 
 
 

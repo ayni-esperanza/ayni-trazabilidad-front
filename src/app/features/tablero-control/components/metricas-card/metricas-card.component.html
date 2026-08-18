@@ -20,15 +20,24 @@
     [class.metric-card--active]="metricaSeleccionada === 'gastos'"
     [attr.aria-pressed]="metricaSeleccionada === 'gastos'">
     <h3 class="text-xs font-medium text-gray-600 dark:text-gray-300">Gastos</h3>
-    <p class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatearMoneda(gastosMes) }}</p>
+    <p class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatearMoneda(gastosMes, moneda === 'TODAS' ? 'PEN' : moneda) }}</p>
+    @if (moneda === 'TODAS' && gastosMesUSD !== null) {
+      <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ formatearMoneda(gastosMesUSD, 'USD') }}</p>
+    }
     <span class="text-[10px] text-gray-400">Este mes</span>
     <div class="mt-2 space-y-1">
       <div>
-        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosHoy) }}</p>
+        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosHoy, moneda === 'TODAS' ? 'PEN' : moneda) }}</p>
+        @if (moneda === 'TODAS' && gastosHoyUSD !== null) {
+          <p class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ formatearMoneda(gastosHoyUSD, 'USD') }}</p>
+        }
         <span class="text-[10px] text-gray-400">Hoy</span>
       </div>
       <div>
-        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosAyer) }}</p>
+        <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ formatearMoneda(gastosAyer, moneda === 'TODAS' ? 'PEN' : moneda) }}</p>
+        @if (moneda === 'TODAS' && gastosAyerUSD !== null) {
+          <p class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ formatearMoneda(gastosAyerUSD, 'USD') }}</p>
+        }
         <span class="text-[10px] text-gray-400">Ayer</span>
       </div>
     </div>

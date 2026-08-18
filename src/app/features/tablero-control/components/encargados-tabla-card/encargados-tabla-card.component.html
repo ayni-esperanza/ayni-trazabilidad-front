@@ -64,7 +64,7 @@
           </button>
         }
         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-          Total: S/. {{ totalGastosFiltrados.toLocaleString('es-PE') }}
+          Total: {{ simboloMoneda }} {{ totalGastosFiltrados.toLocaleString('es-PE') }}
         </span>
       </div>
     }
@@ -83,7 +83,7 @@
           Materiales
         </div>
         <div class="text-sm font-bold text-gray-800 dark:text-white">
-          S/. {{ totalMateriales.toLocaleString('es-PE') }}
+          {{ simboloMoneda }} {{ totalMateriales.toLocaleString('es-PE') }}
         </div>
       </div>
       <div (click)="onSeleccionarCategoria('Mano de Obra')" 
@@ -96,7 +96,7 @@
           Mano de Obra
         </div>
         <div class="text-sm font-bold text-gray-800 dark:text-white">
-          S/. {{ totalManoObra.toLocaleString('es-PE') }}
+          {{ simboloMoneda }} {{ totalManoObra.toLocaleString('es-PE') }}
         </div>
       </div>
       <div (click)="onSeleccionarCategoria('Otros Costos')" 
@@ -109,7 +109,7 @@
           Otros Costos
         </div>
         <div class="text-sm font-bold text-gray-800 dark:text-white">
-          S/. {{ totalOtrosCostos.toLocaleString('es-PE') }}
+          {{ simboloMoneda }} {{ totalOtrosCostos.toLocaleString('es-PE') }}
         </div>
       </div>
     </div>
@@ -152,7 +152,7 @@
                   </td>
                   <td class="py-1.5 px-2 text-right font-medium text-gray-700 dark:text-gray-300">
                     <span class="block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">
-                      S/ {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                      {{ simboloMoneda }} {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
                     </span>
                   </td>
                 </tr>

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TareaEncargado, GastoProyecto, ProyectoEnCurso } from '../../models/tablero.model';
+import { TareaEncargado, GastoProyecto, MonedaDashboard, ProyectoEnCurso } from '../../models/tablero.model';
 import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
 
 @Component({
@@ -31,6 +31,11 @@ export class EncargadosTablaCardComponent {
   @Input() totalElements = 0;
   @Input() totalPages = 0;
   @Input() loading = false;
+  @Input() moneda: MonedaDashboard = 'PEN';
+
+  get simboloMoneda(): 'S/' | '$' {
+    return this.moneda === 'USD' ? '$' : 'S/';
+  }
   
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() cambiarModo = new EventEmitter<'tabla' | 'timeline'>();

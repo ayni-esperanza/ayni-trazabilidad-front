@@ -167,7 +167,7 @@
                 </td>
                 @if (metricaSeleccionada === 'gastos') {
                   <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300 font-medium">
-                    S/ {{ proyecto.gastoTotal?.toLocaleString('es-PE') || '0.00' }}
+                    {{ simboloMoneda }} {{ proyecto.gastoTotal?.toLocaleString('es-PE') || '0.00' }}
                   </td>
                 }
               </tr>

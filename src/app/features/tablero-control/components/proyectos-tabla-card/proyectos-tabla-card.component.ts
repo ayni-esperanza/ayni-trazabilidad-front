@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProyectoEnCurso, EstadoProyecto } from '../../models/tablero.model';
+import { ProyectoEnCurso, EstadoProyecto, MonedaDashboard } from '../../models/tablero.model';
 import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 import { SelectSearchableComponent } from '../../../../shared/components/select-searchable/select-searchable.component';
 import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
@@ -30,6 +30,11 @@ export class ProyectosTablaCardComponent {
   @Input() totalElements = 0;
   @Input() totalPages = 0;
   @Input() loading = false;
+  @Input() moneda: MonedaDashboard = 'PEN';
+
+  get simboloMoneda(): 'S/' | '$' {
+    return this.moneda === 'USD' ? '$' : 'S/';
+  }
 
   // Filtros adicionales para la vista de finalizados
   @Input() lugares: string[] = [];

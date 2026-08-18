@@ -32,6 +32,12 @@
   stroke: rgba(148, 163, 184, 0.28);
 }
 
+/* Evita las franjas verticales alternadas que ngx-charts agrega al eje X. */
+.chart-widget ::ng-deep .grid-panel rect,
+.chart-widget ::ng-deep .grid-panel.odd rect {
+  fill: transparent !important;
+}
+
 .chart-widget ::ng-deep .tick text {
   fill: #64748b;
 }

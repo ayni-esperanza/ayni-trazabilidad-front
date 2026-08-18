@@ -1,6 +1,8 @@
 // Estados consistentes con registro de solicitudes
 export type EstadoProyecto = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado' | 'Cancelado' | 'Archivado';
 export type EstadoTarea = 'Pendiente' | 'En Proceso' | 'Completado' | 'Retrasado';
+export type MonedaDashboard = 'PEN' | 'USD';
+export type FiltroMonedaDashboard = 'TODAS' | MonedaDashboard;
 
 export interface ProyectoEnCurso {
   id: number;
@@ -46,6 +48,7 @@ export interface GastoProyecto {
   fecha: Date | string;
   mes?: string;
   responsable?: string;
+  moneda?: MonedaDashboard;
 }
 
 export interface MetricaProyecto {
@@ -63,6 +66,11 @@ export interface Gastos {
 export interface DatoGrafico {
   name: string;
   value: number;
+}
+
+export interface SerieGrafico {
+  name: string;
+  series: DatoGrafico[];
 }
 
 export interface ResumenTablero {
