@@ -38,4 +38,18 @@ describe('ModalProcesoProyectoComponent', () => {
     expect(component.totalCostosGeneral).toBe(127.5);
     expect(component.otrosCostosItems.length).toBe(2);
   });
+
+  it('keeps the compact navigation totals separated by currency', () => {
+    const component = createComponent();
+    component.materiales = [
+      { id: 1, fecha: '', nroComprobante: '', producto: 'Cable', cantidad: 1, costoUnitario: 20, costoTotal: 20, moneda: 'PEN', encargado: '' },
+      { id: 2, fecha: '', nroComprobante: '', producto: 'Equipo', cantidad: 1, costoUnitario: 30, costoTotal: 30, moneda: 'USD', encargado: '' }
+    ];
+    component.manoObra = [
+      { id: 1, trabajador: 'Luis', oficio: 'Tecnico', diasTrabajando: 1, costoPorDia: 15, costoTotal: 15, moneda: 'USD' }
+    ];
+
+    expect(component.totalCostosSoles).toBe(20);
+    expect(component.totalCostosDolares).toBe(45);
+  });
 });

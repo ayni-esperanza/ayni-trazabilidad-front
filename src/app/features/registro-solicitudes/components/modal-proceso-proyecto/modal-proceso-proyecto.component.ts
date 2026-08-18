@@ -1405,6 +1405,31 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     return this.totalMateriales + this.totalManoObra + this.totalOtrosCostos;
   }
 
+  get totalCostosSoles(): number {
+    return this.totalizarCostosPorMoneda('PEN');
+  }
+
+  get totalCostosDolares(): number {
+    return this.totalizarCostosPorMoneda('USD');
+  }
+
+  private totalizarCostosPorMoneda(moneda: MonedaRegistro): number {
+    const items = [
+      ...this.materiales,
+      ...this.manoObra,
+      ...this.tablasCostosExtras.flatMap(tabla => tabla.items)
+    ];
+
+    if (items.length === 0 && moneda === 'PEN' && this.resumenCostos) {
+      return Number(this.resumenCostos.costoTotalProyecto) || 0;
+    }
+
+    return items.reduce((total, item) => {
+      const monedaItem = item.moneda === 'USD' ? 'USD' : 'PEN';
+      return monedaItem === moneda ? total + (Number(item.costoTotal) || 0) : total;
+    }, 0);
+  }
+
   get tieneDatosCostos(): boolean {
     return this.materiales.length > 0 || this.manoObra.length > 0 || this.tablasCostosExtras.length > 0 || this.totalCostosGeneral > 0;
   }
