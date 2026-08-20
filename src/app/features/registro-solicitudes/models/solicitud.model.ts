@@ -13,6 +13,7 @@ export interface OrdenCompra {
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  totalUsd?: number;
   moneda?: MonedaRegistro;
   fechaCreacion?: string;
   fechaActualizacion?: string;

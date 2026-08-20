@@ -61,6 +61,7 @@ type OrdenCompraApi = {
   numeroLicitacion?: string;
   numeroSolicitud?: string;
   total?: number;
+  totalUsd?: number;
   fechaCreacion?: string;
   fechaActualizacion?: string;
   adjuntos?: FlujoAdjuntoApi[];
@@ -236,6 +237,8 @@ type CostoMaterialApi = {
   cantidad: number;
   costoUnitario: number;
   costoTotal: number;
+  costoUnitarioUsd?: number;
+  costoTotalUsd?: number;
   encargado?: string;
   dependenciaActividadId?: number | null;
 };
@@ -248,6 +251,8 @@ type CostoManoObraApi = {
   diasTrabajando: number;
   costoPorDia: number;
   costoTotal: number;
+  costoPorDiaUsd?: number;
+  costoTotalUsd?: number;
   dependenciaActividadId?: number | null;
 };
 
@@ -259,6 +264,8 @@ type CostoAdicionalApi = {
   cantidad: number;
   costoUnitario: number;
   costoTotal: number;
+  costoUnitarioUsd?: number;
+  costoTotalUsd?: number;
   encargado?: string;
   dependenciaActividadId?: number | null;
 };
@@ -553,6 +560,8 @@ export class RegistroSolicitudesService {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
+        costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+        costoTotalUsd: Number(item.costoTotalUsd || 0),
         encargado: item.encargado,
         dependenciaActividadId: item.dependenciaActividadId ?? null
       }))))
@@ -567,6 +576,7 @@ export class RegistroSolicitudesService {
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
+      costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
       encargado: item.encargado || '',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
@@ -580,6 +590,7 @@ export class RegistroSolicitudesService {
       producto: item.producto,
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
+      costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
       encargado: item.encargado || '',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
@@ -599,6 +610,8 @@ export class RegistroSolicitudesService {
         diasTrabajando: Number(item.diasTrabajando || 0),
         costoPorDia: Number(item.costoPorDia || 0),
         costoTotal: Number(item.costoTotal || 0),
+        costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+        costoTotalUsd: Number(item.costoTotalUsd || 0),
         dependenciaActividadId: item.dependenciaActividadId ?? null
       })))
     );
@@ -610,6 +623,7 @@ export class RegistroSolicitudesService {
       oficio: item.oficio || item.cargo || '',
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
+      costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
   }
@@ -620,6 +634,7 @@ export class RegistroSolicitudesService {
       oficio: item.oficio || item.cargo || '',
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
+      costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
   }
@@ -670,6 +685,8 @@ export class RegistroSolicitudesService {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
+        costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+        costoTotalUsd: Number(item.costoTotalUsd || 0),
         encargado: item.encargado,
         dependenciaActividadId: item.dependenciaActividadId ?? null
       }))))
@@ -697,6 +714,7 @@ export class RegistroSolicitudesService {
       descripcion: item.descripcion || '',
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
+      costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
       encargado: item.encargado || '',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
@@ -709,6 +727,7 @@ export class RegistroSolicitudesService {
       descripcion: item.descripcion || '',
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
+      costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
       encargado: item.encargado || '',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     });
@@ -760,6 +779,7 @@ export class RegistroSolicitudesService {
         numeroLicitacion: orden.numeroLicitacion,
         numeroSolicitud: orden.numeroSolicitud,
         total: Number(orden.total || 0),
+        totalUsd: Number(orden.totalUsd || 0),
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto))

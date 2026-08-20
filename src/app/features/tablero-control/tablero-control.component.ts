@@ -147,6 +147,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   gastosProyectos: GastoProyecto[] = [];
   gastosFiltrados: GastoProyecto[] = [];
   totalesGastosCategorias: Record<string, number> = {};
+  totalesGastosCategoriasUsd: Record<string, number> = {};
 
   
   /**
@@ -400,9 +401,26 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private cargarTotalesGastos(): void {
+    if (this.monedaSeleccionada === 'TODAS') {
+      const filtros = this.filtrosGlobales();
+      forkJoin({
+        pen: this.tableroService.totalesGastos({ ...filtros, moneda: 'PEN' }),
+        usd: this.tableroService.totalesGastos({ ...filtros, moneda: 'USD' })
+      }).pipe(takeUntil(this.destroy$)).subscribe({
+        next: ({ pen, usd }) => {
+          this.totalesGastosCategorias = pen || {};
+          this.totalesGastosCategoriasUsd = usd || {};
+        },
+        error: () => { this.totalesGastosCategorias = {}; this.totalesGastosCategoriasUsd = {}; }
+      });
+      return;
+    }
     this.tableroService.totalesGastos(this.filtrosGlobales()).pipe(takeUntil(this.destroy$)).subscribe({
-      next: totales => { this.totalesGastosCategorias = totales || {}; },
-      error: () => { this.totalesGastosCategorias = {}; }
+      next: totales => {
+        this.totalesGastosCategorias = totales || {};
+        this.totalesGastosCategoriasUsd = {};
+      },
+      error: () => { this.totalesGastosCategorias = {}; this.totalesGastosCategoriasUsd = {}; }
     });
   }
   get paginaDetalle(): DashboardPaginacion { return this.metricaSeleccionada === 'gastos' ? this.paginacionGastos : this.paginacionActividades; }
@@ -425,7 +443,25 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   private mapProyecto(item: any): ProyectoEnCurso {
     const inicio = item.durationStart ? new Date(item.durationStart) : new Date(); const fin = item.durationEnd ? new Date(item.durationEnd) : inicio;
     const estado: EstadoProyecto = item.estado === 'PENDIENTE' ? 'Pendiente' : item.estado === 'CANCELADO' ? 'Cancelado' : item.estado === 'COMPLETADO' || item.estado === 'FINALIZADO' ? 'Completado' : 'En Proceso';
-    return { id: item.id, proyecto: item.nombre || 'Proyecto', empresa: item.cliente || '', responsable: item.responsable || 'Sin responsable', etapa: item.etapa || estado, fechas: '', estado, mes: '', fechaCreacion: inicio, fechaInicio: inicio, fechaFinalizacion: fin, lugar: item.ubicacion || '', areas: item.areas || [], area: item.areas?.[0] || '', gastoTotal: item.gasto || 0 };
+    return {
+      id: item.id,
+      proyecto: item.nombre || 'Proyecto',
+      empresa: item.cliente || '',
+      responsable: item.responsable || 'Sin responsable',
+      etapa: item.etapa || estado,
+      fechas: '',
+      estado,
+      mes: '',
+      fechaCreacion: inicio,
+      fechaInicio: inicio,
+      fechaFinalizacion: fin,
+      lugar: item.ubicacion || '',
+      areas: item.areas || [],
+      area: item.areas?.[0] || '',
+      gastoTotal: Number(item.gasto || 0),
+      gastoTotalPen: Number(item.gastoPen || 0),
+      gastoTotalUsd: Number(item.gastoUsd || 0)
+    };
   }
   /**
    * Recargar los datos del tablero
@@ -749,6 +785,14 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   get totalGastosFiltrados(): number {
     return this.gastosFiltrados.reduce((sum, g) => sum + g.monto, 0);
   }
+
+  get totalGastosFiltradosPen(): number {
+    return this.gastosFiltrados.filter(g => (g.moneda || 'PEN') === 'PEN').reduce((sum, g) => sum + g.monto, 0);
+  }
+
+  get totalGastosFiltradosUsd(): number {
+    return this.gastosFiltrados.filter(g => g.moneda === 'USD').reduce((sum, g) => sum + g.monto, 0);
+  }
   
   /**
    * Obtiene el total de gastos por categoría (considera el proyecto seleccionado)
@@ -756,9 +800,11 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   getTotalPorCategoria(categoria: string): number {
     return Number(this.totalesGastosCategorias[categoria] || 0);
   }
+
+  getTotalUsdPorCategoria(categoria: string): number {
+    return Number(this.totalesGastosCategoriasUsd[categoria] || 0);
+  }
 }
-
-
 
 
 

@@ -6,7 +6,7 @@ import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
 type CostoResumenMoneda = {
   costoTotal: number;
-  moneda?: 'PEN' | 'USD';
+  costoTotalUsd?: number;
 };
 
 type ResumenMonedas = {
@@ -168,8 +168,8 @@ export class TabTableroGeneralComponent {
 
   private resumirPorMoneda(items: CostoResumenMoneda[]): ResumenMonedas {
     return (items || []).reduce<ResumenMonedas>((resumen, item) => {
-      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
-      resumen[moneda] += Number(item.costoTotal || 0);
+      resumen.pen += Number(item.costoTotal || 0);
+      resumen.usd += Number(item.costoTotalUsd || 0);
       return resumen;
     }, { pen: 0, usd: 0 });
   }

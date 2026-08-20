@@ -30,6 +30,8 @@ export interface MaterialCosto {
   cantidad: number | null;
   costoUnitario: number | null;
   costoTotal: number;
+  costoUnitarioUsd?: number | null;
+  costoTotalUsd?: number;
   moneda?: MonedaRegistro;
   encargado: string;
   dependenciaActividadId?: number | null;
@@ -42,6 +44,8 @@ export interface ManoObraCosto {
   diasTrabajando: number | null;
   costoPorDia: number | null;
   costoTotal: number;
+  costoPorDiaUsd?: number | null;
+  costoTotalUsd?: number;
   moneda?: MonedaRegistro;
   dependenciaActividadId?: number | null;
 }
@@ -53,6 +57,8 @@ export interface OtroCosto {
   cantidad: number | null;
   costoUnitario: number | null;
   costoTotal: number;
+  costoUnitarioUsd?: number | null;
+  costoTotalUsd?: number;
   moneda?: MonedaRegistro;
   encargado: string;
   dependenciaActividadId?: number | null;
@@ -585,7 +591,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       areas: [...(this.proyecto.areas || [])],
       ordenesCompra: this.deduplicarOrdenesCompra((this.proyecto.ordenesCompra || []).map(o => ({
         ...o,
-        moneda: o.moneda === 'USD' ? 'USD' : 'PEN',
+        total: Number(o.total || 0),
+        totalUsd: Number(o.totalUsd || 0),
+        moneda: Number(o.total || 0) <= 0 && Number(o.totalUsd || 0) > 0 ? 'USD' : 'PEN',
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         tipoActividad: this.normalizarTipoActividadOrdenCompra(o.tipoActividad),
         numeroLicitacion: o.numeroLicitacion || '',
@@ -1011,6 +1019,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       numeroLicitacion: orden.numeroLicitacion,
       numeroSolicitud: orden.numeroSolicitud,
       total: Number(orden.total || 0),
+      totalUsd: Number(orden.totalUsd || 0),
       adjuntos: (orden.adjuntos || []).map((adjunto) => ({
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
@@ -1030,7 +1039,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroLicitacion: orden.numeroLicitacion || '',
         numeroSolicitud: orden.numeroSolicitud || '',
         total: Number(orden.total || 0),
-        moneda: ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN',
+        totalUsd: Number(orden.totalUsd || 0),
+        moneda: Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : (ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN'),
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
@@ -1424,10 +1434,11 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       return Number(this.resumenCostos.costoTotalProyecto) || 0;
     }
 
-    return items.reduce((total, item) => {
-      const monedaItem = item.moneda === 'USD' ? 'USD' : 'PEN';
-      return monedaItem === moneda ? total + (Number(item.costoTotal) || 0) : total;
-    }, 0);
+    return items.reduce((total, item) => total + (
+      moneda === 'USD'
+        ? Number(item.costoTotalUsd || 0)
+        : Number(item.costoTotal || 0)
+    ), 0);
   }
 
   get tieneDatosCostos(): boolean {
@@ -1874,7 +1885,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           cantidad: Number(item.cantidad || 0),
           costoUnitario: Number(item.costoUnitario || 0),
           costoTotal: Number(item.costoTotal || 0),
-          moneda: 'PEN',
+          costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+          costoTotalUsd: Number(item.costoTotalUsd || 0),
+          moneda: Number(item.costoUnitario || 0) <= 0 && Number(item.costoUnitarioUsd || 0) > 0 ? 'USD' : 'PEN',
           encargado: item.encargado || '',
           dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
@@ -1886,7 +1899,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       costoTotal: Number(item.costoTotal || 0),
-      moneda: 'PEN',
+      costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+      costoTotalUsd: Number(item.costoTotalUsd || 0),
+      moneda: Number(item.costoPorDia || 0) <= 0 && Number(item.costoPorDiaUsd || 0) > 0 ? 'USD' : 'PEN',
       dependenciaActividadId: item.dependenciaActividadId ?? null
         }));
 
@@ -1914,6 +1929,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     cantidad: number;
     costoUnitario: number;
     costoTotal: number;
+    costoUnitarioUsd?: number;
+    costoTotalUsd?: number;
     encargado?: string;
     dependenciaActividadId?: number | null;
   }>, categoriasPersistidas: CostoCategoriaAdicionalApi[]): TablaCostoExtra[] {
@@ -1959,7 +1976,9 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
-        moneda: 'PEN',
+        costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+        costoTotalUsd: Number(item.costoTotalUsd || 0),
+        moneda: Number(item.costoUnitario || 0) <= 0 && Number(item.costoUnitarioUsd || 0) > 0 ? 'USD' : 'PEN',
         encargado: item.encargado || '',
         dependenciaActividadId: item.dependenciaActividadId ?? null
       });
@@ -2192,6 +2211,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
             costoTotal: Number(item.costoTotal || 0),
+            costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+            costoTotalUsd: Number(item.costoTotalUsd || 0),
             encargado: item.encargado?.trim() || '',
             dependenciaActividadId: item.dependenciaActividadId
           };
@@ -2220,6 +2241,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             diasTrabajando: Number(item.diasTrabajando || 0),
             costoPorDia: Number(item.costoPorDia || 0),
             costoTotal: Number(item.costoTotal || 0),
+            costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+            costoTotalUsd: Number(item.costoTotalUsd || 0),
             dependenciaActividadId: item.dependenciaActividadId
           };
 
@@ -2248,6 +2271,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
             cantidad: Number(item.cantidad || 0),
             costoUnitario: Number(item.costoUnitario || 0),
             costoTotal: Number(item.costoTotal || 0),
+            costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+            costoTotalUsd: Number(item.costoTotalUsd || 0),
             encargado: item.encargado?.trim() || '',
             dependenciaActividadId: item.dependenciaActividadId
           };
@@ -2403,6 +2428,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroLicitacion: (o.numeroLicitacion || '').trim(),
         numeroSolicitud: (o.numeroSolicitud || '').trim(),
         total: Number(o.total || 0),
+        totalUsd: Number(o.totalUsd || 0),
         moneda: o.moneda === 'USD' ? 'USD' : 'PEN',
         adjuntos: (o.adjuntos || []).map((adjunto) => ({
           nombre: (adjunto.nombre || '').trim(),
@@ -2440,6 +2466,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       cantidad: Number(item.cantidad || 0),
       costoUnitario: Number(item.costoUnitario || 0),
       costoTotal: Number(item.costoTotal || 0),
+      costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+      costoTotalUsd: Number(item.costoTotalUsd || 0),
       moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
       encargado: (item.encargado || '').trim(),
       dependenciaActividadId: item.dependenciaActividadId ?? null
@@ -2452,6 +2480,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       diasTrabajando: Number(item.diasTrabajando || 0),
       costoPorDia: Number(item.costoPorDia || 0),
       costoTotal: Number(item.costoTotal || 0),
+      costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+      costoTotalUsd: Number(item.costoTotalUsd || 0),
       moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
       dependenciaActividadId: item.dependenciaActividadId ?? null
     }));
@@ -2466,6 +2496,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         cantidad: Number(item.cantidad || 0),
         costoUnitario: Number(item.costoUnitario || 0),
         costoTotal: Number(item.costoTotal || 0),
+        costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+        costoTotalUsd: Number(item.costoTotalUsd || 0),
         moneda: item.moneda === 'USD' ? 'USD' : 'PEN',
         encargado: (item.encargado || '').trim(),
         dependenciaActividadId: item.dependenciaActividadId ?? null
@@ -2613,19 +2645,19 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private esMaterialValido(item: MaterialCosto): boolean {
     return !!item?.producto?.trim()
       && Number(item.cantidad || 0) > 0
-      && Number(item.costoUnitario || 0) > 0;
+      && (Number(item.costoUnitario || 0) > 0 || Number(item.costoUnitarioUsd || 0) > 0);
   }
 
   private esManoObraValida(item: ManoObraCosto): boolean {
     return !!item?.trabajador?.trim()
       && Number(item.diasTrabajando || 0) > 0
-      && Number(item.costoPorDia || 0) > 0;
+      && (Number(item.costoPorDia || 0) > 0 || Number(item.costoPorDiaUsd || 0) > 0);
   }
 
   private esAdicionalValido(item: OtroCosto & { categoria?: string }): boolean {
     return !!item?.categoria?.trim()
       && Number(item.cantidad || 0) > 0
-      && Number(item.costoUnitario || 0) > 0;
+      && (Number(item.costoUnitario || 0) > 0 || Number(item.costoUnitarioUsd || 0) > 0);
   }
 
 }

@@ -133,36 +133,36 @@
         <button type="button" (click)="navegarACostos('materiales')" title="Ir a la tabla de materiales"
           class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded px-2 py-2 text-left text-xs select-text transition-colors hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:hover:bg-blue-900/50">
           <p class="text-gray-500 dark:text-gray-400">Materiales</p>
-          <strong class="mt-0.5 block text-blue-600 dark:text-blue-400">
-            <span *ngIf="mostrarMonedaCostos('PEN') && totalMaterialesPorMoneda.pen > 0" class="block">S/ {{ totalMaterialesPorMoneda.pen | number:'1.0-2' }}</span>
-            <span *ngIf="mostrarMonedaCostos('USD') && totalMaterialesPorMoneda.usd > 0" class="block">$ {{ totalMaterialesPorMoneda.usd | number:'1.0-2' }}</span>
-            <span *ngIf="!tieneMontoCostosVisible(totalMaterialesPorMoneda)" class="block text-gray-400">—</span>
+          <strong class="mt-0.5 flex items-center gap-x-3 whitespace-nowrap text-blue-600 dark:text-blue-400">
+            <span *ngIf="mostrarMonedaCostos('PEN') && totalMaterialesPorMoneda.pen > 0">S/ {{ totalMaterialesPorMoneda.pen | number:'1.0-2' }}</span>
+            <span *ngIf="mostrarMonedaCostos('USD') && totalMaterialesPorMoneda.usd > 0">$ {{ totalMaterialesPorMoneda.usd | number:'1.0-2' }}</span>
+            <span *ngIf="!tieneMontoCostosVisible(totalMaterialesPorMoneda)" class="text-gray-400">—</span>
           </strong>
         </button>
         <button type="button" (click)="navegarACostos('manoObra')" title="Ir a la tabla de mano de obra"
           class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded px-2 py-2 text-left text-xs select-text transition-colors hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-400 dark:hover:bg-green-900/50">
           <p class="text-gray-500 dark:text-gray-400">Mano de Obra</p>
-          <strong class="mt-0.5 block text-green-600 dark:text-green-400">
-            <span *ngIf="mostrarMonedaCostos('PEN') && totalManoObraPorMoneda.pen > 0" class="block">S/ {{ totalManoObraPorMoneda.pen | number:'1.0-2' }}</span>
-            <span *ngIf="mostrarMonedaCostos('USD') && totalManoObraPorMoneda.usd > 0" class="block">$ {{ totalManoObraPorMoneda.usd | number:'1.0-2' }}</span>
-            <span *ngIf="!tieneMontoCostosVisible(totalManoObraPorMoneda)" class="block text-gray-400">—</span>
+          <strong class="mt-0.5 flex items-center gap-x-3 whitespace-nowrap text-green-600 dark:text-green-400">
+            <span *ngIf="mostrarMonedaCostos('PEN') && totalManoObraPorMoneda.pen > 0">S/ {{ totalManoObraPorMoneda.pen | number:'1.0-2' }}</span>
+            <span *ngIf="mostrarMonedaCostos('USD') && totalManoObraPorMoneda.usd > 0">$ {{ totalManoObraPorMoneda.usd | number:'1.0-2' }}</span>
+            <span *ngIf="!tieneMontoCostosVisible(totalManoObraPorMoneda)" class="text-gray-400">—</span>
           </strong>
         </button>
         <button type="button" (click)="navegarACostos('otrosCostos')" title="Ir a la tabla de otros costos"
           class="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded px-2 py-2 text-left text-xs select-text transition-colors hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:hover:bg-amber-900/50">
           <p class="text-gray-500 dark:text-gray-400">Otros</p>
-          <strong class="mt-0.5 block text-amber-600 dark:text-amber-400">
-            <span *ngIf="mostrarMonedaCostos('PEN') && totalOtrosCostosPorMoneda.pen > 0" class="block">S/ {{ totalOtrosCostosPorMoneda.pen | number:'1.0-2' }}</span>
-            <span *ngIf="mostrarMonedaCostos('USD') && totalOtrosCostosPorMoneda.usd > 0" class="block">$ {{ totalOtrosCostosPorMoneda.usd | number:'1.0-2' }}</span>
-            <span *ngIf="!tieneMontoCostosVisible(totalOtrosCostosPorMoneda)" class="block text-gray-400">—</span>
+          <strong class="mt-0.5 flex items-center gap-x-3 whitespace-nowrap text-amber-600 dark:text-amber-400">
+            <span *ngIf="mostrarMonedaCostos('PEN') && totalOtrosCostosPorMoneda.pen > 0">S/ {{ totalOtrosCostosPorMoneda.pen | number:'1.0-2' }}</span>
+            <span *ngIf="mostrarMonedaCostos('USD') && totalOtrosCostosPorMoneda.usd > 0">$ {{ totalOtrosCostosPorMoneda.usd | number:'1.0-2' }}</span>
+            <span *ngIf="!tieneMontoCostosVisible(totalOtrosCostosPorMoneda)" class="text-gray-400">—</span>
           </strong>
         </button>
         <div class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200/70 dark:border-green-800/70 rounded px-2 py-2 text-xs">
           <p class="text-gray-500 dark:text-gray-400">Total por moneda</p>
-          <strong class="mt-0.5 block text-green-600 dark:text-green-400">
-            <span *ngIf="mostrarMonedaCostos('PEN') && totalCostosPorMoneda.pen > 0" class="block">S/ {{ totalCostosPorMoneda.pen | number:'1.0-2' }}</span>
-            <span *ngIf="mostrarMonedaCostos('USD') && totalCostosPorMoneda.usd > 0" class="block">$ {{ totalCostosPorMoneda.usd | number:'1.0-2' }}</span>
-            <span *ngIf="!tieneMontoCostosVisible(totalCostosPorMoneda)" class="block text-gray-400">—</span>
+          <strong class="mt-0.5 flex items-center gap-x-3 whitespace-nowrap text-green-600 dark:text-green-400">
+            <span *ngIf="mostrarMonedaCostos('PEN') && totalCostosPorMoneda.pen > 0">S/ {{ totalCostosPorMoneda.pen | number:'1.0-2' }}</span>
+            <span *ngIf="mostrarMonedaCostos('USD') && totalCostosPorMoneda.usd > 0">$ {{ totalCostosPorMoneda.usd | number:'1.0-2' }}</span>
+            <span *ngIf="!tieneMontoCostosVisible(totalCostosPorMoneda)" class="text-gray-400">—</span>
           </strong>
         </div>
       </div>

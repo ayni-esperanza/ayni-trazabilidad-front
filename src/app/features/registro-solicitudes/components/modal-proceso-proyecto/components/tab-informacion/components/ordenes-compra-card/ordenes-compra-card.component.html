@@ -51,8 +51,7 @@
                     class="absolute inset-y-0 left-0 z-10 w-9 border-0 bg-transparent px-1 text-xs font-bold text-green-700 outline-none transition-colors hover:text-green-900 dark:text-green-300 dark:hover:text-green-100">
                     {{ simboloMoneda(oc) }}
                   </button>
-                  <input type="number" [(ngModel)]="oc.total" min="0" step="0.01" placeholder="Total sin IGV"
-                    (focus)="oc.total === 0 ? oc.total = undefined : null"
+                  <input type="number" [ngModel]="totalVisible(oc)" (ngModelChange)="actualizarTotalVisible(oc, $event)" min="0" step="0.01" placeholder="Total sin IGV"
                     class="w-full rounded border border-gray-300 bg-white py-1.5 pl-9 pr-2 text-sm text-gray-900 outline-none focus:ring-1 focus:ring-green-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white">
                 </div>
               </div>
@@ -126,7 +125,7 @@
             <span class="text-gray-600 dark:text-gray-300">{{ oc.numeroLicitacion || '—' }}</span>
             <span class="text-gray-600 dark:text-gray-300">{{ oc.numeroSolicitud || '—' }}</span>
             <span class="text-gray-500 dark:text-gray-400 text-xs">{{ oc.fecha ? (oc.fecha | date:'dd/MM/yyyy') : '—' }}</span>
-            <span class="text-blue-600 dark:text-blue-400 font-semibold text-right">{{ simboloMoneda(oc) }} {{ (oc.total ?? 0) | number:'1.2-2' }}</span>
+            <span class="text-blue-600 dark:text-blue-400 font-semibold text-right">{{ simboloMoneda(oc) }} {{ (totalVisible(oc) ?? 0) | number:'1.2-2' }}</span>
           </div>
         </div>
         <p *ngIf="proyectoInfoForm.ordenesCompra.length === 0" class="px-2 py-1.5 text-sm text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-slate-800 rounded">—</p>

@@ -42,6 +42,15 @@ export class OrdenesCompraCardComponent implements OnChanges {
   cambiarMoneda(orden: OrdenCompra): void {
     orden.moneda = orden.moneda === 'USD' ? 'PEN' : 'USD';
   }
+
+  totalVisible(orden: OrdenCompra): number | undefined {
+    return orden.moneda === 'USD' ? orden.totalUsd : orden.total;
+  }
+
+  actualizarTotalVisible(orden: OrdenCompra, valor: number | undefined): void {
+    if (orden.moneda === 'USD') orden.totalUsd = valor;
+    else orden.total = valor;
+  }
   readonly acceptTiposArchivo = ADJUNTO_ACCEPT_TIPOS;
   erroresAdjuntosOrdenCompra: Record<number, string> = {};
   private readonly isBrowser: boolean;
@@ -74,6 +83,7 @@ export class OrdenesCompraCardComponent implements OnChanges {
       numeroLicitacion: '',
       numeroSolicitud: '',
       total: undefined,
+      totalUsd: undefined,
       moneda: 'PEN'
     });
     this.proyectoInfoForm.ordenesCompra = ordenes;

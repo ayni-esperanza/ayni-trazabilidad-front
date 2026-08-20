@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TareaEncargado, GastoProyecto, MonedaDashboard, ProyectoEnCurso } from '../../models/tablero.model';
+import { TareaEncargado, GastoProyecto, FiltroMonedaDashboard, ProyectoEnCurso } from '../../models/tablero.model';
 import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
 
 @Component({
@@ -23,18 +23,27 @@ export class EncargadosTablaCardComponent {
   @Input() tablaVisible: boolean = true;
   @Input() modoVisualizacion: 'tabla' | 'timeline' = 'tabla';
   @Input() totalGastosFiltrados: number = 0;
+  @Input() totalGastosFiltradosPen = 0;
+  @Input() totalGastosFiltradosUsd = 0;
   @Input() totalMateriales: number = 0;
   @Input() totalManoObra: number = 0;
   @Input() totalOtrosCostos: number = 0;
+  @Input() totalMaterialesUsd = 0;
+  @Input() totalManoObraUsd = 0;
+  @Input() totalOtrosCostosUsd = 0;
   @Input() page = 0;
   @Input() size: 100 | 500 | 1000 = 100;
   @Input() totalElements = 0;
   @Input() totalPages = 0;
   @Input() loading = false;
-  @Input() moneda: MonedaDashboard = 'PEN';
+  @Input() moneda: FiltroMonedaDashboard = 'PEN';
 
   get simboloMoneda(): 'S/' | '$' {
     return this.moneda === 'USD' ? '$' : 'S/';
+  }
+
+  simboloMonedaGasto(gasto: GastoProyecto): 'S/' | '$' {
+    return gasto.moneda === 'USD' ? '$' : 'S/';
   }
   
   @Output() toggleTabla = new EventEmitter<void>();

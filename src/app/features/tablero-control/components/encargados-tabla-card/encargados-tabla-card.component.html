@@ -64,7 +64,13 @@
           </button>
         }
         <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-          Total: {{ simboloMoneda }} {{ totalGastosFiltrados.toLocaleString('es-PE') }}
+          Total:
+          @if (moneda === 'TODAS') {
+            <span *ngIf="totalGastosFiltradosPen > 0">S/ {{ totalGastosFiltradosPen.toLocaleString('es-PE') }}</span>
+            <span *ngIf="totalGastosFiltradosUsd > 0" class="ml-2">$ {{ totalGastosFiltradosUsd.toLocaleString('es-PE') }}</span>
+          } @else {
+            {{ simboloMoneda }} {{ totalGastosFiltrados.toLocaleString('es-PE') }}
+          }
         </span>
       </div>
     }
@@ -82,8 +88,13 @@
         <div class="text-[10px] font-medium text-blue-600 dark:text-blue-400">
           Materiales
         </div>
-        <div class="text-sm font-bold text-gray-800 dark:text-white">
-          {{ simboloMoneda }} {{ totalMateriales.toLocaleString('es-PE') }}
+        <div class="flex items-center gap-x-3 whitespace-nowrap text-sm font-bold text-gray-800 dark:text-white">
+          @if (moneda === 'TODAS') {
+            <span>S/ {{ totalMateriales.toLocaleString('es-PE') }}</span>
+            <span *ngIf="totalMaterialesUsd > 0">$ {{ totalMaterialesUsd.toLocaleString('es-PE') }}</span>
+          } @else {
+            <span>{{ moneda === 'USD' ? '$' : 'S/' }} {{ totalMateriales.toLocaleString('es-PE') }}</span>
+          }
         </div>
       </div>
       <div (click)="onSeleccionarCategoria('Mano de Obra')" 
@@ -95,8 +106,13 @@
         <div class="text-[10px] font-medium text-purple-600 dark:text-purple-400">
           Mano de Obra
         </div>
-        <div class="text-sm font-bold text-gray-800 dark:text-white">
-          {{ simboloMoneda }} {{ totalManoObra.toLocaleString('es-PE') }}
+        <div class="flex items-center gap-x-3 whitespace-nowrap text-sm font-bold text-gray-800 dark:text-white">
+          @if (moneda === 'TODAS') {
+            <span>S/ {{ totalManoObra.toLocaleString('es-PE') }}</span>
+            <span *ngIf="totalManoObraUsd > 0">$ {{ totalManoObraUsd.toLocaleString('es-PE') }}</span>
+          } @else {
+            <span>{{ moneda === 'USD' ? '$' : 'S/' }} {{ totalManoObra.toLocaleString('es-PE') }}</span>
+          }
         </div>
       </div>
       <div (click)="onSeleccionarCategoria('Otros Costos')" 
@@ -108,8 +124,13 @@
         <div class="text-[10px] font-medium text-orange-600 dark:text-orange-400">
           Otros Costos
         </div>
-        <div class="text-sm font-bold text-gray-800 dark:text-white">
-          {{ simboloMoneda }} {{ totalOtrosCostos.toLocaleString('es-PE') }}
+        <div class="flex items-center gap-x-3 whitespace-nowrap text-sm font-bold text-gray-800 dark:text-white">
+          @if (moneda === 'TODAS') {
+            <span>S/ {{ totalOtrosCostos.toLocaleString('es-PE') }}</span>
+            <span *ngIf="totalOtrosCostosUsd > 0">$ {{ totalOtrosCostosUsd.toLocaleString('es-PE') }}</span>
+          } @else {
+            <span>{{ moneda === 'USD' ? '$' : 'S/' }} {{ totalOtrosCostos.toLocaleString('es-PE') }}</span>
+          }
         </div>
       </div>
     </div>
@@ -135,7 +156,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              @for (gasto of gastosFiltrados; track gasto.categoria + ':' + gasto.id) {
+              @for (gasto of gastosFiltrados; track gasto.categoria + ':' + gasto.id + ':' + (gasto.moneda || 'PEN')) {
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.fecha | date:'dd/MM/yyyy' }}</td>
                   <td class="py-1.5 px-2 text-gray-700 dark:text-gray-300">{{ gasto.descripcion }}</td>
@@ -152,7 +173,7 @@
                   </td>
                   <td class="py-1.5 px-2 text-right font-medium text-gray-700 dark:text-gray-300">
                     <span class="block px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded">
-                      {{ simboloMoneda }} {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                      {{ simboloMonedaGasto(gasto) }} {{ gasto.monto.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
                     </span>
                   </td>
                 </tr>

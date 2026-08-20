@@ -172,6 +172,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
+      costoUnitarioUsd: null,
+      costoTotalUsd: 0,
       moneda: 'PEN',
       encargado: '',
       dependenciaActividadId: null
@@ -189,7 +191,22 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   calcularCostoTotalMaterial(material: MaterialCosto): void {
     material.costoTotal = (material.cantidad || 0) * (material.costoUnitario || 0);
+    material.costoTotalUsd = (material.cantidad || 0) * (material.costoUnitarioUsd || 0);
     this.emitirCambios();
+  }
+
+  costoUnitarioMaterialVisible(material: MaterialCosto): number | null {
+    return material.moneda === 'USD' ? material.costoUnitarioUsd ?? null : material.costoUnitario;
+  }
+
+  actualizarCostoUnitarioMaterial(material: MaterialCosto, valor: number | null): void {
+    if (material.moneda === 'USD') material.costoUnitarioUsd = valor;
+    else material.costoUnitario = valor;
+    this.calcularCostoTotalMaterial(material);
+  }
+
+  costoTotalMaterialVisible(material: MaterialCosto): number {
+    return material.moneda === 'USD' ? Number(material.costoTotalUsd || 0) : Number(material.costoTotal || 0);
   }
 
   onArchivoCostosSeleccionado(tipo: TipoImportacionCostos, event: Event): void {
@@ -390,6 +407,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       diasTrabajando: null,
       costoPorDia: null,
       costoTotal: 0,
+      costoPorDiaUsd: null,
+      costoTotalUsd: 0,
       moneda: 'PEN',
       dependenciaActividadId: null
     });
@@ -406,7 +425,22 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   calcularCostoTotalManoObra(item: ManoObraCosto): void {
     item.costoTotal = (item.diasTrabajando || 0) * (item.costoPorDia || 0);
+    item.costoTotalUsd = (item.diasTrabajando || 0) * (item.costoPorDiaUsd || 0);
     this.emitirCambios();
+  }
+
+  costoPorDiaVisible(item: ManoObraCosto): number | null {
+    return item.moneda === 'USD' ? item.costoPorDiaUsd ?? null : item.costoPorDia;
+  }
+
+  actualizarCostoPorDia(item: ManoObraCosto, valor: number | null): void {
+    if (item.moneda === 'USD') item.costoPorDiaUsd = valor;
+    else item.costoPorDia = valor;
+    this.calcularCostoTotalManoObra(item);
+  }
+
+  costoTotalManoObraVisible(item: ManoObraCosto): number {
+    return item.moneda === 'USD' ? Number(item.costoTotalUsd || 0) : Number(item.costoTotal || 0);
   }
 
   get totalManoObra(): number {
@@ -554,6 +588,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       cantidad: null,
       costoUnitario: null,
       costoTotal: 0,
+      costoUnitarioUsd: null,
+      costoTotalUsd: 0,
       moneda: 'PEN',
       encargado: '',
       dependenciaActividadId: null
@@ -571,7 +607,22 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   calcularCostoTotalOtro(item: OtroCosto): void {
     item.costoTotal = (item.cantidad || 0) * (item.costoUnitario || 0);
+    item.costoTotalUsd = (item.cantidad || 0) * (item.costoUnitarioUsd || 0);
     this.emitirCambios();
+  }
+
+  costoUnitarioOtroVisible(item: OtroCosto): number | null {
+    return item.moneda === 'USD' ? item.costoUnitarioUsd ?? null : item.costoUnitario;
+  }
+
+  actualizarCostoUnitarioOtro(item: OtroCosto, valor: number | null): void {
+    if (item.moneda === 'USD') item.costoUnitarioUsd = valor;
+    else item.costoUnitario = valor;
+    this.calcularCostoTotalOtro(item);
+  }
+
+  costoTotalOtroVisible(item: OtroCosto): number {
+    return item.moneda === 'USD' ? Number(item.costoTotalUsd || 0) : Number(item.costoTotal || 0);
   }
 
   getTotalTablaExtra(tabla: TablaCostoExtra): number {
@@ -734,14 +785,14 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   private siguienteId(items: Array<{ id: number }>, desplazamiento = 0): number { return items.reduce((mayor, item) => Math.max(mayor, Number(item.id) || 0), 0) + 1 + desplazamiento; }
   private mostrarResultadoImportacion(mensaje: string, esError = false): void { this.mensajeImportacion = mensaje; this.importacionConError = esError; }
 
-  private agruparPorNombre<T extends { costoTotal: number; moneda?: 'PEN' | 'USD' }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
+  private agruparPorNombre<T extends { costoTotal: number; costoTotalUsd?: number }>(items: T[], obtenerNombre: (item: T) => string): ResumenCostoItem[] {
     const acumulado = new Map<string, ResumenMonedas>();
 
     for (const item of items) {
       const nombre = (obtenerNombre(item) || '').trim() || 'Sin clasificar';
       const resumen = acumulado.get(nombre) || { pen: 0, usd: 0 };
-      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
-      resumen[moneda] += Number(item.costoTotal || 0);
+      resumen.pen += Number(item.costoTotal || 0);
+      resumen.usd += Number(item.costoTotalUsd || 0);
       acumulado.set(nombre, resumen);
     }
 
@@ -751,10 +802,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 
-  private resumirPorMoneda<T extends { costoTotal: number; moneda?: 'PEN' | 'USD' }>(items: T[]): ResumenMonedas {
+  private resumirPorMoneda<T extends { costoTotal: number; costoTotalUsd?: number }>(items: T[]): ResumenMonedas {
     return items.reduce<ResumenMonedas>((resumen, item) => {
-      const moneda = item.moneda === 'USD' ? 'usd' : 'pen';
-      resumen[moneda] += Number(item.costoTotal || 0);
+      resumen.pen += Number(item.costoTotal || 0);
+      resumen.usd += Number(item.costoTotalUsd || 0);
       return resumen;
     }, { pen: 0, usd: 0 });
   }

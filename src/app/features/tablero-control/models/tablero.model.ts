@@ -21,6 +21,8 @@ export interface ProyectoEnCurso {
   fechaRegistro?: Date;
   fechaActualizacion?: Date;
   gastoTotal?: number; // Para vista de gastos
+  gastoTotalPen?: number;
+  gastoTotalUsd?: number;
   lugar?: string;      // Ubicación/ciudad del proyecto
   area?: string;       // Area principal del proyecto
   areas?: string[];    // Areas asociadas al proyecto
