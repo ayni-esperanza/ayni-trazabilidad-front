@@ -159,7 +159,15 @@
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.empresa }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.responsable }}</td>
                 <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.lugar || '-' }}</td>
-                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300">{{ proyecto.fechas }}</td>
+                <td class="py-1.5 px-1 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  @if (proyecto.fechaRegistro || proyecto.fechaActualizacion) {
+                    <span>{{ proyecto.fechaRegistro ? (proyecto.fechaRegistro | date:'dd/MM/yyyy') : '-' }}</span>
+                    <span class="text-gray-400"> / </span>
+                    <span>{{ proyecto.fechaActualizacion ? (proyecto.fechaActualizacion | date:'dd/MM/yyyy') : '-' }}</span>
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
                 <td class="py-1.5 px-1">
                   <span class="px-2 py-0.5 text-[10px] font-medium rounded-full" [ngClass]="getEstadoClass(proyecto.estado)">
                     {{ proyecto.estado }}

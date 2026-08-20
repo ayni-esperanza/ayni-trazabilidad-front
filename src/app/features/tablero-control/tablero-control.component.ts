@@ -455,6 +455,8 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       fechaCreacion: inicio,
       fechaInicio: inicio,
       fechaFinalizacion: fin,
+      fechaRegistro: item.fechaRegistro || undefined,
+      fechaActualizacion: item.fechaActualizacion || undefined,
       lugar: item.ubicacion || '',
       areas: item.areas || [],
       area: item.areas?.[0] || '',
@@ -805,6 +807,4 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     return Number(this.totalesGastosCategoriasUsd[categoria] || 0);
   }
 }
-
-
 

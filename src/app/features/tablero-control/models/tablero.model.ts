@@ -18,8 +18,8 @@ export interface ProyectoEnCurso {
   fechaCreacion: Date;
   fechaInicio?: Date;
   fechaFinalizacion?: Date;
-  fechaRegistro?: Date;
-  fechaActualizacion?: Date;
+  fechaRegistro?: Date | string;
+  fechaActualizacion?: Date | string;
   gastoTotal?: number; // Para vista de gastos
   gastoTotalPen?: number;
   gastoTotalUsd?: number;
@@ -36,6 +36,8 @@ export interface TareaEncargado {
   proyectoId: number; // ID del proyecto asociado
   etapa: string;
   fechas: string;
+  fechaRegistro?: Date | string;
+  fechaActualizacion?: Date | string;
   estado: EstadoTarea;
 }
 
