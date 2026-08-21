@@ -230,6 +230,9 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   estadoProyecto: string | null = null;
   fechaDesde: string | null = null;
   fechaHasta: string | null = null;
+  periodoGastos: 'MES_ACTUAL' | 'TODO' | 'PERSONALIZADO' = 'MES_ACTUAL';
+  fechaDesdeGastos = '';
+  fechaHastaGastos = '';
   
   paginacionProyectos: DashboardPaginacion = { page: 0, size: 100 };
   paginacionActividades: DashboardPaginacion = { page: 0, size: 100 };
@@ -300,6 +303,35 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   private filtrosResumen(): DashboardFiltros {
     const filtros = this.filtrosGlobales();
     return { ...filtros, proyectoId: null, categoria: null };
+  }
+
+  private filtrosGastos(): DashboardFiltros {
+    const filtros = this.filtrosGlobales();
+    if (this.periodoGastos === 'TODO') {
+      return { ...filtros, fechaDesde: null, fechaHasta: null, mes: null };
+    }
+
+    if (this.periodoGastos === 'PERSONALIZADO') {
+      return { ...filtros, fechaDesde: this.fechaDesdeGastos || null,
+        fechaHasta: this.fechaHastaGastos || null, mes: null };
+    }
+
+    const hoy = new Date();
+    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    return {
+      ...filtros,
+      fechaDesde: this.formatearFechaFiltro(primerDia),
+      fechaHasta: this.formatearFechaFiltro(ultimoDia),
+      mes: null
+    };
+  }
+
+  private formatearFechaFiltro(fecha: Date): string {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
   }
   private cargarMetricas(): void {
     if (this.monedaSeleccionada === 'TODAS') {
@@ -395,14 +427,14 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   cargarGastos(): void {
     this.cargandoGastos = true;
     this.cargarTotalesGastos();
-    this.tableroService.gastos(this.filtrosGlobales(), this.paginacionGastos).pipe(takeUntil(this.destroy$)).subscribe({
+    this.tableroService.gastos(this.filtrosGastos(), this.paginacionGastos).pipe(takeUntil(this.destroy$)).subscribe({
       next: pagina => { this.gastosProyectos = pagina.content; this.gastosFiltrados = pagina.content; this.totalGastos = pagina.totalElements; this.totalPaginasGastos = pagina.totalPages; this.cargandoGastos = false; }, error: () => { this.cargandoGastos = false; }
     });
   }
 
   private cargarTotalesGastos(): void {
     if (this.monedaSeleccionada === 'TODAS') {
-      const filtros = this.filtrosGlobales();
+      const filtros = this.filtrosGastos();
       forkJoin({
         pen: this.tableroService.totalesGastos({ ...filtros, moneda: 'PEN' }),
         usd: this.tableroService.totalesGastos({ ...filtros, moneda: 'USD' })
@@ -415,7 +447,7 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
       });
       return;
     }
-    this.tableroService.totalesGastos(this.filtrosGlobales()).pipe(takeUntil(this.destroy$)).subscribe({
+    this.tableroService.totalesGastos(this.filtrosGastos()).pipe(takeUntil(this.destroy$)).subscribe({
       next: totales => {
         this.totalesGastosCategorias = totales || {};
         this.totalesGastosCategoriasUsd = {};
@@ -439,6 +471,39 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   cambiarTamanoDetalle(size: 100 | 500 | 1000): void {
     if (this.metricaSeleccionada === 'gastos') { this.paginacionGastos = { page: 0, size }; this.cargarGastos(); }
     else { this.paginacionActividades = { page: 0, size }; this.cargarActividades(); }
+  }
+
+  cambiarPeriodoGastos(periodo: 'MES_ACTUAL' | 'TODO' | 'PERSONALIZADO'): void {
+    if (this.periodoGastos === periodo) return;
+    this.periodoGastos = periodo;
+    if (periodo === 'PERSONALIZADO' && (!this.fechaDesdeGastos || !this.fechaHastaGastos)) return;
+    this.paginacionGastos = { ...this.paginacionGastos, page: 0 };
+    this.cargarGastos();
+  }
+
+  aplicarPeriodoGastosPersonalizado(): void {
+    if (!this.fechaDesdeGastos || !this.fechaHastaGastos || this.fechaDesdeGastos > this.fechaHastaGastos) return;
+    this.periodoGastos = 'PERSONALIZADO';
+    this.paginacionGastos = { ...this.paginacionGastos, page: 0 };
+    this.cargarGastos();
+  }
+
+  cambiarFechaDesdeGastos(fecha: string): void {
+    this.fechaDesdeGastos = fecha;
+    this.aplicarPeriodoGastosPersonalizado();
+  }
+
+  cambiarFechaHastaGastos(fecha: string): void {
+    this.fechaHastaGastos = fecha;
+    this.aplicarPeriodoGastosPersonalizado();
+  }
+
+  limpiarPeriodoGastosPersonalizado(): void {
+    this.fechaDesdeGastos = '';
+    this.fechaHastaGastos = '';
+    this.periodoGastos = 'MES_ACTUAL';
+    this.paginacionGastos = { ...this.paginacionGastos, page: 0 };
+    this.cargarGastos();
   }
   private mapProyecto(item: any): ProyectoEnCurso {
     const inicio = item.durationStart ? new Date(item.durationStart) : new Date(); const fin = item.durationEnd ? new Date(item.durationEnd) : inicio;
@@ -795,6 +860,25 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
   get totalGastosFiltradosUsd(): number {
     return this.gastosFiltrados.filter(g => g.moneda === 'USD').reduce((sum, g) => sum + g.monto, 0);
   }
+
+  get totalResumenGastos(): number {
+    return this.sumarTotalesGastos(this.totalesGastosCategorias);
+  }
+
+  get totalResumenGastosPen(): number {
+    return this.sumarTotalesGastos(this.totalesGastosCategorias);
+  }
+
+  get totalResumenGastosUsd(): number {
+    return this.sumarTotalesGastos(this.totalesGastosCategoriasUsd);
+  }
+
+  private sumarTotalesGastos(totales: Record<string, number>): number {
+    if (this.categoriaSeleccionada) {
+      return Number(totales[this.categoriaSeleccionada] || 0);
+    }
+    return Object.values(totales).reduce((total, monto) => total + Number(monto || 0), 0);
+  }
   
   /**
    * Obtiene el total de gastos por categoría (considera el proyecto seleccionado)
@@ -807,4 +891,3 @@ export class TableroControlComponent implements OnInit, AfterViewInit, OnDestroy
     return Number(this.totalesGastosCategoriasUsd[categoria] || 0);
   }
 }
-

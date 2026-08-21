@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { TareaEncargado, GastoProyecto, FiltroMonedaDashboard, ProyectoEnCurso } from '../../models/tablero.model';
 import { PaginadorCompactoComponent } from '../paginador-compacto/paginador-compacto.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-encargados-tabla-card',
   standalone: true,
-  imports: [CommonModule, PaginadorCompactoComponent],
+  imports: [CommonModule, PaginadorCompactoComponent, DatePickerComponent],
   templateUrl: './encargados-tabla-card.component.html',
   styleUrls: ['./encargados-tabla-card.component.css']
 })
@@ -31,6 +32,9 @@ export class EncargadosTablaCardComponent {
   @Input() totalMaterialesUsd = 0;
   @Input() totalManoObraUsd = 0;
   @Input() totalOtrosCostosUsd = 0;
+  @Input() periodoGastos: 'MES_ACTUAL' | 'TODO' | 'PERSONALIZADO' = 'MES_ACTUAL';
+  @Input() fechaDesdeGastos = '';
+  @Input() fechaHastaGastos = '';
   @Input() page = 0;
   @Input() size: 100 | 500 | 1000 = 100;
   @Input() totalElements = 0;
@@ -49,10 +53,14 @@ export class EncargadosTablaCardComponent {
   @Output() toggleTabla = new EventEmitter<void>();
   @Output() cambiarModo = new EventEmitter<'tabla' | 'timeline'>();
   @Output() seleccionarCategoria = new EventEmitter<string>();
+  @Output() periodoGastosChange = new EventEmitter<'MES_ACTUAL' | 'TODO' | 'PERSONALIZADO'>();
+  @Output() fechaDesdeGastosChange = new EventEmitter<string>();
+  @Output() fechaHastaGastosChange = new EventEmitter<string>();
+  @Output() limpiarPeriodoPersonalizado = new EventEmitter<void>();
   @Output() paginaAnterior = new EventEmitter<void>();
   @Output() paginaSiguiente = new EventEmitter<void>();
   @Output() pageSizeChange = new EventEmitter<100 | 500 | 1000>();
-  
+
   onToggleTabla(): void {
     this.toggleTabla.emit();
   }

@@ -101,21 +101,21 @@
 
       <!-- Filtros de fecha: Desde y Hasta agrupados (ocultos por defecto) -->
       @if (mostrarFiltrosFecha || fechaDesde || fechaHasta) {
-        <div class="flex items-center gap-1.5 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-0.5 animate-ui-in">
+        <div class="flex h-7 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2 py-0 animate-ui-in dark:border-gray-600 dark:bg-gray-700/50">
           <app-date-picker
-            class="w-[112px]"
+            class="h-full w-[112px]"
             [value]="fechaDesde ?? ''"
             (valueChange)="onFechaDesdeChange($event)"
             [placeholder]="'Desde'"
-            [inputClass]="'w-full px-1.5 py-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none border-none cursor-pointer'">
+            [inputClass]="'block h-full w-full border-none bg-transparent px-1.5 py-0 align-middle text-[11px] leading-normal text-gray-700 placeholder:text-[11px] focus:outline-none dark:text-gray-300 cursor-pointer'">
           </app-date-picker>
           <span class="text-gray-300 dark:text-gray-600">-</span>
           <app-date-picker
-            class="w-[112px]"
+            class="h-full w-[112px]"
             [value]="fechaHasta ?? ''"
             (valueChange)="onFechaHastaChange($event)"
             [placeholder]="'Hasta'"
-            [inputClass]="'w-full px-1.5 py-1 text-xs bg-transparent text-gray-700 dark:text-gray-300 focus:outline-none border-none cursor-pointer'">
+            [inputClass]="'block h-full w-full border-none bg-transparent px-1.5 py-0 align-middle text-[11px] leading-normal text-gray-700 placeholder:text-[11px] focus:outline-none dark:text-gray-300 cursor-pointer'">
           </app-date-picker>
         </div>
       }

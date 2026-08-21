@@ -56,7 +56,7 @@
         </div>
       }
     </div>
-    @if (metricaSeleccionada === 'gastos' && gastosFiltrados.length > 0 && tablaVisible) {
+    @if (metricaSeleccionada === 'gastos' && tablaVisible) {
       <div class="flex items-center gap-2">
         @if (categoriaSeleccionada) {
           <button (click)="onSeleccionarCategoria(categoriaSeleccionada)" class="text-[10px] px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">
@@ -75,6 +75,62 @@
       </div>
     }
   </div>
+
+  @if (metricaSeleccionada === 'gastos' && tablaVisible) {
+    <div class="mb-2 flex min-h-9 flex-wrap items-center justify-between gap-2 px-1 py-1 animate-ui-in">
+      <div class="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-[10px] dark:border-gray-600 dark:bg-gray-700" role="group" aria-label="Periodo de gastos">
+        <button type="button" (click)="periodoGastosChange.emit('MES_ACTUAL')"
+          class="rounded-md px-2 py-1 font-semibold transition-colors"
+          [ngClass]="periodoGastos === 'MES_ACTUAL' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white'">
+          Este mes
+        </button>
+        <button type="button" (click)="periodoGastosChange.emit('TODO')"
+          class="rounded-md px-2 py-1 font-semibold transition-colors"
+          [ngClass]="periodoGastos === 'TODO' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white'">
+          Todo
+        </button>
+        <button type="button" (click)="periodoGastosChange.emit('PERSONALIZADO')"
+          class="rounded-md px-2 py-1 font-semibold transition-colors"
+          [ngClass]="periodoGastos === 'PERSONALIZADO' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white'">
+          Personalizado
+        </button>
+      </div>
+
+      @if (periodoGastos === 'PERSONALIZADO') {
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Rango de gastos</span>
+          <div class="flex h-7 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2 py-0 dark:border-gray-600 dark:bg-gray-700/50">
+            <app-date-picker
+              class="h-full w-[112px]"
+              [value]="fechaDesdeGastos"
+              [maxDate]="fechaHastaGastos"
+              (valueChange)="fechaDesdeGastosChange.emit($event)"
+              [placeholder]="'Desde'"
+              [inputClass]="'block h-full w-full border-none bg-transparent px-1.5 py-0 align-middle text-[11px] leading-normal text-gray-700 placeholder:text-[11px] focus:outline-none dark:text-gray-300 cursor-pointer'">
+            </app-date-picker>
+            <span class="text-gray-300 dark:text-gray-600">–</span>
+            <app-date-picker
+              class="h-full w-[112px]"
+              [value]="fechaHastaGastos"
+              [minDate]="fechaDesdeGastos"
+              (valueChange)="fechaHastaGastosChange.emit($event)"
+              [placeholder]="'Hasta'"
+              [inputClass]="'block h-full w-full border-none bg-transparent px-1.5 py-0 align-middle text-[11px] leading-normal text-gray-700 placeholder:text-[11px] focus:outline-none dark:text-gray-300 cursor-pointer'">
+            </app-date-picker>
+          </div>
+          @if (fechaDesdeGastos && fechaHastaGastos && fechaDesdeGastos <= fechaHastaGastos) {
+            <button type="button" (click)="limpiarPeriodoPersonalizado.emit()"
+              class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-1 focus:ring-red-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:border-red-800 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+              title="Limpiar filtro de fechas" aria-label="Limpiar filtro de fechas">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
   
   @if (metricaSeleccionada === 'gastos') {
     <!-- Cards resumen por categorías - clickeables para filtrar -->
