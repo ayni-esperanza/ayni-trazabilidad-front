@@ -2,12 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { EstadisticasIndicadoresService, ResumenCostosProyecto } from './services/estadisticas-indicadores.service';
+import { EstadisticasIndicadoresService, PaginaEstadisticas, ResumenCostosProyecto } from './services/estadisticas-indicadores.service';
 import { VideoTutorialComponent } from '../../shared/components/video-tutorial/video-tutorial.component';
 import { SelectSearchableComponent, SelectSearchableOption } from '../../shared/components/select-searchable/select-searchable.component';
-import { forkJoin } from 'rxjs';
-import { FlujoNodo } from '../registro-solicitudes/models/solicitud.model';
-import { RegistroSolicitudesService } from '../registro-solicitudes/services/registro-solicitudes.service';
+import { CambioPaginaEvent, PaginacionComponent, PaginacionConfig } from '../../shared/components/paginacion/paginacion.component';
 
 export interface ProyectoIndicador {
   id: number;
@@ -68,7 +66,7 @@ interface ROIData {
 @Component({
   selector: 'app-estadisticas-indicadores',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxChartsModule, VideoTutorialComponent, SelectSearchableComponent],
+  imports: [CommonModule, FormsModule, NgxChartsModule, VideoTutorialComponent, SelectSearchableComponent, PaginacionComponent],
   templateUrl: './estadisticas-indicadores.component.html',
   styleUrls: ['./estadisticas-indicadores.component.css']
 })
@@ -133,7 +131,26 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   responsables: ResponsableIndicador[] = [];
   cargandoIndicadores = false;
 
+  paginacionResponsables: PaginacionConfig = {
+    paginaActual: 0,
+    porPagina: 100,
+    totalElementos: 0,
+    totalPaginas: 0,
+  };
+
   proyectos: ProyectoIndicador[] = [];
+  paginacionProyectos: PaginacionConfig = {
+    paginaActual: 0,
+    porPagina: 100,
+    totalElementos: 0,
+    totalPaginas: 0,
+  };
+  paginacionActividades: PaginacionConfig = {
+    paginaActual: 0,
+    porPagina: 100,
+    totalElementos: 0,
+    totalPaginas: 0,
+  };
 
   // Datos para gráficos de proyecto
   roiData: ROIData[] = [];
@@ -175,7 +192,6 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   
   constructor(
     private estadisticasService: EstadisticasIndicadoresService,
-    private registroSolicitudesService: RegistroSolicitudesService,
   ) {}
 
   ngOnInit(): void {
@@ -183,34 +199,132 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   }
 
   cargarDatos(): void {
+    this.cargarPaginaResponsables();
+  }
+
+  cambiarPaginaResponsables(evento: CambioPaginaEvent): void {
+    this.paginacionResponsables.paginaActual = evento.pagina;
+    this.paginacionResponsables.porPagina = evento.porPagina;
+    this.cargarPaginaResponsables();
+  }
+
+  private cargarPaginaResponsables(): void {
     this.cargandoIndicadores = true;
-    forkJoin({
-      responsables: this.estadisticasService.obtenerIndicadoresRendimiento(),
-      proyectos: this.estadisticasService.obtenerIndicadoresPorProyecto(0),
-      tareas: this.estadisticasService.obtenerTareasEncargados(),
+    this.estadisticasService.obtenerIndicadoresRendimiento({
+      page: this.paginacionResponsables.paginaActual,
+      size: this.paginacionResponsables.porPagina,
     }).subscribe({
-      next: ({ responsables, proyectos, tareas }) => {
-        if ((responsables || []).length > 0) {
-          this.responsables = this.mapResponsablesDesdeBackend(responsables);
-        }
-        if ((proyectos || []).length > 0) {
-          this.proyectos = this.mapProyectosDesdeBackend(proyectos);
-        }
-        if ((tareas || []).length > 0) {
-          this.tareasProyecto = this.mapTareasDesdeBackend(tareas);
-        } else {
-          this.tareasProyecto = [];
-        }
+      next: (pagina) => {
+        this.responsables = this.mapResponsablesDesdeBackend(pagina?.content || []);
+        this.paginacionResponsables = {
+          ...this.paginacionResponsables,
+          paginaActual: pagina?.page || 0,
+          porPagina: pagina?.size || this.paginacionResponsables.porPagina,
+          totalElementos: pagina?.totalElements || 0,
+          totalPaginas: pagina?.totalPages || 0,
+        };
+        this.cargandoIndicadores = false;
+      },
+      error: () => {
+        this.cargandoIndicadores = false;
+      }
+    });
+  }
+
+  cambiarPaginaProyectos(evento: CambioPaginaEvent): void {
+    this.paginacionProyectos.paginaActual = evento.pagina;
+    this.paginacionProyectos.porPagina = evento.porPagina;
+    this.cargarPaginaProyectos();
+  }
+
+  cambiarPaginaActividades(evento: CambioPaginaEvent): void {
+    this.paginacionActividades.paginaActual = evento.pagina;
+    this.paginacionActividades.porPagina = evento.porPagina;
+    this.cargarPaginaActividades();
+  }
+
+  private cargarPaginaProyectos(alCompletar?: () => void): void {
+    this.cargandoIndicadores = true;
+    this.estadisticasService.obtenerIndicadoresPorProyecto(0, this.paramsProyectos()).subscribe({
+      next: (pagina) => {
+        this.aplicarPaginaProyectos(pagina);
         this.actualizarROI();
+        this.aplicarFiltrosTareas();
+        this.cargandoIndicadores = false;
+        alCompletar?.();
+      },
+      error: () => {
+        this.cargandoIndicadores = false;
+        alCompletar?.();
+      },
+    });
+  }
+
+  private cargarPaginaActividades(): void {
+    this.cargandoIndicadores = true;
+    this.estadisticasService.obtenerTareasEncargados(this.paramsActividades()).subscribe({
+      next: (pagina) => {
+        this.aplicarPaginaActividades(pagina);
+        if (this.proyectoSeleccionado) {
+          this.tareasProyectoDetalle = [...this.tareasProyecto];
+          this.tareasProyectoDetalleCargado = true;
+        }
         this.aplicarFiltrosTareas();
         this.cargandoIndicadores = false;
       },
       error: () => {
-        this.actualizarROI();
-        this.aplicarFiltrosTareas();
         this.cargandoIndicadores = false;
-      }
+      },
     });
+  }
+
+  private paramsProyectos(): { page: number; size: number; responsableId?: number } {
+    const params: { page: number; size: number; responsableId?: number } = {
+      page: this.paginacionProyectos.paginaActual,
+      size: this.paginacionProyectos.porPagina,
+    };
+    if (this.responsableSeleccionado) {
+      params.responsableId = this.responsableSeleccionado.id;
+    }
+    return params;
+  }
+
+  private paramsActividades(): { page: number; size: number; proyectoId?: number; responsableId?: number } {
+    const params: { page: number; size: number; proyectoId?: number; responsableId?: number } = {
+      page: this.paginacionActividades.paginaActual,
+      size: this.paginacionActividades.porPagina,
+    };
+    if (this.proyectoSeleccionado) {
+      params.proyectoId = this.proyectoSeleccionado.id;
+    } else if (this.responsableSeleccionado) {
+      params.responsableId = this.responsableSeleccionado.id;
+      if (this.proyectoResponsableSeleccionado) {
+        params.proyectoId = this.proyectoResponsableSeleccionado;
+      }
+    }
+    return params;
+  }
+
+  private aplicarPaginaProyectos(pagina: PaginaEstadisticas<any>): void {
+    this.proyectos = this.mapProyectosDesdeBackend(pagina?.content || []);
+    this.paginacionProyectos = {
+      ...this.paginacionProyectos,
+      paginaActual: pagina?.page || 0,
+      porPagina: pagina?.size || this.paginacionProyectos.porPagina,
+      totalElementos: pagina?.totalElements || 0,
+      totalPaginas: pagina?.totalPages || 0,
+    };
+  }
+
+  private aplicarPaginaActividades(pagina: PaginaEstadisticas<any>): void {
+    this.tareasProyecto = this.mapTareasDesdeBackend(pagina?.content || []);
+    this.paginacionActividades = {
+      ...this.paginacionActividades,
+      paginaActual: pagina?.page || 0,
+      porPagina: pagina?.size || this.paginacionActividades.porPagina,
+      totalElementos: pagina?.totalElements || 0,
+      totalPaginas: pagina?.totalPages || 0,
+    };
   }
 
   private mapResponsablesDesdeBackend(items: any[]): ResponsableIndicador[] {
@@ -236,6 +350,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   private mapProyectosDesdeBackend(items: any[]): ProyectoIndicador[] {
     return (items || []).map((item: any) => {
       const p = item.parametros || {};
+      const fechaRegistro = p.fechaRegistro || p.fechaCreacion;
       return {
         id: Number(p.id || item.id || 0),
         nombre: p.nombre || item.nombre || 'Proyecto',
@@ -255,9 +370,9 @@ export class EstadisticasIndicadoresComponent implements OnInit {
         durationEnd: p.durationEnd || '',
         tasaRetorno: Number(p.tasaRetorno || 0),
         descripcion: p.descripcion || '',
-        fechaRegistro: this.formatDateOnly(p.fechaRegistro),
+        fechaRegistro: this.formatDateOnly(fechaRegistro),
         fechaActualizacion: this.formatDateOnly(p.fechaActualizacion),
-        rangoRegistroActualizacion: this.buildDateRange(p.fechaRegistro, p.fechaActualizacion),
+        rangoRegistroActualizacion: this.buildDateRange(fechaRegistro, p.fechaActualizacion),
         rangoDuracion: this.buildDateRange(p.durationStart, p.durationEnd),
       };
     });
@@ -360,17 +475,33 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     this.proyectoSeleccionado = null;
     this.responsableSeleccionado = null;
     this.aplicarFiltrosTareas();
+    if (categoria === 'proyectos') {
+      this.paginacionProyectos.paginaActual = 0;
+      this.cargarPaginaProyectos();
+    }
   }
 
   seleccionarProyecto(proyecto: ProyectoIndicador): void {
-    this.proyectoSeleccionado = proyecto;
-    this.resumenCostosProyecto = null;
-    this.tareasProyectoDetalle = [];
-    this.tareasProyectoDetalleCargado = false;
-    this.actualizarROI();
-    this.aplicarFiltrosTareas();
-    this.sincronizarResumenCostosProyecto(proyecto.id);
-    this.sincronizarActividadesProyecto(proyecto);
+    this.cargandoIndicadores = true;
+    this.estadisticasService.obtenerDetalleProyecto(proyecto.id).subscribe({
+      next: (indicador) => {
+        const proyectoDetalle = this.mapProyectosDesdeBackend([indicador])[0];
+        this.proyectoSeleccionado = proyectoDetalle;
+        this.proyectos = this.proyectos.map((item) => item.id === proyectoDetalle.id ? proyectoDetalle : item);
+        this.resumenCostosProyecto = null;
+        this.tareasProyectoDetalle = [];
+        this.tareasProyectoDetalleCargado = false;
+        this.paginacionActividades.paginaActual = 0;
+        this.actualizarROI();
+        this.aplicarFiltrosTareas();
+        this.cargandoIndicadores = false;
+        this.sincronizarResumenCostosProyecto(proyectoDetalle.id);
+        this.sincronizarActividadesProyecto(proyectoDetalle);
+      },
+      error: () => {
+        this.cargandoIndicadores = false;
+      },
+    });
   }
 /**
    * Cambia la etapa seleccionada para el cálculo del ROI
@@ -398,19 +529,38 @@ export class EstadisticasIndicadoresComponent implements OnInit {
   }
 
   seleccionarResponsable(responsable: ResponsableIndicador): void {
-    this.responsableSeleccionado = responsable;
-    this.proyectoResponsableSeleccionado = null; // Limpiar filtro de proyecto
-    this.aplicarFiltrosTareas();
-    this.actualizarMetricasResponsable();
+    this.cargandoIndicadores = true;
+    this.estadisticasService.obtenerDetalleResponsable(responsable.id).subscribe({
+      next: (indicador) => {
+        const responsableDetalle = this.mapResponsablesDesdeBackend([indicador])[0];
+        this.responsableSeleccionado = responsableDetalle;
+        this.responsables = this.responsables.map((item) => item.id === responsableDetalle.id ? responsableDetalle : item);
+        this.proyectoResponsableSeleccionado = null;
+        this.paginacionProyectos.paginaActual = 0;
+        this.paginacionActividades.paginaActual = 0;
+        this.actualizarMetricasResponsable();
+        this.cargarPaginaProyectos(() => this.cargarPaginaActividades());
+      },
+      error: () => {
+        this.cargandoIndicadores = false;
+      },
+    });
   }
 
   cerrarDetalle(): void {
+    const cerrandoDetalleResponsable = this.responsableSeleccionado !== null;
     this.proyectoSeleccionado = null;
     this.responsableSeleccionado = null;
     this.proyectoResponsableSeleccionado = null;
     this.resumenCostosProyecto = null;
     this.tareasProyectoDetalle = [];
     this.tareasProyectoDetalleCargado = false;
+    this.tareasProyecto = [];
+    this.paginacionActividades.paginaActual = 0;
+    if (cerrandoDetalleResponsable) {
+      this.proyectos = [];
+      this.paginacionProyectos.paginaActual = 0;
+    }
     this.aplicarFiltrosTareas();
   }
   
@@ -438,7 +588,8 @@ export class EstadisticasIndicadoresComponent implements OnInit {
     } else {
       this.proyectoResponsableSeleccionado = proyectoId;
     }
-    this.aplicarFiltrosTareas();
+    this.paginacionActividades.paginaActual = 0;
+    this.cargarPaginaActividades();
   }
   
   /**
@@ -446,7 +597,8 @@ export class EstadisticasIndicadoresComponent implements OnInit {
    */
   limpiarFiltroProyectoResponsable(): void {
     this.proyectoResponsableSeleccionado = null;
-    this.aplicarFiltrosTareas();
+    this.paginacionActividades.paginaActual = 0;
+    this.cargarPaginaActividades();
   }
   
   /**
@@ -544,7 +696,7 @@ export class EstadisticasIndicadoresComponent implements OnInit {
 
   private actualizarROI(): void {
     // Generar datos de gráficos a partir de los proyectos cargados del backend
-    const proyectosParaROI = this.proyectos.filter(p => {
+    const proyectosParaROI = (this.proyectoSeleccionado ? [this.proyectoSeleccionado] : []).filter(p => {
       if (!this.etapaSeleccionada) return true;
       return p.etapa === this.etapaSeleccionada;
     });
@@ -622,13 +774,14 @@ export class EstadisticasIndicadoresComponent implements OnInit {
       return;
     }
 
-    this.registroSolicitudesService.obtenerActividades(proyecto.id).subscribe({
-      next: (actividades) => {
+    this.estadisticasService.obtenerTareasEncargados(this.paramsActividades()).subscribe({
+      next: (pagina) => {
         if (this.proyectoSeleccionado?.id !== proyecto.id) {
           return;
         }
 
-        this.tareasProyectoDetalle = this.mapActividadesProyecto(actividades, proyecto);
+        this.aplicarPaginaActividades(pagina);
+        this.tareasProyectoDetalle = [...this.tareasProyecto];
         this.tareasProyectoDetalleCargado = true;
         this.aplicarFiltrosTareas();
       },
@@ -643,24 +796,6 @@ export class EstadisticasIndicadoresComponent implements OnInit {
         this.aplicarFiltrosTareas();
       }
     });
-  }
-
-  private mapActividadesProyecto(actividades: FlujoNodo[], proyecto: ProyectoIndicador): TareaProyecto[] {
-    return (actividades || [])
-      .filter((actividad) => actividad?.tipo === 'tarea')
-      .map((actividad) => ({
-        id: Number(actividad.id || 0),
-        responsable: actividad.responsableNombre || proyecto.responsable || 'Sin responsable',
-        proyecto: proyecto.nombre,
-        proyectoId: proyecto.id,
-        tarea: actividad.nombre || 'Actividad',
-        etapa: actividad.tipoActividad || 'En Proceso',
-        inicioFin: this.buildDateRange(
-          actividad.fechaRegistro,
-          actividad.fechaActualizacion || actividad.fechaCambioEstado
-        ),
-        status: this.mapEstadoTarea(actividad.estadoActividad),
-      }));
   }
 
   private aplicarResumenCostosProyecto(proyectoId: number, resumen: ResumenCostosProyecto): void {

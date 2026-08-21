@@ -3,6 +3,21 @@ import { Observable, map } from 'rxjs';
 import { HttpService } from '../../../core/services/http.service';
 import { KPI, Indicador, DatosGrafico } from '../models/estadistica.model';
 
+export interface PaginaEstadisticas<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
+export interface PaginacionEstadisticasParams {
+  page?: number;
+  size?: number;
+  proyectoId?: number;
+  responsableId?: number;
+}
+
 export interface ResumenCostosProyecto {
   totalMateriales: number;
   totalManoObra: number;
@@ -56,9 +71,14 @@ export class EstadisticasIndicadoresService {
     );
   }
 
-  obtenerIndicadoresPorProyecto(proyectoId: number): Observable<Indicador[]> {
-    return this.http.get<any[]>(`${this.apiBase}/proyectos-indicadores`).pipe(
-      map((items) => (items || [])
+  obtenerIndicadoresPorProyecto(
+    proyectoId: number,
+    params: PaginacionEstadisticasParams = {},
+  ): Observable<PaginaEstadisticas<Indicador>> {
+    return this.http.get<PaginaEstadisticas<any>>(`${this.apiBase}/proyectos-indicadores`, params).pipe(
+      map((response) => ({
+        ...response,
+        content: (response?.content || [])
         .filter((item) => !proyectoId || Number(item?.id) === proyectoId)
         .map((item) => ({
           id: Number(item?.id || 0),
@@ -68,27 +88,50 @@ export class EstadisticasIndicadoresService {
           valor: Number(item?.avance || 0),
           fechaCalculo: new Date(),
           parametros: item,
-        })))
+        })),
+      }))
     );
   }
 
-  obtenerIndicadoresRendimiento(): Observable<Indicador[]> {
-    return this.http.get<any[]>(`${this.apiBase}/responsables-indicadores`).pipe(
-      map((items) => (items || []).map((item) => ({
+  obtenerIndicadoresRendimiento(
+    params: PaginacionEstadisticasParams = {},
+  ): Observable<PaginaEstadisticas<Indicador>> {
+    return this.http.get<PaginaEstadisticas<any>>(`${this.apiBase}/responsables-indicadores`, params).pipe(
+      map((response) => ({
+        ...response,
+        content: (response?.content || []).map((item) => this.mapResponsable(item)),
+      }))
+    );
+  }
+
+  obtenerDetalleResponsable(responsableId: number): Observable<Indicador> {
+    return this.http.get<any>(`${this.apiBase}/responsables-indicadores/${responsableId}`).pipe(
+      map((item) => this.mapResponsable(item))
+    );
+  }
+
+  obtenerDetalleProyecto(proyectoId: number): Observable<Indicador> {
+    return this.http.get<any>(`${this.apiBase}/proyectos-indicadores/${proyectoId}`).pipe(
+      map((item) => ({
         id: Number(item?.id || 0),
-        nombre: item?.nombre || 'Responsable',
-        descripcion: item?.rol || '',
-        categoria: 'Responsables',
-        valor: Number(item?.eficienciaGeneral || 0),
+        nombre: item?.nombre || 'Proyecto',
+        descripcion: item?.descripcion || '',
+        categoria: item?.estado || 'General',
+        valor: Number(item?.avance || 0),
         fechaCalculo: new Date(),
         parametros: item,
-      })))
+      }))
     );
   }
 
-  obtenerTareasEncargados(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiBase}/tareas-encargados`).pipe(
-      map((items) => items || [])
+  obtenerTareasEncargados(
+    params: PaginacionEstadisticasParams = {},
+  ): Observable<PaginaEstadisticas<any>> {
+    return this.http.get<PaginaEstadisticas<any>>(`${this.apiBase}/tareas-encargados`, params).pipe(
+      map((response) => ({
+        ...response,
+        content: response?.content || [],
+      }))
     );
   }
 
@@ -134,5 +177,17 @@ export class EstadisticasIndicadoresService {
 
   exportarEstadisticas(formato: 'PDF' | 'Excel'): Observable<Blob> {
     return this.http.downloadFile(`${this.apiBase}/resumen?format=${formato}`);
+  }
+
+  private mapResponsable(item: any): Indicador {
+    return {
+      id: Number(item?.id || 0),
+      nombre: item?.nombre || 'Responsable',
+      descripcion: item?.rol || '',
+      categoria: 'Responsables',
+      valor: Number(item?.eficienciaGeneral || 0),
+      fechaCalculo: new Date(),
+      parametros: item,
+    };
   }
 }

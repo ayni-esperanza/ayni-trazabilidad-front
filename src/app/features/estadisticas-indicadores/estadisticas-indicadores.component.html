@@ -58,6 +58,12 @@
           </tbody>
         </table>
       </div>
+      <app-paginacion
+        [config]="paginacionResponsables"
+        [opcionesPorPagina]="[100, 500, 1000]"
+        [integradoEnTabla]="true"
+        (cambioPagina)="cambiarPaginaResponsables($event)">
+      </app-paginacion>
     </div>
 
     <!-- Tabla de Proyectos -->
@@ -102,6 +108,12 @@
           </tbody>
         </table>
       </div>
+      <app-paginacion
+        [config]="paginacionProyectos"
+        [opcionesPorPagina]="[100, 500, 1000]"
+        [integradoEnTabla]="true"
+        (cambioPagina)="cambiarPaginaProyectos($event)">
+      </app-paginacion>
     </div>
   </div>
 
@@ -298,6 +310,12 @@
           </div>
               }
             </div>
+            <app-paginacion
+              [config]="paginacionActividades"
+              [opcionesPorPagina]="[100, 500, 1000]"
+              [integradoEnTabla]="false"
+              (cambioPagina)="cambiarPaginaActividades($event)">
+            </app-paginacion>
           }
         </div>
       </div>
@@ -483,6 +501,12 @@
                 </tbody>
               </table>
             </div>
+            <app-paginacion
+              [config]="paginacionProyectos"
+              [opcionesPorPagina]="[100, 500, 1000]"
+              [integradoEnTabla]="false"
+              (cambioPagina)="cambiarPaginaProyectos($event)">
+            </app-paginacion>
           }
         </div>
       </div>
@@ -638,6 +662,12 @@
                 </div>
               }
             </div>
+            <app-paginacion
+              [config]="paginacionActividades"
+              [opcionesPorPagina]="[100, 500, 1000]"
+              [integradoEnTabla]="false"
+              (cambioPagina)="cambiarPaginaActividades($event)">
+            </app-paginacion>
           }
         </div>
       </div>
