@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, Responsable, ResponsableHistorialProyecto } from '../../../../models/solicitud.model';
+import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, RepresentanteHistorialProyecto, Responsable, ResponsableHistorialProyecto } from '../../../../models/solicitud.model';
 import { DocumentoResumen } from '../../models/documento-resumen.model';
 import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
@@ -84,6 +84,10 @@ export class TabTableroGeneralComponent {
     return (this.proyecto?.responsablesHistorial || []).filter((registro) =>
       Boolean(registro.responsableAnteriorId || registro.responsableAnteriorNombre || registro.fechaCambio)
     );
+  }
+
+  get representantesHistorialAnterior(): RepresentanteHistorialProyecto[] {
+    return (this.proyecto?.representantesHistorial || []).filter((registro) => Boolean(registro.vigenteHasta));
   }
 
   get totalAdjuntosResumen(): number {

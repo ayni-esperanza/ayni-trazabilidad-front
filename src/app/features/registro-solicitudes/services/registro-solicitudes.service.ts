@@ -191,6 +191,15 @@ type ResponsableHistorialProyectoApi = {
   fecha_cambio?: string;
   fecha_asignacion?: string;
   createdAt?: string;
+  responsableNuevoId?: number;
+  responsableNuevoNombre?: string;
+};
+
+type RepresentanteHistorialProyectoApi = {
+  id?: number;
+  representante?: string;
+  vigenteDesde?: string;
+  vigenteHasta?: string;
 };
 
 type ProyectoApi = {
@@ -220,6 +229,7 @@ type ProyectoApi = {
     nodos: FlujoNodoApi[];
   };
   comentariosAdicionalesActividad?: ComentarioAdicionalApi[];
+  representantesHistorial?: RepresentanteHistorialProyectoApi[];
   responsablesHistorial?: ResponsableHistorialProyectoApi[];
   historialResponsables?: ResponsableHistorialProyectoApi[];
   proyectosResponsablesHistorial?: ResponsableHistorialProyectoApi[];
@@ -838,6 +848,12 @@ export class RegistroSolicitudesService {
       flujo: this.mapFlujo(item.flujo),
       fechaActualizacion: this.toDate(item.fechaActualizacion),
       comentariosAdicionalesActividad: (item.comentariosAdicionalesActividad || []).map((comentario) => this.mapComentarioAdicional(comentario)),
+      representantesHistorial: (item.representantesHistorial || []).map((registro) => ({
+        id: registro.id,
+        representante: registro.representante,
+        vigenteDesde: registro.vigenteDesde,
+        vigenteHasta: registro.vigenteHasta
+      })),
       responsablesHistorial: this.mapResponsablesHistorial(item)
     };
   }
@@ -899,6 +915,8 @@ export class RegistroSolicitudesService {
           id: registro.id,
           responsableAnteriorId: responsableAnteriorId > 0 ? responsableAnteriorId : undefined,
           responsableAnteriorNombre: responsableAnteriorNombre || undefined,
+          responsableNuevoId: registro.responsableNuevoId,
+          responsableNuevoNombre: registro.responsableNuevoNombre,
           fechaCambio: fechaCambio || undefined
         };
       })

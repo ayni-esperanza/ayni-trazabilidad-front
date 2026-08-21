@@ -99,7 +99,16 @@ export interface ResponsableHistorialProyecto {
   id?: number;
   responsableAnteriorId?: number;
   responsableAnteriorNombre?: string;
+  responsableNuevoId?: number;
+  responsableNuevoNombre?: string;
   fechaCambio?: string;
+}
+
+export interface RepresentanteHistorialProyecto {
+  id?: number;
+  representante?: string;
+  vigenteDesde?: string;
+  vigenteHasta?: string;
 }
 
 export interface Proyecto {
@@ -127,6 +136,7 @@ export interface Proyecto {
   flujo?: FlujoProyecto;
   fechaActualizacion?: Date | string;
   comentariosAdicionalesActividad?: ComentarioAdicionalActividad[];
+  representantesHistorial?: RepresentanteHistorialProyecto[];
   responsablesHistorial?: ResponsableHistorialProyecto[];
 }
 
