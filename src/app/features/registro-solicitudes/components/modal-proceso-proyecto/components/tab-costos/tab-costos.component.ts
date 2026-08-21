@@ -12,7 +12,7 @@ import {
   OtroCosto,
   TablaCostoExtra
 } from '../../modal-proceso-proyecto.component';
-import { CostoCatalogoApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
+import { CostoCatalogoApi, CostoFilaErrorApi, RegistroSolicitudesService } from '../../../../services/registro-solicitudes.service';
 import { ConfirmDeleteConfig, ConfirmDeleteModalComponent } from '../../../../../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 
 type ProyectoCostosResumen = {
@@ -58,6 +58,7 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   @Input() actividadesDisponibles: ActividadCostoOption[] = [];
   @Input() modoSoloLectura = false;
   @Input() subTabInicial: 'resumen' | 'materiales' | 'manoObra' | 'otrosCostos' = 'resumen';
+  @Input() erroresGuardado: CostoFilaErrorApi[] = [];
   @Output() costosChange = new EventEmitter<void>();
   @Output() agregarCategoria = new EventEmitter<string>();
   @Output() eliminarCategoria = new EventEmitter<TablaCostoExtra>();
@@ -120,6 +121,29 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
 
   emitirCambios(): void {
     this.costosChange.emit();
+  }
+
+  clientRowIdMaterial(item: MaterialCosto): string {
+    return `material-${item.id}`;
+  }
+
+  clientRowIdManoObra(item: ManoObraCosto): string {
+    return `mano-obra-${item.id}`;
+  }
+
+  clientRowIdAdicional(tabla: TablaCostoExtra, item: OtroCosto): string {
+    return `adicional-${tabla.id}-${item.id}`;
+  }
+
+  filaConError(clientRowId: string): boolean {
+    return this.erroresGuardado.some((error) => error.clientRowId === clientRowId);
+  }
+
+  nombreTipoCosto(tipo: CostoFilaErrorApi['tipoCosto']): string {
+    if (tipo === 'materiales') return 'Materiales';
+    if (tipo === 'manoObra') return 'Mano de obra';
+    if (tipo === 'adicionales') return 'Otros costos';
+    return 'Costos';
   }
 
   alternarDesgloseResumen(categoria: CategoriaResumenCostos): void {
@@ -223,10 +247,10 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   private async generarFormatoExcel(tipo: TipoImportacionCostos): Promise<void> {
     const XLSX = await import('xlsx');
     const configuracion = tipo === 'materiales'
-      ? { hoja: 'Materiales', archivo: 'formato-materiales.xlsx', columnas: ['Fecha', 'Nº de comprobante', 'Producto', 'Cantidad', 'Costo unitario', 'Encargado'] }
+      ? { hoja: 'Materiales', archivo: 'formato-materiales.xlsx', columnas: ['Fecha', 'Nº de comprobante', 'Producto', 'Cantidad', 'Costo unitario', 'Costo unitario en dólares', 'Encargado'] }
       : tipo === 'manoObra'
-        ? { hoja: 'Mano de Obra', archivo: 'formato-mano-de-obra.xlsx', columnas: ['Trabajador', 'Días trabajando', 'Costo por día'] }
-        : { hoja: 'Otros Costos', archivo: 'formato-otros-costos.xlsx', columnas: ['Fecha', 'Categoría', 'Descripción', 'Cantidad', 'Costo unitario', 'Encargado'] };
+        ? { hoja: 'Mano de Obra', archivo: 'formato-mano-de-obra.xlsx', columnas: ['Trabajador', 'Días trabajando', 'Costo por día', 'Costo por día en dólares'] }
+        : { hoja: 'Otros Costos', archivo: 'formato-otros-costos.xlsx', columnas: ['Fecha', 'Categoría', 'Descripción', 'Cantidad', 'Costo unitario', 'Costo unitario en dólares', 'Encargado'] };
     const hoja = XLSX.utils.aoa_to_sheet([configuracion.columnas]);
     hoja['!cols'] = configuracion.columnas.map((columna) => ({ wch: Math.max(columna.length + 3, 16) }));
     const libro = XLSX.utils.book_new();
@@ -700,6 +724,9 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       const faltantes = this.encabezadosRequeridos(tipo).filter((encabezado) => !encabezados.has(encabezado));
       if (faltantes.length) return this.mostrarResultadoImportacion(`El Excel no tiene las columnas requeridas: ${faltantes.join(', ')}.`, true);
 
+      const erroresDatos = this.validarDatosExcel(tipo, filas);
+      if (erroresDatos) return this.mostrarResultadoImportacion(erroresDatos, true);
+
       const importados = tipo === 'materiales' ? this.importarMateriales(filas) : tipo === 'manoObra' ? this.importarManoObra(filas) : this.importarOtrosCostos(filas);
       if (!importados) return this.mostrarResultadoImportacion('No se encontraron filas con datos para importar.', true);
       this.emitirCambios();
@@ -714,7 +741,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
       const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
       const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
-      return { id: this.siguienteId(this.materiales, indice), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), nroComprobante: this.texto(this.celda(fila, ['n de comprobante', 'nro comprobante', 'numero comprobante', 'comprobante'])), tipo: '', producto: this.texto(this.celda(fila, ['producto'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), moneda: 'PEN' as const, encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null } satisfies MaterialCosto;
+      const costoUnitarioUsd = this.numeroExcel(this.celda(fila, this.aliasesCostoUnitarioUsd));
+      return { id: this.siguienteId(this.materiales, indice), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), nroComprobante: this.texto(this.celda(fila, ['n de comprobante', 'nro comprobante', 'numero comprobante', 'comprobante'])), tipo: '', producto: this.texto(this.celda(fila, ['producto'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), costoUnitarioUsd, costoTotalUsd: (cantidad || 0) * (costoUnitarioUsd || 0), moneda: this.monedaImportada(costoUnitario, costoUnitarioUsd), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null } satisfies MaterialCosto;
     });
     this.materiales.push(...nuevos);
     return nuevos.length;
@@ -724,7 +752,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     const nuevos = filas.filter((fila) => !this.filaVacia(fila)).map((fila, indice) => {
       const diasTrabajando = this.numeroExcel(this.celda(fila, ['dias trabajando', 'dias trabajados', 'dias']));
       const costoPorDia = this.numeroExcel(this.celda(fila, ['costo por dia', 'costo dia']));
-      return { id: this.siguienteId(this.manoObra, indice), trabajador: this.texto(this.celda(fila, ['trabajador'])), oficio: '', diasTrabajando, costoPorDia, costoTotal: (diasTrabajando || 0) * (costoPorDia || 0), moneda: 'PEN' as const, dependenciaActividadId: null } satisfies ManoObraCosto;
+      const costoPorDiaUsd = this.numeroExcel(this.celda(fila, this.aliasesCostoPorDiaUsd));
+      return { id: this.siguienteId(this.manoObra, indice), trabajador: this.texto(this.celda(fila, ['trabajador'])), oficio: '', diasTrabajando, costoPorDia, costoTotal: (diasTrabajando || 0) * (costoPorDia || 0), costoPorDiaUsd, costoTotalUsd: (diasTrabajando || 0) * (costoPorDiaUsd || 0), moneda: this.monedaImportada(costoPorDia, costoPorDiaUsd), dependenciaActividadId: null } satisfies ManoObraCosto;
     });
     this.manoObra.push(...nuevos);
     return nuevos.length;
@@ -741,7 +770,8 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
       }
       const cantidad = this.numeroExcel(this.celda(fila, ['cantidad']));
       const costoUnitario = this.numeroExcel(this.celda(fila, ['costo unitario', 'costo unit', 'precio unitario']));
-      tabla.items.push({ id: this.siguienteId(tabla.items), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), descripcion: this.texto(this.celda(fila, ['descripcion'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), moneda: 'PEN', encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null });
+      const costoUnitarioUsd = this.numeroExcel(this.celda(fila, this.aliasesCostoUnitarioUsd));
+      tabla.items.push({ id: this.siguienteId(tabla.items), fecha: this.fechaExcel(this.celda(fila, ['fecha'])) || this.formatDate(new Date()), descripcion: this.texto(this.celda(fila, ['descripcion'])), cantidad, costoUnitario, costoTotal: (cantidad || 0) * (costoUnitario || 0), costoUnitarioUsd, costoTotalUsd: (cantidad || 0) * (costoUnitarioUsd || 0), moneda: this.monedaImportada(costoUnitario, costoUnitarioUsd), encargado: this.texto(this.celda(fila, ['encargado'])), dependenciaActividadId: null });
       importados++;
     }
     return importados;
@@ -751,6 +781,58 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
     if (tipo === 'materiales') return ['fecha', 'n de comprobante', 'producto', 'cantidad', 'costo unitario', 'encargado'];
     if (tipo === 'manoObra') return ['trabajador', 'dias trabajando', 'costo por dia'];
     return ['fecha', 'categoria', 'descripcion', 'cantidad', 'costo unitario', 'encargado'];
+  }
+
+  private readonly aliasesCostoUnitarioUsd = ['costo unitario en dolares', 'costo unitario dolares', 'costo unitario usd', 'precio unitario en dolares', 'precio unitario dolares', 'precio unitario usd'];
+  private readonly aliasesCostoPorDiaUsd = ['costo por dia en dolares', 'costo por dia dolares', 'costo por dia usd', 'costo dia en dolares', 'costo dia dolares', 'costo dia usd'];
+
+  private validarDatosExcel(tipo: TipoImportacionCostos, filas: FilaExcel[]): string | null {
+    const esManoObra = tipo === 'manoObra';
+    const aliasesPen = esManoObra ? ['costo por dia', 'costo dia'] : ['costo unitario', 'costo unit', 'precio unitario'];
+    const aliasesUsd = esManoObra ? this.aliasesCostoPorDiaUsd : this.aliasesCostoUnitarioUsd;
+    const columnaPen = esManoObra ? 'Costo por día' : 'Costo unitario';
+    const columnaUsd = esManoObra ? 'Costo por día en dólares' : 'Costo unitario en dólares';
+    const aliasesCantidad = esManoObra ? ['dias trabajando', 'dias trabajados', 'dias'] : ['cantidad'];
+    const columnaCantidad = esManoObra ? 'Días trabajando' : 'Cantidad';
+    const errores: string[] = [];
+
+    filas.forEach((fila, indice) => {
+      if (this.filaVacia(fila)) return;
+      const numeroFila = indice + 2;
+      const cantidad = this.celda(fila, aliasesCantidad);
+      const costoPen = this.celda(fila, aliasesPen);
+      const costoUsd = this.celda(fila, aliasesUsd);
+
+      if (!esManoObra) {
+        const fecha = this.celda(fila, ['fecha']);
+        if (this.texto(fecha) && !this.fechaExcel(fecha)) {
+          errores.push(`Fila ${numeroFila}, columna "Fecha": "${this.texto(fecha)}" no es una fecha válida; usa DD/MM/AAAA o AAAA-MM-DD`);
+        }
+      }
+
+      this.agregarErrorNoNumerico(errores, numeroFila, columnaCantidad, cantidad);
+      this.agregarErrorNoNumerico(errores, numeroFila, columnaPen, costoPen);
+      this.agregarErrorNoNumerico(errores, numeroFila, columnaUsd, costoUsd);
+
+      if (this.numeroExcel(costoPen) !== null && this.numeroExcel(costoUsd) !== null) {
+        errores.push(`Fila ${numeroFila}: "${columnaPen}" y "${columnaUsd}" tienen valores numéricos; ingresa el costo en una sola moneda`);
+      }
+    });
+
+    return errores.length
+      ? `No se importó el archivo. Corrige los siguientes datos: ${errores.join(' • ')}.`
+      : null;
+  }
+
+  private agregarErrorNoNumerico(errores: string[], fila: number, columna: string, valor: unknown): void {
+    const texto = this.texto(valor);
+    if (texto && this.numeroExcel(valor) === null) {
+      errores.push(`Fila ${fila}, columna "${columna}": "${texto}" debe ser un valor numérico`);
+    }
+  }
+
+  private monedaImportada(costoPen: number | null, costoUsd: number | null): 'PEN' | 'USD' {
+    return Number(costoPen || 0) <= 0 && Number(costoUsd || 0) > 0 ? 'USD' : 'PEN';
   }
 
   private celda(fila: FilaExcel, aliases: string[]): unknown {
@@ -773,13 +855,18 @@ export class TabCostosComponent implements OnChanges, OnDestroy {
   }
   private fechaExcel(valor: unknown): string {
     if (valor instanceof Date && !Number.isNaN(valor.getTime())) return this.formatDate(valor);
-    if (typeof valor === 'number') return this.formatDate(new Date(Date.UTC(1899, 11, 30) + valor * 86400000));
+    if (typeof valor === 'number' && Number.isFinite(valor)) return this.formatDate(new Date(Date.UTC(1899, 11, 30) + valor * 86400000));
     const texto = this.texto(valor);
-    const iso = texto.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-    const latina = texto.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-    if (iso) return `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}`;
-    if (latina) return `${latina[3]}-${latina[2].padStart(2, '0')}-${latina[1].padStart(2, '0')}`;
+    const iso = texto.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    const latina = texto.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (iso) return this.fechaCalendarioValida(Number(iso[1]), Number(iso[2]), Number(iso[3]));
+    if (latina) return this.fechaCalendarioValida(Number(latina[3]), Number(latina[2]), Number(latina[1]));
     return '';
+  }
+  private fechaCalendarioValida(anio: number, mes: number, dia: number): string {
+    const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+    if (fecha.getUTCFullYear() !== anio || fecha.getUTCMonth() !== mes - 1 || fecha.getUTCDate() !== dia) return '';
+    return `${anio}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
   }
   private filaVacia(fila: FilaExcel): boolean { return Object.values(fila).every((valor) => !this.texto(valor)); }
   private siguienteId(items: Array<{ id: number }>, desplazamiento = 0): number { return items.reduce((mayor, item) => Math.max(mayor, Number(item.id) || 0), 0) + 1 + desplazamiento; }

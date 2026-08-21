@@ -228,7 +228,7 @@ type ProyectoApi = {
   proyectos_responsables_historial?: ResponsableHistorialProyectoApi[];
 };
 
-type CostoMaterialApi = {
+export type CostoMaterialApi = {
   id: number;
   fecha?: string;
   nroComprobante?: string;
@@ -243,7 +243,7 @@ type CostoMaterialApi = {
   dependenciaActividadId?: number | null;
 };
 
-type CostoManoObraApi = {
+export type CostoManoObraApi = {
   id: number;
   trabajador: string;
   oficio?: string;
@@ -256,7 +256,7 @@ type CostoManoObraApi = {
   dependenciaActividadId?: number | null;
 };
 
-type CostoAdicionalApi = {
+export type CostoAdicionalApi = {
   id: number;
   fecha?: string;
   categoria: string;
@@ -278,6 +278,34 @@ export type CostoCategoriaAdicionalApi = {
 export type CostoCatalogoApi = {
   id: number;
   nombre: string;
+};
+
+export type CostoFilaErrorApi = {
+  tipoCosto: 'materiales' | 'manoObra' | 'adicionales' | 'general';
+  clientRowId?: string | null;
+  indiceFila?: number | null;
+  campo?: string | null;
+  motivo: string;
+};
+
+type MetadataFilaCostoApi = {
+  clientRowId: string;
+  indiceFila: number;
+};
+
+export type SincronizarCostosRequestApi = {
+  materiales: Array<Omit<CostoMaterialApi, 'costoTotal' | 'costoTotalUsd'> & MetadataFilaCostoApi>;
+  manoObra: Array<Omit<CostoManoObraApi, 'costoTotal' | 'costoTotalUsd' | 'cargo'> & MetadataFilaCostoApi>;
+  adicionales: Array<Omit<CostoAdicionalApi, 'costoTotal' | 'costoTotalUsd'> & MetadataFilaCostoApi>;
+  idsMaterialesConservados: number[];
+  idsManoObraConservados: number[];
+  idsAdicionalesConservados: number[];
+};
+
+export type SincronizarCostosResponseApi = {
+  materiales: CostoMaterialApi[];
+  manoObra: CostoManoObraApi[];
+  adicionales: CostoAdicionalApi[];
 };
 
 @Injectable({
@@ -547,6 +575,16 @@ export class RegistroSolicitudesService {
 
   obtenerResumenCostos(proyectoId: number): Observable<ResumenCostosApi> {
     return this.http.get<ResumenCostosApi>(`/v1/proyectos/${proyectoId}/costos/resumen`);
+  }
+
+  sincronizarCostos(
+    proyectoId: number,
+    payload: SincronizarCostosRequestApi
+  ): Observable<SincronizarCostosResponseApi> {
+    return this.http.put<SincronizarCostosResponseApi>(
+      `/v1/proyectos/${proyectoId}/costos/sincronizar`,
+      payload
+    );
   }
 
   obtenerCostosMateriales(proyectoId: number): Observable<CostoMaterialApi[]> {

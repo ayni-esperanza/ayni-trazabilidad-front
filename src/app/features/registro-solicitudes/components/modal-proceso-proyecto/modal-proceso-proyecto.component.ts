@@ -14,7 +14,7 @@ import { TabInformacionComponent } from './components/tab-informacion/tab-inform
 import { TabCostosComponent } from './components/tab-costos/tab-costos.component';
 import { AdjuntosPreviewService } from '../../../../shared/services/adjuntos-preview.service';
 import { DocumentoResumen } from './models/documento-resumen.model';
-import { CostoCategoriaAdicionalApi, RegistroSolicitudesService, ResumenCostosApi } from '../../services/registro-solicitudes.service';
+import { CostoCategoriaAdicionalApi, CostoFilaErrorApi, RegistroSolicitudesService, ResumenCostosApi } from '../../services/registro-solicitudes.service';
 import { HttpService } from '../../../../core/services/http.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
@@ -189,6 +189,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   private snapshotInfoBase = '';
   private snapshotCostosBase = '';
   private costosModificadosPorUsuario = false;
+  erroresGuardadoCostos: CostoFilaErrorApi[] = [];
 
   // Formulario de información del proyecto (tab Información)
   proyectoInfoForm = {
@@ -2107,6 +2108,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
   }
 
   private ejecutarSincronizacionCostos(accion: AccionCostosPendiente): void {
+    this.erroresGuardadoCostos = [];
     this.sincronizarCostosProyecto().subscribe({
       next: () => {
         if (accion === 'guardar') {
@@ -2120,9 +2122,14 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       },
       error: (error) => {
         console.error('Error sincronizando costos:', error);
-        if (accion === 'cerrar') {
-          this.cerrar.emit();
-        }
+        const erroresFila = error?.error?.rowValidationErrors;
+        this.erroresGuardadoCostos = Array.isArray(erroresFila) && erroresFila.length
+          ? erroresFila
+          : [{ tipoCosto: 'general', motivo: error?.error?.message || 'No se pudieron guardar los costos.' }];
+        const primerTipo = this.erroresGuardadoCostos[0]?.tipoCosto;
+        if (primerTipo === 'materiales') this.subTabCostosInicial = 'materiales';
+        if (primerTipo === 'manoObra') this.subTabCostosInicial = 'manoObra';
+        if (primerTipo === 'adicionales') this.subTabCostosInicial = 'otrosCostos';
       }
     });
   }
@@ -2182,117 +2189,90 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     const localesMateriales = this.materiales.map((item) => ({ ...item }));
     const localesManoObra = this.manoObra.map((item) => ({ ...item }));
     const localesAdicionales = this.tablasCostosExtras.flatMap((tabla) =>
-      tabla.items.map((item) => ({ ...item, categoria: tabla.nombre }))
+      tabla.items.map((item, indice) => ({
+        ...item,
+        categoria: tabla.nombre,
+        clientRowId: `adicional-${tabla.id}-${item.id}`,
+        indiceFila: indice + 1
+      }))
     );
 
     return this.asegurarCategoriasCostosPersistidas(proyectoId).pipe(
-      switchMap(() => forkJoin({
-        existentesMateriales: this.registroSolicitudesService.obtenerCostosMateriales(proyectoId),
-        existentesManoObra: this.registroSolicitudesService.obtenerCostosManoObra(proyectoId),
-        existentesAdicionales: this.registroSolicitudesService.obtenerCostosAdicionales(proyectoId)
+      switchMap(() => this.registroSolicitudesService.sincronizarCostos(proyectoId, {
+        materiales: localesMateriales.map((item, indice) => ({
+          id: item.id,
+          clientRowId: `material-${item.id}`,
+          indiceFila: indice + 1,
+          fecha: item.fecha,
+          nroComprobante: item.nroComprobante?.trim() || '',
+          tipo: item.tipo?.trim() || '',
+          producto: item.producto?.trim() || '',
+          cantidad: Number(item.cantidad || 0),
+          costoUnitario: Number(item.costoUnitario || 0),
+          costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+          encargado: item.encargado?.trim() || '',
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        })),
+        manoObra: localesManoObra.map((item, indice) => ({
+          id: item.id,
+          clientRowId: `mano-obra-${item.id}`,
+          indiceFila: indice + 1,
+          trabajador: item.trabajador?.trim() || '',
+          oficio: item.oficio?.trim() || '',
+          diasTrabajando: Number(item.diasTrabajando || 0),
+          costoPorDia: Number(item.costoPorDia || 0),
+          costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        })),
+        adicionales: localesAdicionales.map((item) => ({
+          id: item.id,
+          clientRowId: item.clientRowId,
+          indiceFila: item.indiceFila,
+          fecha: item.fecha,
+          categoria: item.categoria?.trim() || '',
+          descripcion: item.descripcion?.trim() || '',
+          cantidad: Number(item.cantidad || 0),
+          costoUnitario: Number(item.costoUnitario || 0),
+          costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+          encargado: item.encargado?.trim() || '',
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        })),
+        idsMaterialesConservados: localesMateriales.map((item) => item.id),
+        idsManoObraConservados: localesManoObra.map((item) => item.id),
+        idsAdicionalesConservados: localesAdicionales.map((item) => item.id)
       })),
-      switchMap(({ existentesMateriales, existentesManoObra, existentesAdicionales }) => {
-        const operaciones: Observable<unknown>[] = [];
-
-        const materialesValidos = localesMateriales.filter((item) => this.esMaterialValido(item));
-        const manoObraValida = localesManoObra.filter((item) => this.esManoObraValida(item));
-        const adicionalesValidos = localesAdicionales.filter((item) => this.esAdicionalValido(item));
-
-        const materialesIdsLocales = new Set(localesMateriales.map((item) => item.id));
-        const materialesIdsExistentes = new Set((existentesMateriales || []).map((item) => item.id));
-
-        for (const item of materialesValidos) {
-          const payload = {
-            id: item.id,
-            fecha: item.fecha,
-            nroComprobante: item.nroComprobante?.trim() || '',
-            tipo: item.tipo?.trim() || '',
-            producto: item.producto?.trim(),
-            cantidad: Number(item.cantidad || 0),
-            costoUnitario: Number(item.costoUnitario || 0),
-            costoTotal: Number(item.costoTotal || 0),
-            costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
-            costoTotalUsd: Number(item.costoTotalUsd || 0),
-            encargado: item.encargado?.trim() || '',
-            dependenciaActividadId: item.dependenciaActividadId
-          };
-
-          if (materialesIdsExistentes.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.actualizarCostoMaterial(proyectoId, payload));
-          } else {
-            operaciones.push(this.registroSolicitudesService.crearCostoMaterial(proyectoId, payload));
-          }
-        }
-
-        for (const item of existentesMateriales || []) {
-          if (!materialesIdsLocales.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.eliminarCostoMaterial(proyectoId, item.id));
-          }
-        }
-
-        const manoObraIdsLocales = new Set(localesManoObra.map((item) => item.id));
-        const manoObraIdsExistentes = new Set((existentesManoObra || []).map((item) => item.id));
-
-        for (const item of manoObraValida) {
-          const payload = {
-            id: item.id,
-            trabajador: item.trabajador?.trim(),
-            oficio: item.oficio?.trim() || '',
-            diasTrabajando: Number(item.diasTrabajando || 0),
-            costoPorDia: Number(item.costoPorDia || 0),
-            costoTotal: Number(item.costoTotal || 0),
-            costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
-            costoTotalUsd: Number(item.costoTotalUsd || 0),
-            dependenciaActividadId: item.dependenciaActividadId
-          };
-
-          if (manoObraIdsExistentes.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.actualizarCostoManoObra(proyectoId, payload));
-          } else {
-            operaciones.push(this.registroSolicitudesService.crearCostoManoObra(proyectoId, payload));
-          }
-        }
-
-        for (const item of existentesManoObra || []) {
-          if (!manoObraIdsLocales.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.eliminarCostoManoObra(proyectoId, item.id));
-          }
-        }
-
-        const adicionalesIdsLocales = new Set(localesAdicionales.map((item) => item.id));
-        const adicionalesIdsExistentes = new Set((existentesAdicionales || []).map((item) => item.id));
-
-        for (const item of adicionalesValidos) {
-          const payload = {
-            id: item.id,
-            fecha: item.fecha,
-            categoria: item.categoria?.trim(),
-            descripcion: item.descripcion?.trim() || '',
-            cantidad: Number(item.cantidad || 0),
-            costoUnitario: Number(item.costoUnitario || 0),
-            costoTotal: Number(item.costoTotal || 0),
-            costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
-            costoTotalUsd: Number(item.costoTotalUsd || 0),
-            encargado: item.encargado?.trim() || '',
-            dependenciaActividadId: item.dependenciaActividadId
-          };
-
-          if (adicionalesIdsExistentes.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.actualizarCostoAdicional(proyectoId, payload));
-          } else {
-            operaciones.push(this.registroSolicitudesService.crearCostoAdicional(proyectoId, payload));
-          }
-        }
-
-        for (const item of existentesAdicionales || []) {
-          if (!adicionalesIdsLocales.has(item.id)) {
-            operaciones.push(this.registroSolicitudesService.eliminarCostoAdicional(proyectoId, item.id));
-          }
-        }
-
-        return operaciones.length ? forkJoin(operaciones) : of([]);
-      }),
-      map(() => {
+      map((resultado) => {
+        this.materiales = (resultado.materiales || []).map((item) => ({
+          id: item.id,
+          fecha: item.fecha || this.formatDate(new Date()),
+          nroComprobante: item.nroComprobante || '',
+          tipo: item.tipo || '',
+          producto: item.producto || '',
+          cantidad: Number(item.cantidad || 0),
+          costoUnitario: Number(item.costoUnitario || 0),
+          costoTotal: Number(item.costoTotal || 0),
+          costoUnitarioUsd: Number(item.costoUnitarioUsd || 0),
+          costoTotalUsd: Number(item.costoTotalUsd || 0),
+          moneda: Number(item.costoUnitario || 0) <= 0 && Number(item.costoUnitarioUsd || 0) > 0 ? 'USD' : 'PEN',
+          encargado: item.encargado || '',
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        }));
+        this.manoObra = (resultado.manoObra || []).map((item) => ({
+          id: item.id,
+          trabajador: item.trabajador || '',
+          oficio: item.oficio || item.cargo || '',
+          diasTrabajando: Number(item.diasTrabajando || 0),
+          costoPorDia: Number(item.costoPorDia || 0),
+          costoTotal: Number(item.costoTotal || 0),
+          costoPorDiaUsd: Number(item.costoPorDiaUsd || 0),
+          costoTotalUsd: Number(item.costoTotalUsd || 0),
+          moneda: Number(item.costoPorDia || 0) <= 0 && Number(item.costoPorDiaUsd || 0) > 0 ? 'USD' : 'PEN',
+          dependenciaActividadId: item.dependenciaActividadId ?? null
+        }));
+        const categorias = this.tablasCostosExtras
+          .filter((tabla) => tabla.categoriaId)
+          .map((tabla) => ({ id: Number(tabla.categoriaId), nombre: tabla.nombre }));
+        this.tablasCostosExtras = this.agruparAdicionalesPorCategoria(resultado.adicionales || [], categorias);
         this.snapshotCostosBase = this.crearSnapshotCostosActual();
         this.costosModificadosPorUsuario = false;
         return null;
@@ -2640,24 +2620,6 @@ export class ModalProcesoProyectoComponent implements OnChanges {
 
     this.proyecto.fechaActualizacion = new Date();
     this.proyectoActualizado.emit({ ...this.proyecto });
-  }
-
-  private esMaterialValido(item: MaterialCosto): boolean {
-    return !!item?.producto?.trim()
-      && Number(item.cantidad || 0) > 0
-      && (Number(item.costoUnitario || 0) > 0 || Number(item.costoUnitarioUsd || 0) > 0);
-  }
-
-  private esManoObraValida(item: ManoObraCosto): boolean {
-    return !!item?.trabajador?.trim()
-      && Number(item.diasTrabajando || 0) > 0
-      && (Number(item.costoPorDia || 0) > 0 || Number(item.costoPorDiaUsd || 0) > 0);
-  }
-
-  private esAdicionalValido(item: OtroCosto & { categoria?: string }): boolean {
-    return !!item?.categoria?.trim()
-      && Number(item.cantidad || 0) > 0
-      && (Number(item.costoUnitario || 0) > 0 || Number(item.costoUnitarioUsd || 0) > 0);
   }
 
 }
