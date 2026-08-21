@@ -594,7 +594,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         ...o,
         total: Number(o.total || 0),
         totalUsd: Number(o.totalUsd || 0),
-        moneda: o.moneda === 'USD' || (Number(o.total || 0) <= 0 && Number(o.totalUsd || 0) > 0) ? 'USD' : 'PEN',
+        moneda: Number(o.total || 0) <= 0 && Number(o.totalUsd || 0) > 0 ? 'USD' : 'PEN',
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         tipoActividad: this.normalizarTipoActividadOrdenCompra(o.tipoActividad),
         numeroLicitacion: o.numeroLicitacion || '',
@@ -1023,9 +1023,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       tipo: orden.tipo,
       numeroLicitacion: orden.numeroLicitacion,
       numeroSolicitud: orden.numeroSolicitud,
-      total: Number(orden.total || 0),
-      totalUsd: Number(orden.totalUsd || 0),
-      moneda: (orden.moneda === 'USD' ? 'USD' : 'PEN') as MonedaRegistro,
+      total: orden.moneda === 'USD' ? 0 : Number(orden.total || 0),
+      totalUsd: orden.moneda === 'USD' ? Number(orden.totalUsd || 0) : 0,
       adjuntos: (orden.adjuntos || []).map((adjunto) => ({
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
@@ -1036,7 +1035,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
     }));
 
     return this.registroSolicitudesService.reemplazarOrdenesCompra(this.proyecto.id, payload).pipe(
-      map((items) => (items || []).map((orden, index) => ({
+      map((items) => (items || []).map((orden) => ({
         id: orden.id,
         numero: orden.numero || '',
         fecha: orden.fecha || '',
@@ -1046,7 +1045,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroSolicitud: orden.numeroSolicitud || '',
         total: Number(orden.total || 0),
         totalUsd: Number(orden.totalUsd || 0),
-        moneda: orden.moneda === 'USD' ? 'USD' : (Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : (ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN')),
+        moneda: Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : 'PEN',
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))

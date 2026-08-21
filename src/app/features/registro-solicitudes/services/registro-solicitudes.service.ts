@@ -62,7 +62,6 @@ type OrdenCompraApi = {
   numeroSolicitud?: string;
   total?: number;
   totalUsd?: number;
-  moneda?: 'PEN' | 'USD';
   fechaCreacion?: string;
   fechaActualizacion?: string;
   adjuntos?: FlujoAdjuntoApi[];
@@ -829,7 +828,7 @@ export class RegistroSolicitudesService {
         numeroSolicitud: orden.numeroSolicitud,
         total: Number(orden.total || 0),
         totalUsd: Number(orden.totalUsd || 0),
-        moneda: orden.moneda === 'USD' ? 'USD' : 'PEN',
+        moneda: Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : 'PEN',
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => this.mapAdjunto(adjunto))
