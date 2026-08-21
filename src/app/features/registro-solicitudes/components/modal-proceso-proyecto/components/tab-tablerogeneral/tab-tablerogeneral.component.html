@@ -101,7 +101,7 @@
               <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.numeroLicitacion || '-' }}</td>
               <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.numeroSolicitud || '-' }}</td>
               <td class="py-1.5 text-gray-700 dark:text-gray-300">{{ orden.fecha || '-' }}</td>
-              <td class="py-1.5 text-right text-blue-600 dark:text-blue-400 font-semibold">{{ orden.moneda === 'USD' ? '$' : 'S/' }} {{ (orden.total ?? 0) | number:'1.2-2' }}</td>
+              <td class="py-1.5 text-right text-blue-600 dark:text-blue-400 font-semibold">{{ orden.moneda === 'USD' ? '$' : 'S/' }} {{ totalOrdenCompraVisible(orden) | number:'1.2-2' }}</td>
               <td class="py-1.5 text-center">
                 <button
                   *ngIf="(orden.adjuntos || []).length > 0"

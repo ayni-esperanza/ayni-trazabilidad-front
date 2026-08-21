@@ -1462,7 +1462,9 @@ export class TabProcesoComponent implements OnChanges, OnDestroy {
         const tipo = (orden.tipo || 'OTROS').trim();
         const numeroLicitacion = (orden.numeroLicitacion || '').trim();
         const numeroSolicitud = (orden.numeroSolicitud || '').trim();
-        const total = Number(orden.total || 0);
+        const total = orden.moneda === 'USD'
+          ? Number(orden.totalUsd || 0)
+          : Number(orden.total || 0);
         const simboloMoneda = orden.moneda === 'USD' ? '$' : 'S/';
 
         if (!numero && !fecha && total <= 0) return null;

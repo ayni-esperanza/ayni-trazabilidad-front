@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, Proyecto, RepresentanteHistorialProyecto, Responsable, ResponsableHistorialProyecto } from '../../../../models/solicitud.model';
+import { ComentarioAdicionalActividad, FlujoAdjunto, FlujoNodo, OrdenCompra, Proyecto, RepresentanteHistorialProyecto, Responsable, ResponsableHistorialProyecto } from '../../../../models/solicitud.model';
 import { DocumentoResumen } from '../../models/documento-resumen.model';
 import { LinkifyPipe } from '../../../../../../shared/pipes/linkify.pipe';
 
@@ -51,6 +51,10 @@ export class TabTableroGeneralComponent {
 
   seleccionarFiltroMonedaCostos(filtro: FiltroMoneda): void {
     this.filtroMonedaCostos = filtro;
+  }
+
+  totalOrdenCompraVisible(orden: OrdenCompra): number {
+    return orden.moneda === 'USD' ? Number(orden.totalUsd || 0) : Number(orden.total || 0);
   }
 
   mostrarMonedaCostos(moneda: 'PEN' | 'USD'): boolean {

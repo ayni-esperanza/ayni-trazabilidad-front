@@ -594,7 +594,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         ...o,
         total: Number(o.total || 0),
         totalUsd: Number(o.totalUsd || 0),
-        moneda: Number(o.total || 0) <= 0 && Number(o.totalUsd || 0) > 0 ? 'USD' : 'PEN',
+        moneda: o.moneda === 'USD' || (Number(o.total || 0) <= 0 && Number(o.totalUsd || 0) > 0) ? 'USD' : 'PEN',
         tipo: this.normalizarTipoOrdenCompra(o.tipo),
         tipoActividad: this.normalizarTipoActividadOrdenCompra(o.tipoActividad),
         numeroLicitacion: o.numeroLicitacion || '',
@@ -645,10 +645,12 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       const licitacion = (orden.numeroLicitacion || '').trim();
       const solicitud = (orden.numeroSolicitud || '').trim();
       const total = Number(orden.total || 0);
+      const totalUsd = Number(orden.totalUsd || 0);
+      const moneda: MonedaRegistro = orden.moneda === 'USD' ? 'USD' : 'PEN';
 
       const clave = id > 0
         ? `id:${id}`
-        : `raw:${numero}|${fecha}|${tipo}|${licitacion}|${solicitud}|${total}`;
+        : `raw:${numero}|${fecha}|${tipo}|${licitacion}|${solicitud}|${moneda}|${total}|${totalUsd}`;
 
       if (!porClave.has(clave)) {
         porClave.set(clave, {
@@ -661,6 +663,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           numeroLicitacion: licitacion,
           numeroSolicitud: solicitud,
           total,
+          totalUsd,
+          moneda,
           fechaCreacion: orden.fechaCreacion,
           fechaActualizacion: orden.fechaActualizacion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
@@ -1021,6 +1025,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       numeroSolicitud: orden.numeroSolicitud,
       total: Number(orden.total || 0),
       totalUsd: Number(orden.totalUsd || 0),
+      moneda: (orden.moneda === 'USD' ? 'USD' : 'PEN') as MonedaRegistro,
       adjuntos: (orden.adjuntos || []).map((adjunto) => ({
         nombre: adjunto.nombre,
         tipo: adjunto.tipo,
@@ -1041,7 +1046,7 @@ export class ModalProcesoProyectoComponent implements OnChanges {
         numeroSolicitud: orden.numeroSolicitud || '',
         total: Number(orden.total || 0),
         totalUsd: Number(orden.totalUsd || 0),
-        moneda: Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : (ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN'),
+        moneda: orden.moneda === 'USD' ? 'USD' : (Number(orden.total || 0) <= 0 && Number(orden.totalUsd || 0) > 0 ? 'USD' : (ordenesNormalizadas[index]?.moneda === 'USD' ? 'USD' : 'PEN')),
         fechaCreacion: orden.fechaCreacion,
         fechaActualizacion: orden.fechaActualizacion,
         adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))
@@ -1061,11 +1066,13 @@ export class ModalProcesoProyectoComponent implements OnChanges {
       const numeroLicitacion = (orden.numeroLicitacion || '').trim();
       const numeroSolicitud = (orden.numeroSolicitud || '').trim();
       const total = Number(orden.total || 0);
+      const totalUsd = Number(orden.totalUsd || 0);
+      const moneda: MonedaRegistro = orden.moneda === 'USD' ? 'USD' : 'PEN';
       const id = Number(orden.id || 0);
 
       const clave = id > 0
         ? `id:${id}`
-        : `new:${numero}|${fecha}|${tipo}|${numeroLicitacion}|${numeroSolicitud}|${total}`;
+        : `new:${numero}|${fecha}|${tipo}|${numeroLicitacion}|${numeroSolicitud}|${moneda}|${total}|${totalUsd}`;
 
       if (!porClave.has(clave)) {
         porClave.set(clave, {
@@ -1077,7 +1084,8 @@ export class ModalProcesoProyectoComponent implements OnChanges {
           numeroLicitacion,
           numeroSolicitud,
           total,
-          moneda: orden.moneda === 'USD' ? 'USD' : 'PEN',
+          totalUsd,
+          moneda,
           fechaCreacion: orden.fechaCreacion,
           fechaActualizacion: orden.fechaActualizacion,
           adjuntos: (orden.adjuntos || []).map((adjunto) => ({ ...adjunto }))

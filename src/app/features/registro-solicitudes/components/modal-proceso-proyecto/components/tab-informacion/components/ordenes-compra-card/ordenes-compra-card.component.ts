@@ -40,7 +40,16 @@ export class OrdenesCompraCardComponent implements OnChanges {
   }
 
   cambiarMoneda(orden: OrdenCompra): void {
-    orden.moneda = orden.moneda === 'USD' ? 'PEN' : 'USD';
+    if (orden.moneda === 'USD') {
+      orden.total = Number(orden.totalUsd || 0);
+      orden.totalUsd = 0;
+      orden.moneda = 'PEN';
+      return;
+    }
+
+    orden.totalUsd = Number(orden.total || 0);
+    orden.total = 0;
+    orden.moneda = 'USD';
   }
 
   totalVisible(orden: OrdenCompra): number | undefined {
