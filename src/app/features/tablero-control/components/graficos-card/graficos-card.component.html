@@ -1,10 +1,10 @@
 <div class="chart-card bg-white dark:bg-gray-800 rounded-[1.25rem] shadow-sm p-3 md:p-4 flex-1 flex flex-col overflow-hidden min-h-0 border border-slate-200/70 dark:border-slate-700/70">
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-shrink-0">
-    <div class="min-w-0">
+  <div class="flex flex-shrink-0 items-center justify-between gap-2">
+    <div class="min-w-0 flex-1">
       <h3 class="text-sm md:text-base font-semibold text-gray-800 dark:text-white truncate">{{ tituloGrafico }}</h3>
     </div>
 
-    <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+    <div class="flex shrink-0 items-center justify-end gap-2">
       @if (compararMonedas) {
         <button type="button"
                 class="group relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50/90 text-slate-500 transition-colors hover:border-emerald-300 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:border-emerald-700 dark:hover:text-emerald-400"

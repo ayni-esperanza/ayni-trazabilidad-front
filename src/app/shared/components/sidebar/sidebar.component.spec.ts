@@ -109,4 +109,20 @@ describe('SidebarComponent', () => {
 
     expect(alertasServiceMock.refrescarAlertas).not.toHaveBeenCalled();
   });
+
+  it('keeps the mobile user menu open when showing its alerts panel', () => {
+    alertasServiceMock.refrescarAlertas.and.returnValue(of([]));
+    authServiceMock.getAccessToken.and.returnValue('token-activo');
+
+    const fixture = TestBed.createComponent(SidebarComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.showUserMenu.set(true);
+
+    fixture.componentInstance.toggleModalAlertas(undefined, true);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showUserMenu()).toBeTrue();
+    expect(fixture.componentInstance.mostrarModalAlertas()).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.sidebar-alertas-inline')).not.toBeNull();
+  });
 });

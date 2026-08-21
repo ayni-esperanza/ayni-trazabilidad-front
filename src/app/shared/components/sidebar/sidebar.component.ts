@@ -193,12 +193,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleModalAlertas(event?: Event): void {
+  toggleModalAlertas(event?: Event, mantenerMenuUsuario = false): void {
     event?.stopPropagation();
     const nuevoEstado = !this.mostrarModalAlertas();
     this.mostrarModalAlertas.set(nuevoEstado);
     if (nuevoEstado) {
-      this.showUserMenu.set(false);
+      if (!mantenerMenuUsuario) {
+        this.showUserMenu.set(false);
+      }
       this.actualizarAlertasRecientes();
     }
   }

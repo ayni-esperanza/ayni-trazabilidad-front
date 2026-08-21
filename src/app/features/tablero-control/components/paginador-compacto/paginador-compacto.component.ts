@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <div class="flex min-w-0 items-center justify-between gap-2 pt-2 text-[11px] text-gray-500 dark:text-gray-400">
       <span class="hidden min-w-0 truncate sm:block">Mostrando {{ desde }}&ndash;{{ hasta }} de {{ totalElements | number }}</span>
-      <span class="sm:hidden">Página {{ page + 1 }} de {{ totalPages || 1 }}</span>
+      <span class="sm:hidden">PÃ¡gina {{ page + 1 }} de {{ totalPages || 1 }}</span>
       <div class="flex shrink-0 items-center gap-1">
         <div class="relative hidden sm:block">
           <button type="button" (click)="toggleDropdown()" (blur)="cerrarDropdown()" [disabled]="loading"
@@ -27,10 +27,10 @@ import { CommonModule } from '@angular/common';
           }
         </div>
         @if (totalElements > size) {
-          <button type="button" (click)="anterior.emit()" [disabled]="page === 0 || loading" title="Página anterior" aria-label="Página anterior" class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-700">
+          <button type="button" (click)="anterior.emit()" [disabled]="page === 0 || loading" title="PÃ¡gina anterior" aria-label="PÃ¡gina anterior" class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7" /></svg>
           </button>
-          <button type="button" (click)="siguiente.emit()" [disabled]="page + 1 >= totalPages || loading" title="Página siguiente" aria-label="Página siguiente" class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-700">
+          <button type="button" (click)="siguiente.emit()" [disabled]="page + 1 >= totalPages || loading" title="PÃ¡gina siguiente" aria-label="PÃ¡gina siguiente" class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7" /></svg>
           </button>
         }

@@ -46,6 +46,27 @@
   fill: #cbd5e1;
 }
 
+@media (max-width: 767px) {
+  :host {
+    flex: none;
+    overflow: visible;
+  }
+
+  .chart-card {
+    flex: none;
+  }
+
+  .chart-frame {
+    flex: none;
+    height: clamp(17rem, 78vw, 20rem);
+  }
+
+  .chart-stage {
+    height: 100%;
+    min-height: 0;
+  }
+}
+
 @media (max-width: 640px) {
   .chart-widget ::ng-deep text {
     font-size: 10px;
